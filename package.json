@@ -1,0 +1,9 @@
+{
+  "name": "monno",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -r --parallel --stream run dev",
+    "build": "pnpm -r run build",
+    "start": "pnpm -r --parallel --stream run start"
+  }
+}
