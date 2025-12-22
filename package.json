@@ -4,6 +4,8 @@
   "scripts": {
     "dev": "pnpm -r --parallel --stream run dev",
     "build": "pnpm -r run build",
-    "start": "pnpm -r --parallel --stream run start"
+    "start": "pnpm -r --parallel --stream run start",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down"
   }
 }
