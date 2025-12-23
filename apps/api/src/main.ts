@@ -1,11 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger as Print } from '@nestjs/common';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
+import { TransformInterceptor } from './interceptors/transform.interceptor';
+import { Reflector } from '@nestjs/core';
 
 Print.log('Server running on port ' + process.env.PORT);
 Print.log('Database URL ' + process.env.DATABASE_URL);
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const reflector = app.get(Reflector);
+  app.useGlobalInterceptors(new TransformInterceptor(reflector));
+  app.useGlobalFilters(new AllExceptionsFilter());
   app.enableCors({
     origin: [
       'http://localhost:3001', // example: your Next.js dev server
