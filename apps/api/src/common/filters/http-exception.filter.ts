@@ -3,11 +3,13 @@ import {
   Catch,
   ArgumentsHost,
   HttpException,
+  Logger,
 } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
+  private readonly logger = new Logger(AllExceptionsFilter.name);
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
@@ -31,6 +33,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message = exception.message;
       errorName = exception.name;
     }
+
+    this.logger.error({
+      message:
+        exception instanceof Error ? exception.message : String(exception),
+      status: status,
+      path: request.url,
+      method: request.method,
+      stack: exception instanceof Error ? exception.stack : undefined,
+    });
 
     response.status(status).json({
       success: false,
