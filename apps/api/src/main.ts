@@ -10,6 +10,7 @@ import { CorrelationIdInterceptor } from './interceptors/correlation-id.intercep
 import { ProfilingInterceptor } from './interceptors/profiling.interceptor';
 import { RateLimitExceptionFilter } from './common/filters/rate-limit.filter';
 import { UserAwareThrottlerGuard } from './common/guards/throttle-user.guard';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 Print.log('Server running on port ' + process.env.PORT);
 Print.log('Database URL ' + process.env.DATABASE_URL);
@@ -40,6 +41,16 @@ async function bootstrap() {
     ],
     credentials: true,
   });
+  /* Swagger docs */
+  const config = new DocumentBuilder()
+    .setTitle('Monno: Next + Nest Fullstack API')
+    .setDescription('API documentation for your monorepo')
+    .setVersion('1.0')
+    .addBearerAuth() // enables JWT auth button
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('docs', app, document);
   await app.listen(process.env.PORT ?? 3001);
 }
 bootstrap();

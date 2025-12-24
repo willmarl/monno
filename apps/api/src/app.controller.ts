@@ -1,18 +1,46 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Throttle } from '@nestjs/throttler';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+@ApiTags('Generic / Health')
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @ApiOperation({ summary: 'Health check endpoint' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns a simple health check message',
+    schema: {
+      type: 'string',
+      example: 'Hello World!',
+    },
+  })
   @Get()
   getHello(): string {
     return this.appService.getHello();
   }
 
-  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 per minute - prevent bot signups
+  @ApiOperation({ summary: 'Test rate limiting' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns a rate limit test message',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: { type: 'string', example: 'OK' },
+        data: { type: 'string', example: 'Rate limit test' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 429,
+    description: 'Too many requests - rate limit exceeded (3 per minute)',
+  })
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 per minute
   @Get('rate')
-  getRate(): string {
+  getRateTest(): string {
     return this.appService.rateLimitTest();
   }
 }
