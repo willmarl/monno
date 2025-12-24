@@ -6,6 +6,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { RequestIdMiddleware } from './middleware/request-id.middleware';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { UserAwareThrottlerGuard } from './common/guards/throttle-user.guard';
+import { QueueModule } from './modules/queue/queue.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -72,9 +73,10 @@ import { UserAwareThrottlerGuard } from './common/guards/throttle-user.guard';
               },
       },
     }),
+    QueueModule,
   ],
   controllers: [AppController],
-  providers: [AppService, UserAwareThrottlerGuard],
+  providers: [AppService, UserAwareThrottlerGuard, QueueModule],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

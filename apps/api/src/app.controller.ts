@@ -43,4 +43,9 @@ export class AppController {
   getRateTest(): string {
     return this.appService.rateLimitTest();
   }
+
+  @Get('worker')
+  workerTest(): Promise<string> {
+    return this.appService.workerTest();
+  }
 }

@@ -1,0 +1,22 @@
+{
+  "name": "worker",
+  "version": "1.0.0",
+  "main": "src/worker",
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/worker",
+    "dev": "ts-node src/worker",
+    "start:prod": "node dist/worker"
+  },
+  "packageManager": "pnpm@10.15.1",
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "bullmq": "^5.65.0",
+    "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
