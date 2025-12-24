@@ -8,6 +8,8 @@ import { Logger } from 'nestjs-pino';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { CorrelationIdInterceptor } from './interceptors/correlation-id.interceptor';
 import { ProfilingInterceptor } from './interceptors/profiling.interceptor';
+import { RateLimitExceptionFilter } from './common/filters/rate-limit.filter';
+import { UserAwareThrottlerGuard } from './common/guards/throttle-user.guard';
 
 Print.log('Server running on port ' + process.env.PORT);
 Print.log('Database URL ' + process.env.DATABASE_URL);
@@ -26,6 +28,11 @@ async function bootstrap() {
     new ProfilingInterceptor(app.get(Logger)),
   );
 
+  app.useGlobalGuards(app.get(UserAwareThrottlerGuard));
+  app.useGlobalFilters(
+    new AllExceptionsFilter(),
+    new RateLimitExceptionFilter(),
+  );
   app.enableCors({
     origin: [
       'http://localhost:3001', // example: your Next.js dev server

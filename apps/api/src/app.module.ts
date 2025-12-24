@@ -4,11 +4,20 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 import { RequestIdMiddleware } from './middleware/request-id.middleware';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { UserAwareThrottlerGuard } from './common/guards/throttle-user.guard';
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    // Rate limiting with Redis storage
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 60 seconds in milliseconds
+        limit: 1000, // 1000 requests per 60 seconds globally
+      },
+    ]),
     // Configure Pino HTTP logger
     LoggerModule.forRoot({
       pinoHttp: {
@@ -65,7 +74,7 @@ import { RequestIdMiddleware } from './middleware/request-id.middleware';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, UserAwareThrottlerGuard],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
