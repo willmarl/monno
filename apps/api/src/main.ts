@@ -12,6 +12,7 @@ import { RateLimitExceptionFilter } from './common/filters/rate-limit.filter';
 import { UserAwareThrottlerGuard } from './common/guards/throttle-user.guard';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
 
 Print.log('Server running on port ' + process.env.PORT);
 Print.log('Database URL ' + process.env.DATABASE_URL);
@@ -29,6 +30,7 @@ async function bootstrap() {
     new CorrelationIdInterceptor(app.get(Logger)),
     new ProfilingInterceptor(app.get(Logger)),
   );
+  app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
