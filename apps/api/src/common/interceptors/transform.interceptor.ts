@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable, map } from 'rxjs';
-import { SUCCESS_MESSAGE_KEY } from '../decorators/success-message.decorator';
+import { SUCCESS_MESSAGE_KEY } from '../../decorators/success-message.decorator';
 
 @Injectable()
 export class TransformInterceptor implements NestInterceptor {
