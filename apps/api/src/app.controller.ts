@@ -1,7 +1,9 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Throttle } from '@nestjs/throttler';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAccessGuard } from './modules/auth/guards/jwt-access.guard';
+
 @ApiTags('Generic / Health')
 @Controller()
 export class AppController {
@@ -47,5 +49,11 @@ export class AppController {
   @Get('worker')
   workerTest(): Promise<string> {
     return this.appService.workerTest();
+  }
+
+  @UseGuards(JwtAccessGuard)
+  @Get('userNeeded')
+  userOnlyTest(): string {
+    return this.appService.userOnlyTest();
   }
 }

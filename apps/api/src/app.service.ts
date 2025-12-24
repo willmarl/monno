@@ -17,4 +17,8 @@ export class AppService {
     await this.queue.enqueueDemo();
     return 'New job should be proccessed by bullMQ';
   }
+
+  userOnlyTest(): string {
+    return 'You should only read this if you are logged in';
+  }
 }
