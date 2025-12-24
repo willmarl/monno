@@ -21,4 +21,8 @@ export class AppService {
   userOnlyTest(): string {
     return 'You should only read this if you are logged in';
   }
+
+  adminOnlyTest(): string {
+    return 'Only admin should be able to read this';
+  }
 }

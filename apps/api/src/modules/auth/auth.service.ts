@@ -33,7 +33,11 @@ export class AuthService {
   }
 
   async issueTokens(userId: number) {
-    const payload = { sub: userId };
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) throw new UnauthorizedException('User not found');
+
+    const payload = { sub: userId, role: user.role };
 
     const accessToken = this.jwt.sign(payload, {
       expiresIn: '15m',

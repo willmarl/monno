@@ -3,6 +3,8 @@ import { AppService } from './app.service';
 import { Throttle } from '@nestjs/throttler';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAccessGuard } from './modules/auth/guards/jwt-access.guard';
+import { Roles } from './decorators/roles.decorator';
+import { RolesGuard } from './common/guards/roles.guard';
 
 @ApiTags('Generic / Health')
 @Controller()
@@ -55,5 +57,12 @@ export class AppController {
   @Get('userNeeded')
   userOnlyTest(): string {
     return this.appService.userOnlyTest();
+  }
+
+  @UseGuards(JwtAccessGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Get('adminOnly')
+  adminOnlyTest(): string {
+    return this.appService.adminOnlyTest();
   }
 }
