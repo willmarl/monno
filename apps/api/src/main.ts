@@ -11,6 +11,7 @@ import { ProfilingInterceptor } from './interceptors/profiling.interceptor';
 import { RateLimitExceptionFilter } from './common/filters/rate-limit.filter';
 import { UserAwareThrottlerGuard } from './common/guards/throttle-user.guard';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
 
 Print.log('Server running on port ' + process.env.PORT);
 Print.log('Database URL ' + process.env.DATABASE_URL);
@@ -28,7 +29,20 @@ async function bootstrap() {
     new CorrelationIdInterceptor(app.get(Logger)),
     new ProfilingInterceptor(app.get(Logger)),
   );
-
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+      validationError: {
+        target: false,
+        value: false,
+      },
+    }),
+  );
   app.useGlobalGuards(app.get(UserAwareThrottlerGuard));
   app.useGlobalFilters(
     new AllExceptionsFilter(),
