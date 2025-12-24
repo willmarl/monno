@@ -69,4 +69,11 @@ export class AuthService {
 
     return this.issueTokens(user.id);
   }
+
+  async clearRefreshToken(userId: number) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { refreshToken: null },
+    });
+  }
 }
