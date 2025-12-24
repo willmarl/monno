@@ -7,6 +7,7 @@ import { RequestIdMiddleware } from './middleware/request-id.middleware';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { UserAwareThrottlerGuard } from './common/guards/throttle-user.guard';
 import { QueueModule } from './modules/queue/queue.module';
+import { UsersModule } from './modules/users/users.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -74,6 +75,7 @@ import { QueueModule } from './modules/queue/queue.module';
       },
     }),
     QueueModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserAwareThrottlerGuard, QueueModule],
