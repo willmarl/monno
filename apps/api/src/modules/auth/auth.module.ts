@@ -8,11 +8,15 @@ import { UsersService } from '../users/users.service';
 import { AccessTokenStrategy } from './strategies/access.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { RefreshTokenStrategy } from './strategies/refresh.strategy';
+import { GeolocationModule } from '../../common/geolocation/geolocation.module';
+import { RiskScoringModule } from '../../common/risk-scoring/risk-scoring.module';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
+    GeolocationModule,
+    RiskScoringModule,
     JwtModule.register({}), // configure tokens in service
   ],
   controllers: [AuthController],

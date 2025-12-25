@@ -32,6 +32,15 @@ export class SessionsController {
         createdAt: true,
         lastUsedAt: true,
         isValid: true,
+        // Geolocation fields
+        location: true,
+        country: true,
+        latitude: true,
+        longitude: true,
+        // Risk scoring fields
+        riskScore: true,
+        isNewLocation: true,
+        isNewDevice: true,
       },
       orderBy: { lastUsedAt: 'desc' },
     });

@@ -6,6 +6,8 @@ import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma.service';
 import { Request } from 'express';
+import { GeolocationService } from '../../common/geolocation/geolocation.service';
+import { RiskScoringService } from '../../common/risk-scoring/risk-scoring.service';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +15,8 @@ export class AuthService {
     private usersService: UsersService,
     private prisma: PrismaService,
     private jwt: JwtService,
+    private geolocationService: GeolocationService,
+    private riskScoringService: RiskScoringService,
   ) {}
 
   async register(data: RegisterDto, req: Request) {
@@ -77,12 +81,33 @@ export class AuthService {
     // If sessionMetadata provided, create a new session (login flow)
     // Otherwise, just update user's refresh token (backward compatibility for register)
     if (sessionMetadata) {
+      // Get geolocation for the IP
+      const geo = await this.geolocationService.getGeolocation(
+        sessionMetadata.ipAddress,
+      );
+
+      // Assess risk based on login patterns
+      const riskAssessment = await this.riskScoringService.assessLoginRisk(
+        userId,
+        sessionMetadata.userAgent,
+        sessionMetadata.ipAddress,
+        geo?.countryCode || null,
+      );
+
+      // Create session with all metadata
       const session = await this.prisma.session.create({
         data: {
           userId,
           refreshTokenHash: hashedRt,
           userAgent: sessionMetadata.userAgent,
           ipAddress: sessionMetadata.ipAddress,
+          location: geo ? this.geolocationService.formatLocation(geo) : null,
+          country: geo?.countryCode || null,
+          latitude: geo?.latitude || null,
+          longitude: geo?.longitude || null,
+          riskScore: riskAssessment.riskScore,
+          isNewLocation: riskAssessment.isNewLocation,
+          isNewDevice: riskAssessment.isNewDevice,
         },
       });
 
