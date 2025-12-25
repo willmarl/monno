@@ -20,8 +20,12 @@ export class AuthController {
   })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   @Post('register')
-  async register(@Body() body: RegisterDto, @Res({ passthrough: true }) res) {
-    const tokens = await this.authService.register(body);
+  async register(
+    @Body() body: RegisterDto,
+    @Req() req,
+    @Res({ passthrough: true }) res,
+  ) {
+    const tokens = await this.authService.register(body, req);
 
     res.cookie('accessToken', tokens.accessToken, {
       httpOnly: true,
@@ -34,6 +38,14 @@ export class AuthController {
       sameSite: 'strict',
       path: '/',
     });
+
+    if (tokens.sessionId) {
+      res.cookie('sessionId', tokens.sessionId, {
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/',
+      });
+    }
 
     return { success: true };
   }
@@ -47,8 +59,12 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   @Post('login')
-  async login(@Body() body: LoginDto, @Res({ passthrough: true }) res) {
-    const tokens = await this.authService.login(body);
+  async login(
+    @Body() body: LoginDto,
+    @Req() req,
+    @Res({ passthrough: true }) res,
+  ) {
+    const tokens = await this.authService.login(body, req);
 
     res.cookie('accessToken', tokens.accessToken, {
       httpOnly: true,
@@ -61,6 +77,14 @@ export class AuthController {
       sameSite: 'strict',
       path: '/',
     });
+
+    if (tokens.sessionId) {
+      res.cookie('sessionId', tokens.sessionId, {
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/',
+      });
+    }
 
     return { success: true };
   }
@@ -75,16 +99,48 @@ export class AuthController {
   @UseGuards(JwtAccessGuard)
   @Post('logout')
   async logout(@Req() req, @Res({ passthrough: true }) res) {
-    const userId = req.user.sub;
+    const sessionId = req.cookies['sessionId'];
 
-    await this.authService.clearRefreshToken(userId);
+    // Invalidate session if it exists
+    if (sessionId) {
+      await this.authService.invalidateSession(sessionId);
+    }
 
-    // clear cookies
+    // Clear cookies
     res.cookie('accessToken', '', {
       httpOnly: true,
       expires: new Date(0),
     });
     res.cookie('refreshToken', '', {
+      httpOnly: true,
+      expires: new Date(0),
+    });
+    res.cookie('sessionId', '', {
+      httpOnly: true,
+      expires: new Date(0),
+    });
+
+    return { success: true };
+  }
+
+  @UseGuards(JwtAccessGuard)
+  @Post('logout-all')
+  async logoutAll(@Req() req, @Res({ passthrough: true }) res) {
+    const userId = req.user.sub;
+
+    // Invalidate all sessions for this user
+    await this.authService.invalidateAllSessions(userId);
+
+    // Clear cookies
+    res.cookie('accessToken', '', {
+      httpOnly: true,
+      expires: new Date(0),
+    });
+    res.cookie('refreshToken', '', {
+      httpOnly: true,
+      expires: new Date(0),
+    });
+    res.cookie('sessionId', '', {
       httpOnly: true,
       expires: new Date(0),
     });
@@ -103,21 +159,39 @@ export class AuthController {
   @Post('refresh')
   async refresh(@Req() req, @Res({ passthrough: true }) res) {
     const { sub: userId, refreshToken } = req.user;
+    const sessionId = req.cookies['sessionId'];
 
-    const { accessToken, refreshToken: newRefresh } =
-      await this.authService.refreshTokens(userId, refreshToken);
+    // Try session-based refresh first (if sessionId exists)
+    // Fall back to user-based refresh for backward compatibility
+    let result;
+    if (sessionId) {
+      result = await this.authService.refreshTokensBySession(
+        sessionId,
+        refreshToken,
+      );
+    } else {
+      result = await this.authService.refreshTokens(userId, refreshToken);
+    }
 
-    res.cookie('accessToken', accessToken, {
+    res.cookie('accessToken', result.accessToken, {
       httpOnly: true,
       sameSite: 'strict',
       path: '/',
     });
 
-    res.cookie('refreshToken', newRefresh, {
+    res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
       sameSite: 'strict',
       path: '/',
     });
+
+    if (result.sessionId) {
+      res.cookie('sessionId', result.sessionId, {
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/',
+      });
+    }
 
     return { success: true };
   }

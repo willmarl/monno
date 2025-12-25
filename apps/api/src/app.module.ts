@@ -9,6 +9,7 @@ import { UserAwareThrottlerGuard } from './common/guards/throttle-user.guard';
 import { QueueModule } from './modules/queue/queue.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { SessionsModule } from './modules/sessions/sessions.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -78,6 +79,7 @@ import { AuthModule } from './modules/auth/auth.module';
     QueueModule,
     UsersModule,
     AuthModule,
+    SessionsModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserAwareThrottlerGuard, QueueModule],
