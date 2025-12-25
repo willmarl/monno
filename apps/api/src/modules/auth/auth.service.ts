@@ -22,7 +22,7 @@ export class AuthService {
   }
 
   async login({ username, password }: LoginDto) {
-    const user = await this.usersService.findByUsername(username);
+    const user = await this.usersService.findByUsernameAuth(username);
 
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
