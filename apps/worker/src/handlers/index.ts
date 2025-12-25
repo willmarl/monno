@@ -1,4 +1,5 @@
 import { demoHandler } from "./demo.handler";
+import { sessionCleanupHandler } from "./session-cleanup.handler";
 
 /**
  * Map of job names to their handler functions
@@ -7,6 +8,7 @@ import { demoHandler } from "./demo.handler";
  */
 export const handlers: Record<string, (data: any) => Promise<void>> = {
   demo: demoHandler,
+  "session-cleanup": sessionCleanupHandler,
   // Future handlers:
   // video: videoHandler,
   // document: documentHandler,

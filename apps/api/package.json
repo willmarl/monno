@@ -51,6 +51,8 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@bull-board/api": "^6.16.1",
+    "@bull-board/express": "^6.16.1",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.0",

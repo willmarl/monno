@@ -41,6 +41,12 @@ export class AccessTokenStrategy extends PassportStrategy(
       throw new UnauthorizedException('Session is invalid or expired');
     }
 
+    // Check if session has expired
+    const now = new Date();
+    if (session.expiresAt && session.expiresAt < now) {
+      throw new UnauthorizedException('Session has expired');
+    }
+
     return payload; // attaches payload to req.user
   }
 }
