@@ -1,13 +1,24 @@
 import { Controller, Post, Body, Req, UseGuards, Res } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAccessGuard } from './guards/jwt-access.guard';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
+
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiBody({ type: RegisterDto })
+  @ApiResponse({
+    status: 201,
+    description: 'User successfully registered, tokens set in cookies',
+    schema: { example: { success: true } },
+  })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
   @Post('register')
   async register(@Body() body: RegisterDto, @Res({ passthrough: true }) res) {
     const tokens = await this.authService.register(body);
@@ -27,6 +38,14 @@ export class AuthController {
     return { success: true };
   }
 
+  @ApiOperation({ summary: 'Log in with username and password' })
+  @ApiBody({ type: LoginDto })
+  @ApiResponse({
+    status: 201,
+    description: 'User successfully logged in, tokens set in cookies',
+    schema: { example: { success: true } },
+  })
+  @ApiResponse({ status: 401, description: 'Invalid credentials' })
   @Post('login')
   async login(@Body() body: LoginDto, @Res({ passthrough: true }) res) {
     const tokens = await this.authService.login(body);
@@ -46,6 +65,13 @@ export class AuthController {
     return { success: true };
   }
 
+  @ApiOperation({ summary: 'Log out the current user' })
+  @ApiResponse({
+    status: 201,
+    description: 'User successfully logged out, tokens cleared',
+    schema: { example: { success: true } },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @UseGuards(JwtAccessGuard)
   @Post('logout')
   async logout(@Req() req, @Res({ passthrough: true }) res) {
@@ -66,6 +92,13 @@ export class AuthController {
     return { success: true };
   }
 
+  @ApiOperation({ summary: 'Refresh access and refresh tokens' })
+  @ApiResponse({
+    status: 201,
+    description: 'Tokens successfully refreshed',
+    schema: { example: { success: true } },
+  })
+  @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
   async refresh(@Req() req, @Res({ passthrough: true }) res) {
