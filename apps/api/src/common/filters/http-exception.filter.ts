@@ -16,21 +16,44 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const request = ctx.getRequest();
 
     let status = 500;
-    let message = 'Internal server error';
+    let message: string | string[] = 'Internal server error';
     let errorName = 'InternalServerError';
 
     // Prisma unique violation
     if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       if (exception.code === 'P2002') {
         status = 409; // Conflict
-        message = `Unique constraint failed: ${exception?.meta?.target}`;
+        let field = 'unknown field';
+
+        // Try to extract field from constraint name in error message
+        const cause = (exception?.meta as any)?.driverAdapterError?.cause;
+        if (cause?.originalMessage) {
+          const match = cause.originalMessage.match(/"User_(\w+)_key"/);
+          if (match) {
+            field = match[1];
+          }
+        }
+
+        message = `${field} already exists`;
         errorName = 'ConflictException';
       }
     }
     // NestJS HttpExceptions
     else if (exception instanceof HttpException) {
       status = exception.getStatus();
-      message = exception.message;
+      const exceptionResponse = exception.getResponse();
+
+      // Extract validation error messages if they exist
+      if (
+        typeof exceptionResponse === 'object' &&
+        'message' in exceptionResponse &&
+        Array.isArray(exceptionResponse.message)
+      ) {
+        message = exceptionResponse.message;
+      } else {
+        message = exception.message;
+      }
+
       errorName = exception.name;
     }
 
