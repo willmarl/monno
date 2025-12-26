@@ -11,6 +11,7 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { FilesModule } from './modules/files/files.module';
+import { EmailModule } from './common/email/email.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -82,6 +83,7 @@ import { FilesModule } from './modules/files/files.module';
     AuthModule,
     SessionsModule,
     FilesModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserAwareThrottlerGuard, QueueModule],

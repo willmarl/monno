@@ -80,4 +80,26 @@ export class QueueService implements OnModuleInit {
   getJobsQueue(): Queue {
     return this.jobsQueue;
   }
+
+  /**
+   * Enqueue an email job
+   * @param to - Recipient email address
+   * @param subject - Email subject
+   * @param htmlContent - Email HTML content
+   * @param templateName - Name of the template (for logging/tracking)
+   */
+  async enqueueEmail(
+    to: string,
+    subject: string,
+    htmlContent: string,
+    templateName: string = 'generic',
+  ): Promise<void> {
+    await this.jobsQueue.add('send-email', {
+      to,
+      subject,
+      htmlContent,
+      templateName,
+    });
+    this.logger.debug(`Email job enqueued: ${templateName} to ${to}`);
+  }
 }
