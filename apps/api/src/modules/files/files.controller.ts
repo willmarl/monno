@@ -1,4 +1,5 @@
 import { Controller, Get, Param, Res } from '@nestjs/common';
+import { ApiExcludeEndpoint } from '@nestjs/swagger';
 import type { Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -10,6 +11,7 @@ export class FilesController {
    * This endpoint is only used when STORAGE_BACKEND=local
    * For S3, files are served directly from the S3 URL
    */
+  @ApiExcludeEndpoint()
   @Get(':type/:filename')
   serveFile(
     @Param('type') type: string,
