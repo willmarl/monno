@@ -9,10 +9,15 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { FileProcessingService } from '../../common/file-processing/file-processing.service';
+import { uploadLocation } from '../../common/file-processing/upload-location';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private fileProcessing: FileProcessingService,
+  ) {}
   //==============
   //   Admin
   //==============
@@ -27,6 +32,7 @@ export class UsersService {
       select: {
         id: true,
         username: true,
+        avatarPath: true,
         email: true,
         createdAt: true,
         updatedAt: true,
@@ -40,6 +46,7 @@ export class UsersService {
       select: {
         id: true,
         username: true,
+        avatarPath: true,
         email: true,
         createdAt: true,
         updatedAt: true,
@@ -54,6 +61,7 @@ export class UsersService {
       select: {
         id: true,
         username: true,
+        avatarPath: true,
         email: true,
         createdAt: true,
         updatedAt: true,
@@ -62,9 +70,39 @@ export class UsersService {
     });
   }
 
-  async update(id: number, data: UpdateUserDto) {
+  async update(id: number, data: UpdateUserDto, file?: any) {
     if (data.password) {
       data.password = await bcrypt.hash(data.password, 10);
+    }
+
+    // If file is provided, process it using FileProcessingService
+    if (file) {
+      try {
+        // Get the current user to retrieve old avatar path
+        const currentUser = await this.prisma.user.findUnique({
+          where: { id },
+          select: { avatarPath: true },
+        });
+
+        // Delete old avatar if it exists
+        if (currentUser?.avatarPath) {
+          await this.fileProcessing.deleteFile(currentUser.avatarPath);
+        }
+
+        const fileType = uploadLocation('/avatars');
+        const avatarPath = await this.fileProcessing.processFile(
+          file,
+          fileType,
+          id,
+        );
+        data.avatarPath = avatarPath;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Failed to process avatar file';
+        throw new BadRequestException(errorMessage);
+      }
     }
 
     return this.prisma.user.update({
@@ -73,6 +111,7 @@ export class UsersService {
       select: {
         id: true,
         username: true,
+        avatarPath: true,
         email: true,
         createdAt: true,
         updatedAt: true,
@@ -87,6 +126,7 @@ export class UsersService {
       select: {
         id: true,
         username: true,
+        avatarPath: true,
         email: true,
         createdAt: true,
         updatedAt: true,
@@ -115,6 +155,7 @@ export class UsersService {
       select: {
         id: true,
         username: true,
+        avatarPath: true,
       },
     });
   }
@@ -123,13 +164,44 @@ export class UsersService {
   //   Self
   //==============
 
-  async updateProfile(userId: number, data: UpdateProfileDto) {
+  async updateProfile(userId: number, data: UpdateProfileDto, file?: any) {
+    // If file is provided, process it using FileProcessingService
+    if (file) {
+      try {
+        // Get the current user to retrieve old avatar path
+        const currentUser = await this.prisma.user.findUnique({
+          where: { id: userId },
+          select: { avatarPath: true },
+        });
+
+        // Delete old avatar if it exists
+        if (currentUser?.avatarPath) {
+          await this.fileProcessing.deleteFile(currentUser.avatarPath);
+        }
+
+        const fileType = uploadLocation('/avatars');
+        const avatarPath = await this.fileProcessing.processFile(
+          file,
+          fileType,
+          userId,
+        );
+        data.avatarPath = avatarPath;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Failed to process avatar file';
+        throw new BadRequestException(errorMessage);
+      }
+    }
+
     return this.prisma.user.update({
       where: { id: userId },
       data,
       select: {
         id: true,
         username: true,
+        avatarPath: true,
         email: true,
         createdAt: true,
         role: true,
@@ -159,6 +231,7 @@ export class UsersService {
       select: {
         id: true,
         username: true,
+        avatarPath: true,
         email: true,
         createdAt: true,
         role: true,

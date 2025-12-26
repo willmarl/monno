@@ -27,7 +27,8 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { Roles } from '../../decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
-
+import { UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
@@ -61,9 +62,14 @@ export class UsersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @UseGuards(JwtAccessGuard)
   @Patch('me')
-  updateMe(@Req() req: any, @Body() body: UpdateProfileDto) {
+  @UseInterceptors(FileInterceptor('avatar'))
+  updateMe(
+    @Req() req: any,
+    @Body() body: UpdateProfileDto,
+    @UploadedFile() file?: any,
+  ) {
     const userId = req.user.sub;
-    return this.usersService.updateProfile(userId, body);
+    return this.usersService.updateProfile(userId, body, file);
   }
 
   @ApiOperation({ summary: 'Change current user password' })
@@ -176,8 +182,13 @@ export class UsersController {
   @UseGuards(JwtAccessGuard, RolesGuard)
   @Roles('ADMIN')
   @Patch('id/:id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateUserDto) {
-    return this.usersService.update(id, body);
+  @UseInterceptors(FileInterceptor('avatar'))
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateUserDto,
+    @UploadedFile() file?: any,
+  ) {
+    return this.usersService.update(id, body, file);
   }
 
   @ApiOperation({ summary: 'Delete a user (admin only)' })

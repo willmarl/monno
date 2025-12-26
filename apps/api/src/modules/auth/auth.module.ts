@@ -10,6 +10,7 @@ import { PassportModule } from '@nestjs/passport';
 import { RefreshTokenStrategy } from './strategies/refresh.strategy';
 import { GeolocationModule } from '../../common/geolocation/geolocation.module';
 import { RiskScoringModule } from '../../common/risk-scoring/risk-scoring.module';
+import { FileProcessingModule } from '../../common/file-processing/file-processing.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { RiskScoringModule } from '../../common/risk-scoring/risk-scoring.module
     PassportModule,
     GeolocationModule,
     RiskScoringModule,
+    FileProcessingModule,
     JwtModule.register({}), // configure tokens in service
   ],
   controllers: [AuthController],

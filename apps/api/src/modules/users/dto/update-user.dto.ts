@@ -22,6 +22,14 @@ export class UpdateUserDto {
   username?: string;
 
   @ApiPropertyOptional({
+    description: 'Avatar path or URL for the user',
+    example: '/avatars/user-avatar.jpg',
+  })
+  @IsOptional()
+  @IsString()
+  avatarPath?: string;
+
+  @ApiPropertyOptional({
     description: 'Email address of the user',
     example: 'john@example.com',
     maxLength: 256,
