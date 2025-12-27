@@ -26,16 +26,20 @@ enum Role {
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
-  username     String    @unique
-  avatarPath   String?
-  email        String?   @unique
-  password     String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  refreshToken String?
-  role         Role      @default(USER)
-  sessions     Session[]
+  id                      Int                      @id @default(autoincrement())
+  username                String                   @unique
+  avatarPath              String?
+  email                   String?                  @unique
+  password                String
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  refreshToken            String?
+  role                    Role                     @default(USER)
+  sessions                Session[]
+  // Email section
+  emailVerifiedAt         DateTime?
+  isEmailVerified         Boolean                  @default(false)
+  emailVerificationTokens EmailVerificationToken[]
 }
 
 model Session {
@@ -65,4 +69,17 @@ model Session {
 
   @@index([userId])
   @@index([expiresAt]) // Index for cleanup queries
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(uuid())
+  userId    Int
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

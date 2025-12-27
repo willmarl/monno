@@ -11,7 +11,9 @@ import { RefreshTokenStrategy } from './strategies/refresh.strategy';
 import { GeolocationModule } from '../../common/geolocation/geolocation.module';
 import { RiskScoringModule } from '../../common/risk-scoring/risk-scoring.module';
 import { FileProcessingModule } from '../../common/file-processing/file-processing.module';
-
+import { QueueModule } from '../queue/queue.module';
+import { EmailVerificationService } from './email-verification.service';
+import { EmailVerificationController } from './email-verification.controller';
 @Module({
   imports: [
     UsersModule,
@@ -19,15 +21,18 @@ import { FileProcessingModule } from '../../common/file-processing/file-processi
     GeolocationModule,
     RiskScoringModule,
     FileProcessingModule,
+    QueueModule,
     JwtModule.register({}), // configure tokens in service
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, EmailVerificationController],
   providers: [
     AuthService,
     PrismaService,
     UsersService,
     AccessTokenStrategy,
     RefreshTokenStrategy,
+    EmailVerificationService,
   ],
+  exports: [EmailVerificationService],
 })
 export class AuthModule {}

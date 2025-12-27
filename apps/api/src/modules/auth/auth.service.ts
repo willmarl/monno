@@ -8,6 +8,7 @@ import { PrismaService } from '../../prisma.service';
 import { Request } from 'express';
 import { GeolocationService } from '../../common/geolocation/geolocation.service';
 import { RiskScoringService } from '../../common/risk-scoring/risk-scoring.service';
+import { EmailVerificationService } from './email-verification.service';
 
 @Injectable()
 export class AuthService {
@@ -17,10 +18,18 @@ export class AuthService {
     private jwt: JwtService,
     private geolocationService: GeolocationService,
     private riskScoringService: RiskScoringService,
+    private emailVerification: EmailVerificationService,
   ) {}
 
   async register(data: RegisterDto, req: Request) {
     const user = await this.usersService.create(data);
+
+    // Fire & forget: send verification email if email exists
+    if (user.email) {
+      this.emailVerification.sendVerificationEmail(user.id).catch((err) => {
+        console.error('[Auth] Failed to send verification email:', err);
+      });
+    }
 
     // Provide tokens immediately on register with session metadata
     const userAgent = req.headers['user-agent'] || 'unknown';

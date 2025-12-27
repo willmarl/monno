@@ -37,6 +37,7 @@ export class UsersService {
         createdAt: true,
         updatedAt: true,
         role: true,
+        isEmailVerified: true,
       },
     });
   }
@@ -51,6 +52,7 @@ export class UsersService {
         createdAt: true,
         updatedAt: true,
         role: true,
+        isEmailVerified: true,
       },
     });
   }
@@ -66,6 +68,7 @@ export class UsersService {
         createdAt: true,
         updatedAt: true,
         role: true,
+        isEmailVerified: true,
       },
     });
   }
@@ -116,6 +119,7 @@ export class UsersService {
         createdAt: true,
         updatedAt: true,
         role: true,
+        isEmailVerified: true,
       },
     });
   }
@@ -131,6 +135,7 @@ export class UsersService {
         createdAt: true,
         updatedAt: true,
         role: true,
+        isEmailVerified: true,
       },
     });
   }
@@ -205,6 +210,7 @@ export class UsersService {
         email: true,
         createdAt: true,
         role: true,
+        isEmailVerified: true,
       },
     });
   }
@@ -235,6 +241,7 @@ export class UsersService {
         email: true,
         createdAt: true,
         role: true,
+        isEmailVerified: true,
       },
     });
   }
