@@ -12,6 +12,8 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { FileProcessingService } from '../../common/file-processing/file-processing.service';
 import { uploadLocation } from '../../common/file-processing/upload-location';
 import { EmailVerificationService } from '../auth/email-verification.service';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 
 @Injectable()
 export class UsersService {
@@ -67,20 +69,32 @@ export class UsersService {
     }
   }
 
-  findAll() {
-    return this.prisma.user.findMany({
-      select: {
-        id: true,
-        username: true,
-        avatarPath: true,
-        email: true,
-        tempEmail: true,
-        createdAt: true,
-        updatedAt: true,
-        role: true,
-        isEmailVerified: true,
+  async findAll(pag: PaginationDto) {
+    const { items, pageInfo } = await offsetPaginate({
+      prisma: this.prisma,
+      model: 'user',
+      limit: pag.limit ?? 10,
+      offset: pag.offset ?? 0,
+      query: {
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          username: true,
+          avatarPath: true,
+          email: true,
+          tempEmail: true,
+          createdAt: true,
+          updatedAt: true,
+          role: true,
+          isEmailVerified: true,
+        },
       },
     });
+
+    return {
+      items,
+      pageInfo,
+    };
   }
 
   async findById(id: number) {
@@ -198,6 +212,28 @@ export class UsersService {
         avatarPath: true,
       },
     });
+  }
+
+  async findAllPublic(pag: PaginationDto) {
+    const { items, pageInfo } = await offsetPaginate({
+      prisma: this.prisma,
+      model: 'user',
+      limit: pag.limit ?? 10,
+      offset: pag.offset ?? 0,
+      query: {
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          username: true,
+          avatarPath: true,
+        },
+      },
+    });
+
+    return {
+      items,
+      pageInfo,
+    };
   }
 
   //==============

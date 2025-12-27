@@ -8,6 +8,8 @@ import {
   Delete,
   ParseIntPipe,
   UseGuards,
+  Query,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -16,6 +18,7 @@ import {
   ApiBody,
   ApiParam,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { Roles } from '../../decorators/roles.decorator';
@@ -24,6 +27,7 @@ import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UpdateUserDto } from '../users/dto/update-user.dto';
 import { UploadedFile } from '@nestjs/common';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 
 @ApiTags('admin-users')
 @Controller('admin/users')
@@ -41,8 +45,10 @@ export class AdminUsersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'offset', required: false })
+  findAll(@Query() pag: PaginationDto) {
+    return this.usersService.findAll(pag);
   }
 
   @ApiOperation({ summary: 'Find user by ID (admin only)' })

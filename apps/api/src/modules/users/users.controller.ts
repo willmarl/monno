@@ -17,6 +17,7 @@ import {
   ApiBody,
   ApiParam,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 
 import { UsersService } from './users.service';
@@ -29,6 +30,9 @@ import { Roles } from '../../decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Query } from '@nestjs/common';
+import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
+import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
@@ -105,5 +109,12 @@ export class UsersController {
   @Get('username/:username')
   findByUsername(@Param('username') username: string) {
     return this.usersService.findByUsername(username);
+  }
+
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'offset', required: false })
+  @Get()
+  findAllPublic(@Query() pag: PaginationDto) {
+    return this.usersService.findAllPublic(pag);
   }
 }
