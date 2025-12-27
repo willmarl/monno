@@ -14,6 +14,8 @@ import { FileProcessingModule } from '../../common/file-processing/file-processi
 import { QueueModule } from '../queue/queue.module';
 import { EmailVerificationService } from './email-verification.service';
 import { EmailVerificationController } from './email-verification.controller';
+import { PasswordResetService } from './password-reset.service';
+import { PasswordResetController } from './password-reset.controller';
 @Module({
   imports: [
     forwardRef(() => UsersModule),
@@ -24,7 +26,11 @@ import { EmailVerificationController } from './email-verification.controller';
     QueueModule,
     JwtModule.register({}), // configure tokens in service
   ],
-  controllers: [AuthController, EmailVerificationController],
+  controllers: [
+    AuthController,
+    EmailVerificationController,
+    PasswordResetController,
+  ],
   providers: [
     AuthService,
     PrismaService,
@@ -32,7 +38,8 @@ import { EmailVerificationController } from './email-verification.controller';
     AccessTokenStrategy,
     RefreshTokenStrategy,
     EmailVerificationService,
+    PasswordResetService,
   ],
-  exports: [EmailVerificationService],
+  exports: [EmailVerificationService, PasswordResetService],
 })
 export class AuthModule {}

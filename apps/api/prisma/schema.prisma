@@ -36,6 +36,7 @@ model User {
   refreshToken            String?
   role                    Role                     @default(USER)
   sessions                Session[]
+  passwordResetTokens     PasswordResetToken[]
   // Email section
   tempEmail               String? // Temporary email awaiting verification
   emailVerifiedAt         DateTime?
@@ -73,6 +74,19 @@ model Session {
 }
 
 model EmailVerificationToken {
+  id        String    @id @default(uuid())
+  userId    Int
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
   id        String    @id @default(uuid())
   userId    Int
   token     String    @unique
