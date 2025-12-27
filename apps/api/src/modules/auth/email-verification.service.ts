@@ -34,8 +34,14 @@ export class EmailVerificationService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) throw new NotFoundException('User not found');
-    if (!user.email) throw new BadRequestException('User has no email set');
-    if (user.isEmailVerified) {
+
+    // Use tempEmail if it exists (email change case), otherwise use primary email
+    const emailToVerify = user.tempEmail || user.email;
+    if (!emailToVerify) throw new BadRequestException('User has no email set');
+
+    // If user has tempEmail, they're changing their email - allow verification
+    // If user has no tempEmail and email is already verified, deny
+    if (!user.tempEmail && user.isEmailVerified) {
       throw new BadRequestException('Email already verified');
     }
 
@@ -58,7 +64,7 @@ export class EmailVerificationService {
     const verifyUrl = `${process.env.FRONTEND_URL}/auth/verify-email?token=${token}`; // Points to the unified verification page
 
     // Log for dev mode (you can grab link manually)
-    console.log('[EMAIL VERIFICATION] Send to:', user.email);
+    console.log('[EMAIL VERIFICATION] Send to:', emailToVerify);
     console.log('Verification URL:', verifyUrl);
 
     // Send via BullMQ worker
@@ -69,7 +75,7 @@ export class EmailVerificationService {
       });
 
       await this.queueService.enqueueEmail(
-        user.email,
+        emailToVerify,
         'Verify your email address',
         htmlContent,
         'verify',
@@ -108,28 +114,27 @@ export class EmailVerificationService {
       throw new BadRequestException('Token expired');
     }
 
-    // SECURITY: Verify that the email on the token matches current user's email
-    // This prevents old tokens from being used if user changed their email
     const currentUser = await this.prisma.user.findUnique({
       where: { id: tokenRow.userId },
     });
 
-    if (
-      !currentUser ||
-      !currentUser.email ||
-      currentUser.email !== tokenRow.user.email
-    ) {
-      throw new BadRequestException(
-        'Token is no longer valid for this email address',
-      );
+    if (!currentUser) {
+      throw new BadRequestException('User not found');
     }
 
-    // Email claiming logic: Check if another user already verified this email
+    // Determine which email is being verified (tempEmail if changing email, otherwise primary email)
+    const emailBeingVerified = currentUser.tempEmail || currentUser.email;
+
+    if (!emailBeingVerified) {
+      throw new BadRequestException('No email to verify');
+    }
+
+    // Check if another user already verified this email
     const otherVerified = await this.prisma.user.findFirst({
       where: {
-        email: tokenRow.user.email,
+        email: emailBeingVerified,
         isEmailVerified: true,
-        id: { not: tokenRow.user.id }, // Different user
+        id: { not: currentUser.id }, // Different user
       },
     });
 
@@ -143,30 +148,51 @@ export class EmailVerificationService {
     // (current user wins by being first to verify)
     const otherUnverified = await this.prisma.user.findFirst({
       where: {
-        email: tokenRow.user.email,
-        id: { not: tokenRow.user.id }, // Different user
-        isEmailVerified: false, // Still unverified
+        OR: [
+          {
+            email: emailBeingVerified,
+            id: { not: currentUser.id },
+            isEmailVerified: false,
+          },
+          {
+            tempEmail: emailBeingVerified,
+            id: { not: currentUser.id },
+          },
+        ],
       },
     });
 
     if (otherUnverified) {
-      // Remove email from the other account (they didn't verify first)
       console.log(
         `[EMAIL VERIFICATION] Claiming email from user ${otherUnverified.id}`,
       );
       await this.prisma.user.update({
         where: { id: otherUnverified.id },
-        data: { email: null },
+        data: {
+          email: null,
+          tempEmail: null, // Clear tempEmail too if they had one pending
+        },
       });
     }
 
-    // Mark this user's email as verified
+    // Update the user with verified email
+    // If tempEmail exists, move it to email and clear tempEmail
+    // Otherwise, just mark primary email as verified
+    const updateData = currentUser.tempEmail
+      ? {
+          email: currentUser.tempEmail,
+          tempEmail: null,
+          emailVerifiedAt: new Date(),
+          isEmailVerified: true,
+        }
+      : {
+          emailVerifiedAt: new Date(),
+          isEmailVerified: true,
+        };
+
     await this.prisma.user.update({
       where: { id: tokenRow.userId },
-      data: {
-        emailVerifiedAt: new Date(),
-        isEmailVerified: true,
-      },
+      data: updateData,
     });
 
     // Mark token as used

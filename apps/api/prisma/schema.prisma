@@ -37,6 +37,7 @@ model User {
   role                    Role                     @default(USER)
   sessions                Session[]
   // Email section
+  tempEmail               String? // Temporary email awaiting verification
   emailVerifiedAt         DateTime?
   isEmailVerified         Boolean                  @default(false)
   emailVerificationTokens EmailVerificationToken[]
