@@ -13,6 +13,7 @@ import { SessionsModule } from './modules/sessions/sessions.module';
 import { FilesModule } from './modules/files/files.module';
 import { EmailModule } from './common/email/email.module';
 import { OauthModule } from './modules/auth/oauth/oauth.module';
+import { AdminModule } from './modules/admin/admin.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -86,6 +87,7 @@ import { OauthModule } from './modules/auth/oauth/oauth.module';
     FilesModule,
     EmailModule,
     OauthModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserAwareThrottlerGuard, QueueModule],

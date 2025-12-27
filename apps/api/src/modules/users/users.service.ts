@@ -83,8 +83,8 @@ export class UsersService {
     });
   }
 
-  findById(id: number) {
-    return this.prisma.user.findUnique({
+  async findById(id: number) {
+    const user = await this.prisma.user.findUnique({
       where: { id },
       select: {
         id: true,
@@ -98,6 +98,12 @@ export class UsersService {
         isEmailVerified: true,
       },
     });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    return user;
   }
 
   async update(id: number, data: UpdateUserDto, file?: any) {
