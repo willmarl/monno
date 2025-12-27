@@ -111,8 +111,13 @@ export class UsersController {
     return this.usersService.findByUsername(username);
   }
 
-  @ApiQuery({ name: 'limit', required: false })
-  @ApiQuery({ name: 'offset', required: false })
+  @ApiOperation({ summary: 'Get all users (public)' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of all public user profiles',
+  })
+  @ApiQuery({ name: 'limit', required: false, example: 10 })
+  @ApiQuery({ name: 'offset', required: false, example: 0 })
   @Get()
   findAllPublic(@Query() pag: PaginationDto) {
     return this.usersService.findAllPublic(pag);
