@@ -11,13 +11,15 @@ const mockPost = {
 export function Post() {
   return (
     <Card className="p-4">
-      <p className="text-sm text-gray-800">{mockPost.content}</p>
+      <p className="text-sm text-foreground">{mockPost.content}</p>
       <div className="flex gap-3 items-center">
         <Avatar className="h-8 w-8 flex-shrink-0">
           <AvatarImage src={mockPost.avatar} alt={mockPost.username} />
           <AvatarFallback>{mockPost.username[0].toUpperCase()}</AvatarFallback>
         </Avatar>
-        <p className="text-sm font-medium text-gray-600">{mockPost.username}</p>
+        <p className="text-sm font-medium text-muted-foreground">
+          {mockPost.username}
+        </p>
       </div>
     </Card>
   );
