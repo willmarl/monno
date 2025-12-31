@@ -35,3 +35,17 @@ export const useSessionUser = () => {
     throwOnError: false,
   });
 };
+
+export const useLogout = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => fetcher("/auth/logout", { method: "POST" }),
+    onSuccess: () => {
+      // Clear all auth-related caches
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      window.location.href = "/login";
+    },
+    throwOnError: false,
+  });
+};

@@ -2,6 +2,7 @@
 
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,21 +12,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut } from "lucide-react";
 import { useSessionUser } from "@/features/auth/hooks";
+import { useLogout } from "@/features/auth/hooks";
 
 export default function Header() {
+  const router = useRouter();
   const { data: user } = useSessionUser();
+  const logout = useLogout();
 
   function LoggedIn() {
     if (!user) return null;
 
     const handleProfile = () => {
-      console.log("Profile clicked");
-      // TODO: Navigate to profile page
+      router.push("/profile");
     };
 
     const handleLogout = () => {
-      console.log("Logout clicked");
-      // TODO: Implement logout logic
+      logout.mutate();
     };
 
     return (
@@ -47,8 +49,12 @@ export default function Header() {
   function Guest() {
     return (
       <div className="flex gap-1 items-center">
-        <Button variant={"outline"}>Login</Button>
-        <Button>Register</Button>
+        <Link href="/login">
+          <Button variant={"outline"}>Login</Button>
+        </Link>
+        <Link href="/register">
+          <Button>Register</Button>
+        </Link>
       </div>
     );
   }

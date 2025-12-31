@@ -17,3 +17,9 @@ export const register = (payload: {
     json: payload,
   });
 };
+
+export const logout = () => {
+  return fetcher("/auth/logout", {
+    method: "POST",
+  });
+};
