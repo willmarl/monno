@@ -1,7 +1,9 @@
+import Layout from "@/components/layout/auth/Layout";
+
 export default function layout({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      <main>{children}</main>
+      <Layout>{children}</Layout>
     </div>
   );
 }
