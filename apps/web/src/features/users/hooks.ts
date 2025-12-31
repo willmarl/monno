@@ -1,10 +1,11 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import type { PublicUser } from "./types/user";
 import { updateProfile, changePassword, fetchUserByUsername } from "./api";
+import type { PublicUser, UpdateProfileInput } from "./types/user";
 
 export const useUpdateProfile = () =>
   useMutation({
-    mutationFn: updateProfile,
+    mutationFn: ({ data, file }: { data: UpdateProfileInput; file?: File }) =>
+      updateProfile(data, file),
     throwOnError: false,
   });
 
