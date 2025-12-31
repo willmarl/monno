@@ -1,5 +1,5 @@
 import { fetcher } from "@/lib/fetcher";
-import { User } from "./types/user";
+import { User } from "../users/types/user";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { login, register } from "./api";
 
