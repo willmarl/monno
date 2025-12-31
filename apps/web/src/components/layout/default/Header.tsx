@@ -13,6 +13,7 @@ import {
 import { LogOut } from "lucide-react";
 import { useSessionUser } from "@/features/auth/hooks";
 import { useLogout } from "@/features/auth/hooks";
+import { UserAvatar } from "./UserAvatar";
 
 export default function Header() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function Header() {
 
     return (
       <DropdownMenu>
+        <UserAvatar user={user} />
         <DropdownMenuTrigger asChild>
           <Button variant="ghost">Hello, {user.username}</Button>
         </DropdownMenuTrigger>
