@@ -19,6 +19,24 @@ export const api = ky.create({
     ],
     afterResponse: [
       async (request, options, response) => {
+        // Handle 401 first, before generic error handling
+        if (response.status === 401) {
+          const refreshResponse = await ky
+            .post(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {
+              credentials: "include",
+            })
+            .catch(() => null);
+
+          if (refreshResponse?.ok) {
+            // Silent retry — user never sees an error
+            return api(request, options);
+          }
+          // Only show error if refresh itself failed
+          toastError("Session expired. Please log in again.");
+          return response;
+        }
+
+        // Generic error handling for non-401 errors
         if (!response.ok) {
           const clonedResponse = response.clone();
           const error = (await clonedResponse.json().catch(() => ({}))) as {
@@ -28,22 +46,7 @@ export const api = ky.create({
         }
 
         if (response.status === 429) {
-          // example: show toast
           console.warn("Rate limited");
-        }
-
-        if (response.status === 401) {
-          // Try refresh
-          const refreshResponse = await ky
-            .post(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {
-              credentials: "include",
-            })
-            .catch(() => null);
-
-          if (refreshResponse?.ok) {
-            // Retry original request
-            return api(request, options);
-          }
         }
 
         return response;
