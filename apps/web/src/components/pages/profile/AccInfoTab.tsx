@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -23,6 +24,7 @@ import {
 import { AvatarUpload } from "@/components/ui/avatar-upload";
 
 export function AccInfoTab() {
+  const router = useRouter();
   const { data: user } = useSessionUser();
   const { mutate: updateProfile, isPending } = useUpdateProfile();
   const [isEditing, setIsEditing] = useState(false);
@@ -58,6 +60,8 @@ export function AccInfoTab() {
         onSuccess: () => {
           setIsEditing(false);
           setSelectedFile(null);
+          // Redirect to refresh SSR component (Header) with updated user data
+          router.refresh();
         },
       }
     );
