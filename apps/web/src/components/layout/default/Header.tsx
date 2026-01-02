@@ -11,13 +11,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LogOut } from "lucide-react";
-import { useSessionUser } from "@/features/auth/hooks";
 import { useLogout } from "@/features/auth/hooks";
 import { UserAvatar } from "./UserAvatar";
+import { User } from "@/features/users/types/user";
 
-export default function Header() {
+export default function Header({ user }: { user: User | null }) {
   const router = useRouter();
-  const { data: user } = useSessionUser();
   const logout = useLogout();
 
   function LoggedIn() {
