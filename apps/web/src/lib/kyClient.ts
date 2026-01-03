@@ -21,6 +21,13 @@ export const api = ky.create({
       async (request, options, response) => {
         // Handle 401 first, before generic error handling
         if (response.status === 401) {
+          // This is for session manager when revoking own session
+          // Check if this is a GET request to /sessions
+          if (request.method === "GET" && request.url.includes("/sessions")) {
+            window.location.href = "/login";
+            return response;
+          }
+
           const refreshResponse = await ky
             .post(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {
               credentials: "include",

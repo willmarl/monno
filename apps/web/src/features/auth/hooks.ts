@@ -1,7 +1,13 @@
 import { fetcher } from "@/lib/fetcher";
 import { User } from "../users/types/user";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { login, register } from "./api";
+import {
+  login,
+  register,
+  logoutAll,
+  fetchSessions,
+  revokeSession,
+} from "./api";
 
 export function useLogin(path = "/") {
   const queryClient = useQueryClient();
@@ -44,7 +50,45 @@ export const useLogout = () => {
       // Clear all auth-related caches
       queryClient.invalidateQueries({ queryKey: ["session"] });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
-      window.location.href = "/login";
+      window.location.href = "/a";
+    },
+    throwOnError: false,
+  });
+};
+
+export const useLogoutAll = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: logoutAll,
+    onSuccess: () => {
+      // Clear all auth-related caches
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      window.location.href = "/b";
+    },
+    throwOnError: false,
+  });
+};
+
+export const useSessions = () => {
+  return useQuery({
+    queryKey: ["sessions"],
+    queryFn: fetchSessions,
+    retry: false,
+    throwOnError: false,
+  });
+};
+
+export const useRevokeSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: revokeSession,
+    onSuccess: () => {
+      // Invalidate both sessions and user session cache
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+      // Just in case, Redirect to login immediately.
+      // window.location.href = "/login";
     },
     throwOnError: false,
   });

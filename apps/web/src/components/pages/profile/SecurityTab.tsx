@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Lock, LogOut, Globe } from "lucide-react";
 import { InlinePasswordForm } from "@/features/users/components/InlinePasswordForm";
 import { toastSuccess, toastError } from "@/lib/toast";
+import { SessionManager } from "@/features/auth/components/SessionManager";
 
 export function SecurityTab() {
   const handleLogoutSession = (sessionId: string) => {
@@ -55,88 +56,7 @@ export function SecurityTab() {
 
       {/* Active Sessions Card */}
       <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5" />
-                Active Sessions
-              </CardTitle>
-              <CardDescription>
-                Manage your active sessions and devices
-              </CardDescription>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLogoutAllSessions}
-              className="gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              Logout All
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {/* Session Item 1 */}
-            <div className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-1">
-                <p className="font-medium">Chrome on macOS</p>
-                <p className="text-sm text-muted-foreground">
-                  Last active: 2 hours ago
-                </p>
-                <p className="text-xs text-muted-foreground">IP: 192.168.1.1</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary">Current</Badge>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleLogoutSession("session-1")}
-                >
-                  Logout
-                </Button>
-              </div>
-            </div>
-
-            {/* Session Item 2 */}
-            <div className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-1">
-                <p className="font-medium">Safari on iPhone</p>
-                <p className="text-sm text-muted-foreground">
-                  Last active: 1 day ago
-                </p>
-                <p className="text-xs text-muted-foreground">IP: 192.168.1.2</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleLogoutSession("session-2")}
-              >
-                Logout
-              </Button>
-            </div>
-
-            {/* Session Item 3 */}
-            <div className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-1">
-                <p className="font-medium">Firefox on Linux</p>
-                <p className="text-sm text-muted-foreground">
-                  Last active: 3 days ago
-                </p>
-                <p className="text-xs text-muted-foreground">IP: 192.168.1.3</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleLogoutSession("session-3")}
-              >
-                Logout
-              </Button>
-            </div>
-          </div>
-        </CardContent>
+        <SessionManager />
       </Card>
     </div>
   );
