@@ -14,6 +14,8 @@ import { uploadLocation } from '../../common/file-processing/upload-location';
 import { EmailVerificationService } from '../auth/email-verification.service';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
+import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 
 @Injectable()
 export class UsersService {
@@ -94,6 +96,36 @@ export class UsersService {
     return {
       items,
       pageInfo,
+    };
+  }
+
+  async findAllCursor(userId: number | null, pag: CursorPaginationDto) {
+    const { cursor, limit } = pag;
+
+    const { items, nextCursor } = await cursorPaginate({
+      model: this.prisma.user,
+      limit: limit ?? 10,
+      cursor,
+      query: {
+        orderBy: { createdAt: 'desc' },
+
+        select: {
+          id: true,
+          username: true,
+          avatarPath: true,
+          email: true,
+          tempEmail: true,
+          createdAt: true,
+          updatedAt: true,
+          role: true,
+          isEmailVerified: true,
+        },
+      },
+    });
+
+    return {
+      items,
+      nextCursor: nextCursor,
     };
   }
 
@@ -233,6 +265,30 @@ export class UsersService {
     return {
       items,
       pageInfo,
+    };
+  }
+
+  async findAllCursorPublic(userId: number | null, pag: CursorPaginationDto) {
+    const { cursor, limit } = pag;
+
+    const { items, nextCursor } = await cursorPaginate({
+      model: this.prisma.user,
+      limit: limit ?? 10,
+      cursor,
+      query: {
+        orderBy: { createdAt: 'desc' },
+
+        select: {
+          id: true,
+          username: true,
+          avatarPath: true,
+        },
+      },
+    });
+
+    return {
+      items,
+      nextCursor: nextCursor,
     };
   }
 

@@ -19,7 +19,6 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
-
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -33,6 +32,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Query } from '@nestjs/common';
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
+
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
@@ -121,5 +122,27 @@ export class UsersController {
   @Get()
   findAllPublic(@Query() pag: PaginationDto) {
     return this.usersService.findAllPublic(pag);
+  }
+
+  @ApiOperation({ summary: 'Get all users with cursor pagination (public)' })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    description: 'Cursor for pagination',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    example: 10,
+    description: 'Number of items per page',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of public user profiles with next cursor',
+  })
+  @Get('cursor')
+  findAllCursor(@Req() req: any, @Query() pag: CursorPaginationDto) {
+    const userId = req.user?.sub ?? null;
+    return this.usersService.findAllCursorPublic(userId, pag);
   }
 }
