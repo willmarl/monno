@@ -47,7 +47,7 @@ export default function LoginForm() {
           />
         </div>
         <h1 className="text-2xl font-bold text-foreground">Monno</h1>
-        <p className="text-sm text-muted-foreground">Sign in to your account</p>
+        <p className="text-sm text-muted-foreground">Log in to your account</p>
       </div>
 
       <Form {...form}>
@@ -155,7 +155,7 @@ export default function LoginForm() {
           href="/register"
           className="text-primary font-semibold hover:underline"
         >
-          Sign up
+          Register
         </Link>
       </div>
     </div>

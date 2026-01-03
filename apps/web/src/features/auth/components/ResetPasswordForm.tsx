@@ -205,7 +205,7 @@ export default function ResetPasswordForm() {
           href="/login"
           className="text-primary font-semibold hover:underline"
         >
-          Sign in
+          Login
         </Link>
       </div>
     </div>
