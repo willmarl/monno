@@ -33,9 +33,12 @@ export default function RegisterForm() {
   const registerMutation = useRegister();
 
   function onSubmit(data: RegisterInput) {
+    // Only send username, email, and password to backend
+    // confirmPassword is only for frontend validation
     const payload = {
-      ...data,
+      username: data.username,
       email: data.email || undefined,
+      password: data.password,
     };
     registerMutation.mutate(payload);
   }
@@ -125,6 +128,30 @@ export default function RegisterForm() {
                   <Input
                     type="password"
                     placeholder="Enter your password"
+                    {...field}
+                    className="h-10"
+                  />
+                </FormControl>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* confirm password */}
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-semibold">
+                  Confirm Password
+                </FormLabel>
+
+                <FormControl>
+                  <Input
+                    type="password"
+                    placeholder="Confirm your password"
                     {...field}
                     className="h-10"
                   />
