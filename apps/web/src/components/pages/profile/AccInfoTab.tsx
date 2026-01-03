@@ -14,19 +14,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Upload, Loader2 } from "lucide-react";
-import { useSessionUser } from "@/features/auth/hooks";
+import { Upload, Loader2, Mail } from "lucide-react";
+import {
+  useSessionUser,
+  useSendVerificationEmail,
+} from "@/features/auth/hooks";
 import { useUpdateProfile } from "@/features/users/hooks";
 import {
   updateUserSchema,
   type UpdateUserInput,
 } from "@/features/users/schemas/updateUser.schema";
 import { AvatarUpload } from "@/components/ui/avatar-upload";
+import { toastSuccess, toastError } from "@/lib/toast";
 
 export function AccInfoTab() {
   const router = useRouter();
   const { data: user } = useSessionUser();
   const { mutate: updateProfile, isPending } = useUpdateProfile();
+  const { mutate: sendVerification, isPending: isSendingVerification } =
+    useSendVerificationEmail();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -167,20 +173,50 @@ export function AccInfoTab() {
                     {form.formState.errors.email.message}
                   </p>
                 )}
-                {user?.tempEmail ? (
-                  <div className="space-y-1">
+                <div className="space-y-2">
+                  {user?.tempEmail ? (
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">
+                        Pending verification:{" "}
+                        <span className="font-medium">{user.tempEmail}</span>
+                      </p>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto p-0 text-xs"
+                        onClick={() => {
+                          sendVerification(undefined, {
+                            onSuccess: () => {
+                              toastSuccess("Verification email sent!");
+                            },
+                            onError: (error) => {
+                              const errorMsg =
+                                error instanceof Error
+                                  ? error.message
+                                  : "Failed to send verification email";
+                              toastError(errorMsg);
+                            },
+                          });
+                        }}
+                        disabled={isSendingVerification}
+                      >
+                        <Mail className="h-3 w-3 mr-1" />
+                        {isSendingVerification
+                          ? "Sending..."
+                          : "Resend verification"}
+                      </Button>
+                    </div>
+                  ) : user?.isEmailVerified ? (
+                    <p className="text-xs text-green-600 font-medium">
+                      ✓ Email verified
+                    </p>
+                  ) : (
                     <p className="text-xs text-muted-foreground">
-                      We'll send verification email if you change this
+                      We'll send a verification email when you save changes
                     </p>
-                    <p className="text-xs text-amber-600">
-                      Pending verification: {user.tempEmail}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    We'll send verification email if you change this
-                  </p>
-                )}
+                  )}
+                </div>
               </div>
             </div>
 

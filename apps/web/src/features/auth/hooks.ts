@@ -7,6 +7,8 @@ import {
   logoutAll,
   fetchSessions,
   revokeSession,
+  sendVerificationEmail,
+  verifyEmailToken,
 } from "./api";
 
 export function useLogin(path = "/") {
@@ -89,6 +91,30 @@ export const useRevokeSession = () => {
       queryClient.invalidateQueries({ queryKey: ["session"] });
       // Just in case, Redirect to login immediately.
       // window.location.href = "/login";
+    },
+    throwOnError: false,
+  });
+};
+
+export const useSendVerificationEmail = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: sendVerificationEmail,
+    onSuccess: () => {
+      // Refresh user data to reflect any changes
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+    },
+    throwOnError: false,
+  });
+};
+
+export const useVerifyEmailToken = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: verifyEmailToken,
+    onSuccess: () => {
+      // Refresh user data to reflect email verification
+      queryClient.invalidateQueries({ queryKey: ["session"] });
     },
     throwOnError: false,
   });

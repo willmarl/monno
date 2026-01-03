@@ -42,3 +42,16 @@ export const revokeSession = (sessionId: string) => {
     method: "DELETE",
   });
 };
+
+export const sendVerificationEmail = () => {
+  return fetcher("/auth/send-verification", {
+    method: "POST",
+  });
+};
+
+export const verifyEmailToken = (token: string) => {
+  return fetcher("/auth/verify-email", {
+    method: "GET",
+    searchParams: { token },
+  });
+};
