@@ -50,7 +50,7 @@ export const useLogout = () => {
       // Clear all auth-related caches
       queryClient.invalidateQueries({ queryKey: ["session"] });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
-      window.location.href = "/a";
+      window.location.href = "/login";
     },
     throwOnError: false,
   });
@@ -64,7 +64,7 @@ export const useLogoutAll = () => {
       // Clear all auth-related caches
       queryClient.invalidateQueries({ queryKey: ["session"] });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
-      window.location.href = "/b";
+      window.location.href = "/login";
     },
     throwOnError: false,
   });
