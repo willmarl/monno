@@ -85,21 +85,38 @@ export default function ResetPasswordForm() {
 
   if (isValidToken === false) {
     return (
-      <div className="space-y-4 w-full max-w-sm">
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-          <h3 className="font-semibold text-red-900">Invalid Reset Link</h3>
-          <p className="text-sm text-red-800 mt-2">
+      <div className="w-full max-w-sm space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <div className="flex justify-center">
+            <img
+              src="/favicon.ico"
+              alt="Monno"
+              className="w-12 h-12 rounded-lg"
+            />
+          </div>
+          <h1 className="text-2xl font-bold text-foreground">Monno</h1>
+          <p className="text-sm text-muted-foreground">Reset your password</p>
+        </div>
+
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 space-y-2">
+          <h3 className="font-semibold text-destructive">Invalid Reset Link</h3>
+          <p className="text-sm text-muted-foreground">
             {tokenError || "The password reset link is invalid or has expired."}
           </p>
         </div>
-        <Link href="/auth/forgot-password">
-          <Button className="w-full">Request New Reset Link</Button>
-        </Link>
-        <Link href="/auth/login">
-          <Button variant="outline" className="w-full">
-            Back to Login
-          </Button>
-        </Link>
+        <div className="space-y-3">
+          <Link href="/forgot-password" className="block">
+            <Button className="w-full h-10 font-semibold">
+              Request New Reset Link
+            </Button>
+          </Link>
+          <Link href="/login" className="block">
+            <Button variant="outline" className="w-full h-10 font-semibold">
+              Back to Login
+            </Button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -107,66 +124,90 @@ export default function ResetPasswordForm() {
   if (isValidToken === null) {
     return (
       <div className="flex justify-center items-center w-full max-w-sm h-64">
-        <p className="text-gray-500">Validating reset link...</p>
+        <p className="text-muted-foreground">Validating reset link...</p>
       </div>
     );
   }
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6 w-full max-w-sm"
-      >
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold">Reset Password</h2>
-          <p className="text-sm text-gray-600">
-            Enter your new password below.
-          </p>
+    <div className="w-full max-w-sm space-y-8">
+      {/* Header */}
+      <div className="text-center space-y-3">
+        <div className="flex justify-center">
+          <img
+            src="/favicon.ico"
+            alt="Monno"
+            className="w-12 h-12 rounded-lg"
+          />
         </div>
+        <h1 className="text-2xl font-bold text-foreground">Monno</h1>
+        <p className="text-sm text-muted-foreground">Reset your password</p>
+      </div>
 
-        <FormField
-          control={form.control}
-          name="newPassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>New Password</FormLabel>
-              <FormControl>
-                <Input placeholder="••••••••" type="password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <FormField
+            control={form.control}
+            name="newPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-semibold">
+                  New Password
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter your new password"
+                    type="password"
+                    {...field}
+                    className="h-10"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="confirmPassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
-              <FormControl>
-                <Input placeholder="••••••••" type="password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-semibold">
+                  Confirm Password
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Confirm your password"
+                    type="password"
+                    {...field}
+                    className="h-10"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={resetMutation.isPending || !isValid}
+          <Button
+            type="submit"
+            className="w-full h-10 font-semibold"
+            disabled={resetMutation.isPending || !isValid}
+          >
+            {resetMutation.isPending ? "Resetting..." : "Reset Password"}
+          </Button>
+        </form>
+      </Form>
+
+      {/* Back to login link */}
+      <div className="text-center text-sm text-muted-foreground">
+        Remember your password?{" "}
+        <Link
+          href="/login"
+          className="text-primary font-semibold hover:underline"
         >
-          {resetMutation.isPending ? "Resetting..." : "Reset Password"}
-        </Button>
-
-        <div className="text-center text-sm">
-          <Link href="/auth/login" className="text-blue-600 hover:underline">
-            Back to Login
-          </Link>
-        </div>
-      </form>
-    </Form>
+          Sign in
+        </Link>
+      </div>
+    </div>
   );
 }

@@ -25,9 +25,22 @@ export default function AuthSuccessPage() {
 
   return (
     <div className="flex justify-center items-center min-h-screen">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold mb-2">Authenticating...</h1>
-        <p className="text-gray-600">Redirecting you back home</p>
+      <div className="text-center space-y-4">
+        <div className="flex justify-center">
+          <img
+            src="/favicon.ico"
+            alt="Monno"
+            className="w-12 h-12 rounded-lg"
+          />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold text-foreground">Monno</h1>
+          <p className="text-sm text-muted-foreground">Authenticating...</p>
+        </div>
+        <p className="text-muted-foreground">Redirecting you back home</p>
+        <div className="flex justify-center pt-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
       </div>
     </div>
   );

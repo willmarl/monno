@@ -64,12 +64,22 @@ export default function VerifyEmailPage() {
   if (verificationState === "loading") {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <Card className="p-8 max-w-md text-center">
-          <h1 className="text-2xl font-bold mb-4">Verifying Email...</h1>
-          <p className="text-gray-600">
+        <Card className="p-8 max-w-md text-center space-y-6">
+          <div className="flex justify-center">
+            <img
+              src="/favicon.ico"
+              alt="Monno"
+              className="w-12 h-12 rounded-lg"
+            />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-foreground">Monno</h1>
+            <p className="text-sm text-muted-foreground">Verify your email</p>
+          </div>
+          <p className="text-muted-foreground">
             Please wait while we verify your email address.
           </p>
-          <div className="mt-6 flex justify-center">
+          <div className="flex justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         </Card>
@@ -80,11 +90,18 @@ export default function VerifyEmailPage() {
   if (verificationState === "success") {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <Card className="p-8 max-w-md text-center">
-          <div className="mb-4 flex justify-center">
-            <div className="rounded-full bg-green-100 p-3">
+        <Card className="p-8 max-w-md text-center space-y-6">
+          <div className="flex justify-center">
+            <img
+              src="/favicon.ico"
+              alt="Monno"
+              className="w-12 h-12 rounded-lg"
+            />
+          </div>
+          <div className="mb-2 flex justify-center">
+            <div className="rounded-full bg-green-500/10 p-3">
               <svg
-                className="h-6 w-6 text-green-600"
+                className="h-6 w-6 text-green-600 dark:text-green-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -98,12 +115,19 @@ export default function VerifyEmailPage() {
               </svg>
             </div>
           </div>
-          <h1 className="text-2xl font-bold mb-4">Email Verified!</h1>
-          <p className="mb-6 text-gray-600">
-            {errorMessage ||
-              "Your email has been successfully verified. You will be redirected to your profile shortly."}
-          </p>
-          <Button onClick={() => router.push("/profile")} className="w-full">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-foreground">
+              Email Verified!
+            </h1>
+            <p className="text-muted-foreground">
+              {errorMessage ||
+                "Your email has been successfully verified. You will be redirected to your profile shortly."}
+            </p>
+          </div>
+          <Button
+            onClick={() => router.push("/profile")}
+            className="w-full h-10 font-semibold"
+          >
             Go to Profile
           </Button>
         </Card>
@@ -113,11 +137,18 @@ export default function VerifyEmailPage() {
 
   return (
     <div className="flex justify-center items-center min-h-screen">
-      <Card className="p-8 max-w-md text-center">
-        <div className="mb-4 flex justify-center">
-          <div className="rounded-full bg-red-100 p-3">
+      <Card className="p-8 max-w-md text-center space-y-6">
+        <div className="flex justify-center">
+          <img
+            src="/favicon.ico"
+            alt="Monno"
+            className="w-12 h-12 rounded-lg"
+          />
+        </div>
+        <div className="mb-2 flex justify-center">
+          <div className="rounded-full bg-destructive/10 p-3">
             <svg
-              className="h-6 w-6 text-red-600"
+              className="h-6 w-6 text-destructive"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -131,21 +162,26 @@ export default function VerifyEmailPage() {
             </svg>
           </div>
         </div>
-        <h1 className="text-2xl font-bold mb-4 text-red-600">
-          Verification Failed
-        </h1>
-        <p className="mb-6 text-gray-600">
-          {errorMessage || "The verification link is invalid or has expired."}
-        </p>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold text-destructive">
+            Verification Failed
+          </h1>
+          <p className="text-muted-foreground">
+            {errorMessage || "The verification link is invalid or has expired."}
+          </p>
+        </div>
         <div className="flex gap-3">
           <Button
             onClick={() => router.push("/profile")}
             variant="outline"
-            className="flex-1"
+            className="flex-1 h-10 font-semibold"
           >
             Go to Profile
           </Button>
-          <Button onClick={() => router.push("/")} className="flex-1">
+          <Button
+            onClick={() => router.push("/")}
+            className="flex-1 h-10 font-semibold"
+          >
             Go Home
           </Button>
         </div>

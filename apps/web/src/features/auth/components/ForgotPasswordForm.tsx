@@ -52,16 +52,31 @@ export default function ForgotPasswordForm() {
 
   if (submitted) {
     return (
-      <div className="space-y-4 w-full max-w-sm">
-        <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-          <h3 className="font-semibold text-green-900">Check your email</h3>
-          <p className="text-sm text-green-800 mt-2">
+      <div className="w-full max-w-sm space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <div className="flex justify-center">
+            <img
+              src="/favicon.ico"
+              alt="Monno"
+              className="w-12 h-12 rounded-lg"
+            />
+          </div>
+          <h1 className="text-2xl font-bold text-foreground">Monno</h1>
+          <p className="text-sm text-muted-foreground">Reset your password</p>
+        </div>
+
+        <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-4 space-y-2">
+          <h3 className="font-semibold text-green-700 dark:text-green-400">
+            Check your email
+          </h3>
+          <p className="text-sm text-muted-foreground">
             If an account exists with that email, we've sent a password reset
             link. It expires in 1 hour.
           </p>
         </div>
-        <Link href="/auth/login">
-          <Button variant="outline" className="w-full">
+        <Link href="/login" className="block">
+          <Button variant="outline" className="w-full h-10 font-semibold">
             Back to Login
           </Button>
         </Link>
@@ -70,49 +85,71 @@ export default function ForgotPasswordForm() {
   }
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6 w-full max-w-sm"
-      >
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold">Forgot Password?</h2>
-          <p className="text-sm text-gray-600">
-            Enter your email and we'll send you a link to reset your password.
-            <br></br>
-            If you just signed up with username and password only, your out of
-            luck :/
-          </p>
+    <div className="w-full max-w-sm space-y-8">
+      {/* Header */}
+      <div className="text-center space-y-3">
+        <div className="flex justify-center">
+          <img
+            src="/favicon.ico"
+            alt="Monno"
+            className="w-12 h-12 rounded-lg"
+          />
         </div>
+        <h1 className="text-2xl font-bold text-foreground">Monno</h1>
+        <p className="text-sm text-muted-foreground">Reset your password</p>
+      </div>
 
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="your@email.com" type="email" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-semibold">Email</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="your@email.com"
+                    type="email"
+                    {...field}
+                    className="h-10"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={resetMutation.isPending || !isValid}
+          <Button
+            type="submit"
+            className="w-full h-10 font-semibold"
+            disabled={resetMutation.isPending || !isValid}
+          >
+            {resetMutation.isPending ? "Sending..." : "Send Reset Link"}
+          </Button>
+        </form>
+      </Form>
+
+      {/* Info text */}
+      <div className="rounded-lg border border-border bg-muted/50 p-4">
+        <p className="text-sm text-muted-foreground">
+          Enter your email and we'll send you a link to reset your password.
+          <br />
+          If you just signed up with username and password only, you're out of
+          luck :/
+        </p>
+      </div>
+
+      {/* Back to login link */}
+      <div className="text-center text-sm text-muted-foreground">
+        Remember your password?{" "}
+        <Link
+          href="/login"
+          className="text-primary font-semibold hover:underline"
         >
-          {resetMutation.isPending ? "Sending..." : "Send Reset Link"}
-        </Button>
-
-        <div className="text-center text-sm">
-          <Link href="/auth/login" className="text-blue-600 hover:underline">
-            Back to Login
-          </Link>
-        </div>
-      </form>
-    </Form>
+          Sign in
+        </Link>
+      </div>
+    </div>
   );
 }

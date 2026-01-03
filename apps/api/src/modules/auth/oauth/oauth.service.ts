@@ -148,7 +148,7 @@ export class OauthService {
     await this.createSessionAndSetCookies(user.id, req, res);
 
     // Step 5: Redirect to frontend success page
-    return `${process.env.FRONTEND_URL}/auth/success`;
+    return `${process.env.FRONTEND_URL}/success`;
   }
 
   /* ===== GITHUB OAUTH ===== */
@@ -272,7 +272,7 @@ export class OauthService {
     await this.createSessionAndSetCookies(user.id, req, res);
 
     // Step 7: Redirect to frontend success page
-    return `${process.env.FRONTEND_URL}/auth/success`;
+    return `${process.env.FRONTEND_URL}/success`;
   }
 
   /* ===== GENERIC UPSERT ===== */

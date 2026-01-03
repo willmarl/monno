@@ -61,7 +61,7 @@ export class EmailVerificationService {
       },
     });
 
-    const verifyUrl = `${process.env.FRONTEND_URL}/auth/verify-email?token=${token}`; // Points to the unified verification page
+    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`; // Points to the unified verification page
 
     // Log for dev mode (you can grab link manually)
     console.log('[EMAIL VERIFICATION] Send to:', emailToVerify);

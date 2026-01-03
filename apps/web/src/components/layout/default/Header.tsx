@@ -32,7 +32,9 @@ export default function Header({ user }: { user: User | null }) {
 
     return (
       <DropdownMenu>
-        <UserAvatar user={user} />
+        <div className="mr-1.5">
+          <UserAvatar user={user} />
+        </div>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost">Hello, {user.username}</Button>
         </DropdownMenuTrigger>

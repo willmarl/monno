@@ -74,7 +74,7 @@ export class PasswordResetService {
       },
     });
 
-    const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${token}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
     // Log for dev mode
     console.log('[PASSWORD RESET] Send to:', user.email);
