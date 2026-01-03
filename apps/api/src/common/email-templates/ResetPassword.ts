@@ -1,3 +1,5 @@
+import { getEmailHead, getEmailHeader, getEmailFooter } from './emailConfig';
+
 export const resetPasswordTemplate = ({
   userName,
   resetLink,
@@ -8,32 +10,27 @@ export const resetPasswordTemplate = ({
   return `
     <!DOCTYPE html>
     <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Reset Your Password</title>
-      </head>
-      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2>Reset Your Password</h2>
-          <p>Hi ${userName},</p>
-          <p>We received a request to reset your password. If you didn't make this request, you can safely ignore this email.</p>
-          <p>To reset your password, click the button below:</p>
-          <div style="margin: 30px 0;">
-            <a href="${resetLink}" style="background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
-              Reset Password
-            </a>
+      ${getEmailHead()}
+      <body>
+        <div class="container">
+          <div class="box">
+            ${getEmailHeader()}
+            <p class="heading">Reset Your Password</p>
+            <p class="paragraph">Hi ${userName},</p>
+            <p class="paragraph">We received a request to reset your password. If you didn't make this request, you can safely ignore this email.</p>
+            <p class="paragraph">To reset your password, click the button below:</p>
+            <a href="${resetLink}" class="button button-primary">Reset Password</a>
+            <hr class="hr" />
+            <p class="paragraph">Or copy and paste this link in your browser:</p>
+            <p class="link-text">${resetLink}</p>
+            <p class="paragraph" style="font-size: 14px; color: #898989;">
+              This link will expire in 1 hour.
+            </p>
+            <p class="warning-box">
+              ⚠️ If you did not request a password reset, please ignore this email or contact support immediately.
+            </p>
+            ${getEmailFooter()}
           </div>
-          <p>Or copy and paste this link in your browser:</p>
-          <p style="word-break: break-all; background-color: #f5f5f5; padding: 10px; border-radius: 5px;">
-            ${resetLink}
-          </p>
-          <p style="color: #666; font-size: 12px;">
-            This link will expire in 1 hour.
-          </p>
-          <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
-          <p style="color: #999; font-size: 12px;">
-            If you did not request a password reset, please ignore this email or contact support.
-          </p>
         </div>
       </body>
     </html>
