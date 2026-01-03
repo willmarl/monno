@@ -1,5 +1,3 @@
-import { SessionManager } from "@/features/auth/components/oldSessionManager";
-
 export default function page() {
-  return <SessionManager />;
+  return <div>testing page ignore me</div>;
 }
