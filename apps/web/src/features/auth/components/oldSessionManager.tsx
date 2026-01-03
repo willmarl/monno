@@ -3,21 +3,9 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2, RefreshCw } from "lucide-react";
-import {
-  useSessions,
-  useRevokeSession,
-  useLogoutAll,
-} from "@/features/auth/hooks";
+import { useSessions, useRevokeSession } from "@/features/auth/hooks";
 
-interface SessionManagerProps {
-  showRiskScore?: boolean;
-  showGeolocation?: boolean;
-}
-
-export function SessionManager({
-  showRiskScore = false,
-  showGeolocation = false,
-}: SessionManagerProps = {}) {
+export function SessionManager() {
   const [mounted, setMounted] = useState(false);
   const {
     data: sessions = [],
@@ -26,8 +14,6 @@ export function SessionManager({
     refetch,
   } = useSessions();
   const { mutate: revokeSessionMutate, isPending } = useRevokeSession();
-  const { mutate: logoutAllMutate, isPending: isLoggingOutAll } =
-    useLogoutAll();
 
   // Prevent hydration mismatch by only rendering after mount
   useEffect(() => {
@@ -45,11 +31,9 @@ export function SessionManager({
   }
 
   const getRiskBadgeColor = (riskScore: number) => {
-    if (riskScore < 20)
-      return "bg-lite-warning/20 text-lite-warning-foreground border border-lite-warning/30";
-    if (riskScore < 50)
-      return "bg-warning/20 text-warning border border-warning/30";
-    return "bg-destructive/20 text-destructive border border-destructive/30";
+    if (riskScore < 20) return "bg-green-100 text-green-800";
+    if (riskScore < 50) return "bg-yellow-100 text-yellow-800";
+    return "bg-red-100 text-red-800";
   };
 
   const getRiskLabel = (riskScore: number) => {
@@ -94,81 +78,67 @@ export function SessionManager({
   }
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Active Sessions</h2>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-gray-600 mt-1">
             Manage your devices and active login sessions
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            disabled={loading}
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => logoutAllMutate()}
-            disabled={isLoggingOutAll || sessions.length === 0}
-          >
-            {isLoggingOutAll ? "Logging out..." : "Logout All"}
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => refetch()}
+          disabled={loading}
+        >
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Refresh
+        </Button>
       </div>
 
       {error && (
-        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-destructive">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
           {error instanceof Error ? error.message : "Failed to load sessions"}
         </div>
       )}
 
       {sessions.length === 0 ? (
-        <div className="bg-muted border border-muted-foreground/20 rounded-lg p-8 text-center">
-          <p className="text-muted-foreground">No active sessions found</p>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+          <p className="text-gray-600">No active sessions found</p>
         </div>
       ) : (
-        <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+        <div className="space-y-3">
           {sessions.map((session) => (
             <div
               key={session.id}
-              className="border border-border rounded-lg p-4 flex items-start justify-between hover:bg-accent transition"
+              className="border border-gray-200 rounded-lg p-4 flex items-start justify-between hover:bg-gray-50 transition"
             >
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-medium text-foreground">
+                  <h3 className="font-medium text-gray-900">
                     {parseUserAgent(session.userAgent)}
                   </h3>
-                  {showRiskScore &&
-                    session.riskScore !== undefined &&
-                    session.riskScore > 0 && (
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${getRiskBadgeColor(
-                          session.riskScore
-                        )}`}
-                      >
-                        {getRiskLabel(session.riskScore)}
-                      </span>
-                    )}
-                </div>
-                <div className="text-sm text-muted-foreground space-y-1 mt-2">
-                  <p>IP Address: {session.ipAddress || "Unknown"}</p>
-                  {showGeolocation && session.location && (
-                    <p>📍 Location: {session.location}</p>
+                  {session.riskScore !== undefined && session.riskScore > 0 && (
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-medium ${getRiskBadgeColor(
+                        session.riskScore
+                      )}`}
+                    >
+                      {getRiskLabel(session.riskScore)}
+                    </span>
                   )}
-                  {showGeolocation && session.isNewLocation && (
-                    <p className="text-warning font-medium">
+                </div>
+                <div className="text-sm text-gray-600 space-y-1 mt-2">
+                  <p>IP Address: {session.ipAddress || "Unknown"}</p>
+                  {session.location && <p>📍 Location: {session.location}</p>}
+                  {session.isNewLocation && (
+                    <p className="text-amber-600 font-medium">
                       ⚠️ New location detected
                     </p>
                   )}
-                  {showGeolocation && session.isNewDevice && (
-                    <p className="text-warning font-medium">
+                  {session.isNewDevice && (
+                    <p className="text-amber-600 font-medium">
                       ⚠️ New device detected
                     </p>
                   )}
@@ -191,7 +161,7 @@ export function SessionManager({
         </div>
       )}
 
-      <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-sm text-primary">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900">
         <p className="font-medium">Tip:</p>
         <p className="mt-1">
           Revoking a session will immediately log you out on that device. You

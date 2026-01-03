@@ -56,7 +56,7 @@ export function SecurityTab() {
 
       {/* Active Sessions Card */}
       <Card>
-        <SessionManager />
+        <SessionManager showGeolocation={true} showRiskScore={true} />
       </Card>
     </div>
   );
