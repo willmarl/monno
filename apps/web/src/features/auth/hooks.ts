@@ -9,6 +9,8 @@ import {
   revokeSession,
   sendVerificationEmail,
   verifyEmailToken,
+  requestPasswordReset,
+  resetPassword,
 } from "./api";
 
 export function useLogin(path = "/") {
@@ -114,6 +116,30 @@ export const useVerifyEmailToken = () => {
     mutationFn: verifyEmailToken,
     onSuccess: () => {
       // Refresh user data to reflect email verification
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+    },
+    throwOnError: false,
+  });
+};
+
+export const useRequestPasswordReset = () => {
+  return useMutation({
+    mutationFn: requestPasswordReset,
+    throwOnError: false,
+  });
+};
+
+export const useResetPassword = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      token,
+      newPassword,
+    }: {
+      token: string;
+      newPassword: string;
+    }) => resetPassword(token, newPassword),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session"] });
     },
     throwOnError: false,

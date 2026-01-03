@@ -55,3 +55,17 @@ export const verifyEmailToken = (token: string) => {
     searchParams: { token },
   });
 };
+
+export const requestPasswordReset = (email: string) => {
+  return fetcher("/auth/request-password-reset", {
+    method: "POST",
+    json: { email },
+  });
+};
+
+export const resetPassword = (token: string, newPassword: string) => {
+  return fetcher("/auth/reset-password", {
+    method: "POST",
+    json: { token, newPassword },
+  });
+};
