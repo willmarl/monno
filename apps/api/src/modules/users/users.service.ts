@@ -286,7 +286,14 @@ export class UsersService {
       data.email !== currentUser.email &&
       data.email !== currentUser.tempEmail;
 
-    if (emailChanged) {
+    // Check if user is canceling pending email verification
+    const cancelingVerification =
+      data.email && data.email === currentUser.email;
+
+    if (cancelingVerification) {
+      // User is reverting to current email - cancel pending verification
+      (data as any).tempEmail = null;
+    } else if (emailChanged) {
       // Check if new email is already verified by another user
       const existingVerifiedUser = await this.prisma.user.findFirst({
         where: {
@@ -328,8 +335,15 @@ export class UsersService {
     // If email is being changed, store it in tempEmail and mark for verification
     // Don't change the primary email until verification
     if (emailChanged) {
-      updateData.tempEmail = data.email;
+      updateData.tempEmail = (data as any).email;
       delete updateData.email; // Don't update primary email yet
+    } else if (cancelingVerification) {
+      // Keep tempEmail null to clear pending verification
+      updateData.tempEmail = null;
+      delete updateData.email; // Don't send email in update data
+    } else {
+      // No email change
+      delete updateData.email;
     }
     try {
       const updatedUser = await this.prisma.user.update({
