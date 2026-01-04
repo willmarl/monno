@@ -15,7 +15,8 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { Query } from '@nestjs/common';
-import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { CreatorGuard } from 'src/common/guards/creator.guard';
 import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
 
@@ -33,6 +34,11 @@ export class PostsController {
   @Get()
   findAll(@Query() pag: PaginationDto) {
     return this.postsService.findAll(pag);
+  }
+
+  @Get('cursor')
+  findAllCursor(@Req() req: any, @Query() pag: CursorPaginationDto) {
+    return this.postsService.findAllCursor(pag);
   }
 
   @Get(':id')

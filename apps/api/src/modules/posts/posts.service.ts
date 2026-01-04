@@ -24,8 +24,7 @@ export class PostsService {
 
   async findAll(pag: PaginationDto) {
     const { items, pageInfo } = await offsetPaginate({
-      prisma: this.prisma,
-      model: 'post',
+      model: this.prisma.post,
       limit: pag.limit ?? 10,
       offset: pag.offset ?? 0,
       query: {
@@ -46,6 +45,33 @@ export class PostsService {
     return {
       items,
       pageInfo,
+    };
+  }
+
+  async findAllCursor(pag: CursorPaginationDto) {
+    const { cursor, limit } = pag;
+
+    const { items, nextCursor } = await cursorPaginate({
+      model: this.prisma.post,
+      limit: limit ?? 10,
+      cursor,
+      query: {
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+          creator: {
+            select: { id: true, username: true },
+          },
+        },
+      },
+    });
+    return {
+      items,
+      nextCursor: nextCursor,
     };
   }
 
