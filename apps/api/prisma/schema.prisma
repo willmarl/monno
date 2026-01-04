@@ -37,6 +37,7 @@ model User {
   role                    Role                     @default(USER)
   sessions                Session[]
   passwordResetTokens     PasswordResetToken[]
+  posts                   Post[]
   // OAuth identity fields
   googleId                String?                  @unique
   githubId                String?                  @unique
@@ -100,4 +101,14 @@ model PasswordResetToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  creatorId Int
+  creator   User     @relation(fields: [creatorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
