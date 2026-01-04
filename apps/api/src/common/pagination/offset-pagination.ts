@@ -1,15 +1,13 @@
 import { buildOffsetPageInfo } from './paginate-response';
 
 export async function offsetPaginate<T>({
-  prisma,
   model,
   limit,
   offset,
   query, // model-specific logic
   countQuery, // model-specific count
 }: {
-  prisma: any; // PrismaService instance
-  model: string; // e.g. 'user'
+  model: any; // e.g. prisma.post
   limit: number;
   offset: number;
   query: any; // findMany params except skip/take
@@ -18,14 +16,11 @@ export async function offsetPaginate<T>({
   items: T[];
   pageInfo: any;
 }> {
-  // @ts-ignore dynamic Prisma access
-  const prismaModel = prisma[model];
-
   const [totalItems, items] = await Promise.all([
     // @ts-ignore dynamic Prisma access
-    prismaModel.count(countQuery),
+    model.count(countQuery),
     // @ts-ignore dynamic Prisma access
-    prismaModel.findMany({
+    model.findMany({
       skip: offset,
       take: limit,
       ...query,

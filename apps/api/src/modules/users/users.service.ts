@@ -73,8 +73,7 @@ export class UsersService {
 
   async findAll(pag: PaginationDto) {
     const { items, pageInfo } = await offsetPaginate({
-      prisma: this.prisma,
-      model: 'user',
+      model: this.prisma.user,
       limit: pag.limit ?? 10,
       offset: pag.offset ?? 0,
       query: {
@@ -248,8 +247,7 @@ export class UsersService {
 
   async findAllPublic(pag: PaginationDto) {
     const { items, pageInfo } = await offsetPaginate({
-      prisma: this.prisma,
-      model: 'user',
+      model: this.prisma.user,
       limit: pag.limit ?? 10,
       offset: pag.offset ?? 0,
       query: {
