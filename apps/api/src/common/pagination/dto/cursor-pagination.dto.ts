@@ -1,9 +1,11 @@
-import { IsInt, Min, IsOptional, IsString } from 'class-validator';
+import { IsInt, Min, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CursorPaginationDto {
   @ApiPropertyOptional({ default: 10 })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   limit?: number = 10;
@@ -12,6 +14,7 @@ export class CursorPaginationDto {
     description: 'ID of the last item from previous page',
   })
   @IsOptional()
-  @IsString()
-  cursor?: string | null = null;
+  @Type(() => Number)
+  @IsInt()
+  cursor?: number | null = null;
 }
