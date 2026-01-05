@@ -6,9 +6,8 @@ import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
-
-// this applies to findall only (not find by id)
-// dont forget swagger docs
+import { PostSearchDto, PostSearchCursorDto } from './dto/search-post.dto';
+import { buildSearchWhere } from 'src/common/search/search.utils';
 @Injectable()
 export class PostsService {
   constructor(private prisma: PrismaService) {}
@@ -102,5 +101,79 @@ export class PostsService {
     return this.prisma.post.delete({
       where: { id },
     });
+  }
+
+  async searchAll(searchDto: PostSearchDto) {
+    const searchFields = searchDto.getSearchFields();
+    const searchOptions = searchDto.getSearchOptions();
+
+    const where = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    });
+
+    const { items, pageInfo } = await offsetPaginate({
+      model: this.prisma.post,
+      limit: searchDto.limit ?? 10,
+      offset: searchDto.offset ?? 0,
+      query: {
+        where,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+          creator: {
+            select: { id: true, username: true },
+          },
+        },
+      },
+    });
+
+    return {
+      items,
+      pageInfo,
+    };
+  }
+
+  async searchAllCursor(searchDto: PostSearchCursorDto) {
+    const searchFields = searchDto.getSearchFields();
+    const searchOptions = searchDto.getSearchOptions();
+
+    const where = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    });
+
+    const { cursor, limit } = searchDto;
+
+    const { items, nextCursor } = await cursorPaginate({
+      model: this.prisma.post,
+      limit: limit ?? 10,
+      cursor,
+      query: {
+        where,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+          creator: {
+            select: { id: true, username: true },
+          },
+        },
+      },
+    });
+
+    return {
+      items,
+      nextCursor,
+    };
   }
 }

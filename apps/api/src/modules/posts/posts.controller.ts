@@ -9,7 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -19,6 +19,7 @@ import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { CreatorGuard } from 'src/common/guards/creator.guard';
 import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
+import { PostSearchDto, PostSearchCursorDto } from './dto/search-post.dto';
 
 @Controller('posts')
 export class PostsController {
@@ -39,6 +40,26 @@ export class PostsController {
   @Get('cursor')
   findAllCursor(@Req() req: any, @Query() pag: CursorPaginationDto) {
     return this.postsService.findAllCursor(pag);
+  }
+
+  @ApiOperation({ summary: 'Search posts with offset pagination' })
+  @ApiResponse({
+    status: 200,
+    description: 'Search results with pagination info',
+  })
+  @Get('search')
+  search(@Query() searchDto: PostSearchDto) {
+    return this.postsService.searchAll(searchDto);
+  }
+
+  @ApiOperation({ summary: 'Search posts with cursor pagination' })
+  @ApiResponse({
+    status: 200,
+    description: 'Search results with next cursor',
+  })
+  @Get('search/cursor')
+  searchCursor(@Query() searchDto: PostSearchCursorDto) {
+    return this.postsService.searchAllCursor(searchDto);
   }
 
   @Get(':id')
