@@ -33,6 +33,7 @@ import { Query } from '@nestjs/common';
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
+import { UserSearchDto, UserSearchCursorDto } from './dto/search-user.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -144,5 +145,15 @@ export class UsersController {
   findAllCursor(@Req() req: any, @Query() pag: CursorPaginationDto) {
     const userId = req.user?.sub ?? null;
     return this.usersService.findAllCursorPublic(userId, pag);
+  }
+
+  @Get('search')
+  search(@Query() searchDto: UserSearchDto) {
+    return this.usersService.searchAllPublic(searchDto);
+  }
+
+  @Get('search/cursor')
+  searchCursor(@Query() searchDto: UserSearchCursorDto) {
+    return this.usersService.searchAllCursorPublic(searchDto);
   }
 }

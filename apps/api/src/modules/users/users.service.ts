@@ -16,7 +16,8 @@ import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
-
+import { UserSearchDto, UserSearchCursorDto } from './dto/search-user.dto';
+import { buildSearchWhere } from 'src/common/search/search.utils';
 @Injectable()
 export class UsersService {
   constructor(
@@ -220,6 +221,82 @@ export class UsersService {
     });
   }
 
+  async searchAll(searchDto: UserSearchDto) {
+    const searchFields = searchDto.getSearchFields();
+    const searchOptions = searchDto.getSearchOptions();
+
+    const where = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    });
+
+    const { items, pageInfo } = await offsetPaginate({
+      model: this.prisma.user,
+      limit: searchDto.limit ?? 10,
+      offset: searchDto.offset ?? 0,
+      query: {
+        where,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          username: true,
+          avatarPath: true,
+          email: true,
+          tempEmail: true,
+          createdAt: true,
+          updatedAt: true,
+          role: true,
+          isEmailVerified: true,
+        },
+      },
+    });
+
+    return {
+      items,
+      pageInfo,
+    };
+  }
+
+  async searchAllCursor(searchDto: UserSearchCursorDto) {
+    const searchFields = searchDto.getSearchFields();
+    const searchOptions = searchDto.getSearchOptions();
+
+    const where = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    });
+
+    const { cursor, limit } = searchDto;
+
+    const { items, nextCursor } = await cursorPaginate({
+      model: this.prisma.post,
+      limit: limit ?? 10,
+      cursor,
+      query: {
+        where,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          username: true,
+          avatarPath: true,
+          email: true,
+          tempEmail: true,
+          createdAt: true,
+          updatedAt: true,
+          role: true,
+          isEmailVerified: true,
+        },
+      },
+    });
+
+    return {
+      items,
+      nextCursor,
+    };
+  }
+
   //==============
   //   Auth
   //==============
@@ -287,6 +364,70 @@ export class UsersService {
     return {
       items,
       nextCursor: nextCursor,
+    };
+  }
+
+  async searchAllPublic(searchDto: UserSearchDto) {
+    const searchFields = searchDto.getSearchFields();
+    const searchOptions = searchDto.getSearchOptions();
+
+    const where = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    });
+
+    const { items, pageInfo } = await offsetPaginate({
+      model: this.prisma.user,
+      limit: searchDto.limit ?? 10,
+      offset: searchDto.offset ?? 0,
+      query: {
+        where,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          username: true,
+          avatarPath: true,
+        },
+      },
+    });
+
+    return {
+      items,
+      pageInfo,
+    };
+  }
+
+  async searchAllCursorPublic(searchDto: UserSearchCursorDto) {
+    const searchFields = searchDto.getSearchFields();
+    const searchOptions = searchDto.getSearchOptions();
+
+    const where = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    });
+
+    const { cursor, limit } = searchDto;
+
+    const { items, nextCursor } = await cursorPaginate({
+      model: this.prisma.post,
+      limit: limit ?? 10,
+      cursor,
+      query: {
+        where,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          username: true,
+          avatarPath: true,
+        },
+      },
+    });
+
+    return {
+      items,
+      nextCursor,
     };
   }
 

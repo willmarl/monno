@@ -29,6 +29,10 @@ import { UpdateUserDto } from '../users/dto/update-user.dto';
 import { UploadedFile } from '@nestjs/common';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
+import {
+  UserSearchDto,
+  UserSearchCursorDto,
+} from '../users/dto/search-user.dto';
 
 @ApiTags('admin-users')
 @Controller('admin/users')
@@ -77,6 +81,24 @@ export class AdminUsersController {
   findAllCursor(@Req() req: any, @Query() pag: CursorPaginationDto) {
     const userId = req.user?.sub ?? null;
     return this.usersService.findAllCursor(userId, pag);
+  }
+
+  @ApiOperation({ summary: 'Search users (admin only)' })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'Search results',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
+  @Get('search')
+  search(@Query() searchDto: UserSearchDto) {
+    return this.usersService.searchAll(searchDto);
+  }
+
+  @Get('search/cursor')
+  searchCursor(@Query() searchDto: UserSearchCursorDto) {
+    return this.usersService.searchAllCursor(searchDto);
   }
 
   @ApiOperation({ summary: 'Find user by ID (admin only)' })
