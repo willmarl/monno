@@ -156,4 +156,9 @@ export class UsersController {
   searchCursor(@Query() searchDto: UserSearchCursorDto) {
     return this.usersService.searchAllCursorPublic(searchDto);
   }
+
+  @Get('search/suggest')
+  findSuggest(@Query('q') q: string, @Query('limit') limit = 5) {
+    return this.usersService.searchSuggestPublic(q, Number(limit));
+  }
 }

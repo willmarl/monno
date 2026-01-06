@@ -178,4 +178,9 @@ export class AdminUsersController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.remove(id);
   }
+
+  @Get('search/suggest')
+  findSuggest(@Query('q') q: string, @Query('limit') limit = 5) {
+    return this.usersService.searchSuggest(q, Number(limit));
+  }
 }

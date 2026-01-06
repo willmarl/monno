@@ -80,4 +80,9 @@ export class PostsController {
   remove(@Param('id') id: number) {
     return this.postsService.remove(id);
   }
+
+  @Get('search/suggest')
+  findSuggest(@Query('q') q: string, @Query('limit') limit = 5) {
+    return this.postsService.searchSuggest(q, Number(limit));
+  }
 }

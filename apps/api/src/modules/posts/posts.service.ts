@@ -103,6 +103,10 @@ export class PostsService {
     });
   }
 
+  //--------------
+  //   Search
+  //--------------
+
   async searchAll(searchDto: PostSearchDto) {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
@@ -175,5 +179,29 @@ export class PostsService {
       items,
       nextCursor,
     };
+  }
+
+  async searchSuggest(q: string, limit: number) {
+    if (!q) return [];
+
+    return this.prisma.post.findMany({
+      where: {
+        OR: [
+          { title: { contains: q, mode: 'insensitive' } },
+          { content: { contains: q, mode: 'insensitive' } },
+        ],
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        createdAt: true,
+        updatedAt: true,
+        creator: {
+          select: { id: true, username: true },
+        },
+      },
+      take: limit,
+    });
   }
 }

@@ -221,6 +221,10 @@ export class UsersService {
     });
   }
 
+  //--------------
+  //   Search
+  //--------------
+
   async searchAll(searchDto: UserSearchDto) {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
@@ -297,6 +301,31 @@ export class UsersService {
     };
   }
 
+  async searchSuggest(q: string, limit: number) {
+    if (!q) return [];
+
+    return this.prisma.user.findMany({
+      where: {
+        OR: [
+          { username: { contains: q, mode: 'insensitive' } },
+          { email: { contains: q, mode: 'insensitive' } },
+        ],
+      },
+      select: {
+        id: true,
+        username: true,
+        avatarPath: true,
+        email: true,
+        tempEmail: true,
+        createdAt: true,
+        updatedAt: true,
+        role: true,
+        isEmailVerified: true,
+      },
+      take: limit,
+    });
+  }
+
   //==============
   //   Auth
   //==============
@@ -365,6 +394,26 @@ export class UsersService {
       items,
       nextCursor: nextCursor,
     };
+  }
+
+  //--------------
+  //   Search
+  //--------------
+
+  async searchSuggestPublic(q: string, limit: number) {
+    if (!q) return [];
+
+    return this.prisma.user.findMany({
+      where: {
+        OR: [{ username: { contains: q, mode: 'insensitive' } }],
+      },
+      select: {
+        id: true,
+        username: true,
+        avatarPath: true,
+      },
+      take: limit,
+    });
   }
 
   async searchAllPublic(searchDto: UserSearchDto) {
