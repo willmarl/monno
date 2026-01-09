@@ -5,7 +5,7 @@ import type { Post, CreatePostInput, UpdatePostInput } from "./types/post";
 export const fetchPosts = () => fetcher<Post[]>("/posts");
 
 // GET /posts/:id
-export const fetchPostById = (id: string) => fetcher<Post>(`/posts/${id}`);
+export const fetchPostById = (id: number) => fetcher<Post>(`/posts/${id}`);
 
 // POST /posts
 export const createPost = (data: CreatePostInput) =>
@@ -15,14 +15,14 @@ export const createPost = (data: CreatePostInput) =>
   });
 
 // PATCH /posts/:id
-export const updatePost = (id: string, data: UpdatePostInput) =>
+export const updatePost = (id: number, data: UpdatePostInput) =>
   fetcher<Post>(`/posts/${id}`, {
     method: "PATCH",
     json: data,
   });
 
 // DELETE /posts/:id
-export const deletePost = (id: string) =>
+export const deletePost = (id: number) =>
   fetcher<void>(`/posts/${id}`, {
     method: "DELETE",
   });

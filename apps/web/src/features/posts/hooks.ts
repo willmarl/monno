@@ -14,7 +14,7 @@ export function usePosts() {
   });
 }
 
-export function usePostById(id: string) {
+export function usePostById(id: number) {
   return useQuery({
     queryKey: ["post", id],
     queryFn: () => fetchPostById(id),
@@ -42,7 +42,7 @@ export function useUpdatePost() {
       id,
       data,
     }: {
-      id: string;
+      id: number;
       data: Parameters<typeof updatePost>[1];
     }) => updatePost(id, data),
     onSuccess: (_, { id }) => {
