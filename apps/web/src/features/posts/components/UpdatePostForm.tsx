@@ -48,7 +48,7 @@ export default function UpdatePostForm({ postId }: { postId: number }) {
       {
         onSuccess: () => {
           toast.success("Post updated");
-          router.push(`/posts/${postId}`);
+          router.push(`/post/${postId}`);
         },
       }
     );

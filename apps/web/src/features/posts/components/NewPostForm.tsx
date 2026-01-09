@@ -34,7 +34,7 @@ export default function NewPostForm() {
     newPostMutation.mutate(data, {
       onSuccess: (response) => {
         toast.success("Post created");
-        router.push(`/posts/${response.id}`); // assuming response has an id
+        router.push(`/post/${response.id}`); // assuming response has an id
       },
     });
   }
