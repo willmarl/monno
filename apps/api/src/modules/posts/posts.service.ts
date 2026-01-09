@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -35,7 +35,7 @@ export class PostsService {
           createdAt: true,
           updatedAt: true,
           creator: {
-            select: { id: true, username: true },
+            select: { id: true, username: true, avatarPath: true },
           },
         },
       },
@@ -63,7 +63,7 @@ export class PostsService {
           createdAt: true,
           updatedAt: true,
           creator: {
-            select: { id: true, username: true },
+            select: { id: true, username: true, avatarPath: true },
           },
         },
       },
@@ -74,8 +74,8 @@ export class PostsService {
     };
   }
 
-  findOne(id: number) {
-    return this.prisma.post.findUnique({
+  async findOne(id: number) {
+    const post = await this.prisma.post.findUnique({
       where: { id },
       select: {
         id: true,
@@ -84,10 +84,16 @@ export class PostsService {
         createdAt: true,
         updatedAt: true,
         creator: {
-          select: { id: true, username: true },
+          select: { id: true, username: true, avatarPath: true },
         },
       },
     });
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    return post;
   }
 
   update(id: number, data: UpdatePostDto) {
@@ -131,7 +137,7 @@ export class PostsService {
           createdAt: true,
           updatedAt: true,
           creator: {
-            select: { id: true, username: true },
+            select: { id: true, username: true, avatarPath: true },
           },
         },
       },
@@ -169,7 +175,7 @@ export class PostsService {
           createdAt: true,
           updatedAt: true,
           creator: {
-            select: { id: true, username: true },
+            select: { id: true, username: true, avatarPath: true },
           },
         },
       },
@@ -198,7 +204,7 @@ export class PostsService {
         createdAt: true,
         updatedAt: true,
         creator: {
-          select: { id: true, username: true },
+          select: { id: true, username: true, avatarPath: true },
         },
       },
       take: limit,
