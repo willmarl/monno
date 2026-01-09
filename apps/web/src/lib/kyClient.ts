@@ -44,7 +44,9 @@ export const api = ky.create({
         }
 
         // Generic error handling for non-401 errors
-        if (!response.ok) {
+        // Skip 4xx errors (except 401) - these are usually handled by components
+        // Only show toast for 5xx errors (server issues)
+        if (!response.ok && response.status >= 500) {
           const clonedResponse = response.clone();
           const error = (await clonedResponse.json().catch(() => ({}))) as {
             message?: string;
