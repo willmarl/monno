@@ -1,14 +1,14 @@
-"use client";
 import { Post } from "@/components/ui/Post";
-import { useParams } from "next/navigation";
 
-export default function page() {
-  const params = useParams();
-  const id = params.id;
+export default async function page({
+  params,
+}: {
+  params: Promise<{ id: number }>;
+}) {
+  const { id } = await params;
   return (
     <div className="max-w-2xl mx-auto">
-      <p>Post ID: {id}</p>
-      <Post />
+      <Post id={id} />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 interface Creator {
   id: number;
   username: string;
+  avatarPath: string;
 }
 export interface Post {
   id: number;

@@ -30,7 +30,6 @@ export function useCreatePost() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["posts"] });
     },
-    throwOnError: false, // Don't throw errors, let component handle them
   });
 }
 
@@ -49,7 +48,6 @@ export function useUpdatePost() {
       qc.invalidateQueries({ queryKey: ["posts"] });
       qc.invalidateQueries({ queryKey: ["post", id] });
     },
-    throwOnError: false, // Don't throw errors, let component handle them
   });
 }
 
@@ -62,6 +60,5 @@ export function useDeletePost() {
       qc.invalidateQueries({ queryKey: ["posts"] });
       qc.removeQueries({ queryKey: ["post", id] });
     },
-    throwOnError: false, // Don't throw errors, let component handle them
   });
 }

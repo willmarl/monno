@@ -1,24 +1,40 @@
+"use client";
+
 import { Card } from "./card";
 import { Avatar, AvatarImage, AvatarFallback } from "./avatar";
+import { usePostById } from "@/features/posts/hooks";
 
-const mockPost = {
-  content:
-    "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Minus consequatur, unde autem est nostrum incidunt, odio hic veritatis quo eum impedit ratione deleniti harum excepturi vitae cumque! Accusantium, sunt voluptatem?",
-  username: "username",
-  avatar: "https://github.com/shadcn.png",
-};
+export function Post({ id }: { id: number }) {
+  const { data, isLoading, error } = usePostById(id);
 
-export function Post() {
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error || !data) {
+    return (
+      <Card className="flex justify-center items-center">
+        Post does not exist
+      </Card>
+    );
+  }
+
   return (
     <Card className="p-4">
-      <p className="text-sm text-foreground">{mockPost.content}</p>
+      <h2>{data?.title}</h2>
+      <p className="text-sm text-foreground">{data?.content}</p>
       <div className="flex gap-3 items-center">
         <Avatar className="h-8 w-8 flex-shrink-0">
-          <AvatarImage src={mockPost.avatar} alt={mockPost.username} />
-          <AvatarFallback>{mockPost.username[0].toUpperCase()}</AvatarFallback>
+          <AvatarImage
+            src={data?.creator.avatarPath}
+            alt={data?.creator.username}
+          />
+          <AvatarFallback>
+            {data?.creator.username?.[0]?.toUpperCase() || "?"}
+          </AvatarFallback>
         </Avatar>
         <p className="text-sm font-medium text-muted-foreground">
-          {mockPost.username}
+          {data?.creator.username}
         </p>
       </div>
     </Card>
