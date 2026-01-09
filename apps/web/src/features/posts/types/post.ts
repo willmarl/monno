@@ -1,8 +1,11 @@
+import { PaginatedResponse } from "@/types/pagination";
+
 interface Creator {
   id: number;
   username: string;
   avatarPath: string;
 }
+
 export interface Post {
   id: number;
   title: string;
@@ -11,6 +14,8 @@ export interface Post {
   createdAt: string;
   updatedAt: string;
 }
+
+export type PostsResponse = PaginatedResponse<Post>;
 
 export interface CreatePostInput {
   title: string;

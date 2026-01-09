@@ -1,8 +1,13 @@
 import { fetcher } from "@/lib/fetcher";
-import type { Post, CreatePostInput, UpdatePostInput } from "./types/post";
+import type {
+  Post,
+  CreatePostInput,
+  UpdatePostInput,
+  PostsResponse,
+} from "./types/post";
 
 // GET /posts
-export const fetchPosts = () => fetcher<Post[]>("/posts");
+export const fetchPosts = () => fetcher<PostsResponse>("/posts");
 
 // GET /posts/:id
 export const fetchPostById = (id: number) => fetcher<Post>(`/posts/${id}`);
