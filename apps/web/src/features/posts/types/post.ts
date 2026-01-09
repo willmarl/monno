@@ -1,9 +1,14 @@
+interface Creator {
+  id: number;
+  username: string;
+}
 export interface Post {
   id: number;
   title: string;
   content: string;
-  creatorId: string;
+  creator: Creator;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreatePostInput {
