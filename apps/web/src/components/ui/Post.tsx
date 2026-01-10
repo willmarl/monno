@@ -1,34 +1,18 @@
-"use client";
-
 import { Card } from "./card";
 import { Avatar, AvatarImage, AvatarFallback } from "./avatar";
-import { usePostById } from "@/features/posts/hooks";
 import { useRouter } from "next/navigation";
-import { useSessionUser } from "@/features/auth/hooks";
 import { Button } from "./button";
+import { Post as PostType } from "@/features/posts/types/post";
 
-export function Post({ id }: { id: number }) {
-  const { data: user } = useSessionUser();
-  const { data, isLoading, error } = usePostById(id);
+export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
   const router = useRouter();
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error || !data) {
-    return (
-      <Card className="flex justify-center items-center">
-        Post does not exist
-      </Card>
-    );
-  }
-
-  const isOwner = data.creator.id === user?.id;
 
   return (
     <Card className="p-4">
-      <h2 className="cursor-pointer" onClick={() => router.push(`/post/${id}`)}>
+      <h2
+        className="cursor-pointer"
+        onClick={() => router.push(`/post/${data.id}`)}
+      >
         {data?.title}
       </h2>
       <p className="text-sm text-foreground">{data?.content}</p>
@@ -48,7 +32,7 @@ export function Post({ id }: { id: number }) {
 
         {isOwner ? (
           <Button
-            onClick={() => router.push(`/post/edit/${id}`)}
+            onClick={() => router.push(`/post/edit/${data.id}`)}
             className="cursor-pointer ml-auto"
           >
             Edit Post
