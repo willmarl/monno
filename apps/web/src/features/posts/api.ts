@@ -3,14 +3,26 @@ import type {
   Post,
   CreatePostInput,
   UpdatePostInput,
-  PostsResponse,
+  PostsList,
 } from "./types/post";
 
 // GET /posts
-export const fetchPosts = () => fetcher<PostsResponse>("/posts");
+export const fetchPosts = () => fetcher<PostsList>("/posts");
 
 // GET /posts/:id
 export const fetchPostById = (id: number) => fetcher<Post>(`/posts/${id}`);
+
+// GET /posts/search?limit=5&offset=10
+export const fetchPostsOffset = ({
+  limit,
+  offset,
+}: {
+  limit: number;
+  offset: number;
+}) =>
+  fetcher<PostsList>("/posts", {
+    searchParams: { limit, offset },
+  });
 
 // POST /posts
 export const createPost = (data: CreatePostInput) =>

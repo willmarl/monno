@@ -3,8 +3,8 @@
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Postlist } from "@/components/pages/default/Postlist";
 import { User } from "@/features/users/types/user";
+import { PaginatedPosts } from "./PaginatedPosts";
 
 export function DefaultPostPage({ user }: { user: User | null }) {
   const router = useRouter();
@@ -24,7 +24,7 @@ export function DefaultPostPage({ user }: { user: User | null }) {
           ""
         )}
       </div>
-      <Postlist />
+      <PaginatedPosts />
     </div>
   );
 }

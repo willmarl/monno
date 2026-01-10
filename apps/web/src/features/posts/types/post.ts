@@ -15,7 +15,7 @@ export interface Post {
   updatedAt: string;
 }
 
-export type PostsResponse = PaginatedResponse<Post>;
+export type PostsList = PaginatedResponse<Post>;
 
 export interface CreatePostInput {
   title: string;

@@ -6,6 +6,7 @@ import {
   updatePost,
   deletePost,
 } from "./api";
+import { fetchPostsOffset } from "./api";
 
 export function usePosts() {
   return useQuery({
@@ -19,6 +20,15 @@ export function usePostById(id: number) {
     queryKey: ["post", id],
     queryFn: () => fetchPostById(id),
     enabled: !!id,
+  });
+}
+
+export function usePostsOffset(page: number, limit: number) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: ["posts-offset", page],
+    queryFn: () => fetchPostsOffset({ limit, offset }),
   });
 }
 
