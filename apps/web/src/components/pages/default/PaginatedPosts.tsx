@@ -24,7 +24,7 @@ function PostsListContent() {
 
   return (
     <PaginatedList
-      url="posts"
+      url="post"
       page={page}
       limit={DEFAULT_LIMIT}
       items={posts}
