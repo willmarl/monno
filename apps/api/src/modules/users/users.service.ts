@@ -73,7 +73,7 @@ export class UsersService {
   }
 
   async findAll(pag: PaginationDto) {
-    const { items, pageInfo } = await offsetPaginate({
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.user,
       limit: pag.limit ?? 10,
       offset: pag.offset ?? 0,
@@ -96,6 +96,7 @@ export class UsersService {
     return {
       items,
       pageInfo,
+      ...(isRedirected && { isRedirected: true }),
     };
   }
 
@@ -235,7 +236,7 @@ export class UsersService {
       options: searchOptions,
     });
 
-    const { items, pageInfo } = await offsetPaginate({
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.user,
       limit: searchDto.limit ?? 10,
       offset: searchDto.offset ?? 0,
@@ -259,6 +260,7 @@ export class UsersService {
     return {
       items,
       pageInfo,
+      ...(isRedirected && { isRedirected: true }),
     };
   }
 
@@ -352,7 +354,7 @@ export class UsersService {
   }
 
   async findAllPublic(pag: PaginationDto) {
-    const { items, pageInfo } = await offsetPaginate({
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.user,
       limit: pag.limit ?? 10,
       offset: pag.offset ?? 0,
@@ -369,6 +371,7 @@ export class UsersService {
     return {
       items,
       pageInfo,
+      ...(isRedirected && { isRedirected: true }),
     };
   }
 
@@ -426,7 +429,7 @@ export class UsersService {
       options: searchOptions,
     });
 
-    const { items, pageInfo } = await offsetPaginate({
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.user,
       limit: searchDto.limit ?? 10,
       offset: searchDto.offset ?? 0,
@@ -444,6 +447,7 @@ export class UsersService {
     return {
       items,
       pageInfo,
+      ...(isRedirected && { isRedirected: true }),
     };
   }
 

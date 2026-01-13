@@ -25,10 +25,22 @@ export class TransformInterceptor implements NestInterceptor {
           return data;
         }
 
+        // Check if this is a paginated response with a redirect
+        const isRedirected = data?.isRedirected === true;
+        let message = successMessage;
+        let responseData = data;
+
+        if (isRedirected) {
+          message = 'Requested offset out of bounds. Redirected to last page.';
+          // Remove isRedirected flag from response data
+          const { isRedirected: _, requestedOffset: __, ...cleanData } = data;
+          responseData = cleanData;
+        }
+
         return {
           success: true,
-          message: successMessage,
-          data,
+          message,
+          data: responseData,
         };
       }),
     );

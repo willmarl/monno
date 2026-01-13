@@ -22,7 +22,7 @@ export class PostsService {
   }
 
   async findAll(pag: PaginationDto) {
-    const { items, pageInfo } = await offsetPaginate({
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.post,
       limit: pag.limit ?? 10,
       offset: pag.offset ?? 0,
@@ -44,6 +44,7 @@ export class PostsService {
     return {
       items,
       pageInfo,
+      ...(isRedirected && { isRedirected: true }),
     };
   }
 
@@ -123,7 +124,7 @@ export class PostsService {
       options: searchOptions,
     });
 
-    const { items, pageInfo } = await offsetPaginate({
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.post,
       limit: searchDto.limit ?? 10,
       offset: searchDto.offset ?? 0,
@@ -146,6 +147,7 @@ export class PostsService {
     return {
       items,
       pageInfo,
+      ...(isRedirected && { isRedirected: true }),
     };
   }
 

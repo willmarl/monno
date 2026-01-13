@@ -15,20 +15,35 @@ export async function offsetPaginate<T>({
 }): Promise<{
   items: T[];
   pageInfo: any;
+  isRedirected?: boolean;
+  requestedOffset?: number;
 }> {
-  const [totalItems, items] = await Promise.all([
-    // @ts-ignore dynamic Prisma access
-    model.count(countQuery),
-    // @ts-ignore dynamic Prisma access
-    model.findMany({
-      skip: offset,
-      take: limit,
-      ...query,
-    }),
-  ]);
+  const totalItems =
+    await // @ts-ignore dynamic Prisma access
+    model.count(countQuery);
+
+  // Check if offset is out of bounds
+  const isOutOfBounds = offset >= totalItems && totalItems > 0;
+  const correctedOffset = isOutOfBounds
+    ? Math.floor((totalItems - 1) / limit) * limit
+    : offset;
+
+  const items = await // @ts-ignore dynamic Prisma access
+  model.findMany({
+    skip: correctedOffset,
+    take: limit,
+    ...query,
+  });
 
   return {
     items,
-    pageInfo: buildOffsetPageInfo({ totalItems, limit, offset }),
+    pageInfo: buildOffsetPageInfo({
+      totalItems,
+      limit,
+      offset: correctedOffset,
+      requestedOffset: isOutOfBounds ? offset : undefined,
+    }),
+    isRedirected: isOutOfBounds,
+    requestedOffset: isOutOfBounds ? offset : undefined,
   };
 }
