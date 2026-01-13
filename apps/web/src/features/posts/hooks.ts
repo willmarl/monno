@@ -1,8 +1,14 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  useInfiniteQuery,
+} from "@tanstack/react-query";
 import {
   createPost,
   fetchPostById,
   fetchPosts,
+  fetchPostsCursor,
   updatePost,
   deletePost,
 } from "./api";
@@ -29,6 +35,21 @@ export function usePostsOffset(page: number, limit: number) {
   return useQuery({
     queryKey: ["posts-offset", page],
     queryFn: () => fetchPostsOffset({ limit, offset }),
+  });
+}
+
+export function usePostsCursor(limit: number = 10) {
+  return useInfiniteQuery({
+    queryKey: ["posts-cursor"],
+    queryFn: ({ pageParam }) =>
+      fetchPostsCursor({
+        limit,
+        cursor: pageParam ?? null,
+      }),
+
+    // pageParam = nextCursor from backend
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialPageParam: null as string | null,
   });
 }
 

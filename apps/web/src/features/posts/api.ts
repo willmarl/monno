@@ -4,6 +4,7 @@ import type {
   CreatePostInput,
   UpdatePostInput,
   PostsList,
+  PostListCursor,
 } from "./types/post";
 
 // GET /posts
@@ -22,6 +23,18 @@ export const fetchPostsOffset = ({
 }) =>
   fetcher<PostsList>("/posts", {
     searchParams: { limit, offset },
+  });
+
+// GET /posts/search/cursor?q=world&mode=all
+export const fetchPostsCursor = ({
+  limit,
+  cursor,
+}: {
+  limit: number;
+  cursor?: string | null;
+}) =>
+  fetcher<PostListCursor>("/posts/cursor", {
+    searchParams: { limit, cursor: cursor ?? undefined },
   });
 
 // POST /posts

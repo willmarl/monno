@@ -17,6 +17,11 @@ export interface Post {
 
 export type PostsList = PaginatedResponse<Post>;
 
+export interface PostListCursor {
+  items: Post[];
+  nextCursor: string;
+}
+
 export interface CreatePostInput {
   title: string;
   content: string;
