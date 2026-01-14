@@ -28,7 +28,7 @@ const VALID_POST_SEARCH_FIELDS = Object.values(PostSearchFields);
  * Extends PaginationDto with search-specific parameters
  *
  * @example
- * GET /posts/search?query=hello&searchFields=title,content&limit=10&offset=0&caseSensitive=false
+ * GET /posts/search?query=hello&searchFields=title,content&limit=10&offset=0&caseSensitive=false&sort=createdAt|desc
  */
 export class PostSearchDto extends PaginationDto {
   @ApiPropertyOptional({
@@ -57,6 +57,15 @@ export class PostSearchDto extends PaginationDto {
   @IsBoolean()
   caseSensitive?: boolean;
 
+  @ApiPropertyOptional({
+    description:
+      'Sort by field and direction (field|direction). E.g., createdAt|desc, updatedAt|asc',
+    example: 'createdAt|desc',
+  })
+  @IsOptional()
+  @IsString()
+  sort?: string;
+
   /**
    * Parse and validate searchFields into an array of valid fields
    * Invalid fields are silently ignored
@@ -80,6 +89,29 @@ export class PostSearchDto extends PaginationDto {
     return {
       caseSensitive: this.caseSensitive ?? false,
     };
+  }
+
+  /**
+   * Parse sort parameter into Prisma orderBy clause
+   * Format: "field|direction" e.g., "createdAt|desc"
+   * Defaults to createdAt|desc
+   */
+  getOrderBy(): Record<string, 'asc' | 'desc'> {
+    if (!this.sort) {
+      return { createdAt: 'desc' };
+    }
+
+    const [field, direction] = this.sort.split('|');
+    const validFields = ['createdAt', 'updatedAt'];
+    const validDirection = ['asc', 'desc'].includes(direction?.toLowerCase())
+      ? (direction?.toLowerCase() as 'asc' | 'desc')
+      : 'desc';
+
+    if (!validFields.includes(field)) {
+      return { createdAt: 'desc' };
+    }
+
+    return { [field]: validDirection };
   }
 }
 
@@ -114,6 +146,15 @@ export class PostSearchCursorDto extends CursorPaginationDto {
   @IsBoolean()
   caseSensitive?: boolean;
 
+  @ApiPropertyOptional({
+    description:
+      'Sort by field and direction (field|direction). E.g., createdAt|desc, updatedAt|asc',
+    example: 'createdAt|desc',
+  })
+  @IsOptional()
+  @IsString()
+  sort?: string;
+
   /**
    * Parse and validate searchFields into an array of valid fields
    * Invalid fields are silently ignored
@@ -137,5 +178,28 @@ export class PostSearchCursorDto extends CursorPaginationDto {
     return {
       caseSensitive: this.caseSensitive ?? false,
     };
+  }
+
+  /**
+   * Parse sort parameter into Prisma orderBy clause
+   * Format: "field|direction" e.g., "createdAt|desc"
+   * Defaults to createdAt|desc
+   */
+  getOrderBy(): Record<string, 'asc' | 'desc'> {
+    if (!this.sort) {
+      return { createdAt: 'desc' };
+    }
+
+    const [field, direction] = this.sort.split('|');
+    const validFields = ['createdAt', 'updatedAt'];
+    const validDirection = ['asc', 'desc'].includes(direction?.toLowerCase())
+      ? (direction?.toLowerCase() as 'asc' | 'desc')
+      : 'desc';
+
+    if (!validFields.includes(field)) {
+      return { createdAt: 'desc' };
+    }
+
+    return { [field]: validDirection };
   }
 }

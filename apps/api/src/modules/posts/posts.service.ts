@@ -117,6 +117,7 @@ export class PostsService {
   async searchAll(searchDto: PostSearchDto) {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
+    const orderBy = searchDto.getOrderBy();
 
     const where = buildSearchWhere({
       query: searchDto.query ?? '',
@@ -130,7 +131,7 @@ export class PostsService {
       offset: searchDto.offset ?? 0,
       query: {
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         select: {
           id: true,
           title: true,
@@ -142,6 +143,7 @@ export class PostsService {
           },
         },
       },
+      countQuery: { where },
     });
 
     return {
@@ -154,6 +156,7 @@ export class PostsService {
   async searchAllCursor(searchDto: PostSearchCursorDto) {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
+    const orderBy = searchDto.getOrderBy();
 
     const where = buildSearchWhere({
       query: searchDto.query ?? '',
@@ -169,7 +172,7 @@ export class PostsService {
       cursor,
       query: {
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         select: {
           id: true,
           title: true,
