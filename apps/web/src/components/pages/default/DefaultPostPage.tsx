@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { User } from "@/features/users/types/user";
 import { PaginatedPosts } from "./PaginatedPosts";
+import { PostSearchBar } from "@/features/posts/components/PostSearchBar";
 
 export function DefaultPostPage({ user }: { user: User | null }) {
   const router = useRouter();
@@ -12,7 +13,7 @@ export function DefaultPostPage({ user }: { user: User | null }) {
   return (
     <div>
       <div className="flex justify-center relative items-center h-10 mb-4">
-        <div className="border border-green-400">Search bar here</div>
+        <PostSearchBar />
         {user ? (
           <Button
             className="cursor-pointer absolute right-0"

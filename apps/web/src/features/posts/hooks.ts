@@ -8,11 +8,12 @@ import {
   createPost,
   fetchPostById,
   fetchPosts,
+  fetchPostsOffset,
   fetchPostsCursor,
+  fetchPostSuggestions,
   updatePost,
   deletePost,
 } from "./api";
-import { fetchPostsOffset } from "./api";
 
 export function usePosts() {
   return useQuery({
@@ -50,6 +51,14 @@ export function usePostsCursor(limit: number = 10) {
     // pageParam = nextCursor from backend
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     initialPageParam: null as string | null,
+  });
+}
+
+export function usePostSuggestions(q: string, limit: number = 5) {
+  return useQuery({
+    queryKey: ["post-suggestions", q],
+    queryFn: () => fetchPostSuggestions(q, limit),
+    enabled: !!q,
   });
 }
 

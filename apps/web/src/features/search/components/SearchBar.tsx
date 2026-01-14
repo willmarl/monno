@@ -7,14 +7,12 @@ import { Search, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 
-export interface SearchSuggestion {
-  id: string;
+export interface BaseSuggestion {
+  id: string | number;
   title: string;
-  content: string;
-  [key: string]: any;
 }
 
-export function SearchBar({
+export function SearchBar<T extends BaseSuggestion = BaseSuggestion>({
   placeholder = "Search...",
   queryParam = "q",
   basePath = "/search",
@@ -33,15 +31,15 @@ export function SearchBar({
     q: string,
     limit: number
   ) => {
-    data?: SearchSuggestion[];
+    data?: T[];
     isLoading: boolean;
   };
-  renderSuggestion?: (suggestion: SearchSuggestion) => {
+  renderSuggestion?: (suggestion: T) => {
     title: string;
     subtitle?: string;
   };
-  onSuggestionSelect?: (suggestion: SearchSuggestion) => string;
-  onNavigateTo?: (suggestion: SearchSuggestion) => string;
+  onSuggestionSelect?: (suggestion: T) => string;
+  onNavigateTo?: (suggestion: T) => string;
   reactiveUrl?: boolean;
 }) {
   const router = useRouter();
@@ -100,7 +98,7 @@ export function SearchBar({
     setIsOpen(false);
   }
 
-  function handleSuggestionClick(suggestion: SearchSuggestion) {
+  function handleSuggestionClick(suggestion: T) {
     // If onNavigateTo is provided, navigate directly to the item
     if (onNavigateTo) {
       const path = onNavigateTo(suggestion);
@@ -194,7 +192,11 @@ export function SearchBar({
                   ? renderSuggestion(suggestion)
                   : {
                       title: suggestion.title,
-                      subtitle: suggestion.content.substring(0, 60) + "...",
+                      subtitle:
+                        "content" in suggestion && suggestion.content
+                          ? (suggestion.content as string).substring(0, 60) +
+                            "..."
+                          : undefined,
                     };
                 const isSelected = index === selectedIndex;
                 return (

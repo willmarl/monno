@@ -37,6 +37,15 @@ export const fetchPostsCursor = ({
     searchParams: { limit, cursor: cursor ?? undefined },
   });
 
+// GET /posts/search/suggest?q=world&limit=5
+export const fetchPostSuggestions = (q: string, limit: number = 5) => {
+  if (!q) return Promise.resolve([]);
+
+  return fetcher<Post[]>("/posts/search/suggest", {
+    searchParams: { q, limit },
+  });
+};
+
 // POST /posts
 export const createPost = (data: CreatePostInput) =>
   fetcher<Post>("/posts", {
