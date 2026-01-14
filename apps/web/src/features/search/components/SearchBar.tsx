@@ -178,10 +178,10 @@ export function SearchBar<T extends BaseSuggestion = BaseSuggestion>({
       {useSuggestions && isOpen && value && (
         <div
           ref={suggestionsRef}
-          className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50"
+          className="absolute top-full left-0 right-0 mt-1 z-50 bg-popover border border-border rounded-md shadow-md"
         >
           {isLoading ? (
-            <div className="flex items-center justify-center gap-2 p-3 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center justify-center gap-2 p-3 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               Loading suggestions...
             </div>
@@ -205,16 +205,14 @@ export function SearchBar<T extends BaseSuggestion = BaseSuggestion>({
                       onClick={() => handleSuggestionClick(suggestion)}
                       onMouseEnter={() => setSelectedIndex(index)}
                       className={`w-full text-left px-4 py-2 transition-colors ${
-                        isSelected
-                          ? "bg-blue-100 dark:bg-blue-900"
-                          : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                        isSelected ? "bg-muted" : "hover:bg-muted"
                       }`}
                     >
-                      <div className="font-medium text-gray-900 dark:text-white truncate">
+                      <div className="font-medium text-foreground truncate">
                         {display.title}
                       </div>
                       {display.subtitle && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        <div className="text-xs text-muted-foreground truncate">
                           {display.subtitle}
                         </div>
                       )}
@@ -224,7 +222,7 @@ export function SearchBar<T extends BaseSuggestion = BaseSuggestion>({
               })}
             </ul>
           ) : (
-            <div className="p-3 text-sm text-gray-500 dark:text-gray-400 text-center">
+            <div className="p-3 text-sm text-muted-foreground text-center">
               No suggestions found
             </div>
           )}
