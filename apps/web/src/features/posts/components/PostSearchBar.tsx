@@ -15,7 +15,7 @@ export function PostSearchBar() {
       <SearchBar<Post>
         placeholder="Search posts..."
         queryParam="q"
-        basePath="/search"
+        basePath="/"
         useSuggestions={usePostSuggestions}
         onNavigateTo={(post) => `post/${post.id}`}
       />
@@ -23,7 +23,7 @@ export function PostSearchBar() {
       <SearchFilterDropdown
         filters={postSearchFilters}
         sorts={postSearchSorts}
-        basePath="/search"
+        basePath="/"
       />
     </div>
   );

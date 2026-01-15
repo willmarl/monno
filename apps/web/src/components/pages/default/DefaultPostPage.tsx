@@ -7,7 +7,19 @@ import { User } from "@/features/users/types/user";
 import { PaginatedPosts } from "./PaginatedPosts";
 import { PostSearchBar } from "@/features/posts/components/PostSearchBar";
 
-export function DefaultPostPage({ user }: { user: User | null }) {
+interface DefaultPostPageProps {
+  user: User | null;
+  searchParams?: {
+    q?: string;
+    searchFields?: string;
+    sort?: string;
+    page?: string;
+    limit?: string;
+    caseSensitive?: string;
+  };
+}
+
+export function DefaultPostPage({ user, searchParams }: DefaultPostPageProps) {
   const router = useRouter();
 
   return (
@@ -25,7 +37,7 @@ export function DefaultPostPage({ user }: { user: User | null }) {
           ""
         )}
       </div>
-      <PaginatedPosts />
+      <PaginatedPosts searchParams={searchParams} />
     </div>
   );
 }
