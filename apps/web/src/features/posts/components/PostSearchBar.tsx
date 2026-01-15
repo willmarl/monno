@@ -9,13 +9,17 @@ import {
 } from "@/features/posts/types/search-config";
 import { Post } from "../types/post";
 
-export function PostSearchBar() {
+interface PostSearchBarProps {
+  basePath?: string;
+}
+
+export function PostSearchBar({ basePath = "/" }: PostSearchBarProps) {
   return (
     <div className="flex gap-2">
       <SearchBar<Post>
         placeholder="Search posts..."
         queryParam="q"
-        basePath="/"
+        basePath={basePath}
         useSuggestions={usePostSuggestions}
         onNavigateTo={(post) => `post/${post.id}`}
       />
@@ -23,7 +27,7 @@ export function PostSearchBar() {
       <SearchFilterDropdown
         filters={postSearchFilters}
         sorts={postSearchSorts}
-        basePath="/"
+        basePath={basePath}
       />
     </div>
   );

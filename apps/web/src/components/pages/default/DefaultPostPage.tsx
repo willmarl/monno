@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { User } from "@/features/users/types/user";
-import { PaginatedPosts } from "./PaginatedPosts";
+import { PaginatedPosts } from "./PaginatedPostsContent";
 import { PostSearchBar } from "@/features/posts/components/PostSearchBar";
 
 interface DefaultPostPageProps {
@@ -25,7 +25,7 @@ export function DefaultPostPage({ user, searchParams }: DefaultPostPageProps) {
   return (
     <div>
       <div className="flex justify-center relative items-center h-10 mb-4">
-        <PostSearchBar />
+        <PostSearchBar basePath="/" />
         {user ? (
           <Button
             className="cursor-pointer absolute right-0"
