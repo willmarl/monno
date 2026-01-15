@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 interface SearchParams {
@@ -17,7 +18,7 @@ interface PaginatedResponse<T> {
 }
 
 interface UsePaginatedSearchOptions<T> {
-  searchParams?: SearchParams;
+  searchParams?: SearchParams | Promise<SearchParams>;
   searchHook: (
     query: string,
     page: number,
@@ -33,7 +34,7 @@ interface UsePaginatedSearchOptions<T> {
 }
 
 export function usePaginatedSearch<T>({
-  searchParams,
+  searchParams: initialSearchParams,
   searchHook,
   offsetHook,
   limit,
@@ -44,6 +45,15 @@ export function usePaginatedSearch<T>({
 }: UsePaginatedSearchOptions<T>) {
   const router = useRouter();
   const urlSearchParams = useSearchParams();
+
+  // Unwrap Promise if needed (Next.js 15+ searchParams)
+  const resolvedSearchParams =
+    initialSearchParams &&
+    typeof initialSearchParams === "object" &&
+    "then" in initialSearchParams
+      ? use(initialSearchParams as Promise<SearchParams>)
+      : initialSearchParams ?? {};
+  const searchParams = resolvedSearchParams as SearchParams;
 
   // Get page from query params
   const page = parseInt(
