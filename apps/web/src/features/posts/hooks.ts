@@ -11,6 +11,7 @@ import {
   fetchPostsOffset,
   fetchPostsSearch,
   fetchPostsCursor,
+  fetchPostsSearchCursor,
   fetchPostSuggestions,
   updatePost,
   deletePost,
@@ -66,6 +67,34 @@ export function usePostsSearch(
         sort: options?.sort,
         caseSensitive: options?.caseSensitive,
       }),
+    enabled: !!query,
+  });
+}
+
+export function usePostsSearchCursor(
+  query: string,
+  limit: number = 10,
+  options?: { searchFields?: string; sort?: string; caseSensitive?: boolean }
+) {
+  return useInfiniteQuery({
+    queryKey: [
+      "posts-search-cursor",
+      query,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+    ],
+    queryFn: ({ pageParam }) =>
+      fetchPostsSearchCursor({
+        query,
+        limit,
+        cursor: pageParam ?? null,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+      }),
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialPageParam: null as string | null,
     enabled: !!query,
   });
 }

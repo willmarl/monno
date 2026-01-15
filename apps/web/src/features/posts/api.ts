@@ -37,6 +37,36 @@ export const fetchPostsCursor = ({
     searchParams: { limit, cursor: cursor ?? undefined },
   });
 
+// GET /posts/search/cursor?query=world&limit=5&cursor=abc123
+export const fetchPostsSearchCursor = ({
+  query,
+  limit,
+  cursor,
+  searchFields,
+  sort,
+  caseSensitive,
+}: {
+  query: string;
+  limit: number;
+  cursor?: string | null;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+}) => {
+  if (!query) return fetchPostsCursor({ limit, cursor });
+
+  const searchParams: Record<string, string | number | boolean> = {
+    query,
+    limit,
+  };
+  if (cursor) searchParams.cursor = cursor;
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+
+  return fetcher<PostListCursor>("/posts/search/cursor", { searchParams });
+};
+
 // GET /posts/search?query=world&limit=5&offset=0
 export const fetchPostsSearch = ({
   query,
