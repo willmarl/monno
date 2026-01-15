@@ -28,13 +28,17 @@ export function OffsetPagination({
   totalItems,
   queryParams,
 }: Props) {
-  const [inputPage, setInputPage] = useState(page.toString());
+  const totalPages = Math.ceil(totalItems / limit);
+
+  // Clamp page to valid range (1 to totalPages)
+  const validPage = Math.min(Math.max(1, page), totalPages);
+  const [inputPage, setInputPage] = useState(validPage.toString());
 
   // Sync inputPage when page prop changes (from URL)
   useEffect(() => {
-    setInputPage(page.toString());
-  }, [page]);
-  const totalPages = Math.ceil(totalItems / limit);
+    const clamped = Math.min(Math.max(1, page), totalPages);
+    setInputPage(clamped.toString());
+  }, [page, totalPages]);
 
   // Build the href with page parameter
   const buildHref = (pageNum: number) => {
@@ -72,8 +76,8 @@ export function OffsetPagination({
     }
 
     // Large datasets → use ellipses
-    if (page <= 3) return [1, 2, 3, 4, "...", totalPages];
-    if (page >= totalPages - 2)
+    if (validPage <= 3) return [1, 2, 3, 4, "...", totalPages];
+    if (validPage >= totalPages - 2)
       return [
         1,
         "...",
@@ -83,7 +87,15 @@ export function OffsetPagination({
         totalPages,
       ];
 
-    return [1, "...", page - 1, page, page + 1, "...", totalPages];
+    return [
+      1,
+      "...",
+      validPage - 1,
+      validPage,
+      validPage + 1,
+      "...",
+      totalPages,
+    ];
   })();
 
   return (
@@ -92,11 +104,11 @@ export function OffsetPagination({
         {/* PREV BUTTON */}
         <PaginationItem>
           <PaginationPrevious
-            href={page > 1 ? buildHref(page - 1) : "#"}
+            href={validPage > 1 ? buildHref(validPage - 1) : "#"}
             onClick={(e) => {
-              if (page === 1) e.preventDefault();
+              if (validPage === 1) e.preventDefault();
             }}
-            className={page === 1 ? "pointer-events-none opacity-50" : ""}
+            className={validPage === 1 ? "pointer-events-none opacity-50" : ""}
             size="default"
           />
         </PaginationItem>
@@ -111,7 +123,7 @@ export function OffsetPagination({
             <PaginationItem key={num}>
               <PaginationLink
                 href={buildHref(num as number)}
-                isActive={num === page}
+                isActive={num === validPage}
                 size="icon"
               >
                 {num}
@@ -142,12 +154,12 @@ export function OffsetPagination({
         {/* NEXT BUTTON */}
         <PaginationItem>
           <PaginationNext
-            href={page < totalPages ? buildHref(page + 1) : "#"}
+            href={validPage < totalPages ? buildHref(validPage + 1) : "#"}
             onClick={(e) => {
-              if (page === totalPages) e.preventDefault();
+              if (validPage === totalPages) e.preventDefault();
             }}
             className={
-              page === totalPages ? "pointer-events-none opacity-50" : ""
+              validPage === totalPages ? "pointer-events-none opacity-50" : ""
             }
             size="default"
           />
