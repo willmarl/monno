@@ -6,6 +6,7 @@ import { Post } from "@/components/ui/Post";
 import { PaginatedList } from "@/components/ui/pagination/PaginatedList";
 import { useSessionUser } from "@/features/auth/hooks";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
+import { PostSkeleton } from "@/components/skeletons/PostSkeleton";
 
 const DEFAULT_LIMIT = 4;
 
@@ -52,6 +53,7 @@ function PostsListContent({ searchParams }: PaginatedPostsProps) {
       renderItem={(post) => (
         <Post data={post} isOwner={post.creator.id === user?.id} />
       )}
+      renderSkeleton={() => <PostSkeleton />}
       title="Posts"
       layout="flex"
       queryParams={queryParams}

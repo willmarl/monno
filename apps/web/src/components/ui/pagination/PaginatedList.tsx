@@ -11,6 +11,7 @@ interface Props<T> {
   totalItems: number;
   isLoading?: boolean;
   renderItem: (item: T) => ReactNode;
+  renderSkeleton?: () => ReactNode;
   title?: string;
   layout?: "grid" | "flex" | "custom";
   gridClassName?: string;
@@ -31,16 +32,29 @@ export function PaginatedList<T extends { id: string | number }>({
   totalItems,
   isLoading = false,
   renderItem,
+  renderSkeleton,
   title,
   layout = "grid",
   gridClassName,
   queryParams,
   emptyMessage = "No results found.",
 }: Props<T>) {
-  if (isLoading) return <p>Loading...</p>;
-
   const containerClassName =
     gridClassName || LAYOUT_CLASSES[layout === "custom" ? "grid" : layout];
+
+  // Show skeletons while loading
+  if (isLoading && items.length === 0 && renderSkeleton) {
+    return (
+      <div className="space-y-8">
+        {title && <h1 className="text-3xl font-bold">{title}</h1>}
+        <div className={containerClassName}>
+          {Array.from({ length: limit }).map((_, i) => (
+            <div key={`skeleton-${i}`}>{renderSkeleton()}</div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
