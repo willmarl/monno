@@ -9,6 +9,7 @@ import {
   fetchPostById,
   fetchPosts,
   fetchPostsOffset,
+  fetchPostsSearch,
   fetchPostsCursor,
   fetchPostSuggestions,
   updatePost,
@@ -36,6 +37,36 @@ export function usePostsOffset(page: number, limit: number) {
   return useQuery({
     queryKey: ["posts-offset", page],
     queryFn: () => fetchPostsOffset({ limit, offset }),
+  });
+}
+
+export function usePostsSearch(
+  query: string,
+  page: number,
+  limit: number,
+  options?: { searchFields?: string; sort?: string; caseSensitive?: boolean }
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: [
+      "posts-search",
+      query,
+      page,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+    ],
+    queryFn: () =>
+      fetchPostsSearch({
+        query,
+        limit,
+        offset,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+      }),
+    enabled: !!query,
   });
 }
 

@@ -7,13 +7,18 @@ import type {
 export const postSearchFilters: SearchFilterOption[] = [
   {
     type: "checkbox",
-    name: "searchIn",
+    name: "searchFields",
     label: "Search In",
     options: [
       { value: "title", label: "Title" },
       { value: "content", label: "Content" },
-      { value: "owner", label: "Owner" },
+      { value: "creator.username", label: "Creator" },
     ],
+  },
+  {
+    type: "toggle",
+    name: "caseSensitive",
+    label: "Case Sensitive",
   },
   // future: tags, price ranges, etc.
 ];

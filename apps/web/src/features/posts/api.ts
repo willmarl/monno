@@ -37,6 +37,36 @@ export const fetchPostsCursor = ({
     searchParams: { limit, cursor: cursor ?? undefined },
   });
 
+// GET /posts/search?query=world&limit=5&offset=0
+export const fetchPostsSearch = ({
+  query,
+  limit,
+  offset,
+  searchFields,
+  sort,
+  caseSensitive,
+}: {
+  query: string;
+  limit: number;
+  offset: number;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+}) => {
+  if (!query) return fetchPostsOffset({ limit, offset });
+
+  const searchParams: Record<string, string | number | boolean> = {
+    query,
+    limit,
+    offset,
+  };
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+
+  return fetcher<PostsList>("/posts/search", { searchParams });
+};
+
 // GET /posts/search/suggest?q=world&limit=5
 export const fetchPostSuggestions = (q: string, limit: number = 5) => {
   if (!q) return Promise.resolve([]);
