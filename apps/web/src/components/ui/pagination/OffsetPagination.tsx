@@ -18,9 +18,16 @@ interface Props {
   page: number;
   limit: number;
   totalItems: number;
+  queryParams?: Record<string, string | undefined>;
 }
 
-export function OffsetPagination({ url, page, limit, totalItems }: Props) {
+export function OffsetPagination({
+  url,
+  page,
+  limit,
+  totalItems,
+  queryParams,
+}: Props) {
   const [inputPage, setInputPage] = useState(page.toString());
 
   // Sync inputPage when page prop changes (from URL)
@@ -31,8 +38,14 @@ export function OffsetPagination({ url, page, limit, totalItems }: Props) {
 
   // Build the href with page parameter
   const buildHref = (pageNum: number) => {
-    const separator = url.includes("?") ? "&" : "?";
-    return `/${url}${separator}page=${pageNum}`;
+    const qs = new URLSearchParams();
+    qs.set("page", pageNum.toString());
+    if (queryParams) {
+      Object.entries(queryParams).forEach(([key, value]) => {
+        if (value) qs.set(key, value);
+      });
+    }
+    return `/${url}?${qs.toString()}`;
   };
 
   const handleGoToPage = () => {

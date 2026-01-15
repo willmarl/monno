@@ -14,6 +14,8 @@ interface Props<T> {
   title?: string;
   layout?: "grid" | "flex" | "custom";
   gridClassName?: string;
+  queryParams?: Record<string, string | undefined>;
+  emptyMessage?: string;
 }
 
 const LAYOUT_CLASSES = {
@@ -32,11 +34,24 @@ export function PaginatedList<T extends { id: string | number }>({
   title,
   layout = "grid",
   gridClassName,
+  queryParams,
+  emptyMessage = "No results found.",
 }: Props<T>) {
   if (isLoading) return <p>Loading...</p>;
 
   const containerClassName =
     gridClassName || LAYOUT_CLASSES[layout === "custom" ? "grid" : layout];
+
+  if (items.length === 0) {
+    return (
+      <div className="space-y-8">
+        {title && <h1 className="text-3xl font-bold">{title}</h1>}
+        <div className="text-center text-muted-foreground py-12">
+          <p>{emptyMessage}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -53,6 +68,7 @@ export function PaginatedList<T extends { id: string | number }>({
         page={page}
         limit={limit}
         totalItems={totalItems}
+        queryParams={queryParams}
       />
     </div>
   );

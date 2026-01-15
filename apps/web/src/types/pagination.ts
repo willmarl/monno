@@ -1,11 +1,11 @@
 export interface PageInfo {
   totalItems: number;
   limit: number;
-  offset: number;
-  hasNext: boolean;
-  hasPrev: boolean;
-  nextOffset: number;
-  prevOffset: number;
+  offset?: number;
+  hasNext?: boolean;
+  hasPrev?: boolean;
+  nextOffset?: number | null;
+  prevOffset?: number | null;
 }
 
 export interface PaginatedResponse<T> {
