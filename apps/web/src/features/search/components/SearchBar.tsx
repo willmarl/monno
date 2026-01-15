@@ -121,6 +121,9 @@ export function SearchBar<T extends BaseSuggestion = BaseSuggestion>({
           ref={inputRef}
           placeholder={placeholder}
           value={value}
+          autoCapitalize="off"
+          autoCorrect="off"
+          autoComplete="off"
           onChange={(e) => {
             setValue(e.target.value);
             if (e.target.value && useSuggestions) {
@@ -167,7 +170,6 @@ export function SearchBar<T extends BaseSuggestion = BaseSuggestion>({
             }
           }}
           onFocus={() => value && useSuggestions && setIsOpen(true)}
-          autoComplete="off"
         />
         <Button onClick={() => submit()}>
           <Search className="h-4 w-4" />

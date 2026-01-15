@@ -10,9 +10,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Filter, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SearchFilterOption, SearchSortOption } from "./types";
+import { SearchFilterOption, SearchSortOption } from "../types";
 import { SearchFilterCheckbox } from "./SearchFilterCheckbox";
 import { SearchFilterRadio } from "./SearchFilterRadio";
+import { SearchFilterToggle } from "./SearchFilterToggle";
 import { SearchSortSection } from "./SearchSortSection";
 
 export function SearchFilterDropdown({
@@ -62,8 +63,14 @@ export function SearchFilterDropdown({
               filter={filter}
               basePath={basePath}
             />
-          ) : (
+          ) : filter.type === "radio" ? (
             <SearchFilterRadio
+              key={filter.name}
+              filter={filter}
+              basePath={basePath}
+            />
+          ) : (
+            <SearchFilterToggle
               key={filter.name}
               filter={filter}
               basePath={basePath}

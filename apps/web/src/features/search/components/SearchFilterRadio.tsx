@@ -3,7 +3,7 @@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useSearchParams, useRouter } from "next/navigation";
-import { SearchFilterOption } from "./types";
+import { SearchFilterOption } from "../types";
 
 export function SearchFilterRadio({
   filter,
@@ -28,7 +28,7 @@ export function SearchFilterRadio({
       <p className="font-semibold text-sm">{filter.label}</p>
 
       <RadioGroup value={selected} onValueChange={update}>
-        {filter.options.map((opt) => (
+        {filter.options?.map((opt) => (
           <div key={opt.value} className="flex items-center gap-2">
             <RadioGroupItem value={opt.value} />
             <Label>{opt.label}</Label>

@@ -3,7 +3,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useSearchParams, useRouter } from "next/navigation";
-import { SearchFilterOption } from "./types";
+import { SearchFilterOption } from "../types";
 
 export function SearchFilterCheckbox({
   filter,
@@ -33,7 +33,7 @@ export function SearchFilterCheckbox({
     <div className="p-3 space-y-2">
       <p className="font-semibold text-sm">{filter.label}</p>
 
-      {filter.options.map((opt) => (
+      {filter.options?.map((opt) => (
         <div key={opt.value} className="flex items-center gap-2">
           <Checkbox
             checked={selected.includes(opt.value)}

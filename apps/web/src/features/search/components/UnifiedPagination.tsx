@@ -17,15 +17,22 @@ export function UnifiedPagination({
   const router = useRouter();
   const params = useSearchParams();
 
-  const { hasNext, hasPrev, nextOffset, prevOffset, limit, totalItems } =
-    pageInfo;
+  const {
+    hasNext = false,
+    hasPrev = false,
+    nextOffset = null,
+    prevOffset = null,
+    limit,
+    totalItems,
+  } = pageInfo;
   const totalPages = Math.ceil((totalItems || 0) / limit);
 
-  function setOffset(newOffset: number) {
+  function setOffset(newOffset: number | null) {
+    if (newOffset === null || newOffset === undefined) return;
     const qs = new URLSearchParams(params.toString());
     qs.set("offset", newOffset.toString());
     qs.set("page", (newOffset / limit + 1).toString());
-    // Update URL with all params preserved (q, sort, searchIn, etc)
+    // Update URL with all params preserved (q, sort, searchFields, etc)
     router.push(`/?${qs.toString()}`);
   }
 
@@ -79,7 +86,9 @@ export function UnifiedPagination({
             >
               1
             </Button>
-            {startPage > 2 && <span className="text-gray-400">...</span>}
+            {startPage > 2 && (
+              <span className="text-muted-foreground">...</span>
+            )}
           </>
         )}
 
@@ -99,7 +108,7 @@ export function UnifiedPagination({
         {endPage < totalPages && (
           <>
             {endPage < totalPages - 1 && (
-              <span className="text-gray-400">...</span>
+              <span className="text-muted-foreground">...</span>
             )}
             <Button
               onClick={() => goToPage(totalPages)}
@@ -125,7 +134,7 @@ export function UnifiedPagination({
 
       {/* Go to page input */}
       <div className="flex items-center justify-center gap-2">
-        <label htmlFor="goto-page" className="text-sm text-gray-600">
+        <label htmlFor="goto-page" className="text-sm text-muted-foreground">
           Go to page:
         </label>
         <input
@@ -145,7 +154,7 @@ export function UnifiedPagination({
           }}
           className="w-16 px-2 py-1 border rounded text-sm"
         />
-        <span className="text-sm text-gray-600">of {totalPages}</span>
+        <span className="text-sm text-muted-foreground">of {totalPages}</span>
       </div>
     </div>
   );
