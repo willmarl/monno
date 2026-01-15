@@ -116,11 +116,11 @@ export function OffsetPagination({
         {/* PAGE NUMBERS */}
         {pageNumbers.map((num, idx) =>
           num === "..." ? (
-            <PaginationItem key={idx}>
+            <PaginationItem key={`ellipsis-${idx}`}>
               <PaginationEllipsis />
             </PaginationItem>
           ) : (
-            <PaginationItem key={num}>
+            <PaginationItem key={`page-${num}`}>
               <PaginationLink
                 href={buildHref(num as number)}
                 isActive={num === validPage}
