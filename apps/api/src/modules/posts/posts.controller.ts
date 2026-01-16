@@ -62,6 +62,19 @@ export class PostsController {
     return this.postsService.searchAllCursor(searchDto);
   }
 
+  @Get('users/:userId')
+  findByUserId(@Param('userId') userId: number, @Query() pag: PaginationDto) {
+    return this.postsService.findByUserId(userId, pag);
+  }
+
+  @Get('users/:userId/cursor')
+  findByUserIdCursor(
+    @Param('userId') userId: number,
+    @Query() pag: CursorPaginationDto,
+  ) {
+    return this.postsService.findByUserIdCursor(userId, pag);
+  }
+
   @Get(':id')
   findById(@Param('id') id: number) {
     return this.postsService.findById(id);

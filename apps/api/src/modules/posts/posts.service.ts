@@ -75,6 +75,64 @@ export class PostsService {
     };
   }
 
+  async findByUserId(userId: number, pag: PaginationDto) {
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
+      model: this.prisma.post,
+      limit: pag.limit ?? 10,
+      offset: pag.offset ?? 0,
+      query: {
+        where: { creatorId: userId },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+          creator: {
+            select: { id: true, username: true, avatarPath: true },
+          },
+        },
+      },
+      countQuery: { where: { creatorId: userId } },
+    });
+
+    return {
+      items,
+      pageInfo,
+      ...(isRedirected && { isRedirected: true }),
+    };
+  }
+
+  async findByUserIdCursor(userId: number, pag: CursorPaginationDto) {
+    const { cursor, limit } = pag;
+
+    const { items, nextCursor } = await cursorPaginate({
+      model: this.prisma.post,
+      limit: limit ?? 10,
+      cursor,
+      query: {
+        where: { creatorId: userId },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+          creator: {
+            select: { id: true, username: true, avatarPath: true },
+          },
+        },
+      },
+    });
+
+    return {
+      items,
+      nextCursor,
+    };
+  }
+
   async findById(id: number) {
     const post = await this.prisma.post.findUnique({
       where: { id },
