@@ -63,8 +63,8 @@ export class PostsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.postsService.findOne(id);
+  findById(@Param('id') id: number) {
+    return this.postsService.findById(id);
   }
 
   @UseGuards(JwtAccessGuard, CreatorGuard)
