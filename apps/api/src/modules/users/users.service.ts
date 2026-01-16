@@ -349,6 +349,7 @@ export class UsersService {
         id: true,
         username: true,
         avatarPath: true,
+        createdAt: true,
       },
     });
   }
@@ -364,6 +365,7 @@ export class UsersService {
           id: true,
           username: true,
           avatarPath: true,
+          createdAt: true,
         },
       },
     });
@@ -389,6 +391,7 @@ export class UsersService {
           id: true,
           username: true,
           avatarPath: true,
+          createdAt: true,
         },
       },
     });
@@ -414,6 +417,7 @@ export class UsersService {
         id: true,
         username: true,
         avatarPath: true,
+        createdAt: true,
       },
       take: limit,
     });
@@ -440,6 +444,7 @@ export class UsersService {
           id: true,
           username: true,
           avatarPath: true,
+          createdAt: true,
         },
       },
     });
@@ -474,6 +479,7 @@ export class UsersService {
           id: true,
           username: true,
           avatarPath: true,
+          createdAt: true,
         },
       },
     });
