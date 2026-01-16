@@ -72,7 +72,7 @@ export class UsersService {
     }
   }
 
-  async findAll(pag: PaginationDto) {
+  async findAllAdmin(pag: PaginationDto) {
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.user,
       limit: pag.limit ?? 10,
@@ -100,7 +100,7 @@ export class UsersService {
     };
   }
 
-  async findAllCursor(userId: number | null, pag: CursorPaginationDto) {
+  async findAllCursorAdmin(userId: number | null, pag: CursorPaginationDto) {
     const { cursor, limit } = pag;
 
     const { items, nextCursor } = await cursorPaginate({
@@ -153,7 +153,7 @@ export class UsersService {
     return user;
   }
 
-  async update(id: number, data: UpdateUserDto, file?: any) {
+  async updateAdmin(id: number, data: UpdateUserDto, file?: any) {
     if (data.password) {
       data.password = await bcrypt.hash(data.password, 10);
     }
@@ -205,7 +205,7 @@ export class UsersService {
     });
   }
 
-  remove(id: number) {
+  removeAdmin(id: number) {
     return this.prisma.user.delete({
       where: { id },
       select: {
@@ -226,7 +226,7 @@ export class UsersService {
   //   Search
   //--------------
 
-  async searchAll(searchDto: UserSearchDto) {
+  async searchAllAdmin(searchDto: UserSearchDto) {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
 
@@ -264,7 +264,7 @@ export class UsersService {
     };
   }
 
-  async searchAllCursor(searchDto: UserSearchCursorDto) {
+  async searchAllCursorAdmin(searchDto: UserSearchCursorDto) {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
 
@@ -303,7 +303,7 @@ export class UsersService {
     };
   }
 
-  async searchSuggest(q: string, limit: number) {
+  async searchSuggestAdmin(q: string, limit: number) {
     if (!q) return [];
 
     return this.prisma.user.findMany({
@@ -353,7 +353,7 @@ export class UsersService {
     });
   }
 
-  async findAllPublic(pag: PaginationDto) {
+  async findAll(pag: PaginationDto) {
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.user,
       limit: pag.limit ?? 10,
@@ -375,7 +375,7 @@ export class UsersService {
     };
   }
 
-  async findAllCursorPublic(userId: number | null, pag: CursorPaginationDto) {
+  async findAllCursor(userId: number | null, pag: CursorPaginationDto) {
     const { cursor, limit } = pag;
 
     const { items, nextCursor } = await cursorPaginate({
@@ -403,7 +403,7 @@ export class UsersService {
   //   Search
   //--------------
 
-  async searchSuggestPublic(q: string, limit: number) {
+  async searchSuggest(q: string, limit: number) {
     if (!q) return [];
 
     return this.prisma.user.findMany({
@@ -419,7 +419,7 @@ export class UsersService {
     });
   }
 
-  async searchAllPublic(searchDto: UserSearchDto) {
+  async searchAll(searchDto: UserSearchDto) {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
 
@@ -451,7 +451,7 @@ export class UsersService {
     };
   }
 
-  async searchAllCursorPublic(searchDto: UserSearchCursorDto) {
+  async searchAllCursor(searchDto: UserSearchCursorDto) {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
 

@@ -121,8 +121,8 @@ export class UsersController {
   @ApiQuery({ name: 'limit', required: false, example: 10 })
   @ApiQuery({ name: 'offset', required: false, example: 0 })
   @Get()
-  findAllPublic(@Query() pag: PaginationDto) {
-    return this.usersService.findAllPublic(pag);
+  findAll(@Query() pag: PaginationDto) {
+    return this.usersService.findAll(pag);
   }
 
   @ApiOperation({ summary: 'Get all users with cursor pagination (public)' })
@@ -144,21 +144,21 @@ export class UsersController {
   @Get('cursor')
   findAllCursor(@Req() req: any, @Query() pag: CursorPaginationDto) {
     const userId = req.user?.sub ?? null;
-    return this.usersService.findAllCursorPublic(userId, pag);
+    return this.usersService.findAllCursor(userId, pag);
   }
 
   @Get('search')
   search(@Query() searchDto: UserSearchDto) {
-    return this.usersService.searchAllPublic(searchDto);
+    return this.usersService.searchAll(searchDto);
   }
 
   @Get('search/cursor')
   searchCursor(@Query() searchDto: UserSearchCursorDto) {
-    return this.usersService.searchAllCursorPublic(searchDto);
+    return this.usersService.searchAllCursor(searchDto);
   }
 
   @Get('search/suggest')
   findSuggest(@Query('q') q: string, @Query('limit') limit = 5) {
-    return this.usersService.searchSuggestPublic(q, Number(limit));
+    return this.usersService.searchSuggest(q, Number(limit));
   }
 }

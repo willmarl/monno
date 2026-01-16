@@ -52,8 +52,8 @@ export class AdminUsersController {
   @Get()
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'offset', required: false })
-  findAll(@Query() pag: PaginationDto) {
-    return this.usersService.findAll(pag);
+  findAllAdmin(@Query() pag: PaginationDto) {
+    return this.usersService.findAllAdmin(pag);
   }
 
   @ApiOperation({
@@ -78,9 +78,9 @@ export class AdminUsersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @Get('cursor')
-  findAllCursor(@Req() req: any, @Query() pag: CursorPaginationDto) {
+  findAllCursorAdmin(@Req() req: any, @Query() pag: CursorPaginationDto) {
     const userId = req.user?.sub ?? null;
-    return this.usersService.findAllCursor(userId, pag);
+    return this.usersService.findAllCursorAdmin(userId, pag);
   }
 
   @ApiOperation({ summary: 'Search users (admin only)' })
@@ -92,13 +92,13 @@ export class AdminUsersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @Get('search')
-  search(@Query() searchDto: UserSearchDto) {
-    return this.usersService.searchAll(searchDto);
+  searchAdmin(@Query() searchDto: UserSearchDto) {
+    return this.usersService.searchAllAdmin(searchDto);
   }
 
   @Get('search/cursor')
-  searchCursor(@Query() searchDto: UserSearchCursorDto) {
-    return this.usersService.searchAllCursor(searchDto);
+  searchCursorAdmin(@Query() searchDto: UserSearchCursorDto) {
+    return this.usersService.searchAllCursorAdmin(searchDto);
   }
 
   @ApiOperation({ summary: 'Find user by ID (admin only)' })
@@ -116,7 +116,7 @@ export class AdminUsersController {
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @Get(':id')
-  findById(@Param('id', ParseIntPipe) id: number) {
+  findByIdAdmin(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.findById(id);
   }
 
@@ -157,7 +157,7 @@ export class AdminUsersController {
     @Body() body: UpdateUserDto,
     @UploadedFile() file?: any,
   ) {
-    return this.usersService.update(id, body, file);
+    return this.usersService.updateAdmin(id, body, file);
   }
 
   @ApiOperation({ summary: 'Delete a user (admin only)' })
@@ -176,7 +176,7 @@ export class AdminUsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.remove(id);
+    return this.usersService.removeAdmin(id);
   }
 
   @Get('search/suggest')
