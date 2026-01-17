@@ -106,6 +106,34 @@ export const fetchPostSuggestions = (q: string, limit: number = 5) => {
   });
 };
 
+// GET /posts/users/:userId?limit=10&offset=0
+export const fetchPostsByUserId = ({
+  userId,
+  limit,
+  offset,
+}: {
+  userId: number;
+  limit: number;
+  offset: number;
+}) =>
+  fetcher<PostsList>(`/posts/users/${userId}`, {
+    searchParams: { limit, offset },
+  });
+
+// GET /posts/users/:userId/cursor?limit=10&cursor=abc123
+export const fetchPostsByUserIdCursor = ({
+  userId,
+  limit,
+  cursor,
+}: {
+  userId: number;
+  limit: number;
+  cursor?: string | null;
+}) =>
+  fetcher<PostListCursor>(`/posts/users/${userId}/cursor`, {
+    searchParams: { limit, cursor: cursor ?? undefined },
+  });
+
 // POST /posts
 export const createPost = (data: CreatePostInput) =>
   fetcher<Post>("/posts", {

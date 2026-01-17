@@ -13,6 +13,8 @@ import {
   fetchPostsCursor,
   fetchPostsSearchCursor,
   fetchPostSuggestions,
+  fetchPostsByUserId,
+  fetchPostsByUserIdCursor,
   updatePost,
   deletePost,
 } from "./api";
@@ -119,6 +121,31 @@ export function usePostSuggestions(q: string, limit: number = 5) {
     queryKey: ["post-suggestions", q],
     queryFn: () => fetchPostSuggestions(q, limit),
     enabled: !!q,
+  });
+}
+
+export function usePostsByUserId(userId: number, page: number, limit: number) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: ["posts-by-user", userId, page],
+    queryFn: () => fetchPostsByUserId({ userId, limit, offset }),
+    enabled: !!userId,
+  });
+}
+
+export function usePostsByUserIdCursor(userId: number, limit: number = 10) {
+  return useInfiniteQuery({
+    queryKey: ["posts-by-user-cursor", userId],
+    queryFn: ({ pageParam }) =>
+      fetchPostsByUserIdCursor({
+        userId,
+        limit,
+        cursor: pageParam ?? null,
+      }),
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialPageParam: null as string | null,
+    enabled: !!userId,
   });
 }
 
