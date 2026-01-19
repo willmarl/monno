@@ -20,7 +20,7 @@ export function UserAvatar({ user }: UserAvatarProps) {
   const avatarUrl = user.avatarPath || null;
 
   return (
-    <Link href="/profile" title="Edit profile">
+    <Link href={"/user/" + user.username} title="Edit profile">
       <Avatar className="cursor-pointer hover:opacity-80 transition-opacity">
         {avatarUrl && <AvatarImage src={avatarUrl} alt={user.username} />}
         <AvatarFallback>{initials}</AvatarFallback>

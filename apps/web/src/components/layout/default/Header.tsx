@@ -23,7 +23,12 @@ export default function Header({ user }: { user: User | null }) {
     if (!user) return null;
 
     const handleProfile = () => {
-      router.push("/profile");
+      const url = "/user/" + user.username;
+      router.push(url);
+    };
+
+    const handleSettings = () => {
+      router.push("/settings");
     };
 
     const handleLogout = () => {
@@ -40,6 +45,7 @@ export default function Header({ user }: { user: User | null }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={handleProfile}>Profile</DropdownMenuItem>
+          <DropdownMenuItem onClick={handleSettings}>Settings</DropdownMenuItem>
           <DropdownMenuItem onClick={handleLogout} className="text-red-500">
             Logout
             <LogOut className="mr-2 h-4 w-4" />

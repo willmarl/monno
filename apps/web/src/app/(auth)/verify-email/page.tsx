@@ -32,7 +32,7 @@ export default function VerifyEmailPage() {
         setErrorMessage("");
         // Wait for cache invalidation to complete, then redirect
         setTimeout(() => {
-          router.push("/profile");
+          router.push("/settings");
         }, 2000);
       } catch (error) {
         // Extract just the message from the error
@@ -49,7 +49,7 @@ export default function VerifyEmailPage() {
           setVerificationState("success");
           setErrorMessage("Email is already verified!");
           setTimeout(() => {
-            router.push("/profile");
+            router.push("/settings");
           }, 2000);
         } else {
           setVerificationState("error");
@@ -125,7 +125,7 @@ export default function VerifyEmailPage() {
             </p>
           </div>
           <Button
-            onClick={() => router.push("/profile")}
+            onClick={() => router.push("/settings")}
             className="w-full h-10 font-semibold"
           >
             Go to Profile
@@ -172,7 +172,7 @@ export default function VerifyEmailPage() {
         </div>
         <div className="flex gap-3">
           <Button
-            onClick={() => router.push("/profile")}
+            onClick={() => router.push("/settings")}
             variant="outline"
             className="flex-1 h-10 font-semibold"
           >
