@@ -8,6 +8,18 @@ import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 import { PostSearchDto, PostSearchCursorDto } from './dto/search-post.dto';
 import { buildSearchWhere } from 'src/common/search/search.utils';
+
+const DEFAULT_POST_SELECT = {
+  id: true,
+  title: true,
+  content: true,
+  createdAt: true,
+  updatedAt: true,
+  creator: {
+    select: { id: true, username: true, avatarPath: true },
+  },
+};
+
 @Injectable()
 export class PostsService {
   constructor(private prisma: PrismaService) {}
@@ -28,16 +40,7 @@ export class PostsService {
       offset: pag.offset ?? 0,
       query: {
         orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          title: true,
-          content: true,
-          createdAt: true,
-          updatedAt: true,
-          creator: {
-            select: { id: true, username: true, avatarPath: true },
-          },
-        },
+        select: DEFAULT_POST_SELECT,
       },
     });
 
@@ -57,16 +60,7 @@ export class PostsService {
       cursor,
       query: {
         orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          title: true,
-          content: true,
-          createdAt: true,
-          updatedAt: true,
-          creator: {
-            select: { id: true, username: true, avatarPath: true },
-          },
-        },
+        select: DEFAULT_POST_SELECT,
       },
     });
     return {
@@ -83,16 +77,7 @@ export class PostsService {
       query: {
         where: { creatorId: userId },
         orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          title: true,
-          content: true,
-          createdAt: true,
-          updatedAt: true,
-          creator: {
-            select: { id: true, username: true, avatarPath: true },
-          },
-        },
+        select: DEFAULT_POST_SELECT,
       },
       countQuery: { where: { creatorId: userId } },
     });
@@ -114,16 +99,7 @@ export class PostsService {
       query: {
         where: { creatorId: userId },
         orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          title: true,
-          content: true,
-          createdAt: true,
-          updatedAt: true,
-          creator: {
-            select: { id: true, username: true, avatarPath: true },
-          },
-        },
+        select: DEFAULT_POST_SELECT,
       },
     });
 
@@ -136,16 +112,7 @@ export class PostsService {
   async findById(id: number) {
     const post = await this.prisma.post.findUnique({
       where: { id },
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        createdAt: true,
-        updatedAt: true,
-        creator: {
-          select: { id: true, username: true, avatarPath: true },
-        },
-      },
+      select: DEFAULT_POST_SELECT,
     });
 
     if (!post) {
@@ -190,16 +157,7 @@ export class PostsService {
       query: {
         where,
         orderBy,
-        select: {
-          id: true,
-          title: true,
-          content: true,
-          createdAt: true,
-          updatedAt: true,
-          creator: {
-            select: { id: true, username: true, avatarPath: true },
-          },
-        },
+        select: DEFAULT_POST_SELECT,
       },
       countQuery: { where },
     });
@@ -231,16 +189,7 @@ export class PostsService {
       query: {
         where,
         orderBy,
-        select: {
-          id: true,
-          title: true,
-          content: true,
-          createdAt: true,
-          updatedAt: true,
-          creator: {
-            select: { id: true, username: true, avatarPath: true },
-          },
-        },
+        select: DEFAULT_POST_SELECT,
       },
     });
 
@@ -260,16 +209,7 @@ export class PostsService {
           { content: { contains: q, mode: 'insensitive' } },
         ],
       },
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        createdAt: true,
-        updatedAt: true,
-        creator: {
-          select: { id: true, username: true, avatarPath: true },
-        },
-      },
+      select: DEFAULT_POST_SELECT,
       take: limit,
     });
   }

@@ -18,6 +18,26 @@ import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 import { UserSearchDto, UserSearchCursorDto } from './dto/search-user.dto';
 import { buildSearchWhere } from 'src/common/search/search.utils';
+
+const DEFAULT_ADMIN_USER_SELECT = {
+  id: true,
+  username: true,
+  avatarPath: true,
+  email: true,
+  tempEmail: true,
+  createdAt: true,
+  updatedAt: true,
+  role: true,
+  isEmailVerified: true,
+};
+
+const DEFAULT_PUBLIC_USER_SELECT = {
+  id: true,
+  username: true,
+  avatarPath: true,
+  createdAt: true,
+};
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -52,16 +72,7 @@ export class UsersService {
           ...data,
           password: hashed,
         },
-        select: {
-          id: true,
-          username: true,
-          avatarPath: true,
-          email: true,
-          createdAt: true,
-          updatedAt: true,
-          role: true,
-          isEmailVerified: true,
-        },
+        select: DEFAULT_ADMIN_USER_SELECT,
       });
     } catch (error: any) {
       // Handle Prisma unique constraint errors
@@ -79,17 +90,7 @@ export class UsersService {
       offset: pag.offset ?? 0,
       query: {
         orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          username: true,
-          avatarPath: true,
-          email: true,
-          tempEmail: true,
-          createdAt: true,
-          updatedAt: true,
-          role: true,
-          isEmailVerified: true,
-        },
+        select: DEFAULT_ADMIN_USER_SELECT,
       },
     });
 
@@ -109,18 +110,7 @@ export class UsersService {
       cursor,
       query: {
         orderBy: { createdAt: 'desc' },
-
-        select: {
-          id: true,
-          username: true,
-          avatarPath: true,
-          email: true,
-          tempEmail: true,
-          createdAt: true,
-          updatedAt: true,
-          role: true,
-          isEmailVerified: true,
-        },
+        select: DEFAULT_ADMIN_USER_SELECT,
       },
     });
 
@@ -133,17 +123,7 @@ export class UsersService {
   async findById(id: number) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true,
-        username: true,
-        avatarPath: true,
-        email: true,
-        tempEmail: true,
-        createdAt: true,
-        updatedAt: true,
-        role: true,
-        isEmailVerified: true,
-      },
+      select: DEFAULT_ADMIN_USER_SELECT,
     });
 
     if (!user) {
@@ -191,34 +171,14 @@ export class UsersService {
     return this.prisma.user.update({
       where: { id },
       data,
-      select: {
-        id: true,
-        username: true,
-        avatarPath: true,
-        email: true,
-        tempEmail: true,
-        createdAt: true,
-        updatedAt: true,
-        role: true,
-        isEmailVerified: true,
-      },
+      select: DEFAULT_ADMIN_USER_SELECT,
     });
   }
 
   removeAdmin(id: number) {
     return this.prisma.user.delete({
       where: { id },
-      select: {
-        id: true,
-        username: true,
-        avatarPath: true,
-        email: true,
-        tempEmail: true,
-        createdAt: true,
-        updatedAt: true,
-        role: true,
-        isEmailVerified: true,
-      },
+      select: DEFAULT_ADMIN_USER_SELECT,
     });
   }
 
@@ -243,17 +203,7 @@ export class UsersService {
       query: {
         where,
         orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          username: true,
-          avatarPath: true,
-          email: true,
-          tempEmail: true,
-          createdAt: true,
-          updatedAt: true,
-          role: true,
-          isEmailVerified: true,
-        },
+        select: DEFAULT_ADMIN_USER_SELECT,
       },
     });
 
@@ -277,23 +227,13 @@ export class UsersService {
     const { cursor, limit } = searchDto;
 
     const { items, nextCursor } = await cursorPaginate({
-      model: this.prisma.post,
+      model: this.prisma.user,
       limit: limit ?? 10,
       cursor,
       query: {
         where,
         orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          username: true,
-          avatarPath: true,
-          email: true,
-          tempEmail: true,
-          createdAt: true,
-          updatedAt: true,
-          role: true,
-          isEmailVerified: true,
-        },
+        select: DEFAULT_ADMIN_USER_SELECT,
       },
     });
 
@@ -313,17 +253,7 @@ export class UsersService {
           { email: { contains: q, mode: 'insensitive' } },
         ],
       },
-      select: {
-        id: true,
-        username: true,
-        avatarPath: true,
-        email: true,
-        tempEmail: true,
-        createdAt: true,
-        updatedAt: true,
-        role: true,
-        isEmailVerified: true,
-      },
+      select: DEFAULT_ADMIN_USER_SELECT,
       take: limit,
     });
   }
@@ -345,12 +275,7 @@ export class UsersService {
   findByUsername(username: string) {
     return this.prisma.user.findUnique({
       where: { username },
-      select: {
-        id: true,
-        username: true,
-        avatarPath: true,
-        createdAt: true,
-      },
+      select: DEFAULT_PUBLIC_USER_SELECT,
     });
   }
 
@@ -361,12 +286,7 @@ export class UsersService {
       offset: pag.offset ?? 0,
       query: {
         orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          username: true,
-          avatarPath: true,
-          createdAt: true,
-        },
+        select: DEFAULT_PUBLIC_USER_SELECT,
       },
     });
 
@@ -386,13 +306,7 @@ export class UsersService {
       cursor,
       query: {
         orderBy: { createdAt: 'desc' },
-
-        select: {
-          id: true,
-          username: true,
-          avatarPath: true,
-          createdAt: true,
-        },
+        select: DEFAULT_PUBLIC_USER_SELECT,
       },
     });
 
@@ -413,12 +327,7 @@ export class UsersService {
       where: {
         OR: [{ username: { contains: q, mode: 'insensitive' } }],
       },
-      select: {
-        id: true,
-        username: true,
-        avatarPath: true,
-        createdAt: true,
-      },
+      select: DEFAULT_PUBLIC_USER_SELECT,
       take: limit,
     });
   }
@@ -440,12 +349,7 @@ export class UsersService {
       query: {
         where,
         orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          username: true,
-          avatarPath: true,
-          createdAt: true,
-        },
+        select: DEFAULT_PUBLIC_USER_SELECT,
       },
     });
 
@@ -469,18 +373,13 @@ export class UsersService {
     const { cursor, limit } = searchDto;
 
     const { items, nextCursor } = await cursorPaginate({
-      model: this.prisma.post,
+      model: this.prisma.user,
       limit: limit ?? 10,
       cursor,
       query: {
         where,
         orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          username: true,
-          avatarPath: true,
-          createdAt: true,
-        },
+        select: DEFAULT_PUBLIC_USER_SELECT,
       },
     });
 
@@ -603,16 +502,7 @@ export class UsersService {
       const updatedUser = await this.prisma.user.update({
         where: { id: userId },
         data: updateData,
-        select: {
-          id: true,
-          username: true,
-          avatarPath: true,
-          email: true,
-          tempEmail: true,
-          createdAt: true,
-          role: true,
-          isEmailVerified: true,
-        },
+        select: DEFAULT_ADMIN_USER_SELECT,
       });
 
       // If email was changed, send verification email for new email
@@ -660,16 +550,7 @@ export class UsersService {
     return this.prisma.user.update({
       where: { id: userId },
       data: { password: hashed },
-      select: {
-        id: true,
-        username: true,
-        avatarPath: true,
-        email: true,
-        tempEmail: true,
-        createdAt: true,
-        role: true,
-        isEmailVerified: true,
-      },
+      select: DEFAULT_ADMIN_USER_SELECT,
     });
   }
 }
