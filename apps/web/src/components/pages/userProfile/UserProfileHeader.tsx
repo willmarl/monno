@@ -31,13 +31,13 @@ function formatJoinedDate(dateString: string): string {
   return `${diffYears} year${diffYears > 1 ? "s" : ""} ago`;
 }
 
-const handleSettings = () => {
-  const router = useRouter();
-  router.push("/settings");
-};
-
 export function UserProfileHeader({ user, isOwner }: UserProfileHeaderProps) {
+  const router = useRouter();
   const joinedText = formatJoinedDate(user.createdAt);
+
+  const handleSettings = () => {
+    router.push("/settings");
+  };
 
   const initials = user.username
     .split(" ")
