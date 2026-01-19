@@ -18,6 +18,7 @@ export interface User {
 export interface PublicUser {
   id: number;
   username: string;
+  avatarPath: string | null;
   createdAt: string;
 }
 
