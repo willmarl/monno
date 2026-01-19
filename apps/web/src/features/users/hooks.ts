@@ -1,5 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { updateProfile, changePassword, fetchUserByUsername } from "./api";
+import {
+  updateProfile,
+  changePassword,
+  fetchUserByUsername,
+  fetchUsersAdmin,
+  fetchUserByIdAdmin,
+  updateUserAdmin,
+  deleteUserAdmin,
+  createUserAdmin,
+} from "./api";
 import type { PublicUser, UpdateProfileInput } from "./types/user";
 
 export const useUpdateProfile = () => {
@@ -42,3 +51,64 @@ export const useFetchUserByUsername = (username: string) =>
       return failureCount < 3;
     },
   });
+
+export function useUsersAdmin(page: number, limit: number) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: ["usersAdmin", page],
+    queryFn: () => fetchUsersAdmin({ limit, offset }),
+  });
+}
+
+export function useUsersByIdAdmin(id: number) {
+  return useQuery({
+    queryKey: ["userAdmin", id],
+    queryFn: () => fetchUserByIdAdmin(id),
+    enabled: !!id,
+  });
+}
+
+export function useCreateUserAdmin() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: createUserAdmin,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["userAdmin"] });
+    },
+    throwOnError: false, // Don't throw errors, let component handle them
+  });
+}
+
+export function useUpdateUserAdmin() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Parameters<typeof updateUserAdmin>[1];
+    }) => updateUserAdmin(id, data),
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ["usersAdmin"] });
+      qc.invalidateQueries({ queryKey: ["userAdmin", id] });
+    },
+    throwOnError: false, // Don't throw errors, let component handle them
+  });
+}
+
+export function useDeleteUserAdmin() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteUserAdmin,
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ["usersAdmin"] });
+      qc.removeQueries({ queryKey: ["userADmin", id] });
+    },
+    throwOnError: false, // Don't throw errors, let component handle them
+  });
+}
