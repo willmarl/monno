@@ -5,17 +5,16 @@ import { useSearchParams } from "next/navigation";
 import { usePostsByUserId } from "@/features/posts/hooks";
 import { Post } from "@/components/ui/Post";
 import { PaginatedList } from "@/components/ui/pagination/PaginatedList";
-import { useSessionUser } from "@/features/auth/hooks";
 import { PublicUser } from "@/features/users/types/user";
 
-interface UserProfileHeaderProps {
+interface UserProfileContentProps {
   user: PublicUser;
+  isOwner: boolean;
 }
 
 const DEFAULT_LIMIT = 9;
 
-function PostsListContent({ user }: UserProfileHeaderProps) {
-  const { data: currentUser } = useSessionUser();
+function PostsListContent({ user, isOwner }: UserProfileContentProps) {
   const searchParams = useSearchParams();
 
   // Get page from query params
@@ -34,19 +33,17 @@ function PostsListContent({ user }: UserProfileHeaderProps) {
       items={posts}
       totalItems={totalItems}
       isLoading={isLoading}
-      renderItem={(post) => (
-        <Post data={post} isOwner={post.creator.id === currentUser?.id} />
-      )}
+      renderItem={(post) => <Post data={post} isOwner={isOwner} />}
       title={"Posts by " + user.username}
       layout="grid"
     />
   );
 }
 
-export function UserProfileContent({ user }: UserProfileHeaderProps) {
+export function UserProfileContent({ user, isOwner }: UserProfileContentProps) {
   return (
     <Suspense fallback={<p>Loading...</p>}>
-      <PostsListContent user={user} />
+      <PostsListContent user={user} isOwner={isOwner} />
     </Suspense>
   );
 }

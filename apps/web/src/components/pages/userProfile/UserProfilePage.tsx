@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { UserProfileContent } from "./UserProfileContent";
 import { UserProfileHeader } from "./UserProfileHeader";
+import { useSessionUser } from "@/features/auth/hooks";
 import Link from "next/link";
 
 function LoadingState() {
@@ -44,7 +45,9 @@ function UserNotFound() {
 }
 
 export function UserProfilePage({ username }: { username: string }) {
+  const { data: currentUser } = useSessionUser();
   const { data: user, isLoading, error } = useFetchUserByUsername(username);
+  const isOwner = currentUser?.id == user?.id;
 
   if (isLoading) {
     return <LoadingState />;
@@ -57,9 +60,9 @@ export function UserProfilePage({ username }: { username: string }) {
   return (
     <div className="space-y-6">
       <Card className="p-8">
-        <UserProfileHeader user={user} />
+        <UserProfileHeader user={user} isOwner={isOwner} />
         <Separator className="my-6" />
-        <UserProfileContent user={user} />
+        <UserProfileContent user={user} isOwner={isOwner} />
       </Card>
     </div>
   );

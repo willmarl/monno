@@ -1,9 +1,13 @@
+"use client";
+
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { PublicUser } from "@/features/users/types/user";
 import { Calendar } from "lucide-react";
-
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 interface UserProfileHeaderProps {
   user: PublicUser;
+  isOwner: boolean;
 }
 
 function formatJoinedDate(dateString: string): string {
@@ -27,7 +31,12 @@ function formatJoinedDate(dateString: string): string {
   return `${diffYears} year${diffYears > 1 ? "s" : ""} ago`;
 }
 
-export function UserProfileHeader({ user }: UserProfileHeaderProps) {
+const handleSettings = () => {
+  const router = useRouter();
+  router.push("/settings");
+};
+
+export function UserProfileHeader({ user, isOwner }: UserProfileHeaderProps) {
   const joinedText = formatJoinedDate(user.createdAt);
 
   const initials = user.username
@@ -55,6 +64,8 @@ export function UserProfileHeader({ user }: UserProfileHeaderProps) {
           <span className="text-sm">Joined {joinedText}</span>
         </div>
       </div>
+
+      {isOwner ? <Button onClick={handleSettings}>Edit Profile</Button> : ""}
     </div>
   );
 }
