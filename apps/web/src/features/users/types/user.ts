@@ -1,5 +1,4 @@
 import { PaginatedResponse } from "@/types/pagination";
-import { StringFormatParams } from "zod/v4/core";
 
 export type UsersList = PaginatedResponse<User>;
 
@@ -40,5 +39,7 @@ export interface ChangePasswordInput {
 export interface UpdateUserAdminInput {
   username?: string;
   email?: string;
-  password?: StringFormatParams;
+  password?: string;
+  avatarPath?: string;
+  role?: "ADMIN" | "MOD" | "USER";
 }
