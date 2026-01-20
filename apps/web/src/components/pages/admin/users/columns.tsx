@@ -104,7 +104,16 @@ export const columns: ColumnDef<User>[] = [
             >
               View profile
             </DropdownMenuItem>
-            <DropdownMenuItem>Edit user</DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                openModal({
+                  title: "Edit data for " + row.original.username,
+                  content: <UserAdminEditModal user={row.original} />,
+                });
+              }}
+            >
+              Edit user
+            </DropdownMenuItem>
             <DropdownMenuItem>Delete user</DropdownMenuItem>
             <DropdownMenuItem>Change role</DropdownMenuItem>
           </DropdownMenuContent>
