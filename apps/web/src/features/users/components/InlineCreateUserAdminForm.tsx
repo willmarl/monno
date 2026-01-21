@@ -1,0 +1,168 @@
+"use client";
+
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  createUserAdminSchema,
+  CreateUserAdminInput,
+} from "../schemas/createUserAdmin.schema";
+import { useCreateUserAdmin } from "../hooks";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
+
+interface InlineCreateUserAdminFormProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+  isAlwaysOpen?: boolean;
+}
+
+export function InlineCreateUserAdminForm({
+  onSuccess,
+  onCancel,
+  isAlwaysOpen = false,
+}: InlineCreateUserAdminFormProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const form = useForm<CreateUserAdminInput>({
+    resolver: zodResolver(createUserAdminSchema),
+    mode: "onChange",
+  });
+
+  const createUserAdminMutation = useCreateUserAdmin();
+
+  const { isValid } = form.formState;
+
+  const handleSubmit = (data: CreateUserAdminInput) => {
+    // Filter out empty strings
+    const filteredData = Object.fromEntries(
+      Object.entries(data).filter(([, value]) => value !== ""),
+    ) as CreateUserAdminInput;
+
+    createUserAdminMutation.mutate(filteredData, {
+      onSuccess: () => {
+        form.reset();
+        if (!isAlwaysOpen) {
+          setIsOpen(false);
+        }
+        onSuccess?.();
+      },
+    });
+  };
+
+  if (!isAlwaysOpen && !isOpen) {
+    return (
+      <Button onClick={() => setIsOpen(true)} variant="outline">
+        Change CreateUserAdmin
+      </Button>
+    );
+  }
+
+  return (
+    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      {/* Input fields here*/}
+      {/* username */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-username" className="text-sm">
+          Username
+        </Label>
+        <Input
+          id="inline-username"
+          type="text"
+          disabled={createUserAdminMutation.isPending}
+          {...form.register("username")}
+        />
+        {form.formState.errors.username && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.username.message}
+          </p>
+        )}
+      </div>
+
+      {/* password */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-password" className="text-sm">
+          password
+        </Label>
+        <Input
+          id="inline-password"
+          type="text"
+          disabled={createUserAdminMutation.isPending}
+          {...form.register("password")}
+        />
+        {form.formState.errors.password && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.password.message}
+          </p>
+        )}
+      </div>
+
+      {/* email */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-email" className="text-sm">
+          Email
+        </Label>
+        <Input
+          id="inline-email"
+          type="text"
+          disabled={createUserAdminMutation.isPending}
+          {...form.register("email")}
+        />
+        {form.formState.errors.email && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.email.message}
+          </p>
+        )}
+      </div>
+
+      {/* avatarPath */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-avatarPath" className="text-sm">
+          Avatar Path
+        </Label>
+        <Input
+          id="inline-avatarPath"
+          type="text"
+          disabled={createUserAdminMutation.isPending}
+          {...form.register("avatarPath")}
+        />
+        {form.formState.errors.avatarPath && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.avatarPath.message}
+          </p>
+        )}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-3 pt-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            if (!isAlwaysOpen) {
+              setIsOpen(false);
+            }
+            form.reset();
+            onCancel?.();
+          }}
+          disabled={createUserAdminMutation.isPending}
+        >
+          {isAlwaysOpen ? "Clear" : "Cancel"}
+        </Button>
+        <Button
+          type="submit"
+          size="sm"
+          disabled={createUserAdminMutation.isPending || !isValid}
+        >
+          {createUserAdminMutation.isPending && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          {createUserAdminMutation.isPending ? "Creating..." : "Create User"}
+        </Button>
+      </div>
+    </form>
+  );
+}
