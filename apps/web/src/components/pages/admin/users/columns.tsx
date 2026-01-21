@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useModal } from "@/components/modal/ModalProvider";
-import { UserAdminEditModal } from "@/components/modal/UserAdminEdit";
+import { UserAdminEditModal } from "@/components/pages/admin/users/modal/UserAdminEdit";
 
 function formatDate(dateString: string): string {
   const dateObj = new Date(dateString);
