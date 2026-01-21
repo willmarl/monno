@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useModal } from "@/components/modal/ModalProvider";
 import { ConfirmModal } from "@/components/modal/ConfirmModal";
-import { UserAdminEditModal } from "@/components/pages/admin/users/modal/UserAdminEdit";
+import { EditUser } from "@/components/pages/admin/users/modal/EditUser";
 import { DeleteUser } from "./modal/DeleteUser";
 
 function formatDate(dateString: string): string {
@@ -110,7 +110,7 @@ export const columns: ColumnDef<User>[] = [
               onClick={() => {
                 openModal({
                   title: "Edit data for " + row.original.username,
-                  content: <UserAdminEditModal user={row.original} />,
+                  content: <EditUser user={row.original} />,
                 });
               }}
             >
