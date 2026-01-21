@@ -1,21 +1,37 @@
 "use client";
 
-import { usePostById } from "@/features/posts/hooks";
+import { useModal } from "@/components/modal/ModalProvider";
+import { Button } from "@/components/ui/button";
 
 export default function page() {
-  const { data, isLoading } = usePostById(100);
+  const { openModal, closeModal } = useModal();
 
-  if (isLoading) {
-    return <div>Loading...</div>;
+  function handleClick(): void {
+    alert("clicked!");
+    closeModal();
   }
 
-  if (data) {
-    return (
-      <div>
-        {data?.id} {data?.content}
-      </div>
-    );
-  }
-
-  return <div>Post not found</div>;
+  return (
+    <div>
+      <div>demo page</div>
+      <Button
+        onClick={() => {
+          openModal({
+            title: "Confirm Action",
+            content: (
+              <div>
+                <p>Put text you want to appear for modal here.</p>
+                <Button variant={"outline"} onClick={handleClick}>
+                  Yes
+                </Button>
+                <Button onClick={closeModal}>No</Button>
+              </div>
+            ),
+          });
+        }}
+      >
+        Click me to open modal
+      </Button>
+    </div>
+  );
 }

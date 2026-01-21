@@ -15,7 +15,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useModal } from "@/components/modal/ModalProvider";
+import { ConfirmModal } from "@/components/modal/ConfirmModal";
 import { UserAdminEditModal } from "@/components/pages/admin/users/modal/UserAdminEdit";
+import { DeleteUser } from "./modal/DeleteUser";
 
 function formatDate(dateString: string): string {
   const dateObj = new Date(dateString);
@@ -114,7 +116,17 @@ export const columns: ColumnDef<User>[] = [
             >
               Edit user
             </DropdownMenuItem>
-            <DropdownMenuItem>Delete user</DropdownMenuItem>
+            <DropdownMenuItem
+              // ===== Using custom component =====
+              onClick={() => {
+                openModal({
+                  title: "Delete user",
+                  content: <DeleteUser user={user} />,
+                });
+              }}
+            >
+              Delete user
+            </DropdownMenuItem>
             <DropdownMenuItem>Change role</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
