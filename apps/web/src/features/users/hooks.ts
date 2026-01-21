@@ -107,7 +107,7 @@ export function useDeleteUserAdmin() {
     mutationFn: deleteUserAdmin,
     onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ["usersAdmin"] });
-      qc.removeQueries({ queryKey: ["userADmin", id] });
+      qc.removeQueries({ queryKey: ["userAdmin", id] });
     },
     throwOnError: false, // Don't throw errors, let component handle them
   });
