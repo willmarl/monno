@@ -39,7 +39,7 @@ export class PostsService {
       limit: pag.limit ?? 10,
       offset: pag.offset ?? 0,
       query: {
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: 'desc' } as const,
         select: DEFAULT_POST_SELECT,
       },
     });
@@ -59,7 +59,7 @@ export class PostsService {
       limit: limit ?? 10,
       cursor,
       query: {
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: 'desc' } as const,
         select: DEFAULT_POST_SELECT,
       },
     });
@@ -70,16 +70,17 @@ export class PostsService {
   }
 
   async findByUserId(userId: number, pag: PaginationDto) {
+    const where = { creatorId: userId };
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.post,
       limit: pag.limit ?? 10,
       offset: pag.offset ?? 0,
       query: {
-        where: { creatorId: userId },
-        orderBy: { createdAt: 'desc' },
+        where,
+        orderBy: { createdAt: 'desc' } as const,
         select: DEFAULT_POST_SELECT,
       },
-      countQuery: { where: { creatorId: userId } },
+      countQuery: { where },
     });
 
     return {
@@ -98,7 +99,7 @@ export class PostsService {
       cursor,
       query: {
         where: { creatorId: userId },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: 'desc' } as const,
         select: DEFAULT_POST_SELECT,
       },
     });
@@ -130,6 +131,7 @@ export class PostsService {
   }
 
   remove(id: number) {
+    // Extension intercepts delete() and converts it to soft delete
     return this.prisma.post.delete({
       where: { id },
     });

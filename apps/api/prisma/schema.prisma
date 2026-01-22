@@ -104,11 +104,13 @@ model PasswordResetToken {
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   title     String
   content   String
   creatorId Int
-  creator   User     @relation(fields: [creatorId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  creator   User      @relation(fields: [creatorId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deleted   Boolean   @default(false)
+  deletedAt DateTime?
 }
