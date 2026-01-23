@@ -25,6 +25,13 @@ enum Role {
   MOD
 }
 
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+  DELETED
+}
+
 model User {
   id                      Int                      @id @default(autoincrement())
   username                String                   @unique
@@ -38,6 +45,7 @@ model User {
   sessions                Session[]
   passwordResetTokens     PasswordResetToken[]
   posts                   Post[]
+  usernameHistory         UsernameHistory[]
   // OAuth identity fields
   googleId                String?                  @unique
   githubId                String?                  @unique
@@ -46,6 +54,13 @@ model User {
   emailVerifiedAt         DateTime?
   isEmailVerified         Boolean                  @default(false)
   emailVerificationTokens EmailVerificationToken[]
+  // Account status
+  status                  UserStatus               @default(ACTIVE)
+  statusExpireAt          DateTime? // When suspension/ban expires
+  statusReason            String? // Why they were suspended/banned/deleted
+  // Legacy soft delete (kept for backward compatibility)
+  deleted                 Boolean                  @default(false)
+  deletedAt               DateTime?
 }
 
 model Session {
@@ -113,4 +128,16 @@ model Post {
   updatedAt DateTime  @updatedAt
   deleted   Boolean   @default(false)
   deletedAt DateTime?
+}
+
+model UsernameHistory {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  username String // The username that was freed up
+  freedAt  DateTime @default(now()) // When the username became available
+  reason   String? // Why (e.g., "account_deletion", "username_change")
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([username])
 }

@@ -49,6 +49,13 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
+    // Check if account is active
+    if (user.status !== 'ACTIVE') {
+      throw new UnauthorizedException(
+        `Account is ${user.status.toLowerCase()}${user.statusReason ? ': ' + user.statusReason : ''}`,
+      );
+    }
+
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
@@ -72,6 +79,13 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) throw new UnauthorizedException('User not found');
+
+    // Check if account is active
+    if (user.status !== 'ACTIVE') {
+      throw new UnauthorizedException(
+        `Account is ${user.status.toLowerCase()}${user.statusReason ? ': ' + user.statusReason : ''}`,
+      );
+    }
 
     const payload = { sub: userId, role: user.role };
 

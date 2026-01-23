@@ -34,6 +34,7 @@ export class AccessTokenStrategy extends PassportStrategy(
 
     const session = await this.prisma.session.findUnique({
       where: { id: sessionId },
+      include: { user: true },
     });
 
     // Session must exist and be valid
@@ -45,6 +46,13 @@ export class AccessTokenStrategy extends PassportStrategy(
     const now = new Date();
     if (session.expiresAt && session.expiresAt < now) {
       throw new UnauthorizedException('Session has expired');
+    }
+
+    // Check if user account is active
+    if (session.user.status !== 'ACTIVE') {
+      throw new UnauthorizedException(
+        `Account is ${session.user.status.toLowerCase()}${session.user.statusReason ? ': ' + session.user.statusReason : ''}`,
+      );
     }
 
     return payload; // attaches payload to req.user

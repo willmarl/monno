@@ -1,5 +1,7 @@
 import { PaginatedResponse } from "@/types/pagination";
 
+export type UserStatus = "ACTIVE" | "SUSPENDED" | "BANNED" | "DELETED";
+
 export type UsersList = PaginatedResponse<User>;
 
 export interface User {
@@ -17,6 +19,11 @@ export interface User {
   tempEmail: string | null;
   emailVerifiedAt: Date | null;
   isEmailVerified: boolean;
+  status: UserStatus;
+  statusExpireAt: Date | null;
+  statusReason: string | null;
+  deleted: boolean;
+  deletedAt: Date | null;
 }
 
 export interface PublicUser {
@@ -24,6 +31,9 @@ export interface PublicUser {
   username: string;
   avatarPath: string | null;
   createdAt: string;
+  status: UserStatus;
+  deleted: boolean;
+  deletedAt: Date | null;
 }
 
 export interface UpdateProfileInput {

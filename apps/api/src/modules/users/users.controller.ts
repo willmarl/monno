@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   UseGuards,
   Req,
+  NotFoundException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -94,6 +95,21 @@ export class UsersController {
     return this.usersService.changePassword(userId, body);
   }
 
+  @ApiOperation({ summary: 'Delete current user account' })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'Account deleted successfully (soft delete)',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @UseGuards(JwtAccessGuard)
+  @Delete('me')
+  deleteAccount(@Req() req: any) {
+    const userId = req.user.sub;
+    return this.usersService.deleteAccount(userId);
+  }
+
   //==============
   //   Public
   //==============
@@ -109,8 +125,12 @@ export class UsersController {
   })
   @ApiResponse({ status: 404, description: 'User not found' })
   @Get('username/:username')
-  findByUsername(@Param('username') username: string) {
-    return this.usersService.findByUsername(username);
+  async findByUsername(@Param('username') username: string) {
+    const user = await this.usersService.findByUsername(username);
+    if (!user) {
+      throw new NotFoundException(`User with username "${username}" not found`);
+    }
+    return user;
   }
 
   @ApiOperation({ summary: 'Get all users (public)' })

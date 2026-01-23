@@ -18,6 +18,8 @@ const DEFAULT_POST_SELECT = {
   creator: {
     select: { id: true, username: true, avatarPath: true },
   },
+  deleted: true,
+  deletedAt: true,
 };
 
 @Injectable()
@@ -34,14 +36,17 @@ export class PostsService {
   }
 
   async findAll(pag: PaginationDto) {
+    const where = { deleted: false, creator: { status: 'ACTIVE' } };
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.post,
       limit: pag.limit ?? 10,
       offset: pag.offset ?? 0,
       query: {
+        where,
         orderBy: { createdAt: 'desc' } as const,
         select: DEFAULT_POST_SELECT,
       },
+      countQuery: { where: where },
     });
 
     return {
@@ -59,6 +64,7 @@ export class PostsService {
       limit: limit ?? 10,
       cursor,
       query: {
+        where: { deleted: false, creator: { status: 'ACTIVE' } },
         orderBy: { createdAt: 'desc' } as const,
         select: DEFAULT_POST_SELECT,
       },
@@ -70,7 +76,11 @@ export class PostsService {
   }
 
   async findByUserId(userId: number, pag: PaginationDto) {
-    const where = { creatorId: userId };
+    const where = {
+      creatorId: userId,
+      deleted: false,
+      creator: { status: 'ACTIVE' },
+    };
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.post,
       limit: pag.limit ?? 10,
@@ -98,7 +108,11 @@ export class PostsService {
       limit: limit ?? 10,
       cursor,
       query: {
-        where: { creatorId: userId },
+        where: {
+          creatorId: userId,
+          deleted: false,
+          creator: { status: 'ACTIVE' },
+        },
         orderBy: { createdAt: 'desc' } as const,
         select: DEFAULT_POST_SELECT,
       },
@@ -116,7 +130,7 @@ export class PostsService {
       select: DEFAULT_POST_SELECT,
     });
 
-    if (!post) {
+    if (!post || post.deleted) {
       throw new NotFoundException('Post not found');
     }
 
@@ -131,9 +145,10 @@ export class PostsService {
   }
 
   remove(id: number) {
-    // Extension intercepts delete() and converts it to soft delete
-    return this.prisma.post.delete({
+    // Soft delete the post
+    return this.prisma.post.update({
       where: { id },
+      data: { deleted: true, deletedAt: new Date() },
     });
   }
 
@@ -152,16 +167,21 @@ export class PostsService {
       options: searchOptions,
     });
 
+    const whereWithStatus = {
+      ...where,
+      deleted: false,
+      creator: { status: 'ACTIVE' },
+    };
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.post,
       limit: searchDto.limit ?? 10,
       offset: searchDto.offset ?? 0,
       query: {
-        where,
+        where: whereWithStatus,
         orderBy,
         select: DEFAULT_POST_SELECT,
       },
-      countQuery: { where },
+      countQuery: { where: whereWithStatus },
     });
 
     return {
@@ -189,7 +209,7 @@ export class PostsService {
       limit: limit ?? 10,
       cursor,
       query: {
-        where,
+        where: { ...where, deleted: false, creator: { status: 'ACTIVE' } },
         orderBy,
         select: DEFAULT_POST_SELECT,
       },
@@ -206,6 +226,8 @@ export class PostsService {
 
     return this.prisma.post.findMany({
       where: {
+        deleted: false,
+        creator: { status: 'ACTIVE' },
         OR: [
           { title: { contains: q, mode: 'insensitive' } },
           { content: { contains: q, mode: 'insensitive' } },

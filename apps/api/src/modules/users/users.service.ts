@@ -29,6 +29,11 @@ const DEFAULT_ADMIN_USER_SELECT = {
   updatedAt: true,
   role: true,
   isEmailVerified: true,
+  status: true,
+  statusExpireAt: true,
+  statusReason: true,
+  deleted: true,
+  deletedAt: true,
 };
 
 const DEFAULT_PUBLIC_USER_SELECT = {
@@ -36,6 +41,9 @@ const DEFAULT_PUBLIC_USER_SELECT = {
   username: true,
   avatarPath: true,
   createdAt: true,
+  status: true,
+  deleted: true,
+  deletedAt: true,
 };
 
 @Injectable()
@@ -45,6 +53,63 @@ export class UsersService {
     private fileProcessing: FileProcessingService,
     private emailVerification: EmailVerificationService,
   ) {}
+
+  /**
+   * Helper: Soft delete user and cascade to all their created content
+   * - Soft deletes all user's posts
+   * - Logs username to history (username becomes available for reuse)
+   * - Renames user to d_{username} (or d_{username} sliced to 32 chars if too long)
+   * - Sets status to DELETED
+   */
+  private async softDeleteUserWithCascade(userId: number, reason?: string) {
+    const now = new Date();
+
+    // Get the user's current username
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { username: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Generate renamed username: d_{username}
+    // If it exceeds 32 chars, slice off the last 2 chars of the original username
+    let renamedUsername = `d_${user.username}`;
+    if (renamedUsername.length > 32) {
+      renamedUsername = `d_${user.username.slice(0, -2)}`;
+    }
+
+    // Soft delete all user's posts
+    await this.prisma.post.updateMany({
+      where: { creatorId: userId },
+      data: { deleted: true, deletedAt: now },
+    });
+
+    // Log the username to history (username becomes available for reuse)
+    await this.prisma.usernameHistory.create({
+      data: {
+        userId,
+        username: user.username,
+        reason: reason || 'account_deletion',
+      },
+    });
+
+    // Soft delete the user and rename to d_{username}
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        username: renamedUsername,
+        status: 'DELETED',
+        statusReason: reason,
+        deleted: true,
+        deletedAt: now,
+      },
+      select: DEFAULT_ADMIN_USER_SELECT,
+    });
+  }
+
   //==============
   //   Admin
   //==============
@@ -175,11 +240,9 @@ export class UsersService {
     });
   }
 
-  removeAdmin(id: number) {
-    return this.prisma.user.delete({
-      where: { id },
-      select: DEFAULT_ADMIN_USER_SELECT,
-    });
+  async removeAdmin(id: number) {
+    // Soft delete user and cascade to their posts
+    return this.softDeleteUserWithCascade(id);
   }
 
   //--------------
@@ -272,22 +335,32 @@ export class UsersService {
   //   Public
   //==============
 
-  findByUsername(username: string) {
-    return this.prisma.user.findUnique({
+  async findByUsername(username: string) {
+    const user = await this.prisma.user.findUnique({
       where: { username },
       select: DEFAULT_PUBLIC_USER_SELECT,
     });
+
+    // Only return if user is active (public endpoint)
+    if (user && user.status !== 'ACTIVE') {
+      return null;
+    }
+
+    return user;
   }
 
   async findAll(pag: PaginationDto) {
+    const where = { status: 'ACTIVE' };
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.user,
       limit: pag.limit ?? 10,
       offset: pag.offset ?? 0,
       query: {
+        where,
         orderBy: { createdAt: 'desc' },
         select: DEFAULT_PUBLIC_USER_SELECT,
       },
+      countQuery: { where },
     });
 
     return {
@@ -305,6 +378,7 @@ export class UsersService {
       limit: limit ?? 10,
       cursor,
       query: {
+        where: { status: 'ACTIVE' },
         orderBy: { createdAt: 'desc' },
         select: DEFAULT_PUBLIC_USER_SELECT,
       },
@@ -325,6 +399,7 @@ export class UsersService {
 
     return this.prisma.user.findMany({
       where: {
+        status: 'ACTIVE',
         OR: [{ username: { contains: q, mode: 'insensitive' } }],
       },
       select: DEFAULT_PUBLIC_USER_SELECT,
@@ -342,15 +417,17 @@ export class UsersService {
       options: searchOptions,
     });
 
+    const whereWithStatus = { ...where, status: 'ACTIVE' };
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.user,
       limit: searchDto.limit ?? 10,
       offset: searchDto.offset ?? 0,
       query: {
-        where,
+        where: whereWithStatus,
         orderBy: { createdAt: 'desc' },
         select: DEFAULT_PUBLIC_USER_SELECT,
       },
+      countQuery: { where: whereWithStatus },
     });
 
     return {
@@ -377,7 +454,7 @@ export class UsersService {
       limit: limit ?? 10,
       cursor,
       query: {
-        where,
+        where: { ...where, status: 'ACTIVE' },
         orderBy: { createdAt: 'desc' },
         select: DEFAULT_PUBLIC_USER_SELECT,
       },
@@ -552,5 +629,18 @@ export class UsersService {
       data: { password: hashed },
       select: DEFAULT_ADMIN_USER_SELECT,
     });
+  }
+
+  async deleteAccount(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Soft delete user and cascade to their posts
+    return this.softDeleteUserWithCascade(userId);
   }
 }
