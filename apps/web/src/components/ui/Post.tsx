@@ -7,6 +7,7 @@ import { Trash } from "lucide-react";
 import { ConfirmModal } from "../modal/ConfirmModal";
 import { useModal } from "../modal/ModalProvider";
 import { useDeletePost } from "@/features/posts/hooks";
+import { toast } from "sonner";
 
 export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
   const deletePost = useDeletePost();
@@ -52,7 +53,7 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
                             router.push(`/`);
                           },
                           onError: (error) => {
-                            console.error("Failed to delete post:", error);
+                            toast.error("Failed to delete post: " + error);
                           },
                         })
                       }
