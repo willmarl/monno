@@ -65,4 +65,14 @@ export class AppController {
   adminOnlyTest(): string {
     return this.appService.adminOnlyTest();
   }
+
+  @ApiOperation({ summary: 'Test error handling (500)' })
+  @ApiResponse({
+    status: 500,
+    description: 'Returns a 500 error for testing',
+  })
+  @Get('error')
+  errorTest(): void {
+    return this.appService.errorTest();
+  }
 }

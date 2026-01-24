@@ -1,5 +1,5 @@
 import { QueueModule } from './modules/queue/queue.module';
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { QueueService } from './modules/queue/queue.service';
 
 @Injectable()
@@ -24,5 +24,12 @@ export class AppService {
 
   adminOnlyTest(): string {
     return 'Only admin should be able to read this';
+  }
+
+  errorTest(): void {
+    throw new HttpException(
+      'This is a test error endpoint',
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
   }
 }
