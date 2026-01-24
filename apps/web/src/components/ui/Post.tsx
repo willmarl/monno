@@ -3,8 +3,14 @@ import { Avatar, AvatarImage, AvatarFallback } from "./avatar";
 import { useRouter } from "next/navigation";
 import { Button } from "./button";
 import { Post as PostType } from "@/features/posts/types/post";
+import { Trash } from "lucide-react";
+import { ConfirmModal } from "../modal/ConfirmModal";
+import { useModal } from "../modal/ModalProvider";
+import { useDeletePost } from "@/features/posts/hooks";
 
 export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
+  const deletePost = useDeletePost();
+  const { openModal, closeModal } = useModal();
   const router = useRouter();
 
   return (
@@ -31,12 +37,40 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
         </p>
 
         {isOwner ? (
-          <Button
-            onClick={() => router.push(`/post/edit/${data.id}`)}
-            className="cursor-pointer ml-auto"
-          >
-            Edit Post
-          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            <Button
+              onClick={() => {
+                openModal({
+                  title: "Delete Post",
+                  content: (
+                    <ConfirmModal
+                      message={`Are you sure you want to delete this post?`}
+                      onConfirm={() =>
+                        deletePost.mutate(data.id, {
+                          onSuccess: () => {
+                            closeModal();
+                            router.push(`/`);
+                          },
+                          onError: (error) => {
+                            console.error("Failed to delete post:", error);
+                          },
+                        })
+                      }
+                      variant={"destructive"}
+                    />
+                  ),
+                });
+              }}
+            >
+              <Trash />
+            </Button>
+            <Button
+              onClick={() => router.push(`/post/edit/${data.id}`)}
+              className="cursor-pointer"
+            >
+              Edit Post
+            </Button>
+          </div>
         ) : (
           ""
         )}
