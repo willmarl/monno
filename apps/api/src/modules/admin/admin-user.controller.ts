@@ -10,6 +10,7 @@ import {
   UseGuards,
   Query,
   Req,
+  HttpCode,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -23,12 +24,11 @@ import {
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { Roles } from '../../decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { AdminUserService } from './admin-user.service';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
-import { UpdateUserDto } from '../users/dto/update-user.dto';
+import { UpdateUserAdminDto } from './dto/update-user-admin.dto';
 import { UploadedFile } from '@nestjs/common';
-import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
-import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import {
   UserSearchDto,
   UserSearchCursorDto,
@@ -39,27 +39,39 @@ import {
 @UseGuards(JwtAccessGuard, RolesGuard)
 @Roles('ADMIN')
 export class AdminUsersController {
-  constructor(private readonly usersService: UsersService) {} // ← Same service!
+  constructor(
+    private readonly adminUserService: AdminUserService,
+    private readonly usersService: UsersService,
+  ) {}
 
-  @ApiOperation({ summary: 'Get all users (admin only)' })
+  @ApiOperation({
+    summary: 'Get all users with optional search and filters (admin only)',
+  })
   @ApiBearerAuth()
   @ApiResponse({
     status: 200,
-    description: 'List of all users',
+    description: 'List of users',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @Get()
+  @ApiQuery({ name: 'query', required: false, description: 'Search query' })
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'offset', required: false })
-  findAllAdmin(@Query() pag: PaginationDto) {
-    return this.usersService.findAllAdmin(pag);
+  findAll(@Query() searchDto: UserSearchDto) {
+    return this.adminUserService.search(searchDto);
   }
 
   @ApiOperation({
-    summary: 'Get all users with cursor pagination (admin only)',
+    summary:
+      'Get all users with cursor pagination and optional search/filters (admin only)',
   })
   @ApiBearerAuth()
+  @ApiQuery({
+    name: 'query',
+    required: false,
+    description: 'Search query',
+  })
   @ApiQuery({
     name: 'cursor',
     required: false,
@@ -78,9 +90,8 @@ export class AdminUsersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @Get('cursor')
-  findAllCursorAdmin(@Req() req: any, @Query() pag: CursorPaginationDto) {
-    const userId = req.user?.sub ?? null;
-    return this.usersService.findAllCursorAdmin(userId, pag);
+  findAllCursor(@Query() searchDto: UserSearchCursorDto) {
+    return this.adminUserService.searchCursor(searchDto);
   }
 
   @ApiOperation({ summary: 'Search users (admin only)' })
@@ -92,13 +103,15 @@ export class AdminUsersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @Get('search')
-  searchAdmin(@Query() searchDto: UserSearchDto) {
-    return this.usersService.searchAllAdmin(searchDto);
+  search(@Query() searchDto: UserSearchDto) {
+    return this.adminUserService.search(searchDto);
   }
 
+  @ApiOperation({ summary: 'Search users with cursor pagination (admin only)' })
+  @ApiBearerAuth()
   @Get('search/cursor')
-  searchCursorAdmin(@Query() searchDto: UserSearchCursorDto) {
-    return this.usersService.searchAllCursorAdmin(searchDto);
+  searchCursor(@Query() searchDto: UserSearchCursorDto) {
+    return this.adminUserService.searchCursor(searchDto);
   }
 
   @ApiOperation({ summary: 'Find user by ID (admin only)' })
@@ -116,8 +129,8 @@ export class AdminUsersController {
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @Get(':id')
-  findByIdAdmin(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.findById(id);
+  findById(@Param('id', ParseIntPipe) id: number) {
+    return this.adminUserService.findById(id);
   }
 
   @ApiOperation({ summary: 'Create a new user (admin only)' })
@@ -142,7 +155,7 @@ export class AdminUsersController {
     description: 'User ID',
     example: 1,
   })
-  @ApiBody({ type: UpdateUserDto })
+  @ApiBody({ type: UpdateUserAdminDto })
   @ApiResponse({
     status: 200,
     description: 'User updated successfully',
@@ -154,10 +167,12 @@ export class AdminUsersController {
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: UpdateUserDto,
+    @Body() body: UpdateUserAdminDto,
+    @Req() req: any,
     @UploadedFile() file?: any,
   ) {
-    return this.usersService.updateAdmin(id, body, file);
+    const adminId = req.user?.sub;
+    return this.adminUserService.update(id, body, file, adminId);
   }
 
   @ApiOperation({ summary: 'Delete a user (admin only)' })
@@ -175,12 +190,29 @@ export class AdminUsersController {
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.removeAdmin(id);
+  delete(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    const adminId = req.user?.sub;
+    return this.adminUserService.delete(id, adminId);
   }
 
-  @Get('search/suggest')
-  findSuggest(@Query('q') q: string, @Query('limit') limit = 5) {
-    return this.usersService.searchSuggest(q, Number(limit));
+  @ApiOperation({ summary: 'Reset user password (admin only)' })
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'id',
+    description: 'User ID',
+    example: 1,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @Post(':id/reset-password')
+  resetPassword(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    const adminId = req.user?.sub;
+    const ipAddress = req.ip;
+    return this.adminUserService.resetPassword(id, adminId, ipAddress);
   }
 }

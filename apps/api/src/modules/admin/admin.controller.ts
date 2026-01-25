@@ -1,0 +1,71 @@
+import { Controller, Get, UseGuards, Query } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
+import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
+import { Roles } from '../../decorators/roles.decorator';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { AdminService } from './admin.service';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+
+@ApiTags('admin')
+@Controller('admin')
+@UseGuards(JwtAccessGuard, RolesGuard)
+@Roles('ADMIN')
+export class AdminController {
+  constructor(private readonly adminService: AdminService) {}
+
+  // ===== AUDIT LOGS =====
+
+  @ApiOperation({ summary: 'Get audit logs (admin only)' })
+  @ApiBearerAuth()
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'offset', required: false })
+  @ApiQuery({
+    name: 'adminId',
+    required: false,
+    description: 'Filter by admin who performed action',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'targetId',
+    required: false,
+    description: 'Filter by target user',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'resource',
+    required: false,
+    description: 'Filter by resource type (USER, ADMIN, POST, etc)',
+  })
+  @ApiQuery({
+    name: 'action',
+    required: false,
+    description: 'Filter by action (USER_UPDATED, USER_DELETED, etc)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Audit logs',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
+  @Get('logs')
+  getLogs(
+    @Query() pagination: PaginationDto,
+    @Query('adminId') adminId?: string,
+    @Query('targetId') targetId?: string,
+    @Query('resource') resource?: string,
+    @Query('action') action?: string,
+  ) {
+    return this.adminService.getLogs(pagination, {
+      adminId: adminId ? parseInt(adminId) : undefined,
+      targetId: targetId ? parseInt(targetId) : undefined,
+      resource,
+      action,
+    });
+  }
+}

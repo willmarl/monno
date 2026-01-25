@@ -61,6 +61,8 @@ model User {
   // Legacy soft delete (kept for backward compatibility)
   deleted                 Boolean                  @default(false)
   deletedAt               DateTime?
+  auditLogs               AuditLog[]               @relation("AdminActor")
+  targetedAuditLogs       AuditLog[]               @relation("AuditTarget")
 }
 
 model Session {
@@ -118,18 +120,6 @@ model PasswordResetToken {
   @@index([userId])
 }
 
-model Post {
-  id        Int       @id @default(autoincrement())
-  title     String
-  content   String
-  creatorId Int
-  creator   User      @relation(fields: [creatorId], references: [id])
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deleted   Boolean   @default(false)
-  deletedAt DateTime?
-}
-
 model UsernameHistory {
   id       Int      @id @default(autoincrement())
   userId   Int
@@ -140,4 +130,38 @@ model UsernameHistory {
 
   @@index([userId])
   @@index([username])
+}
+
+model AuditLog {
+  id          Int     @id @default(autoincrement())
+  adminId     Int
+  action      String // "USER_CREATED", "USER_BANNED", "POST_DELETED", etc
+  resource    String // "USER", "POST", "CONTENT", "ADMIN", "SETTINGS"
+  resourceId  String? // ID of affected resource
+  targetId    Int? // ID of target user (if different from resourceId)
+  description String? // Human-readable action description
+  changes     Json? // Before/after values for updates
+  ipAddress   String? // Admin's IP when action performed
+
+  createdAt DateTime @default(now())
+
+  admin  User  @relation("AdminActor", fields: [adminId], references: [id], onDelete: Cascade)
+  target User? @relation("AuditTarget", fields: [targetId], references: [id], onDelete: SetNull)
+
+  @@index([adminId])
+  @@index([targetId])
+  @@index([resource])
+  @@index([createdAt])
+}
+
+model Post {
+  id        Int       @id @default(autoincrement())
+  title     String
+  content   String
+  creatorId Int
+  creator   User      @relation(fields: [creatorId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deleted   Boolean   @default(false)
+  deletedAt DateTime?
 }

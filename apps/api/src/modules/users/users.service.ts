@@ -111,7 +111,7 @@ export class UsersService {
   }
 
   //==============
-  //   Admin
+  //   User Management
   //==============
   async create(data: CreateUserDto) {
     // Check if another user has already VERIFIED this email
@@ -146,179 +146,6 @@ export class UsersService {
       }
       throw error;
     }
-  }
-
-  async findAllAdmin(pag: PaginationDto) {
-    const { items, pageInfo, isRedirected } = await offsetPaginate({
-      model: this.prisma.user,
-      limit: pag.limit ?? 10,
-      offset: pag.offset ?? 0,
-      query: {
-        orderBy: { createdAt: 'desc' },
-        select: DEFAULT_ADMIN_USER_SELECT,
-      },
-    });
-
-    return {
-      items,
-      pageInfo,
-      ...(isRedirected && { isRedirected: true }),
-    };
-  }
-
-  async findAllCursorAdmin(userId: number | null, pag: CursorPaginationDto) {
-    const { cursor, limit } = pag;
-
-    const { items, nextCursor } = await cursorPaginate({
-      model: this.prisma.user,
-      limit: limit ?? 10,
-      cursor,
-      query: {
-        orderBy: { createdAt: 'desc' },
-        select: DEFAULT_ADMIN_USER_SELECT,
-      },
-    });
-
-    return {
-      items,
-      nextCursor: nextCursor,
-    };
-  }
-
-  async findById(id: number) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      select: DEFAULT_ADMIN_USER_SELECT,
-    });
-
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
-
-    return user;
-  }
-
-  async updateAdmin(id: number, data: UpdateUserDto, file?: any) {
-    if (data.password) {
-      data.password = await bcrypt.hash(data.password, 10);
-    }
-
-    // If file is provided, process it using FileProcessingService
-    if (file) {
-      try {
-        // Get the current user to retrieve old avatar path
-        const currentUser = await this.prisma.user.findUnique({
-          where: { id },
-          select: { avatarPath: true },
-        });
-
-        // Delete old avatar if it exists
-        if (currentUser?.avatarPath) {
-          await this.fileProcessing.deleteFile(currentUser.avatarPath);
-        }
-
-        const fileType = uploadLocation('/avatars');
-        const avatarPath = await this.fileProcessing.processFile(
-          file,
-          fileType,
-          id,
-        );
-        data.avatarPath = avatarPath;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Failed to process avatar file';
-        throw new BadRequestException(errorMessage);
-      }
-    }
-
-    return this.prisma.user.update({
-      where: { id },
-      data,
-      select: DEFAULT_ADMIN_USER_SELECT,
-    });
-  }
-
-  async removeAdmin(id: number) {
-    // Soft delete user and cascade to their posts
-    return this.softDeleteUserWithCascade(id);
-  }
-
-  //--------------
-  //   Search
-  //--------------
-
-  async searchAllAdmin(searchDto: UserSearchDto) {
-    const searchFields = searchDto.getSearchFields();
-    const searchOptions = searchDto.getSearchOptions();
-
-    const where = buildSearchWhere({
-      query: searchDto.query ?? '',
-      fields: searchFields,
-      options: searchOptions,
-    });
-
-    const { items, pageInfo, isRedirected } = await offsetPaginate({
-      model: this.prisma.user,
-      limit: searchDto.limit ?? 10,
-      offset: searchDto.offset ?? 0,
-      query: {
-        where,
-        orderBy: { createdAt: 'desc' },
-        select: DEFAULT_ADMIN_USER_SELECT,
-      },
-    });
-
-    return {
-      items,
-      pageInfo,
-      ...(isRedirected && { isRedirected: true }),
-    };
-  }
-
-  async searchAllCursorAdmin(searchDto: UserSearchCursorDto) {
-    const searchFields = searchDto.getSearchFields();
-    const searchOptions = searchDto.getSearchOptions();
-
-    const where = buildSearchWhere({
-      query: searchDto.query ?? '',
-      fields: searchFields,
-      options: searchOptions,
-    });
-
-    const { cursor, limit } = searchDto;
-
-    const { items, nextCursor } = await cursorPaginate({
-      model: this.prisma.user,
-      limit: limit ?? 10,
-      cursor,
-      query: {
-        where,
-        orderBy: { createdAt: 'desc' },
-        select: DEFAULT_ADMIN_USER_SELECT,
-      },
-    });
-
-    return {
-      items,
-      nextCursor,
-    };
-  }
-
-  async searchSuggestAdmin(q: string, limit: number) {
-    if (!q) return [];
-
-    return this.prisma.user.findMany({
-      where: {
-        OR: [
-          { username: { contains: q, mode: 'insensitive' } },
-          { email: { contains: q, mode: 'insensitive' } },
-        ],
-      },
-      select: DEFAULT_ADMIN_USER_SELECT,
-      take: limit,
-    });
   }
 
   //==============
@@ -469,6 +296,19 @@ export class UsersService {
   //==============
   //   Self
   //==============
+
+  async findById(id: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: DEFAULT_ADMIN_USER_SELECT,
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    return user;
+  }
 
   async updateProfile(userId: number, data: UpdateProfileDto, file?: any) {
     // Get current user to check if email is being changed and if it's verified
