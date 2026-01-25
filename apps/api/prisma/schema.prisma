@@ -165,3 +165,9 @@ model Post {
   deleted   Boolean   @default(false)
   deletedAt DateTime?
 }
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

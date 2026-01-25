@@ -15,9 +15,20 @@ export class SeedService {
   /**
    * Seed admin account from environment variables
    * Called on application startup
+   * Only runs once - subsequent startups will skip if ADMIN_SEEDED flag exists
    */
   async seedAdminAccount() {
     try {
+      // Check if admin seeding has already been completed
+      const hasSeeded = await this.prisma.setting.findUnique({
+        where: { key: 'ADMIN_SEEDED' },
+      });
+
+      if (hasSeeded) {
+        this.logger.debug('✓ Admin account already seeded in database');
+        return;
+      }
+
       const adminUsername = process.env.SEED_ADMIN_USERNAME || 'admin';
       const adminEmail = process.env.SEED_ADMIN_EMAIL || null; // Optional
       const adminPassword = process.env.SEED_ADMIN_PASSWORD;
@@ -26,19 +37,6 @@ export class SeedService {
         this.logger.warn(
           '⚠️  SEED_ADMIN_PASSWORD not set in environment. Skipping admin seed.',
         );
-        return;
-      }
-
-      // Check if admin already exists
-      const existingAdmin = await this.prisma.user.findFirst({
-        where: {
-          username: adminUsername,
-          role: 'ADMIN',
-        },
-      });
-
-      if (existingAdmin) {
-        this.logger.debug(`✓ Admin account '${adminUsername}' already exists`);
         return;
       }
 
@@ -59,6 +57,14 @@ export class SeedService {
           username: true,
           email: true,
           role: true,
+        },
+      });
+
+      // Mark seeding as complete
+      await this.prisma.setting.create({
+        data: {
+          key: 'ADMIN_SEEDED',
+          value: 'true',
         },
       });
 
