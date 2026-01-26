@@ -1,6 +1,7 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Column } from "@tanstack/react-table";
+import { ArrowUpDown } from "lucide-react";
 import { User } from "@/features/users/types/user";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { MoreHorizontal } from "lucide-react";
@@ -19,6 +20,24 @@ import { ConfirmModal } from "@/components/modal/ConfirmModal";
 import { EditUser } from "@/components/pages/admin/users/modal/EditUser";
 import { DeleteUser } from "./modal/DeleteUser";
 
+interface SortableHeaderProps {
+  column: Column<any, unknown>;
+  label: string;
+}
+
+function SortableHeader({ column, label }: SortableHeaderProps) {
+  return (
+    <Button
+      className="cursor-pointer"
+      variant="ghost"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+    >
+      {label}
+      <ArrowUpDown className="ml-2 h-4 w-4" />
+    </Button>
+  );
+}
+
 function formatDate(dateString: string): string {
   const dateObj = new Date(dateString);
 
@@ -33,11 +52,11 @@ function formatDate(dateString: string): string {
 export const columns: ColumnDef<User>[] = [
   {
     accessorKey: "id",
-    header: "ID",
+    header: ({ column }) => <SortableHeader column={column} label="ID" />,
   },
   {
     accessorKey: "username",
-    header: () => <div>Username</div>,
+    header: ({ column }) => <SortableHeader column={column} label="Username" />,
     cell: ({ row }) => {
       const username: string = row.getValue("username");
       const avatarPath: string | null = row.original.avatarPath;
@@ -55,19 +74,21 @@ export const columns: ColumnDef<User>[] = [
   },
   {
     accessorKey: "email",
-    header: "Email",
+    header: ({ column }) => <SortableHeader column={column} label="Email" />,
   },
   {
     accessorKey: "isEmailVerified",
-    header: "Verified",
+    header: ({ column }) => <SortableHeader column={column} label="Verified" />,
   },
   {
     accessorKey: "role",
-    header: "Role",
+    header: ({ column }) => <SortableHeader column={column} label="Role" />,
   },
   {
     accessorKey: "createdAt",
-    header: () => <div>Created At</div>,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Created At" />
+    ),
     cell: ({ row }) => {
       const date = String(row.getValue("createdAt"));
       const formatted = formatDate(date);
@@ -77,7 +98,9 @@ export const columns: ColumnDef<User>[] = [
   },
   {
     accessorKey: "updatedAt",
-    header: () => <div>Updated At</div>,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Updated At" />
+    ),
     cell: ({ row }) => {
       const date = String(row.getValue("updatedAt"));
       const formatted = formatDate(date);
