@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { AdminService } from './admin.service';
+import { UsersService } from '../users/users.service';
 import { UpdateUserAdminDto } from './dto/update-user-admin.dto';
 import * as bcrypt from 'bcrypt';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
@@ -47,66 +48,9 @@ export class AdminUserService {
   constructor(
     private prisma: PrismaService,
     private adminService: AdminService,
+    private usersService: UsersService,
     private fileProcessing: FileProcessingService,
   ) {}
-
-  // ===== HELPER METHODS =====
-
-  /**
-   * Helper: Soft delete user and cascade to all their created content
-   * - Soft deletes all user's posts
-   * - Logs username to history (username becomes available for reuse)
-   * - Renames user to d_{username} (or d_{username} sliced to 32 chars if too long)
-   * - Sets status to DELETED
-   */
-  private async softDeleteUserWithCascade(userId: number, reason?: string) {
-    const now = new Date();
-
-    // Get the user's current username
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { username: true },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    // Generate renamed username: d_{username}
-    // If it exceeds 32 chars, slice off the last 2 chars of the original username
-    let renamedUsername = `d_${user.username}`;
-    if (renamedUsername.length > 32) {
-      renamedUsername = `d_${user.username.slice(0, -2)}`;
-    }
-
-    // Soft delete all user's posts
-    await this.prisma.post.updateMany({
-      where: { creatorId: userId },
-      data: { deleted: true, deletedAt: now },
-    });
-
-    // Log the username to history (username becomes available for reuse)
-    await this.prisma.usernameHistory.create({
-      data: {
-        userId,
-        username: user.username,
-        reason: reason || 'admin_deletion',
-      },
-    });
-
-    // Soft delete the user and rename to d_{username}
-    return this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        username: renamedUsername,
-        status: 'DELETED',
-        statusReason: reason,
-        deleted: true,
-        deletedAt: now,
-      },
-      select: DEFAULT_USER_SELECT,
-    });
-  }
 
   // ===== USER MANAGEMENT =====
 
@@ -303,7 +247,7 @@ export class AdminUserService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    const deleted = await this.softDeleteUserWithCascade(
+    const deleted = await this.usersService.softDeleteUserWithCascade(
       userId,
       reason || 'admin_deletion',
     );

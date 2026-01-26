@@ -55,23 +55,28 @@ export class UsersService {
   ) {}
 
   /**
-   * Helper: Soft delete user and cascade to all their created content
+   * Soft delete user and cascade to all their created content
    * - Soft deletes all user's posts
    * - Logs username to history (username becomes available for reuse)
    * - Renames user to d_{username} (or d_{username} sliced to 32 chars if too long)
    * - Sets status to DELETED
    */
-  private async softDeleteUserWithCascade(userId: number, reason?: string) {
+  async softDeleteUserWithCascade(userId: number, reason?: string) {
     const now = new Date();
 
-    // Get the user's current username
+    // Get the user's current username and status
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { username: true },
+      select: { username: true, status: true },
     });
 
     if (!user) {
       throw new NotFoundException('User not found');
+    }
+
+    // Check if user is already deleted
+    if (user.status === 'DELETED') {
+      throw new BadRequestException('User is already deleted');
     }
 
     // Generate renamed username: d_{username}
