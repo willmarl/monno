@@ -3,13 +3,21 @@ import { User } from "@/features/users/types/user";
 import { Button } from "@/components/ui/button";
 import { useDeleteUserAdmin } from "@/features/users/hooks";
 import { useModal } from "@/components/modal/ModalProvider";
+import { toast } from "sonner";
 
 export function DeleteUser({ user }: { user: User }) {
   const deleteUser = useDeleteUserAdmin();
   const { closeModal } = useModal();
 
   function handleClick(): void {
-    deleteUser.mutate(user.id);
+    deleteUser.mutate(user.id, {
+      onSuccess: () => {
+        toast.success(`Successfully deleted user ${user.username}`);
+      },
+      onError: (err) => {
+        toast.error(`Failed to delete user. ${err.message}`);
+      },
+    });
     closeModal();
   }
 
