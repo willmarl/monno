@@ -88,10 +88,12 @@ export function useUpdateUserAdmin() {
     mutationFn: ({
       id,
       data,
+      file,
     }: {
       id: number;
       data: Parameters<typeof updateUserAdmin>[1];
-    }) => updateUserAdmin(id, data),
+      file?: File;
+    }) => updateUserAdmin(id, data, file),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ["usersAdmin"] });
       qc.invalidateQueries({ queryKey: ["userAdmin", id] });

@@ -52,4 +52,6 @@ export interface UpdateUserAdminInput {
   password?: string;
   avatarPath?: string;
   role?: "ADMIN" | "MOD" | "USER";
+  status?: "ACTIVE" | "SUSPENDED" | "BANNED" | "DELETED";
+  statusReason?: string;
 }

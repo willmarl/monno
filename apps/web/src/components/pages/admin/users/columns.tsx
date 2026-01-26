@@ -118,6 +118,7 @@ export const columns: ColumnDef<User>[] = [
             </DropdownMenuItem>
             <DropdownMenuItem
               // ===== Using custom component =====
+              variant="destructive"
               onClick={() => {
                 openModal({
                   title: "Delete user",
@@ -127,7 +128,6 @@ export const columns: ColumnDef<User>[] = [
             >
               Delete user
             </DropdownMenuItem>
-            <DropdownMenuItem>Change role</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

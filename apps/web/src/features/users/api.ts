@@ -10,10 +10,19 @@ import type {
   UpdateUserAdminInput,
 } from "./types/user";
 
-function createUpdateFormData(data: UpdateProfileInput, file: File): FormData {
+function createFormDataWithFile(
+  data: Record<string, any>,
+  file: File,
+): FormData {
   const formData = new FormData();
-  if (data.username) formData.append("username", data.username);
-  if (data.email) formData.append("email", data.email);
+
+  Object.entries(data).forEach(([key, value]) => {
+    // Skip empty values and avatarPath (will be replaced by actual file)
+    if (value && key !== "avatarPath") {
+      formData.append(key, value as string);
+    }
+  });
+
   formData.append("avatar", file);
   return formData;
 }
@@ -21,7 +30,7 @@ function createUpdateFormData(data: UpdateProfileInput, file: File): FormData {
 export const updateProfile = async (data: UpdateProfileInput, file?: File) => {
   // Use FormData if file is provided, otherwise JSON
   if (file) {
-    const formData = createUpdateFormData(data, file);
+    const formData = createFormDataWithFile(data, file);
     return api("users/me", {
       method: "PATCH",
       body: formData,
@@ -74,11 +83,24 @@ export const createUserAdmin = (payload: {
   });
 };
 
-export const updateUserAdmin = (id: number, data: UpdateUserAdminInput) =>
-  fetcher<User>(`/admin/users/${id}`, {
+export const updateUserAdmin = (
+  id: number,
+  data: UpdateUserAdminInput,
+  file?: File,
+) => {
+  if (file) {
+    const formData = createFormDataWithFile(data, file);
+    return api(`admin/users/${id}`, {
+      method: "PATCH",
+      body: formData,
+    } as any).json();
+  }
+
+  return fetcher(`/admin/users/${id}`, {
     method: "PATCH",
     json: data,
   });
+};
 
 export const deleteUserAdmin = (id: number) =>
   fetcher<void>(`/admin/users/${id}`, {

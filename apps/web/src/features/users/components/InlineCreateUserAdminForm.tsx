@@ -11,6 +11,13 @@ import { useCreateUserAdmin } from "../hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 
 interface InlineCreateUserAdminFormProps {
@@ -118,7 +125,7 @@ export function InlineCreateUserAdminForm({
       </div>
 
       {/* avatarPath */}
-      <div className="space-y-2">
+      {/* <div className="space-y-2">
         <Label htmlFor="inline-avatarPath" className="text-sm">
           Avatar Path
         </Label>
@@ -131,6 +138,77 @@ export function InlineCreateUserAdminForm({
         {form.formState.errors.avatarPath && (
           <p className="text-xs text-red-500">
             {form.formState.errors.avatarPath.message}
+          </p>
+        )}
+      </div> */}
+
+      {/* role */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-role" className="text-sm">
+          Role
+        </Label>
+        <Select
+          onValueChange={(value) => form.setValue("role", value as any)}
+          defaultValue={form.getValues("role") || ""}
+          disabled={createUserAdminMutation.isPending}
+        >
+          <SelectTrigger id="inline-role">
+            <SelectValue placeholder="Select a role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="USER">User</SelectItem>
+            <SelectItem value="ADMIN">Admin</SelectItem>
+            <SelectItem value="MOD">Mod</SelectItem>
+          </SelectContent>
+        </Select>
+        {form.formState.errors.role && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.role.message}
+          </p>
+        )}
+      </div>
+
+      {/* status */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-status" className="text-sm">
+          Status
+        </Label>
+        <Select
+          onValueChange={(value) => form.setValue("status", value as any)}
+          defaultValue={form.getValues("status") || ""}
+          disabled={createUserAdminMutation.isPending}
+        >
+          <SelectTrigger id="inline-status">
+            <SelectValue placeholder="Select a status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ACTIVE">Active</SelectItem>
+            <SelectItem value="SUSPENDED">Suspended</SelectItem>
+            <SelectItem value="BANNED">Banned</SelectItem>
+            <SelectItem value="DELETED">Deleted</SelectItem>
+          </SelectContent>
+        </Select>
+        {form.formState.errors.status && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.status.message}
+          </p>
+        )}
+      </div>
+
+      {/* statusReason */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-statusReason" className="text-sm">
+          Status Reason
+        </Label>
+        <Input
+          id="inline-statusReason"
+          type="text"
+          disabled={createUserAdminMutation.isPending}
+          {...form.register("statusReason")}
+        />
+        {form.formState.errors.statusReason && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.statusReason.message}
           </p>
         )}
       </div>

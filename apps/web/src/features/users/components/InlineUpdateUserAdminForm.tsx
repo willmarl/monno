@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   updateUserAdminSchema,
@@ -11,8 +11,17 @@ import { useUpdateUserAdmin } from "../hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { User } from "@/features/users/types/user";
+import { AvatarUpload } from "@/components/ui/avatar-upload";
 
 interface InlineUpdateUserAdminFormProps {
   user: User;
@@ -28,6 +37,7 @@ export function InlineUpdateUserAdminForm({
   isAlwaysOpen = false,
 }: InlineUpdateUserAdminFormProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const form = useForm<UpdateUserAdminInput>({
     resolver: zodResolver(updateUserAdminSchema),
@@ -37,6 +47,9 @@ export function InlineUpdateUserAdminForm({
       email: user.email || "",
       avatarPath: user.avatarPath || "",
       password: "",
+      role: user.role,
+      status: user.status,
+      statusReason: user.statusReason || "",
     },
   });
 
@@ -51,10 +64,11 @@ export function InlineUpdateUserAdminForm({
     ) as UpdateUserAdminInput;
 
     updateUserAdminMutation.mutate(
-      { id: user.id, data: filteredData },
+      { id: user.id, data: filteredData, file: selectedFile || undefined },
       {
         onSuccess: () => {
           form.reset();
+          setSelectedFile(null);
           if (!isAlwaysOpen) {
             setIsOpen(false);
           }
@@ -93,22 +107,15 @@ export function InlineUpdateUserAdminForm({
         )}
       </div>
 
-      {/* avatarPath */}
+      {/* avatar */}
       <div className="space-y-2">
-        <Label htmlFor="inline-avatarPath" className="text-sm">
-          Avatar Path
-        </Label>
-        <Input
-          id="inline-avatarPath"
-          type="text"
+        <Label className="text-sm">Avatar</Label>
+        <AvatarUpload
+          onFileSelect={setSelectedFile}
           disabled={updateUserAdminMutation.isPending}
-          {...form.register("avatarPath")}
+          currentAvatarUrl={user?.avatarPath || undefined}
+          maxSize={2 * 1024 * 1024}
         />
-        {form.formState.errors.avatarPath && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.avatarPath.message}
-          </p>
-        )}
       </div>
 
       {/* email */}
@@ -147,6 +154,87 @@ export function InlineUpdateUserAdminForm({
         )}
       </div>
 
+      {/* role */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-role" className="text-sm">
+          Role
+        </Label>
+        <Controller
+          name="role"
+          control={form.control}
+          render={({ field }) => (
+            <Select value={field.value || ""} onValueChange={field.onChange}>
+              <SelectTrigger
+                id="inline-role"
+                disabled={updateUserAdminMutation.isPending}
+              >
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USER">User</SelectItem>
+                <SelectItem value="ADMIN">Admin</SelectItem>
+                <SelectItem value="MOD">Moderator</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        />
+        {form.formState.errors.role && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.role.message}
+          </p>
+        )}
+      </div>
+
+      {/* status */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-status" className="text-sm">
+          Status
+        </Label>
+        <Controller
+          name="status"
+          control={form.control}
+          render={({ field }) => (
+            <Select value={field.value || ""} onValueChange={field.onChange}>
+              <SelectTrigger
+                id="inline-status"
+                disabled={updateUserAdminMutation.isPending}
+              >
+                <SelectValue placeholder="Select a status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                <SelectItem value="BANNED">Banned</SelectItem>
+                <SelectItem value="DELETED">Deleted</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        />
+        {form.formState.errors.status && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.status.message}
+          </p>
+        )}
+      </div>
+
+      {/* statusReason */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-statusReason" className="text-sm">
+          Status Reason
+        </Label>
+        <Textarea
+          id="inline-statusReason"
+          placeholder="Reason for status change (optional)"
+          disabled={updateUserAdminMutation.isPending}
+          {...form.register("statusReason")}
+        />
+        {form.formState.errors.statusReason && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.statusReason.message}
+          </p>
+        )}
+      </div>
+
       {/* Action Buttons */}
       <div className="flex gap-3 pt-2">
         <Button
@@ -158,6 +246,7 @@ export function InlineUpdateUserAdminForm({
               setIsOpen(false);
             }
             form.reset();
+            setSelectedFile(null);
             onCancel?.();
           }}
           disabled={updateUserAdminMutation.isPending}
