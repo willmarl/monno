@@ -85,6 +85,10 @@ export const columns: ColumnDef<User>[] = [
     header: ({ column }) => <SortableHeader column={column} label="Role" />,
   },
   {
+    accessorKey: "status",
+    header: ({ column }) => <SortableHeader column={column} label="Status" />,
+  },
+  {
     accessorKey: "createdAt",
     header: ({ column }) => (
       <SortableHeader column={column} label="Created At" />
