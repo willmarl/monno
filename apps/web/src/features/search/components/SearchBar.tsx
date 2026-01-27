@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,47 +8,58 @@ import { Search, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 
-export interface SearchBarProps<T> {
+export interface SearchBarBaseProps<T> {
   placeholder?: string;
   queryParam?: string;
   basePath?: string;
   suggestionLimit?: number;
-  useSuggestions?: (
-    q: string,
-    limit: number,
-  ) => {
-    data?: T[];
-    isLoading: boolean;
-  };
   renderSuggestion?: (suggestion: T) => {
     title: string;
     subtitle?: string;
   };
-  onSuggestionSelect?: (suggestion: T) => string;
-  onNavigateTo?: (suggestion: T) => string;
   reactiveUrl?: boolean;
 }
 
-// Type validation: ensure proper config when using suggestions
-type ValidSearchBarProps<T> = SearchBarProps<T> &
-  (
-    | { useSuggestions: undefined }
-    | {
-        useSuggestions: (
-          q: string,
-          limit: number,
-        ) => { data?: T[]; isLoading: boolean };
-        onNavigateTo: (item: T) => string;
-      }
-    | {
-        useSuggestions: (
-          q: string,
-          limit: number,
-        ) => { data?: T[]; isLoading: boolean };
-        onSuggestionSelect: (item: T) => string;
-      }
-  );
+// Overload 1: Simple search (no suggestions)
+export function SearchBar<T>(
+  props: SearchBarBaseProps<T> & {
+    useSuggestions?: never;
+    onSuggestionSelect?: never;
+    onNavigateTo?: never;
+  },
+): React.ReactNode;
 
+// Overload 2: Suggestions with navigation
+export function SearchBar<T>(
+  props: SearchBarBaseProps<T> & {
+    useSuggestions: (
+      q: string,
+      limit: number,
+    ) => {
+      data?: T[];
+      isLoading: boolean;
+    };
+    onNavigateTo: (item: T) => string;
+    onSuggestionSelect?: never;
+  },
+): React.ReactNode;
+
+// Overload 3: Suggestions with selection callback
+export function SearchBar<T>(
+  props: SearchBarBaseProps<T> & {
+    useSuggestions: (
+      q: string,
+      limit: number,
+    ) => {
+      data?: T[];
+      isLoading: boolean;
+    };
+    onSuggestionSelect: (item: T) => string;
+    onNavigateTo?: never;
+  },
+): React.ReactNode;
+
+// Implementation
 export function SearchBar<T>({
   placeholder = "Search...",
   queryParam = "q",
@@ -58,7 +70,14 @@ export function SearchBar<T>({
   onSuggestionSelect,
   onNavigateTo,
   reactiveUrl = false,
-}: ValidSearchBarProps<T>) {
+}: SearchBarBaseProps<T> & {
+  useSuggestions?: (
+    q: string,
+    limit: number,
+  ) => { data?: T[]; isLoading: boolean };
+  onSuggestionSelect?: (suggestion: T) => string;
+  onNavigateTo?: (suggestion: T) => string;
+}) {
   const router = useRouter();
   const params = useSearchParams();
 
