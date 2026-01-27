@@ -7,29 +7,14 @@ import { Search, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 
-export interface BaseSuggestion {
-  id: string | number;
-  title: string;
-}
-
-export function SearchBar<T extends BaseSuggestion = BaseSuggestion>({
-  placeholder = "Search...",
-  queryParam = "q",
-  basePath = "/search",
-  suggestionLimit = 5,
-  useSuggestions,
-  renderSuggestion,
-  onSuggestionSelect,
-  onNavigateTo,
-  reactiveUrl = false,
-}: {
+export interface SearchBarProps<T> {
   placeholder?: string;
   queryParam?: string;
   basePath?: string;
   suggestionLimit?: number;
   useSuggestions?: (
     q: string,
-    limit: number
+    limit: number,
   ) => {
     data?: T[];
     isLoading: boolean;
@@ -41,7 +26,39 @@ export function SearchBar<T extends BaseSuggestion = BaseSuggestion>({
   onSuggestionSelect?: (suggestion: T) => string;
   onNavigateTo?: (suggestion: T) => string;
   reactiveUrl?: boolean;
-}) {
+}
+
+// Type validation: ensure proper config when using suggestions
+type ValidSearchBarProps<T> = SearchBarProps<T> &
+  (
+    | { useSuggestions: undefined }
+    | {
+        useSuggestions: (
+          q: string,
+          limit: number,
+        ) => { data?: T[]; isLoading: boolean };
+        onNavigateTo: (item: T) => string;
+      }
+    | {
+        useSuggestions: (
+          q: string,
+          limit: number,
+        ) => { data?: T[]; isLoading: boolean };
+        onSuggestionSelect: (item: T) => string;
+      }
+  );
+
+export function SearchBar<T>({
+  placeholder = "Search...",
+  queryParam = "q",
+  basePath = "/search",
+  suggestionLimit = 5,
+  useSuggestions,
+  renderSuggestion,
+  onSuggestionSelect,
+  onNavigateTo,
+  reactiveUrl = false,
+}: ValidSearchBarProps<T>) {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -107,11 +124,11 @@ export function SearchBar<T extends BaseSuggestion = BaseSuggestion>({
       return;
     }
 
-    // Otherwise, search by the item
-    const searchTerm = onSuggestionSelect
-      ? onSuggestionSelect(suggestion)
-      : suggestion.title;
-    submit(searchTerm);
+    // Otherwise, search by the item using onSuggestionSelect
+    if (onSuggestionSelect) {
+      const searchTerm = onSuggestionSelect(suggestion);
+      submit(searchTerm);
+    }
   }
 
   return (
@@ -145,13 +162,13 @@ export function SearchBar<T extends BaseSuggestion = BaseSuggestion>({
               case "ArrowDown":
                 e.preventDefault();
                 setSelectedIndex((prev) =>
-                  prev < suggestions.length - 1 ? prev + 1 : 0
+                  prev < suggestions.length - 1 ? prev + 1 : 0,
                 );
                 break;
               case "ArrowUp":
                 e.preventDefault();
                 setSelectedIndex((prev) =>
-                  prev > 0 ? prev - 1 : suggestions.length - 1
+                  prev > 0 ? prev - 1 : suggestions.length - 1,
                 );
                 break;
               case "Enter":
@@ -190,19 +207,19 @@ export function SearchBar<T extends BaseSuggestion = BaseSuggestion>({
           ) : suggestions.length > 0 ? (
             <ul className="py-2">
               {suggestions.map((suggestion, index) => {
-                const display = renderSuggestion
-                  ? renderSuggestion(suggestion)
-                  : {
-                      title: suggestion.title,
-                      subtitle:
-                        "content" in suggestion && suggestion.content
-                          ? (suggestion.content as string).substring(0, 60) +
-                            "..."
-                          : undefined,
-                    };
+                if (!renderSuggestion) {
+                  console.warn(
+                    "renderSuggestion is required when useSuggestions is provided",
+                  );
+                  return null;
+                }
+                const display = renderSuggestion(suggestion);
                 const isSelected = index === selectedIndex;
+                // Get a unique key from the suggestion object
+                const suggestionKey =
+                  (suggestion as any).id || (suggestion as any).key || index;
                 return (
-                  <li key={suggestion.id}>
+                  <li key={suggestionKey}>
                     <button
                       onClick={() => handleSuggestionClick(suggestion)}
                       onMouseEnter={() => setSelectedIndex(index)}

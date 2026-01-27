@@ -21,6 +21,10 @@ export function PostSearchBar({ basePath = "/" }: PostSearchBarProps) {
         queryParam="q"
         basePath={basePath}
         useSuggestions={usePostSuggestions}
+        renderSuggestion={(post) => ({
+          title: post.title,
+          subtitle: post.content.substring(0, 60) + "...",
+        })}
         onNavigateTo={(post) => `post/${post.id}`}
       />
 
