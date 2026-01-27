@@ -27,7 +27,7 @@ const VALID_USER_SEARCH_FIELDS = Object.values(UserSearchFields);
  * Extends PaginationDto with search-specific parameters
  *
  * @example
- * GET /users/search?query=hello&searchFields=title,content&limit=10&offset=0&caseSensitive=false
+ * GET /users/search?query=hello&searchFields=username,email&roles=USER,MOD&statuses=ACTIVE,BANNED&limit=10&offset=0&caseSensitive=false
  */
 export class UserSearchDto extends PaginationDto {
   @IsOptional()
@@ -37,6 +37,22 @@ export class UserSearchDto extends PaginationDto {
   @IsOptional()
   @IsString()
   searchFields?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    description:
+      'Comma-separated list of roles to filter by (e.g., USER,ADMIN,MOD)',
+  })
+  roles?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    description:
+      'Comma-separated list of statuses to filter by (e.g., ACTIVE,SUSPENDED,BANNED,DELETED)',
+  })
+  statuses?: string;
 
   @IsOptional()
   @TransformBoolean()
@@ -57,6 +73,34 @@ export class UserSearchDto extends PaginationDto {
       .split(',')
       .map((field) => field.trim())
       .filter((field) => VALID_USER_SEARCH_FIELDS.includes(field as any));
+  }
+
+  /**
+   * Parse and validate roles filter into an array
+   * Invalid roles are silently ignored
+   */
+  getRoles(): string[] {
+    if (!this.roles) return [];
+
+    const validRoles = ['USER', 'ADMIN', 'MOD'];
+    return this.roles
+      .split(',')
+      .map((role) => role.trim().toUpperCase())
+      .filter((role) => validRoles.includes(role));
+  }
+
+  /**
+   * Parse and validate statuses filter into an array
+   * Invalid statuses are silently ignored
+   */
+  getStatuses(): string[] {
+    if (!this.statuses) return [];
+
+    const validStatuses = ['ACTIVE', 'SUSPENDED', 'BANNED', 'DELETED'];
+    return this.statuses
+      .split(',')
+      .map((status) => status.trim().toUpperCase())
+      .filter((status) => validStatuses.includes(status));
   }
 
   /**
@@ -83,6 +127,22 @@ export class UserSearchCursorDto extends CursorPaginationDto {
   searchFields?: string;
 
   @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    description:
+      'Comma-separated list of roles to filter by (e.g., USER,ADMIN,MOD)',
+  })
+  roles?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    description:
+      'Comma-separated list of statuses to filter by (e.g., ACTIVE,SUSPENDED,BANNED,DELETED)',
+  })
+  statuses?: string;
+
+  @IsOptional()
   @TransformBoolean()
   @IsBoolean()
   caseSensitive?: boolean;
@@ -101,6 +161,34 @@ export class UserSearchCursorDto extends CursorPaginationDto {
       .split(',')
       .map((field) => field.trim())
       .filter((field) => VALID_USER_SEARCH_FIELDS.includes(field as any));
+  }
+
+  /**
+   * Parse and validate roles filter into an array
+   * Invalid roles are silently ignored
+   */
+  getRoles(): string[] {
+    if (!this.roles) return [];
+
+    const validRoles = ['USER', 'ADMIN', 'MOD'];
+    return this.roles
+      .split(',')
+      .map((role) => role.trim().toUpperCase())
+      .filter((role) => validRoles.includes(role));
+  }
+
+  /**
+   * Parse and validate statuses filter into an array
+   * Invalid statuses are silently ignored
+   */
+  getStatuses(): string[] {
+    if (!this.statuses) return [];
+
+    const validStatuses = ['ACTIVE', 'SUSPENDED', 'BANNED', 'DELETED'];
+    return this.statuses
+      .split(',')
+      .map((status) => status.trim().toUpperCase())
+      .filter((status) => validStatuses.includes(status));
   }
 
   /**

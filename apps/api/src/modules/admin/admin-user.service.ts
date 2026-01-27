@@ -93,16 +93,39 @@ export class AdminUserService {
 
   /**
    * Search users with offset pagination
+   * Supports filtering by text search (username, email) and categorical filters (role, status)
    */
   async search(searchDto: UserSearchDto) {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
+    const roles = searchDto.getRoles();
+    const statuses = searchDto.getStatuses();
 
-    const where = buildSearchWhere({
+    // Build text search conditions
+    const textSearchWhere = buildSearchWhere({
       query: searchDto.query ?? '',
       fields: searchFields,
       options: searchOptions,
     });
+
+    // Build filter conditions
+    const filterConditions: any[] = [];
+
+    if (roles.length > 0) {
+      filterConditions.push({ role: { in: roles as any } });
+    }
+
+    if (statuses.length > 0) {
+      filterConditions.push({ status: { in: statuses as any } });
+    }
+
+    // Combine text search and filters
+    const where = {
+      ...(Object.keys(textSearchWhere).length > 0 && textSearchWhere),
+      ...(filterConditions.length > 0 && {
+        AND: filterConditions,
+      }),
+    };
 
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.user,
@@ -125,16 +148,39 @@ export class AdminUserService {
 
   /**
    * Search users with cursor pagination
+   * Supports filtering by text search (username, email) and categorical filters (role, status)
    */
   async searchCursor(searchDto: UserSearchCursorDto) {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
+    const roles = searchDto.getRoles();
+    const statuses = searchDto.getStatuses();
 
-    const where = buildSearchWhere({
+    // Build text search conditions
+    const textSearchWhere = buildSearchWhere({
       query: searchDto.query ?? '',
       fields: searchFields,
       options: searchOptions,
     });
+
+    // Build filter conditions
+    const filterConditions: any[] = [];
+
+    if (roles.length > 0) {
+      filterConditions.push({ role: { in: roles as any } });
+    }
+
+    if (statuses.length > 0) {
+      filterConditions.push({ status: { in: statuses as any } });
+    }
+
+    // Combine text search and filters
+    const where = {
+      ...(Object.keys(textSearchWhere).length > 0 && textSearchWhere),
+      ...(filterConditions.length > 0 && {
+        AND: filterConditions,
+      }),
+    };
 
     const { items, nextCursor } = await cursorPaginate({
       model: this.prisma.user,
