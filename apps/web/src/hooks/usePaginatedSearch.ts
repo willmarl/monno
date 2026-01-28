@@ -8,6 +8,7 @@ interface SearchParams {
   sort?: string;
   page?: string;
   caseSensitive?: string;
+  [key: string]: string | undefined;
 }
 
 interface PaginatedResponse<T> {
@@ -23,11 +24,12 @@ interface UsePaginatedSearchOptions<T> {
     query: string,
     page: number,
     limit: number,
-    options: any
+    options: any,
   ) => { data?: PaginatedResponse<T>; isLoading?: boolean };
   offsetHook: (
     page: number,
-    limit: number
+    limit: number,
+    options?: any,
   ) => { data?: PaginatedResponse<T>; isLoading?: boolean };
   limit: number;
   getEmptyMessage?: (query: string) => string;
@@ -52,13 +54,13 @@ export function usePaginatedSearch<T>({
     typeof initialSearchParams === "object" &&
     "then" in initialSearchParams
       ? use(initialSearchParams as Promise<SearchParams>)
-      : initialSearchParams ?? {};
+      : (initialSearchParams ?? {});
   const searchParams = resolvedSearchParams as SearchParams;
 
   // Get page from query params
   const page = parseInt(
     searchParams?.page ?? urlSearchParams.get("page") ?? "1",
-    10
+    10,
   );
   const query = searchParams?.q ?? urlSearchParams.get("q") ?? "";
   const searchFields =
@@ -70,16 +72,43 @@ export function usePaginatedSearch<T>({
     (searchParams?.caseSensitive ?? urlSearchParams.get("caseSensitive")) ===
     "true";
 
+  // Collect all filter options from URL params (for things like roles, statuses, etc.)
+  const filterOptions: Record<string, string | boolean | undefined> = {
+    searchFields,
+    sort,
+    caseSensitive,
+  };
+
+  // Extract any additional filter params from URL (like roles, statuses)
+  urlSearchParams.forEach((value, key) => {
+    if (!["q", "page", "searchFields", "sort", "caseSensitive"].includes(key)) {
+      filterOptions[key] = value;
+    }
+  });
+
+  // Also add from searchParams object if present
+  if (searchParams) {
+    Object.entries(searchParams).forEach(([key, value]) => {
+      if (
+        !["q", "page", "searchFields", "sort", "caseSensitive"].includes(key) &&
+        value
+      ) {
+        filterOptions[key] = value;
+      }
+    });
+  }
+
   // Use search if query is present, otherwise use regular items
   const { data: searchData, isLoading: searchIsLoading } = searchHook(
     query,
     page,
     limit,
-    { searchFields, sort, caseSensitive }
+    filterOptions,
   );
   const { data: regularData, isLoading: regularIsLoading } = offsetHook(
     page,
-    limit
+    limit,
+    filterOptions,
   );
 
   const data = query ? searchData : regularData;

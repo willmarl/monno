@@ -4,6 +4,7 @@ import {
   changePassword,
   fetchUserByUsername,
   fetchUsersAdmin,
+  fetchUsersAdminSearch,
   fetchUserByIdAdmin,
   updateUserAdmin,
   deleteUserAdmin,
@@ -52,12 +53,62 @@ export const useFetchUserByUsername = (username: string) =>
     },
   });
 
-export function useUsersAdmin(page: number, limit: number) {
+export function useUsersAdmin(
+  page: number,
+  limit: number,
+  options?: {
+    searchFields?: string;
+    sort?: string;
+    caseSensitive?: boolean;
+    roles?: string;
+    statuses?: string;
+  },
+) {
   const offset = (page - 1) * limit;
 
   return useQuery({
-    queryKey: ["usersAdmin", page],
-    queryFn: () => fetchUsersAdmin({ limit, offset }),
+    queryKey: ["usersAdmin", page, options?.roles, options?.statuses],
+    queryFn: () => fetchUsersAdmin({ limit, offset, ...options }),
+  });
+}
+
+export function useUsersAdminSearch(
+  query: string,
+  page: number,
+  limit: number,
+  options?: {
+    searchFields?: string;
+    sort?: string;
+    caseSensitive?: boolean;
+    roles?: string;
+    statuses?: string;
+  },
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: [
+      "usersAdmin-search",
+      query,
+      page,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+      options?.roles,
+      options?.statuses,
+    ],
+    queryFn: () =>
+      fetchUsersAdminSearch({
+        query,
+        limit,
+        offset,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+        roles: options?.roles,
+        statuses: options?.statuses,
+      }),
+    enabled: !!query,
   });
 }
 

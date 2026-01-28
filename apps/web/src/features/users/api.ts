@@ -61,13 +61,67 @@ export const fetchUserByUsername = (username: string): Promise<PublicUser> =>
 export const fetchUsersAdmin = ({
   limit,
   offset,
+  searchFields,
+  sort,
+  caseSensitive,
+  roles,
+  statuses,
 }: {
   limit: number;
   offset: number;
-}) =>
-  fetcher<UsersList>("/admin/users", {
-    searchParams: { limit, offset },
-  });
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+  roles?: string;
+  statuses?: string;
+}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+  if (roles) searchParams.roles = roles;
+  if (statuses) searchParams.statuses = statuses;
+
+  return fetcher<UsersList>("/admin/users", { searchParams });
+};
+
+export const fetchUsersAdminSearch = ({
+  query,
+  limit,
+  offset,
+  searchFields,
+  sort,
+  caseSensitive,
+  roles,
+  statuses,
+}: {
+  query: string;
+  limit: number;
+  offset: number;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+  roles?: string;
+  statuses?: string;
+}) => {
+  if (!query) return fetchUsersAdmin({ limit, offset });
+
+  const searchParams: Record<string, string | number | boolean> = {
+    query,
+    limit,
+    offset,
+  };
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+  if (roles) searchParams.roles = roles;
+  if (statuses) searchParams.statuses = statuses;
+
+  return fetcher<UsersList>("/admin/users/search", { searchParams });
+};
 
 export const fetchUserByIdAdmin = (id: number) =>
   fetcher<User[]>(`/admin/users/${id}`);
