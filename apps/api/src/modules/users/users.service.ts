@@ -244,6 +244,7 @@ export class UsersService {
   async searchAll(searchDto: UserSearchDto) {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
+    const orderBy = searchDto.getOrderBy();
 
     const where = buildSearchWhere({
       query: searchDto.query ?? '',
@@ -258,7 +259,7 @@ export class UsersService {
       offset: searchDto.offset ?? 0,
       query: {
         where: whereWithStatus,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         select: DEFAULT_PUBLIC_USER_SELECT,
       },
       countQuery: { where: whereWithStatus },
@@ -274,6 +275,7 @@ export class UsersService {
   async searchAllCursor(searchDto: UserSearchCursorDto) {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
+    const orderBy = searchDto.getOrderBy();
 
     const where = buildSearchWhere({
       query: searchDto.query ?? '',
@@ -289,7 +291,7 @@ export class UsersService {
       cursor,
       query: {
         where: { ...where, status: 'ACTIVE' },
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         select: DEFAULT_PUBLIC_USER_SELECT,
       },
     });

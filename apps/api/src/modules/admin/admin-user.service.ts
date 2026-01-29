@@ -100,6 +100,7 @@ export class AdminUserService {
     const searchOptions = searchDto.getSearchOptions();
     const roles = searchDto.getRoles();
     const statuses = searchDto.getStatuses();
+    const orderBy = searchDto.getOrderBy();
 
     // Build text search conditions
     const textSearchWhere = buildSearchWhere({
@@ -133,7 +134,7 @@ export class AdminUserService {
       offset: searchDto.offset ?? 0,
       query: {
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         select: DEFAULT_USER_SELECT,
       },
       countQuery: { where },
@@ -155,6 +156,7 @@ export class AdminUserService {
     const searchOptions = searchDto.getSearchOptions();
     const roles = searchDto.getRoles();
     const statuses = searchDto.getStatuses();
+    const orderBy = searchDto.getOrderBy();
 
     // Build text search conditions
     const textSearchWhere = buildSearchWhere({
@@ -188,7 +190,7 @@ export class AdminUserService {
       cursor: searchDto.cursor,
       query: {
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         select: DEFAULT_USER_SELECT,
       },
     });
