@@ -2,7 +2,7 @@
 
 import { columns } from "@/components/pages/admin/users/columns";
 import { DataTable } from "@/components/ui/data-table";
-import { useUsersAdmin, useUsersAdminSearch } from "@/features/users/hooks";
+import { useAdminUsers } from "@/features/users/hooks";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
 
@@ -30,8 +30,7 @@ export function UserDataTable({ searchParams }: UserDataTableProps) {
     emptyMessage,
   } = usePaginatedSearch({
     searchParams,
-    searchHook: useUsersAdminSearch,
-    offsetHook: useUsersAdmin,
+    hook: useAdminUsers,
     limit: DEFAULT_LIMIT,
     getEmptyMessage: (query) =>
       query

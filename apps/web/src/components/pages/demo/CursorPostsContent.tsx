@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import { usePostsSearchCursor, usePostsCursor } from "@/features/posts/hooks";
+import { usePostsCursor } from "@/features/posts/hooks";
 import { Post as PostComponent } from "@/components/ui/Post";
 import { CursorPaginatedList } from "@/components/ui/pagination/CursorPaginatedList";
 import { useSessionUser } from "@/features/auth/hooks";
@@ -33,9 +33,7 @@ function PostsListContent({ searchParams }: CursorPostsContentProps) {
     fetchNextPage,
   } = useCursorPaginatedSearch<Post>({
     searchParams,
-    searchHook: (query, limit, options) =>
-      usePostsSearchCursor(query, limit, options) as any,
-    cursorHook: (limit) => usePostsCursor(limit) as any,
+    hook: usePostsCursor,
     limit: DEFAULT_LIMIT,
     getEmptyMessage: (query) =>
       query

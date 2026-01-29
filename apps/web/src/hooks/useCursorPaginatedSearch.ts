@@ -16,10 +16,11 @@ interface CursorResponse<T> {
 
 interface UseCursorPaginatedSearchOptions<T> {
   searchParams?: SearchParams | Promise<SearchParams>;
-  searchHook: (
-    query: string,
+  // Unified hook that handles both search and cursor (new approach)
+  hook?: (
     limit: number,
-    options: any
+    query?: string,
+    options?: any,
   ) => {
     data?: { pages?: CursorResponse<T>[] };
     hasNextPage?: boolean;
@@ -27,7 +28,19 @@ interface UseCursorPaginatedSearchOptions<T> {
     isFetchingNextPage?: boolean;
     fetchNextPage?: () => void;
   };
-  cursorHook: (limit: number) => {
+  // Separate hooks for backwards compatibility
+  searchHook?: (
+    query: string,
+    limit: number,
+    options: any,
+  ) => {
+    data?: { pages?: CursorResponse<T>[] };
+    hasNextPage?: boolean;
+    isFetching?: boolean;
+    isFetchingNextPage?: boolean;
+    fetchNextPage?: () => void;
+  };
+  cursorHook?: (limit: number) => {
     data?: { pages?: CursorResponse<T>[] };
     hasNextPage?: boolean;
     isFetching?: boolean;
@@ -40,6 +53,7 @@ interface UseCursorPaginatedSearchOptions<T> {
 
 export function useCursorPaginatedSearch<T>({
   searchParams: initialSearchParams,
+  hook,
   searchHook,
   cursorHook,
   limit,
@@ -54,7 +68,7 @@ export function useCursorPaginatedSearch<T>({
     typeof initialSearchParams === "object" &&
     "then" in initialSearchParams
       ? use(initialSearchParams as Promise<SearchParams>)
-      : initialSearchParams ?? {};
+      : (initialSearchParams ?? {});
   const searchParams = resolvedSearchParams as SearchParams;
 
   const query = searchParams?.q ?? "";
@@ -62,15 +76,33 @@ export function useCursorPaginatedSearch<T>({
   const sort = searchParams?.sort ?? undefined;
   const caseSensitive = searchParams?.caseSensitive === "true";
 
-  // Use search if query is present, otherwise use regular cursor pagination
-  const searchResult = searchHook(query, limit, {
-    searchFields,
-    sort,
-    caseSensitive,
-  });
-  const cursorResult = cursorHook(limit);
+  // Use unified hook if provided, otherwise use separate search/cursor hooks
+  let result;
 
-  const result = query ? searchResult : cursorResult;
+  if (hook) {
+    // Unified hook approach
+    result = hook(limit, query || undefined, {
+      searchFields,
+      sort,
+      caseSensitive,
+    });
+  } else {
+    // Separate hooks approach (backwards compatibility)
+    if (!searchHook || !cursorHook) {
+      throw new Error(
+        "Either provide 'hook' or both 'searchHook' and 'cursorHook'",
+      );
+    }
+
+    const searchResult = searchHook(query, limit, {
+      searchFields,
+      sort,
+      caseSensitive,
+    });
+    const cursorResult = cursorHook(limit);
+
+    result = query ? searchResult : cursorResult;
+  }
 
   // Flatten pages into single array of items
   const items: T[] =

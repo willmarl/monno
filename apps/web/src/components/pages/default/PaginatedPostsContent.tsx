@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import { usePostsOffset, usePostsSearch } from "@/features/posts/hooks";
+import { usePosts } from "@/features/posts/hooks";
 import { Post } from "@/components/ui/Post";
 import { PaginatedList } from "@/components/ui/pagination/PaginatedList";
 import { useSessionUser } from "@/features/auth/hooks";
@@ -33,8 +33,7 @@ function PostsListContent({ searchParams }: PaginatedPostsProps) {
     page,
   } = usePaginatedSearch({
     searchParams,
-    searchHook: usePostsSearch,
-    offsetHook: usePostsOffset,
+    hook: usePosts,
     limit: DEFAULT_LIMIT,
     getEmptyMessage: (query) =>
       query

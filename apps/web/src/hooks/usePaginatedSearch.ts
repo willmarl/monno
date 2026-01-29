@@ -20,13 +20,21 @@ interface PaginatedResponse<T> {
 
 interface UsePaginatedSearchOptions<T> {
   searchParams?: SearchParams | Promise<SearchParams>;
-  searchHook: (
+  // Unified hook that handles both search and offset (new approach)
+  hook?: (
+    page: number,
+    limit: number,
+    query?: string,
+    options?: any,
+  ) => { data?: PaginatedResponse<T>; isLoading?: boolean };
+  // Separate hooks for backwards compatibility
+  searchHook?: (
     query: string,
     page: number,
     limit: number,
     options: any,
   ) => { data?: PaginatedResponse<T>; isLoading?: boolean };
-  offsetHook: (
+  offsetHook?: (
     page: number,
     limit: number,
     options?: any,
@@ -37,6 +45,7 @@ interface UsePaginatedSearchOptions<T> {
 
 export function usePaginatedSearch<T>({
   searchParams: initialSearchParams,
+  hook,
   searchHook,
   offsetHook,
   limit,
@@ -98,21 +107,38 @@ export function usePaginatedSearch<T>({
     });
   }
 
-  // Use search if query is present, otherwise use regular items
-  const { data: searchData, isLoading: searchIsLoading } = searchHook(
-    query,
-    page,
-    limit,
-    filterOptions,
-  );
-  const { data: regularData, isLoading: regularIsLoading } = offsetHook(
-    page,
-    limit,
-    filterOptions,
-  );
+  // Use unified hook if provided, otherwise use separate search/offset hooks
+  let data: PaginatedResponse<T> | undefined;
+  let isLoading: boolean | undefined;
 
-  const data = query ? searchData : regularData;
-  const isLoading = query ? searchIsLoading : regularIsLoading;
+  if (hook) {
+    // Unified hook approach
+    const result = hook(page, limit, query || undefined, filterOptions);
+    data = result.data;
+    isLoading = result.isLoading;
+  } else {
+    // Separate hooks approach (backwards compatibility)
+    if (!searchHook || !offsetHook) {
+      throw new Error(
+        "Either provide 'hook' or both 'searchHook' and 'offsetHook'",
+      );
+    }
+
+    const { data: searchData, isLoading: searchIsLoading } = searchHook(
+      query,
+      page,
+      limit,
+      filterOptions,
+    );
+    const { data: regularData, isLoading: regularIsLoading } = offsetHook(
+      page,
+      limit,
+      filterOptions,
+    );
+
+    data = query ? searchData : regularData;
+    isLoading = query ? searchIsLoading : regularIsLoading;
+  }
 
   const items: T[] = data?.items ?? [];
   const totalItems = data?.pageInfo?.totalItems ?? 0;
