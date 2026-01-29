@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef, Column } from "@tanstack/react-table";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Divide } from "lucide-react";
 import { User } from "@/features/users/types/user";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { MoreHorizontal } from "lucide-react";
@@ -87,6 +87,37 @@ export const columns: ColumnDef<User>[] = [
   {
     accessorKey: "status",
     header: ({ column }) => <SortableHeader column={column} label="Status" />,
+  },
+  {
+    accessorKey: "statusReason",
+    header: ({ column }) => <SortableHeader column={column} label="Reason" />,
+    cell: ({ row }) => {
+      const { openModal } = useModal();
+      const reason = (row.getValue("statusReason") as string) ?? "";
+      const truncated =
+        reason.length > 30 ? reason.slice(0, 27) + "..." : reason;
+
+      return (
+        <div
+          onClick={() => {
+            openModal({
+              title: "Status Reason",
+              content: (
+                <ConfirmModal
+                  message={reason}
+                  showButton={false}
+                  onConfirm={() => null}
+                />
+              ),
+            });
+          }}
+          className="max-w-40 truncate text-sm cursor-pointer"
+          title={reason || undefined}
+        >
+          {truncated || "—"}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "createdAt",
