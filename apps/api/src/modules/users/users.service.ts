@@ -181,46 +181,48 @@ export class UsersService {
     return user;
   }
 
-  async findAll(pag: PaginationDto) {
-    const where = { status: 'ACTIVE' };
-    const { items, pageInfo, isRedirected } = await offsetPaginate({
-      model: this.prisma.user,
-      limit: pag.limit ?? 10,
-      offset: pag.offset ?? 0,
-      query: {
-        where,
-        orderBy: { createdAt: 'desc' },
-        select: DEFAULT_PUBLIC_USER_SELECT,
-      },
-      countQuery: { where },
-    });
-
-    return {
-      items,
-      pageInfo,
-      ...(isRedirected && { isRedirected: true }),
-    };
-  }
-
-  async findAllCursor(userId: number | null, pag: CursorPaginationDto) {
-    const { cursor, limit } = pag;
-
-    const { items, nextCursor } = await cursorPaginate({
-      model: this.prisma.user,
-      limit: limit ?? 10,
-      cursor,
-      query: {
-        where: { status: 'ACTIVE' },
-        orderBy: { createdAt: 'desc' },
-        select: DEFAULT_PUBLIC_USER_SELECT,
-      },
-    });
-
-    return {
-      items,
-      nextCursor: nextCursor,
-    };
-  }
+  // # get all endpoint uses search. findAll is redundant as empty search gives same result
+  //
+  // async findAll(pag: PaginationDto) {
+  //   const where = { status: 'ACTIVE' };
+  //   const { items, pageInfo, isRedirected } = await offsetPaginate({
+  //     model: this.prisma.user,
+  //     limit: pag.limit ?? 10,
+  //     offset: pag.offset ?? 0,
+  //     query: {
+  //       where,
+  //       orderBy: { createdAt: 'desc' },
+  //       select: DEFAULT_PUBLIC_USER_SELECT,
+  //     },
+  //     countQuery: { where },
+  //   });
+  //
+  //   return {
+  //     items,
+  //     pageInfo,
+  //     ...(isRedirected && { isRedirected: true }),
+  //   };
+  // }
+  //
+  // async findAllCursor(userId: number | null, pag: CursorPaginationDto) {
+  //   const { cursor, limit } = pag;
+  //
+  //   const { items, nextCursor } = await cursorPaginate({
+  //     model: this.prisma.user,
+  //     limit: limit ?? 10,
+  //     cursor,
+  //     query: {
+  //       where: { status: 'ACTIVE' },
+  //       orderBy: { createdAt: 'desc' },
+  //       select: DEFAULT_PUBLIC_USER_SELECT,
+  //     },
+  //   });
+  //
+  //   return {
+  //     items,
+  //     nextCursor: nextCursor,
+  //   };
+  // }
 
   //--------------
   //   Search

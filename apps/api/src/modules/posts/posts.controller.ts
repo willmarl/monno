@@ -33,13 +33,13 @@ export class PostsController {
   }
 
   @Get()
-  findAll(@Query() pag: PaginationDto) {
-    return this.postsService.findAll(pag);
+  findAll(@Query() searchDto: PostSearchDto) {
+    return this.postsService.searchAll(searchDto);
   }
 
   @Get('cursor')
-  findAllCursor(@Req() req: any, @Query() pag: CursorPaginationDto) {
-    return this.postsService.findAllCursor(pag);
+  findAllCursor(@Query() searchDto: PostSearchCursorDto) {
+    return this.postsService.searchAllCursor(searchDto);
   }
 
   @ApiOperation({ summary: 'Search posts with offset pagination' })

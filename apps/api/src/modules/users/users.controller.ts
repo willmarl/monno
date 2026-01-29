@@ -141,8 +141,8 @@ export class UsersController {
   @ApiQuery({ name: 'limit', required: false, example: 10 })
   @ApiQuery({ name: 'offset', required: false, example: 0 })
   @Get()
-  findAll(@Query() pag: PaginationDto) {
-    return this.usersService.findAll(pag);
+  findAll(@Query() searchDto: UserSearchDto) {
+    return this.usersService.searchAll(searchDto);
   }
 
   @ApiOperation({ summary: 'Get all users with cursor pagination (public)' })
@@ -162,9 +162,8 @@ export class UsersController {
     description: 'List of public user profiles with next cursor',
   })
   @Get('cursor')
-  findAllCursor(@Req() req: any, @Query() pag: CursorPaginationDto) {
-    const userId = req.user?.sub ?? null;
-    return this.usersService.findAllCursor(userId, pag);
+  findAllCursor(@Query() searchDto: UserSearchCursorDto) {
+    return this.usersService.searchAllCursor(searchDto);
   }
 
   @Get('search')

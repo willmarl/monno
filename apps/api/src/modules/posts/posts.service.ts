@@ -35,45 +35,47 @@ export class PostsService {
     });
   }
 
-  async findAll(pag: PaginationDto) {
-    const where = { deleted: false, creator: { status: 'ACTIVE' } };
-    const { items, pageInfo, isRedirected } = await offsetPaginate({
-      model: this.prisma.post,
-      limit: pag.limit ?? 10,
-      offset: pag.offset ?? 0,
-      query: {
-        where,
-        orderBy: { createdAt: 'desc' } as const,
-        select: DEFAULT_POST_SELECT,
-      },
-      countQuery: { where: where },
-    });
+  // # get all endpoint uses search. findAll is redundant as empty search gives same result
+  //
+  // async findAll(pag: PaginationDto) {
+  //   const where = { deleted: false, creator: { status: 'ACTIVE' } };
+  //   const { items, pageInfo, isRedirected } = await offsetPaginate({
+  //     model: this.prisma.post,
+  //     limit: pag.limit ?? 10,
+  //     offset: pag.offset ?? 0,
+  //     query: {
+  //       where,
+  //       orderBy: { createdAt: 'desc' } as const,
+  //       select: DEFAULT_POST_SELECT,
+  //     },
+  //     countQuery: { where: where },
+  //   });
 
-    return {
-      items,
-      pageInfo,
-      ...(isRedirected && { isRedirected: true }),
-    };
-  }
+  //   return {
+  //     items,
+  //     pageInfo,
+  //     ...(isRedirected && { isRedirected: true }),
+  //   };
+  // }
 
-  async findAllCursor(pag: CursorPaginationDto) {
-    const { cursor, limit } = pag;
+  // async findAllCursor(pag: CursorPaginationDto) {
+  //   const { cursor, limit } = pag;
 
-    const { items, nextCursor } = await cursorPaginate({
-      model: this.prisma.post,
-      limit: limit ?? 10,
-      cursor,
-      query: {
-        where: { deleted: false, creator: { status: 'ACTIVE' } },
-        orderBy: { createdAt: 'desc' } as const,
-        select: DEFAULT_POST_SELECT,
-      },
-    });
-    return {
-      items,
-      nextCursor: nextCursor,
-    };
-  }
+  //   const { items, nextCursor } = await cursorPaginate({
+  //     model: this.prisma.post,
+  //     limit: limit ?? 10,
+  //     cursor,
+  //     query: {
+  //       where: { deleted: false, creator: { status: 'ACTIVE' } },
+  //       orderBy: { createdAt: 'desc' } as const,
+  //       select: DEFAULT_POST_SELECT,
+  //     },
+  //   });
+  //   return {
+  //     items,
+  //     nextCursor: nextCursor,
+  //   };
+  // }
 
   async findByUserId(userId: number, pag: PaginationDto) {
     const where = {
