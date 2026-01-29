@@ -58,27 +58,30 @@ export const fetchUserByUsername = (username: string): Promise<PublicUser> =>
 //   Admin
 //==============
 
-export const fetchUsersAdmin = ({
-  limit,
-  offset,
+export const fetchAdminUsers = ({
+  query,
+  limit = 10,
+  offset = 0,
   searchFields,
   sort,
   caseSensitive,
   roles,
   statuses,
 }: {
-  limit: number;
-  offset: number;
+  query?: string;
+  limit?: number;
+  offset?: number;
   searchFields?: string;
   sort?: string;
   caseSensitive?: boolean;
   roles?: string;
   statuses?: string;
-}) => {
+} = {}) => {
   const searchParams: Record<string, string | number | boolean> = {
     limit,
     offset,
   };
+  if (query) searchParams.query = query;
   if (searchFields) searchParams.searchFields = searchFields;
   if (sort) searchParams.sort = sort;
   if (caseSensitive) searchParams.caseSensitive = caseSensitive;
@@ -88,45 +91,10 @@ export const fetchUsersAdmin = ({
   return fetcher<UsersList>("/admin/users", { searchParams });
 };
 
-export const fetchUsersAdminSearch = ({
-  query,
-  limit,
-  offset,
-  searchFields,
-  sort,
-  caseSensitive,
-  roles,
-  statuses,
-}: {
-  query: string;
-  limit: number;
-  offset: number;
-  searchFields?: string;
-  sort?: string;
-  caseSensitive?: boolean;
-  roles?: string;
-  statuses?: string;
-}) => {
-  if (!query) return fetchUsersAdmin({ limit, offset });
-
-  const searchParams: Record<string, string | number | boolean> = {
-    query,
-    limit,
-    offset,
-  };
-  if (searchFields) searchParams.searchFields = searchFields;
-  if (sort) searchParams.sort = sort;
-  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
-  if (roles) searchParams.roles = roles;
-  if (statuses) searchParams.statuses = statuses;
-
-  return fetcher<UsersList>("/admin/users/search", { searchParams });
-};
-
-export const fetchUserByIdAdmin = (id: number) =>
+export const fetchAdminUserById = (id: number) =>
   fetcher<User[]>(`/admin/users/${id}`);
 
-export const createUserAdmin = (payload: {
+export const createAdminUser = (payload: {
   username: string;
   email?: string;
   password: string;
@@ -137,7 +105,7 @@ export const createUserAdmin = (payload: {
   });
 };
 
-export const updateUserAdmin = (
+export const updateAdminUser = (
   id: number,
   data: UpdateUserAdminInput,
   file?: File,
@@ -156,7 +124,7 @@ export const updateUserAdmin = (
   });
 };
 
-export const deleteUserAdmin = (id: number) =>
+export const deleteAdminUser = (id: number) =>
   fetcher<void>(`/admin/users/${id}`, {
     method: "DELETE",
   });

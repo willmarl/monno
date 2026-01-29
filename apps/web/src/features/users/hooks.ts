@@ -3,12 +3,11 @@ import {
   updateProfile,
   changePassword,
   fetchUserByUsername,
-  fetchUsersAdmin,
-  fetchUsersAdminSearch,
-  fetchUserByIdAdmin,
-  updateUserAdmin,
-  deleteUserAdmin,
-  createUserAdmin,
+  fetchAdminUsers,
+  fetchAdminUserById,
+  updateAdminUser,
+  deleteAdminUser,
+  createAdminUser,
 } from "./api";
 import type { PublicUser, UpdateProfileInput } from "./types/user";
 
@@ -53,29 +52,10 @@ export const useFetchUserByUsername = (username: string) =>
     },
   });
 
-export function useUsersAdmin(
-  page: number,
-  limit: number,
-  options?: {
-    searchFields?: string;
-    sort?: string;
-    caseSensitive?: boolean;
-    roles?: string;
-    statuses?: string;
-  },
-) {
-  const offset = (page - 1) * limit;
-
-  return useQuery({
-    queryKey: ["usersAdmin", page, options?.roles, options?.statuses],
-    queryFn: () => fetchUsersAdmin({ limit, offset, ...options }),
-  });
-}
-
-export function useUsersAdminSearch(
-  query: string,
-  page: number,
-  limit: number,
+export function useAdminUsers(
+  page: number = 1,
+  limit: number = 10,
+  query?: string,
   options?: {
     searchFields?: string;
     sort?: string;
@@ -88,9 +68,9 @@ export function useUsersAdminSearch(
 
   return useQuery({
     queryKey: [
-      "usersAdmin-search",
-      query,
+      "adminUsers",
       page,
+      query,
       options?.searchFields,
       options?.sort,
       options?.caseSensitive,
@@ -98,7 +78,7 @@ export function useUsersAdminSearch(
       options?.statuses,
     ],
     queryFn: () =>
-      fetchUsersAdminSearch({
+      fetchAdminUsers({
         query,
         limit,
         offset,
@@ -108,31 +88,30 @@ export function useUsersAdminSearch(
         roles: options?.roles,
         statuses: options?.statuses,
       }),
-    enabled: !!query,
   });
 }
 
 export function useUsersByIdAdmin(id: number) {
   return useQuery({
-    queryKey: ["userAdmin", id],
-    queryFn: () => fetchUserByIdAdmin(id),
+    queryKey: ["adminUser", id],
+    queryFn: () => fetchAdminUserById(id),
     enabled: !!id,
   });
 }
 
-export function useCreateUserAdmin() {
+export function useCreateAdminUser() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: createUserAdmin,
+    mutationFn: createAdminUser,
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["userAdmin"] });
+      qc.invalidateQueries({ queryKey: ["adminUser"] });
     },
     throwOnError: false, // Don't throw errors, let component handle them
   });
 }
 
-export function useUpdateUserAdmin() {
+export function useUpdateAdminUser() {
   const qc = useQueryClient();
 
   return useMutation({
@@ -142,25 +121,25 @@ export function useUpdateUserAdmin() {
       file,
     }: {
       id: number;
-      data: Parameters<typeof updateUserAdmin>[1];
+      data: Parameters<typeof updateAdminUser>[1];
       file?: File;
-    }) => updateUserAdmin(id, data, file),
+    }) => updateAdminUser(id, data, file),
     onSuccess: (_, { id }) => {
-      qc.invalidateQueries({ queryKey: ["usersAdmin"] });
-      qc.invalidateQueries({ queryKey: ["userAdmin", id] });
+      qc.invalidateQueries({ queryKey: ["users"] });
+      qc.invalidateQueries({ queryKey: ["adminUsers", id] });
     },
     throwOnError: false, // Don't throw errors, let component handle them
   });
 }
 
-export function useDeleteUserAdmin() {
+export function useDeleteAdminUser() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: deleteUserAdmin,
+    mutationFn: deleteAdminUser,
     onSuccess: (_, id) => {
-      qc.invalidateQueries({ queryKey: ["usersAdmin"] });
-      qc.removeQueries({ queryKey: ["userAdmin", id] });
+      qc.invalidateQueries({ queryKey: ["users"] });
+      qc.removeQueries({ queryKey: ["adminUser", id] });
     },
     throwOnError: false, // Don't throw errors, let component handle them
   });

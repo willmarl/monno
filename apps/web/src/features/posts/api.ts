@@ -7,38 +7,39 @@ import type {
   PostListCursor,
 } from "./types/post";
 
-// GET /posts
-export const fetchPosts = () => fetcher<PostsList>("/posts");
-
 // GET /posts/:id
 export const fetchPostById = (id: number) => fetcher<Post>(`/posts/${id}`);
 
-// GET /posts/search?limit=5&offset=10
-export const fetchPostsOffset = ({
-  limit,
-  offset,
+// GET /posts?query=world&limit=5&offset=0
+export const fetchPosts = ({
+  query,
+  limit = 10,
+  offset = 0,
+  searchFields,
+  sort,
+  caseSensitive,
 }: {
-  limit: number;
-  offset: number;
-}) =>
-  fetcher<PostsList>("/posts", {
-    searchParams: { limit, offset },
-  });
+  query?: string;
+  limit?: number;
+  offset?: number;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+} = {}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (query) searchParams.query = query;
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
 
-// GET /posts/search/cursor?q=world&mode=all
+  return fetcher<PostsList>("/posts", { searchParams });
+};
+
+// GET /posts/cursor?query=world&limit=5&cursor=abc123
 export const fetchPostsCursor = ({
-  limit,
-  cursor,
-}: {
-  limit: number;
-  cursor?: string | null;
-}) =>
-  fetcher<PostListCursor>("/posts/cursor", {
-    searchParams: { limit, cursor: cursor ?? undefined },
-  });
-
-// GET /posts/search/cursor?query=world&limit=5&cursor=abc123
-export const fetchPostsSearchCursor = ({
   query,
   limit,
   cursor,
@@ -46,55 +47,23 @@ export const fetchPostsSearchCursor = ({
   sort,
   caseSensitive,
 }: {
-  query: string;
+  query?: string;
   limit: number;
   cursor?: string | null;
   searchFields?: string;
   sort?: string;
   caseSensitive?: boolean;
 }) => {
-  if (!query) return fetchPostsCursor({ limit, cursor });
-
   const searchParams: Record<string, string | number | boolean> = {
-    query,
     limit,
   };
+  if (query) searchParams.query = query;
   if (cursor) searchParams.cursor = cursor;
   if (searchFields) searchParams.searchFields = searchFields;
   if (sort) searchParams.sort = sort;
   if (caseSensitive) searchParams.caseSensitive = caseSensitive;
 
-  return fetcher<PostListCursor>("/posts/search/cursor", { searchParams });
-};
-
-// GET /posts/search?query=world&limit=5&offset=0
-export const fetchPostsSearch = ({
-  query,
-  limit,
-  offset,
-  searchFields,
-  sort,
-  caseSensitive,
-}: {
-  query: string;
-  limit: number;
-  offset: number;
-  searchFields?: string;
-  sort?: string;
-  caseSensitive?: boolean;
-}) => {
-  if (!query) return fetchPostsOffset({ limit, offset });
-
-  const searchParams: Record<string, string | number | boolean> = {
-    query,
-    limit,
-    offset,
-  };
-  if (searchFields) searchParams.searchFields = searchFields;
-  if (sort) searchParams.sort = sort;
-  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
-
-  return fetcher<PostsList>("/posts/search", { searchParams });
+  return fetcher<PostListCursor>("/posts/cursor", { searchParams });
 };
 
 // GET /posts/search/suggest?q=world&limit=5

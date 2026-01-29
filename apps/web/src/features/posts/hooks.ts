@@ -8,23 +8,13 @@ import {
   createPost,
   fetchPostById,
   fetchPosts,
-  fetchPostsOffset,
-  fetchPostsSearch,
   fetchPostsCursor,
-  fetchPostsSearchCursor,
   fetchPostSuggestions,
   fetchPostsByUserId,
   fetchPostsByUserIdCursor,
   updatePost,
   deletePost,
 } from "./api";
-
-export function usePosts() {
-  return useQuery({
-    queryKey: ["posts"],
-    queryFn: fetchPosts,
-  });
-}
 
 export function usePostById(id: number) {
   return useQuery({
@@ -34,34 +24,25 @@ export function usePostById(id: number) {
   });
 }
 
-export function usePostsOffset(page: number, limit: number) {
-  const offset = (page - 1) * limit;
-
-  return useQuery({
-    queryKey: ["posts-offset", page],
-    queryFn: () => fetchPostsOffset({ limit, offset }),
-  });
-}
-
-export function usePostsSearch(
-  query: string,
-  page: number,
-  limit: number,
-  options?: { searchFields?: string; sort?: string; caseSensitive?: boolean }
+export function usePosts(
+  page: number = 1,
+  limit: number = 10,
+  query?: string,
+  options?: { searchFields?: string; sort?: string; caseSensitive?: boolean },
 ) {
   const offset = (page - 1) * limit;
 
   return useQuery({
     queryKey: [
-      "posts-search",
-      query,
+      "posts",
       page,
+      query,
       options?.searchFields,
       options?.sort,
       options?.caseSensitive,
     ],
     queryFn: () =>
-      fetchPostsSearch({
+      fetchPosts({
         query,
         limit,
         offset,
@@ -69,45 +50,30 @@ export function usePostsSearch(
         sort: options?.sort,
         caseSensitive: options?.caseSensitive,
       }),
-    enabled: !!query,
   });
 }
 
-export function usePostsSearchCursor(
-  query: string,
+export function usePostsCursor(
   limit: number = 10,
-  options?: { searchFields?: string; sort?: string; caseSensitive?: boolean }
+  query?: string,
+  options?: { searchFields?: string; sort?: string; caseSensitive?: boolean },
 ) {
   return useInfiniteQuery({
     queryKey: [
-      "posts-search-cursor",
+      "posts-cursor",
       query,
       options?.searchFields,
       options?.sort,
       options?.caseSensitive,
     ],
     queryFn: ({ pageParam }) =>
-      fetchPostsSearchCursor({
+      fetchPostsCursor({
         query,
         limit,
         cursor: pageParam ?? null,
         searchFields: options?.searchFields,
         sort: options?.sort,
         caseSensitive: options?.caseSensitive,
-      }),
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-    initialPageParam: null as string | null,
-    enabled: !!query,
-  });
-}
-
-export function usePostsCursor(limit: number = 10) {
-  return useInfiniteQuery({
-    queryKey: ["posts-cursor"],
-    queryFn: ({ pageParam }) =>
-      fetchPostsCursor({
-        limit,
-        cursor: pageParam ?? null,
       }),
 
     // pageParam = nextCursor from backend
