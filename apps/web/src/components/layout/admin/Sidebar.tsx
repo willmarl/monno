@@ -20,7 +20,8 @@ const items = [
   },
   {
     title: "Users",
-    url: "/admin/users",
+    // url: "/admin/users",
+    url: "/admin/users?sort=createdAt%7Casc&statuses=ACTIVE%2CSUSPENDED%2CBANNED",
     icon: Users,
   },
   {
