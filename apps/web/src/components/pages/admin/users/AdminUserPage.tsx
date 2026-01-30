@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { AdminUserSearchBar } from "@/features/admin/user/components/AdminUserSearchBar";
+import { AdminUserSearchBar } from "@/features/admin/users/components/AdminUserSearchBar";
 import { UserDataTable } from "./UserDataTable";
 import { useModal } from "@/components/modal/ModalProvider";
 import { CreateUser } from "./modal/CreateUser";
