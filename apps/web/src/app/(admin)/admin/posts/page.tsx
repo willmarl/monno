@@ -1,3 +1,5 @@
+import { AdminPostPage } from "@/components/pages/admin/posts/AdminPostPage";
+
 export default function page() {
-  return <div>admin post managment page</div>;
+  return <AdminPostPage />;
 }

@@ -1,12 +1,12 @@
 "use client";
 import { User } from "@/features/users/types/user";
 import { Button } from "@/components/ui/button";
-import { useDeleteAdminUser } from "@/features/users/hooks";
+import { useAdminDeleteUser } from "@/features/users/hooks";
 import { useModal } from "@/components/modal/ModalProvider";
 import { toast } from "sonner";
 
 export function DeleteUser({ user }: { user: User }) {
-  const deleteUser = useDeleteAdminUser();
+  const deleteUser = useAdminDeleteUser();
   const { closeModal } = useModal();
 
   function handleClick(): void {
