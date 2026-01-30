@@ -66,6 +66,16 @@ export class PostSearchDto extends PaginationDto {
   @IsString()
   sort?: string;
 
+  @ApiPropertyOptional({
+    description:
+      'Filter by deleted status. If not provided, shows both deleted and active posts.',
+    example: false,
+  })
+  @IsOptional()
+  @TransformBoolean()
+  @IsBoolean()
+  deleted?: boolean;
+
   /**
    * Parse and validate searchFields into an array of valid fields
    * Invalid fields are silently ignored
@@ -154,6 +164,16 @@ export class PostSearchCursorDto extends CursorPaginationDto {
   @IsOptional()
   @IsString()
   sort?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Filter by deleted status. If not provided, shows both deleted and active posts.',
+    example: false,
+  })
+  @IsOptional()
+  @TransformBoolean()
+  @IsBoolean()
+  deleted?: boolean;
 
   /**
    * Parse and validate searchFields into an array of valid fields
