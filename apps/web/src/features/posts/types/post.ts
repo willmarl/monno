@@ -13,6 +13,8 @@ export interface Post {
   creator: Creator;
   createdAt: string;
   updatedAt: string;
+  deleted: boolean;
+  deletedAt: string;
 }
 
 export type PostsList = PaginatedResponse<Post>;
