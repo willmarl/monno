@@ -7,7 +7,7 @@ import {
   updateUserAdminSchema,
   UpdateUserAdminInput,
 } from "../schemas/updateUserAdmin.schema";
-import { useUpdateAdminUser } from "../hooks";
+import { useAdminUpdateUser } from "../hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -53,7 +53,7 @@ export function InlineUpdateUserAdminForm({
     },
   });
 
-  const updateUserAdminMutation = useUpdateAdminUser();
+  const updateUserAdminMutation = useAdminUpdateUser();
 
   const { isValid } = form.formState;
 

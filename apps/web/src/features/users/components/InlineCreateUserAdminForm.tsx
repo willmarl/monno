@@ -7,7 +7,7 @@ import {
   createUserAdminSchema,
   CreateUserAdminInput,
 } from "../schemas/createUserAdmin.schema";
-import { useCreateAdminUser } from "../hooks";
+import { useAdminCreateUser } from "../hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -38,7 +38,7 @@ export function InlineCreateUserAdminForm({
     mode: "onChange",
   });
 
-  const createUserAdminMutation = useCreateAdminUser();
+  const createUserAdminMutation = useAdminCreateUser();
 
   const { isValid } = form.formState;
 

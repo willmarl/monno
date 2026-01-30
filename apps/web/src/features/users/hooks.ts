@@ -91,7 +91,7 @@ export function useAdminUsers(
   });
 }
 
-export function useUsersByIdAdmin(id: number) {
+export function useAdminUserById(id: number) {
   return useQuery({
     queryKey: ["adminUser", id],
     queryFn: () => fetchAdminUserById(id),
@@ -99,7 +99,7 @@ export function useUsersByIdAdmin(id: number) {
   });
 }
 
-export function useCreateAdminUser() {
+export function useAdminCreateUser() {
   const qc = useQueryClient();
 
   return useMutation({
@@ -111,7 +111,7 @@ export function useCreateAdminUser() {
   });
 }
 
-export function useUpdateAdminUser() {
+export function useAdminUpdateUser() {
   const qc = useQueryClient();
 
   return useMutation({
@@ -132,7 +132,7 @@ export function useUpdateAdminUser() {
   });
 }
 
-export function useDeleteAdminUser() {
+export function useAdminDeleteUser() {
   const qc = useQueryClient();
 
   return useMutation({
