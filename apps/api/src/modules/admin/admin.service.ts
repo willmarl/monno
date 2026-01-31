@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
+import * as os from 'os';
 
 export interface AuditLogInput {
   adminId: number;
@@ -94,10 +95,98 @@ export class AdminService {
     };
   }
 
-  // ===== STATS & METRICS (Future) =====
-  // Will add:
-  // - getServerStats()
+  // ===== STATS & METRICS =====
+
+  /**
+   * Get system metrics (CPU, RAM, uptime)
+   */
+  private getSystemStats() {
+    const totalMemory = os.totalmem();
+    const freeMemory = os.freemem();
+    const usedMemory = totalMemory - freeMemory;
+    const memoryUsagePercent = (usedMemory / totalMemory) * 100;
+
+    // Get CPU load average
+    const loadAverage = os.loadavg();
+    const cpuCount = os.cpus().length;
+    const cpuUsagePercent = (loadAverage[0] / cpuCount) * 100;
+
+    // Get uptime in seconds
+    const uptime = process.uptime();
+
+    return {
+      cpuUsage: Math.round(cpuUsagePercent * 10) / 10, // 1 decimal place
+      ramUsage: Math.round(memoryUsagePercent * 10) / 10,
+      totalRamGb: Math.round((totalMemory / 1024 / 1024 / 1024) * 100) / 100,
+      usedRamGb: Math.round((usedMemory / 1024 / 1024 / 1024) * 100) / 100,
+      uptime,
+      cpuCores: cpuCount,
+    };
+  }
+
+  /**
+   * Get user statistics broken down by status and other metrics
+   */
+  private async getUserStats() {
+    const [total, active, suspended, banned, deleted, unverified] =
+      await Promise.all([
+        this.prisma.user.count(),
+        this.prisma.user.count({ where: { status: 'ACTIVE' } }),
+        this.prisma.user.count({ where: { status: 'SUSPENDED' } }),
+        this.prisma.user.count({ where: { status: 'BANNED' } }),
+        this.prisma.user.count({ where: { status: 'DELETED' } }),
+        this.prisma.user.count({ where: { isEmailVerified: false } }),
+      ]);
+
+    return {
+      total,
+      byStatus: {
+        active,
+        suspended,
+        banned,
+        deleted,
+      },
+      unverifiedEmails: unverified,
+    };
+  }
+
+  /**
+   * Get post statistics including published and deleted counts
+   * Deleted posts can indicate content moderation/removal patterns
+   */
+  private async getPostStats() {
+    const [total, published, deletedCount] = await Promise.all([
+      this.prisma.post.count(),
+      this.prisma.post.count({ where: { deleted: false } }),
+      this.prisma.post.count({ where: { deleted: true } }),
+    ]);
+
+    return {
+      total,
+      published,
+      deleted: deletedCount,
+    };
+  }
+
+  /**
+   * Get all dashboard stats (system metrics + user stats + post stats)
+   */
+  async getStats() {
+    const [systemStats, userStats, postStats] = await Promise.all([
+      Promise.resolve(this.getSystemStats()),
+      this.getUserStats(),
+      this.getPostStats(),
+    ]);
+
+    return {
+      system: systemStats,
+      users: userStats,
+      posts: postStats,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  // ===== FUTURE ADDITIONS =====
   // - getUserStats()
   // - getPostStats()
-  // - getDashboardMetrics()
 }

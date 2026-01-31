@@ -68,4 +68,47 @@ export class AdminController {
       action,
     });
   }
+
+  // ===== DASHBOARD STATS =====
+
+  @ApiOperation({ summary: 'Get dashboard stats (admin only)' })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'Dashboard stats including system, user, and post metrics',
+    schema: {
+      example: {
+        system: {
+          cpuUsage: 45.2,
+          ramUsage: 62.1,
+          totalRamGb: 15.75,
+          usedRamGb: 9.78,
+          uptime: 86400,
+          cpuCores: 8,
+        },
+        users: {
+          total: 1250,
+          byStatus: {
+            active: 1180,
+            suspended: 35,
+            banned: 30,
+            deleted: 5,
+          },
+          unverifiedEmails: 48,
+        },
+        posts: {
+          total: 5420,
+          published: 5395,
+          deleted: 25,
+        },
+        timestamp: '2026-01-31T12:00:00.000Z',
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
+  @Get('stats')
+  getStats() {
+    return this.adminService.getStats();
+  }
 }
