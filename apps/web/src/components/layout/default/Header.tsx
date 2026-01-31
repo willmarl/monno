@@ -37,12 +37,22 @@ export default function Header({ user }: { user: User | null }) {
 
     return (
       <DropdownMenu>
-        <div className="mr-1.5">
+        <div className="flex gap-2">
+          {user.role === "ADMIN" ? (
+            <Link href="/admin">
+              <Button className="cursor-pointer" variant={"link"}>
+                Admin Dashboard
+              </Button>
+            </Link>
+          ) : (
+            ""
+          )}
+
           <UserAvatar user={user} />
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost">Hello, {user.username}</Button>
+          </DropdownMenuTrigger>
         </div>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost">Hello, {user.username}</Button>
-        </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={handleProfile}>Profile</DropdownMenuItem>
           <DropdownMenuItem onClick={handleSettings}>Settings</DropdownMenuItem>
