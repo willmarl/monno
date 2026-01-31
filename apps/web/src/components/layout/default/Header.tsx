@@ -56,7 +56,7 @@ export default function Header({ user }: { user: User | null }) {
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={handleProfile}>Profile</DropdownMenuItem>
           <DropdownMenuItem onClick={handleSettings}>Settings</DropdownMenuItem>
-          <DropdownMenuItem onClick={handleLogout} className="text-red-500">
+          <DropdownMenuItem onClick={handleLogout} variant="destructive">
             Logout
             <LogOut className="mr-2 h-4 w-4" />
           </DropdownMenuItem>
