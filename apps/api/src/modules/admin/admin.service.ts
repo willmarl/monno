@@ -52,22 +52,10 @@ export class AdminService {
   }
 
   /**
-   * Get audit logs with filtering and pagination
+   * Get audit logs with pagination
    */
-  async getLogs(
-    pag: PaginationDto,
-    filter?: {
-      adminId?: number;
-      targetId?: number;
-      resource?: string;
-      action?: string;
-    },
-  ) {
+  async getLogs(pag: PaginationDto) {
     const where: any = {};
-    if (filter?.adminId) where.adminId = filter.adminId;
-    if (filter?.targetId) where.targetId = filter.targetId;
-    if (filter?.resource) where.resource = filter.resource;
-    if (filter?.action) where.action = filter.action;
 
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.auditLog,
