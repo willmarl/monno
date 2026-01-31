@@ -5,20 +5,12 @@ import { DataTable } from "@/components/ui/data-table";
 import { useAdminUsers } from "@/features/users/hooks";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
+import { AdminUserSearchParams } from "@/types/search-params";
 
 const DEFAULT_LIMIT = 10;
 
 interface UserDataTableProps {
-  searchParams?: {
-    q?: string;
-    searchFields?: string;
-    sort?: string;
-    page?: string;
-    limit?: string;
-    caseSensitive?: string;
-    roles?: string;
-    status?: string;
-  };
+  searchParams?: AdminUserSearchParams;
 }
 
 export function UserDataTable({ searchParams }: UserDataTableProps) {

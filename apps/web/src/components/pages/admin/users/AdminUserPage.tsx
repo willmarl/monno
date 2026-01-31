@@ -5,18 +5,10 @@ import { AdminUserSearchBar } from "@/features/admin/users/components/AdminUserS
 import { UserDataTable } from "./UserDataTable";
 import { useModal } from "@/components/modal/ModalProvider";
 import { CreateUser } from "./modal/CreateUser";
+import { AdminUserSearchParams } from "@/types/search-params";
 
 interface AdminUserPageProps {
-  searchParams?: {
-    q?: string;
-    searchFields?: string;
-    sort?: string;
-    page?: string;
-    limit?: string;
-    caseSensitive?: string;
-    roles?: string;
-    status?: string;
-  };
+  searchParams?: AdminUserSearchParams;
 }
 
 export function AdminUserPage({ searchParams }: AdminUserPageProps) {

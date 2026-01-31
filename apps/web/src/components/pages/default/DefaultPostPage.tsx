@@ -6,17 +6,11 @@ import { Button } from "@/components/ui/button";
 import { User } from "@/features/users/types/user";
 import { PaginatedPosts } from "./PaginatedPostsContent";
 import { PostSearchBar } from "@/features/posts/components/PostSearchBar";
+import { PublicPostSearchParams } from "@/types/search-params";
 
 interface DefaultPostPageProps {
   user: User | null;
-  searchParams?: {
-    q?: string;
-    searchFields?: string;
-    sort?: string;
-    page?: string;
-    limit?: string;
-    caseSensitive?: string;
-  };
+  searchParams?: PublicPostSearchParams;
 }
 
 export function DefaultPostPage({ user, searchParams }: DefaultPostPageProps) {

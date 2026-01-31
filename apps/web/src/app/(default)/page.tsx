@@ -1,17 +1,11 @@
 import { DefaultPostPage } from "@/components/pages/default/DefaultPostPage";
 import { getServerUser } from "@/features/auth/server";
+import { PublicPostSearchParams } from "@/types/search-params";
 
 export default async function page({
   searchParams,
 }: {
-  searchParams: Promise<{
-    q?: string;
-    searchFields?: string;
-    sort?: string;
-    page?: string;
-    limit?: string;
-    caseSensitive?: string;
-  }>;
+  searchParams: Promise<PublicPostSearchParams>;
 }) {
   const user = await getServerUser();
   const params = await searchParams;

@@ -7,18 +7,11 @@ import { PaginatedList } from "@/components/ui/pagination/PaginatedList";
 import { useSessionUser } from "@/features/auth/hooks";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { PostSkeleton } from "@/components/skeletons/PostSkeleton";
+import { PublicPostSearchParams } from "@/types/search-params";
 
 const DEFAULT_LIMIT = 4;
-
 interface PaginatedPostsProps {
-  searchParams?: {
-    q?: string;
-    searchFields?: string;
-    sort?: string;
-    page?: string;
-    limit?: string;
-    caseSensitive?: string;
-  };
+  searchParams?: PublicPostSearchParams;
 }
 
 function PostsListContent({ searchParams }: PaginatedPostsProps) {
