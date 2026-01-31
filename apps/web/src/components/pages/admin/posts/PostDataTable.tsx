@@ -20,14 +20,15 @@ export function PostDataTable({ searchParams }: PostDataTableProps) {
     isLoading,
     page,
     emptyMessage,
+    queryParams,
   } = usePaginatedSearch({
     searchParams,
     hook: useAdminPosts,
     limit: DEFAULT_LIMIT,
     getEmptyMessage: (query) =>
       query
-        ? `No users found matching "${query}". Try a different search term.`
-        : "No users available.",
+        ? `No posts found matching "${query}". Try a different search term.`
+        : "No posts available.",
   });
 
   if (isLoading) {
@@ -43,6 +44,7 @@ export function PostDataTable({ searchParams }: PostDataTableProps) {
           url="admin/posts"
           page={page}
           limit={DEFAULT_LIMIT}
+          queryParams={queryParams}
           totalItems={totalItems}
         />
       </div>

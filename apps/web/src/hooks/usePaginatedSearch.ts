@@ -153,12 +153,16 @@ export function usePaginatedSearch<T>({
     }
   }, [page, totalPages, urlSearchParams, router]);
 
-  // Build query params to pass to pagination
+  // Build query params to pass to pagination - include all filter options
   const queryParams: Record<string, string | undefined> = {};
   if (query) queryParams.q = query;
-  if (searchFields) queryParams.searchFields = searchFields;
-  if (sort) queryParams.sort = sort;
-  if (caseSensitive) queryParams.caseSensitive = "true";
+
+  // Add all filter options to queryParams
+  Object.entries(filterOptions).forEach(([key, value]) => {
+    if (value) {
+      queryParams[key] = String(value);
+    }
+  });
 
   const emptyMessage = getEmptyMessage(query);
 

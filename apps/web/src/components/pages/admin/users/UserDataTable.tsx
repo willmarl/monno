@@ -7,7 +7,7 @@ import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
 import { AdminUserSearchParams } from "@/types/search-params";
 
-const DEFAULT_LIMIT = 10;
+const DEFAULT_LIMIT = 2; // this set to low number for debugging next page
 
 interface UserDataTableProps {
   searchParams?: AdminUserSearchParams;
@@ -20,6 +20,7 @@ export function UserDataTable({ searchParams }: UserDataTableProps) {
     isLoading,
     page,
     emptyMessage,
+    queryParams,
   } = usePaginatedSearch({
     searchParams,
     hook: useAdminUsers,
@@ -43,6 +44,7 @@ export function UserDataTable({ searchParams }: UserDataTableProps) {
           page={page}
           limit={DEFAULT_LIMIT}
           totalItems={totalItems}
+          queryParams={queryParams}
         />
       </div>
     </div>
