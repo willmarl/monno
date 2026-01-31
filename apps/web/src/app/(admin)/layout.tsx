@@ -14,7 +14,7 @@ export default async function layout({
   }
 
   return (
-    <div>
+    <div className="p-4">
       <Layout>{children}</Layout>
     </div>
   );

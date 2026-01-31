@@ -20,7 +20,7 @@ import { SideBarUser } from "./SidebarUser";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 // Menu items.
-const items = [
+export const items = [
   {
     title: "Dashboard",
     url: "/admin",
