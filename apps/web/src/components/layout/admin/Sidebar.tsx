@@ -1,15 +1,23 @@
-import { LayoutDashboard, Users, FileText, Settings } from "lucide-react";
+"use client";
 
+import { LayoutDashboard, Users, FileText, Logs } from "lucide-react";
+import { useSessionUser } from "@/features/auth/hooks";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
+import { SideBarUser } from "./SidebarUser";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 // Menu items.
 const items = [
@@ -30,15 +38,21 @@ const items = [
     icon: FileText,
   },
   {
-    title: "Settings",
-    url: "/admin/settings",
-    icon: Settings,
+    title: "Logs",
+    url: "/admin/logs",
+    icon: Logs,
   },
 ];
 
 export function AppSidebar() {
+  const { data: user, isLoading } = useSessionUser();
+  const { state } = useSidebar();
+
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="flex flex-row items-center justify-start">
+        <SidebarTrigger />
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Application</SidebarGroupLabel>
@@ -46,7 +60,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild tooltip={item.title}>
                     <a href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
@@ -58,6 +72,12 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter
+        className={`flex gap-2 ${state === "collapsed" ? "flex-col" : "flex-row items-center"}`}
+      >
+        <ThemeToggle />
+        {user ? <SideBarUser user={user} /> : "Skeleton here"}
+      </SidebarFooter>
     </Sidebar>
   );
 }
