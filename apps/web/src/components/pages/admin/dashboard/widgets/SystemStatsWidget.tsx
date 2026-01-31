@@ -76,6 +76,7 @@ export function SystemStatsWidget({ data }: SystemStatsWidgetProps) {
               angleAxisId={0}
               background={{ fill: "#374151" }}
               cornerRadius={10}
+              isAnimationActive={false}
             />
           </RadialBarChart>
         </ResponsiveContainer>
@@ -134,6 +135,7 @@ export function SystemStatsWidget({ data }: SystemStatsWidgetProps) {
                   angleAxisId={0}
                   background={{ fill: "#374151" }}
                   cornerRadius={10}
+                  isAnimationActive={false}
                 />
               </RadialBarChart>
             </ResponsiveContainer>

@@ -5,14 +5,15 @@ export function useLogs(page: number, limit: number) {
   const offset = (page - 1) * limit;
 
   return useQuery({
-    queryKey: ["posts-offset", page],
+    queryKey: ["logs", page],
     queryFn: () => fetchLogs({ limit, offset }),
   });
 }
 
-export function useStats() {
+export function useStats(refetchInterval?: number) {
   return useQuery({
     queryKey: ["admin-stats"],
     queryFn: fetchStats,
+    refetchInterval: refetchInterval ?? 10000, // Default 10s
   });
 }
