@@ -1,10 +1,9 @@
 "use client";
 
-import { ColumnDef, Column } from "@tanstack/react-table";
-import { ArrowUpDown, Divide } from "lucide-react";
+import { ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal } from "lucide-react";
 import { User } from "@/features/users/types/user";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import {
@@ -19,35 +18,8 @@ import { useModal } from "@/components/modal/ModalProvider";
 import { ConfirmModal } from "@/components/modal/ConfirmModal";
 import { EditUser } from "@/components/pages/admin/users/modal/EditUser";
 import { DeleteUser } from "./modal/DeleteUser";
-
-interface SortableHeaderProps {
-  column: Column<any, unknown>;
-  label: string;
-}
-
-function SortableHeader({ column, label }: SortableHeaderProps) {
-  return (
-    <Button
-      className="cursor-pointer"
-      variant="ghost"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-    >
-      {label}
-      <ArrowUpDown className="ml-2 h-4 w-4" />
-    </Button>
-  );
-}
-
-function formatDate(dateString: string): string {
-  const dateObj = new Date(dateString);
-
-  const year = dateObj.getFullYear();
-  const day = String(dateObj.getDate()).padStart(2, "0"); // Pad with '0' if needed
-  const month = String(dateObj.getMonth() + 1).padStart(2, "0"); // Month is 0-indexed (0=Jan)
-
-  const formattedDate = `${year}-${day}-${month}`;
-  return formattedDate;
-}
+import { SortableHeader } from "@/components/table/SortableHeader";
+import { formatDate } from "@/lib/utils/date";
 
 export const columns: ColumnDef<User>[] = [
   {

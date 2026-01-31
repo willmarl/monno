@@ -10,9 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ColumnDef, Column } from "@tanstack/react-table";
+import { ColumnDef } from "@tanstack/react-table";
 import { Post } from "@/features/posts/types/post";
-import { ArrowUpDown } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   useAdminDeletePost,
@@ -21,35 +20,8 @@ import {
 import { useRouter } from "next/navigation";
 import { useModal } from "@/components/modal/ModalProvider";
 import { ConfirmModal } from "@/components/modal/ConfirmModal";
-
-interface SortableHeaderProps {
-  column: Column<any, unknown>;
-  label: string;
-}
-
-function SortableHeader({ column, label }: SortableHeaderProps) {
-  return (
-    <Button
-      className="cursor-pointer"
-      variant="ghost"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-    >
-      {label}
-      <ArrowUpDown className="ml-2 h-4 w-4" />
-    </Button>
-  );
-}
-
-function formatDate(dateString: string): string {
-  const dateObj = new Date(dateString);
-
-  const year = dateObj.getFullYear();
-  const day = String(dateObj.getDate()).padStart(2, "0"); // Pad with '0' if needed
-  const month = String(dateObj.getMonth() + 1).padStart(2, "0"); // Month is 0-indexed (0=Jan)
-
-  const formattedDate = `${year}-${day}-${month}`;
-  return formattedDate;
-}
+import { SortableHeader } from "@/components/table/SortableHeader";
+import { formatDate } from "@/lib/utils/date";
 
 export const columns: ColumnDef<Post>[] = [
   {
