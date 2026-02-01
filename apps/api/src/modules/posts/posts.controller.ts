@@ -33,13 +33,15 @@ export class PostsController {
   }
 
   @Get()
-  findAll(@Query() searchDto: PostSearchDto) {
-    return this.postsService.searchAll(searchDto);
+  findAll(@Query() searchDto: PostSearchDto, @Req() req) {
+    const userId = req.user?.sub ?? null;
+    return this.postsService.searchAll(searchDto, userId);
   }
 
   @Get('cursor')
-  findAllCursor(@Query() searchDto: PostSearchCursorDto) {
-    return this.postsService.searchAllCursor(searchDto);
+  findAllCursor(@Query() searchDto: PostSearchCursorDto, @Req() req) {
+    const userId = req.user?.sub ?? null;
+    return this.postsService.searchAllCursor(searchDto, userId);
   }
 
   @ApiOperation({ summary: 'Search posts with offset pagination' })
@@ -48,8 +50,9 @@ export class PostsController {
     description: 'Search results with pagination info',
   })
   @Get('search')
-  search(@Query() searchDto: PostSearchDto) {
-    return this.postsService.searchAll(searchDto);
+  search(@Query() searchDto: PostSearchDto, @Req() req) {
+    const userId = req.user?.sub ?? null;
+    return this.postsService.searchAll(searchDto, userId);
   }
 
   @ApiOperation({ summary: 'Search posts with cursor pagination' })
@@ -58,26 +61,35 @@ export class PostsController {
     description: 'Search results with next cursor',
   })
   @Get('search/cursor')
-  searchCursor(@Query() searchDto: PostSearchCursorDto) {
-    return this.postsService.searchAllCursor(searchDto);
+  searchCursor(@Query() searchDto: PostSearchCursorDto, @Req() req) {
+    const userId = req.user?.sub ?? null;
+    return this.postsService.searchAllCursor(searchDto, userId);
   }
 
   @Get('users/:userId')
-  findByUserId(@Param('userId') userId: number, @Query() pag: PaginationDto) {
-    return this.postsService.findByUserId(userId, pag);
+  findByUserId(
+    @Param('userId') userId: number,
+    @Query() pag: PaginationDto,
+    @Req() req,
+  ) {
+    const currentUserId = req.user?.sub ?? null;
+    return this.postsService.findByUserId(userId, pag, currentUserId);
   }
 
   @Get('users/:userId/cursor')
   findByUserIdCursor(
     @Param('userId') userId: number,
     @Query() pag: CursorPaginationDto,
+    @Req() req,
   ) {
-    return this.postsService.findByUserIdCursor(userId, pag);
+    const currentUserId = req.user?.sub ?? null;
+    return this.postsService.findByUserIdCursor(userId, pag, currentUserId);
   }
 
   @Get(':id')
-  findById(@Param('id') id: number) {
-    return this.postsService.findById(id);
+  findById(@Param('id') id: number, @Req() req) {
+    const userId = req.user?.sub ?? null;
+    return this.postsService.findById(id, userId);
   }
 
   @UseGuards(JwtAccessGuard, CreatorGuard)
@@ -95,7 +107,8 @@ export class PostsController {
   }
 
   @Get('search/suggest')
-  findSuggest(@Query('q') q: string, @Query('limit') limit = 5) {
-    return this.postsService.searchSuggest(q, Number(limit));
+  findSuggest(@Query('q') q: string, @Query('limit') limit = 5, @Req() req) {
+    const userId = req.user?.sub ?? null;
+    return this.postsService.searchSuggest(q, Number(limit), userId);
   }
 }

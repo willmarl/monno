@@ -24,6 +24,13 @@ const DEFAULT_POST_SELECT = {
   deletedAt: true,
 };
 
+const DEFAULT_POST_WITH_LIKES = {
+  ...DEFAULT_POST_SELECT,
+  _count: {
+    select: { likes: true },
+  },
+};
+
 @Injectable()
 export class AdminPostService {
   constructor(
@@ -37,14 +44,18 @@ export class AdminPostService {
   async findById(postId: number) {
     const post = await this.prisma.post.findUnique({
       where: { id: postId },
-      select: DEFAULT_POST_SELECT,
+      select: DEFAULT_POST_WITH_LIKES,
     });
 
     if (!post) {
       throw new NotFoundException('Post not found');
     }
 
-    return post;
+    const { _count, ...postData } = post;
+    return {
+      ...postData,
+      likeCount: _count.likes,
+    };
   }
 
   /**
@@ -84,13 +95,16 @@ export class AdminPostService {
       query: {
         where,
         orderBy,
-        select: DEFAULT_POST_SELECT,
+        select: DEFAULT_POST_WITH_LIKES,
       },
       countQuery: { where },
     });
 
     return {
-      items,
+      items: items.map(({ _count, ...post }) => ({
+        ...post,
+        likeCount: _count.likes,
+      })),
       pageInfo,
       ...(isRedirected && { isRedirected: true }),
     };
@@ -133,12 +147,15 @@ export class AdminPostService {
       query: {
         where,
         orderBy,
-        select: DEFAULT_POST_SELECT,
+        select: DEFAULT_POST_WITH_LIKES,
       },
     });
 
     return {
-      items,
+      items: items.map(({ _count, ...post }) => ({
+        ...post,
+        likeCount: _count.likes,
+      })),
       nextCursor,
     };
   }
@@ -158,7 +175,7 @@ export class AdminPostService {
     const updated = await this.prisma.post.update({
       where: { id: postId },
       data,
-      select: DEFAULT_POST_SELECT,
+      select: DEFAULT_POST_WITH_LIKES,
     });
 
     // Log the update
@@ -171,7 +188,11 @@ export class AdminPostService {
       description: `Admin updated post "${post.title}"`,
     });
 
-    return updated;
+    const { _count, ...postData } = updated;
+    return {
+      ...postData,
+      likeCount: _count.likes,
+    };
   }
 
   /**
@@ -190,7 +211,7 @@ export class AdminPostService {
     const deleted = await this.prisma.post.update({
       where: { id: postId },
       data: { deleted: true, deletedAt: new Date() },
-      select: DEFAULT_POST_SELECT,
+      select: DEFAULT_POST_WITH_LIKES,
     });
 
     // Log the deletion
@@ -203,7 +224,11 @@ export class AdminPostService {
       description: `Admin deleted post "${post.title}"`,
     });
 
-    return deleted;
+    const { _count, ...postData } = deleted;
+    return {
+      ...postData,
+      likeCount: _count.likes,
+    };
   }
 
   /**
@@ -222,7 +247,7 @@ export class AdminPostService {
     const restored = await this.prisma.post.update({
       where: { id: postId },
       data: { deleted: false, deletedAt: null },
-      select: DEFAULT_POST_SELECT,
+      select: DEFAULT_POST_WITH_LIKES,
     });
 
     // Log the restoration
@@ -235,6 +260,10 @@ export class AdminPostService {
       description: `Admin restored post "${post.title}"`,
     });
 
-    return restored;
+    const { _count, ...postData } = restored;
+    return {
+      ...postData,
+      likeCount: _count.likes,
+    };
   }
 }
