@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { User } from "@/features/users/types/user";
 import { PaginatedPosts } from "./PaginatedPostsContent";
 import { PostSearchBar } from "@/features/posts/components/PostSearchBar";
+import { SearchTabs } from "@/components/SearchTabs";
 import { PublicPostSearchParams } from "@/types/search-params";
 
 interface DefaultPostPageProps {
@@ -18,18 +19,21 @@ export function DefaultPostPage({ user, searchParams }: DefaultPostPageProps) {
 
   return (
     <div>
-      <div className="flex justify-center relative items-center h-10 mb-4">
-        <PostSearchBar basePath="/" />
-        {user ? (
-          <Button
-            className="cursor-pointer absolute right-0"
-            onClick={() => router.push("/post/create")}
-          >
-            <Plus /> Post
-          </Button>
-        ) : (
-          ""
-        )}
+      <div className="flex flex-col items-center gap-4 mb-4 relative">
+        <SearchTabs activeTab="posts" />
+        <div className="flex ">
+          <PostSearchBar basePath="/" />
+          {user ? (
+            <Button
+              className="cursor-pointer absolute right-0"
+              onClick={() => router.push("/post/create")}
+            >
+              <Plus /> Post
+            </Button>
+          ) : (
+            ""
+          )}
+        </div>
       </div>
       <PaginatedPosts searchParams={searchParams} />
     </div>
