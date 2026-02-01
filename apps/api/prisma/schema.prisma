@@ -45,6 +45,7 @@ model User {
   sessions                Session[]
   passwordResetTokens     PasswordResetToken[]
   posts                   Post[]
+  likes                   Like[]
   usernameHistory         UsernameHistory[]
   // OAuth identity fields
   googleId                String?                  @unique
@@ -164,10 +165,22 @@ model Post {
   updatedAt DateTime  @updatedAt
   deleted   Boolean   @default(false)
   deletedAt DateTime?
+  likes     Like[]
 }
 
 model Setting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+model Like {
+  id     Int @id @default(autoincrement())
+  userId Int
+  postId Int
+
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+
+  @@unique([userId, postId])
 }

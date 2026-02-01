@@ -15,6 +15,7 @@ import { EmailModule } from './common/email/email.module';
 import { OauthModule } from './modules/auth/oauth/oauth.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { PostsModule } from './modules/posts/posts.module';
+import { LikesModule } from './modules/likes/likes.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -90,6 +91,7 @@ import { PostsModule } from './modules/posts/posts.module';
     OauthModule,
     AdminModule,
     PostsModule,
+    LikesModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserAwareThrottlerGuard, QueueModule],
