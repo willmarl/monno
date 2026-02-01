@@ -11,7 +11,7 @@ export class LikesService {
       where: { id: postId },
     });
 
-    if (!post) {
+    if (!post || post.deleted) {
       throw new NotFoundException('Post not found');
     }
 
