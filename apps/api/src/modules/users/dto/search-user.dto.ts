@@ -17,7 +17,7 @@ const TransformBoolean = () =>
 
 export enum UserSearchFields {
   USERNAME = 'username',
-  EMAIL = 'email',
+  // EMAIL = 'email',
 }
 
 const VALID_USER_SEARCH_FIELDS = Object.values(UserSearchFields);

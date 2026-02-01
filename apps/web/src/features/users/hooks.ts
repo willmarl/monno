@@ -3,6 +3,7 @@ import {
   updateProfile,
   changePassword,
   fetchUserByUsername,
+  fetchUsers,
   fetchAdminUsers,
   fetchAdminUserById,
   updateAdminUser,
@@ -51,6 +52,35 @@ export const useFetchUserByUsername = (username: string) =>
       return failureCount < 3;
     },
   });
+
+export function useUsers(
+  page: number = 1,
+  limit: number = 10,
+  query?: string,
+  options?: { searchFields?: string; sort?: string; caseSensitive?: boolean },
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: [
+      "users",
+      page,
+      query,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+    ],
+    queryFn: () =>
+      fetchUsers({
+        query,
+        limit,
+        offset,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+      }),
+  });
+}
 
 export function useAdminUsers(
   page: number = 1,

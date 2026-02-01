@@ -31,3 +31,5 @@ export interface AdminPostSearchParams extends SearchParams {
  * Public posts search params (extends base SearchParams)
  */
 export interface PublicPostSearchParams extends SearchParams {}
+
+export interface PublicUserSearchParams extends SearchParams {}

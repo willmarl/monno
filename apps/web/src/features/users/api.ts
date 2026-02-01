@@ -54,6 +54,33 @@ export const fetchUserByUsername = (username: string): Promise<PublicUser> =>
     method: "GET",
   });
 
+export const fetchUsers = ({
+  query,
+  limit = 10,
+  offset = 0,
+  searchFields,
+  sort,
+  caseSensitive,
+}: {
+  query?: string;
+  limit?: number;
+  offset?: number;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+} = {}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (query) searchParams.query = query;
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+
+  return fetcher<UsersList>("/users", { searchParams });
+};
+
 //==============
 //   Admin
 //==============
