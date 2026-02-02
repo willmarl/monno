@@ -8,6 +8,7 @@ import {
   Delete,
   Req,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PostsService } from './posts.service';
@@ -71,6 +72,7 @@ export class PostsController {
     return this.postsService.searchAllCursor(searchDto, userId);
   }
 
+  @UseGuards(JwtAccessOptionalGuard)
   @Get('search/suggest')
   findSuggest(@Query('q') q: string, @Query('limit') limit = 5, @Req() req) {
     const userId = req.user?.sub ? req.user.sub : undefined;
@@ -78,9 +80,31 @@ export class PostsController {
   }
 
   @UseGuards(JwtAccessOptionalGuard)
+  @Get('liked/:userId')
+  findLikedByUser(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query() pag: PaginationDto,
+    @Req() req,
+  ) {
+    const currentUserId = req.user?.sub ? req.user.sub : undefined;
+    return this.postsService.findLikedByUser(userId, pag, currentUserId);
+  }
+
+  @UseGuards(JwtAccessOptionalGuard)
+  @Get('liked/:userId/cursor')
+  findLikedByUserCursor(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query() pag: CursorPaginationDto,
+    @Req() req,
+  ) {
+    const currentUserId = req.user?.sub ? req.user.sub : undefined;
+    return this.postsService.findLikedByUserCursor(userId, pag, currentUserId);
+  }
+
+  @UseGuards(JwtAccessOptionalGuard)
   @Get('users/:userId')
   findByUserId(
-    @Param('userId') userId: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @Query() pag: PaginationDto,
     @Req() req,
   ) {
@@ -91,7 +115,7 @@ export class PostsController {
   @UseGuards(JwtAccessOptionalGuard)
   @Get('users/:userId/cursor')
   findByUserIdCursor(
-    @Param('userId') userId: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @Query() pag: CursorPaginationDto,
     @Req() req,
   ) {
@@ -101,7 +125,7 @@ export class PostsController {
 
   @UseGuards(JwtAccessOptionalGuard)
   @Get(':id')
-  findById(@Param('id') id: number, @Req() req) {
+  findById(@Param('id', ParseIntPipe) id: number, @Req() req) {
     const userId = req.user?.sub ? req.user.sub : undefined;
     return this.postsService.findById(id, userId);
   }
@@ -109,14 +133,14 @@ export class PostsController {
   @UseGuards(JwtAccessGuard, CreatorGuard)
   @ProtectedResource('post')
   @Patch(':id')
-  update(@Param('id') id: number, @Body() dto: UpdatePostDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePostDto) {
     return this.postsService.update(id, dto);
   }
 
   @UseGuards(JwtAccessGuard, CreatorGuard)
   @ProtectedResource('post')
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.postsService.remove(id);
   }
 }

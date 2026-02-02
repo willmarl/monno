@@ -176,6 +176,130 @@ export class PostsService {
     };
   }
 
+  async findLikedByUser(
+    userId: number,
+    pag: PaginationDto,
+    currentUserId?: number,
+  ) {
+    // Get total count of posts liked by the user
+    const totalCount = await this.prisma.like.count({
+      where: {
+        userId,
+        resourceType: 'POST',
+      },
+    });
+
+    // Get paginated likes
+    const likes = await this.prisma.like.findMany({
+      where: {
+        userId,
+        resourceType: 'POST',
+      },
+      orderBy: { createdAt: 'desc' },
+      skip: pag.offset ?? 0,
+      take: pag.limit ?? 10,
+      select: { resourceId: true },
+    });
+
+    // Get the actual posts
+    const postIds = likes.map((like) => like.resourceId);
+
+    if (postIds.length === 0) {
+      return {
+        items: [],
+        pageInfo: {
+          total: 0,
+          limit: pag.limit ?? 10,
+          offset: pag.offset ?? 0,
+          hasMore: false,
+        },
+      };
+    }
+
+    const posts = await this.prisma.post.findMany({
+      where: {
+        id: { in: postIds },
+        deleted: false,
+      },
+      select: DEFAULT_POST_SELECT,
+    });
+
+    // Enhance with likes
+    const enhancedItems = await this.enhancePostsWithLikes(
+      posts,
+      currentUserId,
+    );
+
+    const limit = pag.limit ?? 10;
+    const offset = pag.offset ?? 0;
+    const hasMore = offset + limit < totalCount;
+
+    return {
+      items: enhancedItems,
+      pageInfo: {
+        total: totalCount,
+        limit,
+        offset,
+        hasMore,
+      },
+    };
+  }
+
+  async findLikedByUserCursor(
+    userId: number,
+    pag: CursorPaginationDto,
+    currentUserId?: number,
+  ) {
+    const { cursor, limit } = pag;
+
+    // Get paginated likes using cursor pagination
+    const likes = await this.prisma.like.findMany({
+      where: {
+        userId,
+        resourceType: 'POST',
+      },
+      orderBy: { createdAt: 'desc' },
+      cursor: cursor ? { id: cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      take: (limit ?? 10) + 1, // +1 to determine if there's a next page
+      select: { id: true, resourceId: true },
+    });
+
+    // Determine if there's a next page and get nextCursor
+    const hasMore = likes.length > (limit ?? 10);
+    const items = hasMore ? likes.slice(0, -1) : likes;
+    const nextCursor = hasMore ? items[items.length - 1]?.id : null;
+
+    // Get the actual posts
+    const postIds = items.map((like) => like.resourceId);
+
+    if (postIds.length === 0) {
+      return {
+        items: [],
+        nextCursor: null,
+      };
+    }
+
+    const posts = await this.prisma.post.findMany({
+      where: {
+        id: { in: postIds },
+        deleted: false,
+      },
+      select: DEFAULT_POST_SELECT,
+    });
+
+    // Enhance with likes
+    const enhancedItems = await this.enhancePostsWithLikes(
+      posts,
+      currentUserId,
+    );
+
+    return {
+      items: enhancedItems,
+      nextCursor,
+    };
+  }
+
   async findById(id: number, userId: number | undefined) {
     const post = await this.prisma.post.findUnique({
       where: { id },
