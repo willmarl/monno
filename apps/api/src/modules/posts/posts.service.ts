@@ -19,6 +19,7 @@ const DEFAULT_POST_SELECT = {
   },
   deleted: true,
   deletedAt: true,
+  viewCount: true,
 };
 
 @Injectable()

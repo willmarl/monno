@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 import { RequestIdMiddleware } from './middleware/request-id.middleware';
+import { ViewRateLimitMiddleware } from './common/middleware/view-rate-limit.middleware';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { UserAwareThrottlerGuard } from './common/guards/throttle-user.guard';
 import { QueueModule } from './modules/queue/queue.module';
@@ -16,6 +17,7 @@ import { OauthModule } from './modules/auth/oauth/oauth.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { PostsModule } from './modules/posts/posts.module';
 import { LikesModule } from './modules/likes/likes.module';
+import { ViewsModule } from './modules/views/views.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -92,12 +94,13 @@ import { LikesModule } from './modules/likes/likes.module';
     AdminModule,
     PostsModule,
     LikesModule,
+    ViewsModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserAwareThrottlerGuard, QueueModule],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestIdMiddleware).forRoutes('*');
+    consumer.apply(RequestIdMiddleware, ViewRateLimitMiddleware).forRoutes('*');
   }
 }
