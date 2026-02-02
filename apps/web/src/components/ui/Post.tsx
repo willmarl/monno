@@ -3,16 +3,44 @@ import { Avatar, AvatarImage, AvatarFallback } from "./avatar";
 import { useRouter } from "next/navigation";
 import { Button } from "./button";
 import { Post as PostType } from "@/features/posts/types/post";
-import { Trash } from "lucide-react";
+import { Trash, Heart } from "lucide-react";
 import { ConfirmModal } from "../modal/ConfirmModal";
 import { useModal } from "../modal/ModalProvider";
 import { useDeletePost } from "@/features/posts/hooks";
 import { toast } from "sonner";
+import { useSessionUser } from "@/features/auth/hooks";
+import { useToggleLike } from "@/features/likes/hooks";
 
 export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
+  const { data: user } = useSessionUser();
   const deletePost = useDeletePost();
   const { openModal, closeModal } = useModal();
   const router = useRouter();
+  const like = useToggleLike();
+
+  function handleLike() {
+    like.mutate({ resourceType: "POST", resourceId: data.id });
+  }
+
+  function likeFeature() {
+    if (data.likedByMe) {
+      return (
+        <Heart
+          fill="#FF0000"
+          color="#FF0000"
+          onClick={handleLike}
+          className="cursor-pointer transition-transform hover:scale-110"
+        />
+      );
+    } else {
+      return (
+        <Heart
+          onClick={handleLike}
+          className="cursor-pointer transition-transform hover:scale-110"
+        />
+      );
+    }
+  }
 
   return (
     <Card className="p-4">
@@ -36,45 +64,45 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
         <p className="text-sm font-medium text-muted-foreground">
           {data?.creator.username}
         </p>
-
-        {isOwner ? (
-          <div className="ml-auto flex items-center gap-2">
-            <Button
-              onClick={() => {
-                openModal({
-                  title: "Delete Post",
-                  content: (
-                    <ConfirmModal
-                      message={`Are you sure you want to delete this post?`}
-                      onConfirm={() =>
-                        deletePost.mutate(data.id, {
-                          onSuccess: () => {
-                            closeModal();
-                            router.push(`/`);
-                          },
-                          onError: (error) => {
-                            toast.error("Failed to delete post: " + error);
-                          },
-                        })
-                      }
-                      variant={"destructive"}
-                    />
-                  ),
-                });
-              }}
-            >
-              <Trash />
-            </Button>
-            <Button
-              onClick={() => router.push(`/post/edit/${data.id}`)}
-              className="cursor-pointer"
-            >
-              Edit Post
-            </Button>
-          </div>
-        ) : (
-          ""
-        )}
+        <div className="ml-auto flex gap-2 items-center">
+          {isOwner && (
+            <>
+              <Button
+                onClick={() => {
+                  openModal({
+                    title: "Delete Post",
+                    content: (
+                      <ConfirmModal
+                        message={`Are you sure you want to delete this post?`}
+                        onConfirm={() =>
+                          deletePost.mutate(data.id, {
+                            onSuccess: () => {
+                              closeModal();
+                              router.push(`/`);
+                            },
+                            onError: (error) => {
+                              toast.error("Failed to delete post: " + error);
+                            },
+                          })
+                        }
+                        variant={"destructive"}
+                      />
+                    ),
+                  });
+                }}
+              >
+                <Trash />
+              </Button>
+              <Button
+                onClick={() => router.push(`/post/edit/${data.id}`)}
+                className="cursor-pointer"
+              >
+                Edit Post
+              </Button>
+            </>
+          )}
+          {user && likeFeature()}
+        </div>
       </div>
     </Card>
   );
