@@ -172,6 +172,7 @@ model Post {
   deleted   Boolean   @default(false)
   deletedAt DateTime?
   viewCount Int       @default(0)
+  likeCount Int       @default(0)
 }
 
 model Setting {

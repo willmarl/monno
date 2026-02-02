@@ -12,6 +12,7 @@ export class LikesService {
 
   /**
    * Toggle like for a resource (post, video, article, etc.)
+   * Uses denormalized likeCount for O(1) read performance
    */
   async toggleLike(
     userId: number,
@@ -33,14 +34,21 @@ export class LikesService {
     });
 
     if (existing) {
-      // Unlike (delete)
+      // Unlike (delete) and decrement likeCount
       await this.prisma.like.delete({
         where: {
           userId_resourceType_resourceId: { userId, resourceType, resourceId },
         },
       });
+      // Decrement likeCount for posts
+      if (resourceType === 'POST') {
+        await this.prisma.post.update({
+          where: { id: resourceId },
+          data: { likeCount: { decrement: 1 } },
+        });
+      }
     } else {
-      // Like (create)
+      // Like (create) and increment likeCount
       await this.prisma.like.create({
         data: {
           userId,
@@ -48,26 +56,43 @@ export class LikesService {
           resourceId,
         },
       });
+      // Increment likeCount for posts
+      if (resourceType === 'POST') {
+        await this.prisma.post.update({
+          where: { id: resourceId },
+          data: { likeCount: { increment: 1 } },
+        });
+      }
     }
 
-    // Get updated like count
-    const count = await this.prisma.like.count({
-      where: { resourceType, resourceId },
+    // Get denormalized likeCount (much faster than COUNT query)
+    const post = await this.prisma.post.findUnique({
+      where: { id: resourceId },
+      select: { likeCount: true },
     });
 
     return {
       liked: !existing,
-      likeCount: count,
+      likeCount: post?.likeCount ?? 0,
     };
   }
 
   /**
-   * Get like count for a resource
+   * Get like count for a resource using denormalized counter
+   * O(1) read instead of O(n) COUNT aggregation
    */
   async getLikeCount(resourceType: LikeableResourceType, resourceId: number) {
-    return this.prisma.like.count({
-      where: { resourceType, resourceId },
-    });
+    if (resourceType === 'POST') {
+      const post = await this.prisma.post.findUnique({
+        where: { id: resourceId },
+        select: { likeCount: true },
+      });
+      return post?.likeCount ?? 0;
+    }
+    // For future resource types (VIDEO, ARTICLE) when denormalization is added
+    throw new BadRequestException(
+      'Like count not yet supported for this resource type',
+    );
   }
 
   /**
