@@ -17,6 +17,7 @@ export interface Post {
   deletedAt: string;
   likeCount: number;
   likedByMe?: boolean;
+  viewCount: number;
 }
 
 export type PostsList = PaginatedResponse<Post>;

@@ -90,10 +90,13 @@ export const columns: ColumnDef<Post>[] = [
     },
   },
   {
+    accessorKey: "viewCount",
+    header: ({ column }) => <SortableHeader column={column} label="Views" />,
+  },
+  {
     accessorKey: "likeCount",
     header: ({ column }) => <SortableHeader column={column} label="Likes" />,
   },
-  //   views here
   {
     accessorKey: "creator.username",
     header: ({ column }) => <SortableHeader column={column} label="Username" />,
