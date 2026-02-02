@@ -4,8 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
-
-type ResourceType = 'POST' | 'VIDEO' | 'ARTICLE';
+import { LikeableResourceType } from 'src/common/types/resource.types';
 
 @Injectable()
 export class LikesService {
@@ -16,7 +15,7 @@ export class LikesService {
    */
   async toggleLike(
     userId: number,
-    resourceType: ResourceType,
+    resourceType: LikeableResourceType,
     resourceId: number,
   ) {
     // Validate resource exists based on type
@@ -65,7 +64,7 @@ export class LikesService {
   /**
    * Get like count for a resource
    */
-  async getLikeCount(resourceType: ResourceType, resourceId: number) {
+  async getLikeCount(resourceType: LikeableResourceType, resourceId: number) {
     return this.prisma.like.count({
       where: { resourceType, resourceId },
     });
@@ -76,7 +75,7 @@ export class LikesService {
    */
   async isLikedByUser(
     userId: number,
-    resourceType: ResourceType,
+    resourceType: LikeableResourceType,
     resourceId: number,
   ) {
     const like = await this.prisma.like.findUnique({
@@ -96,7 +95,7 @@ export class LikesService {
    * Validate that the resource exists (post, video, article, etc.)
    */
   private async validateResourceExists(
-    resourceType: ResourceType,
+    resourceType: LikeableResourceType,
     resourceId: number,
   ) {
     switch (resourceType) {
