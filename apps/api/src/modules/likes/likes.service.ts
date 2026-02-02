@@ -1,57 +1,124 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
+
+type ResourceType = 'POST' | 'VIDEO' | 'ARTICLE';
 
 @Injectable()
 export class LikesService {
   constructor(private prisma: PrismaService) {}
 
-  async toggleLike(userId: number, postId: number) {
-    // ensure post exists (optional but nice)
-    const post = await this.prisma.post.findUnique({
-      where: { id: postId },
-    });
+  /**
+   * Toggle like for a resource (post, video, article, etc.)
+   */
+  async toggleLike(
+    userId: number,
+    resourceType: ResourceType,
+    resourceId: number,
+  ) {
+    // Validate resource exists based on type
+    await this.validateResourceExists(resourceType, resourceId);
 
-    if (!post || post.deleted) {
-      throw new NotFoundException('Post not found');
-    }
-
-    // check if like exists
+    // Check if like exists
     const existing = await this.prisma.like.findUnique({
       where: {
-        userId_postId: {
+        userId_resourceType_resourceId: {
           userId,
-          postId,
+          resourceType,
+          resourceId,
         },
       },
     });
 
     if (existing) {
-      // unlike (delete)
+      // Unlike (delete)
       await this.prisma.like.delete({
-        where: { userId_postId: { userId, postId } },
+        where: {
+          userId_resourceType_resourceId: { userId, resourceType, resourceId },
+        },
       });
-
-      const count = await this.prisma.like.count({ where: { postId } });
-
-      return {
-        liked: false,
-        likesCount: count,
-      };
     } else {
-      // like (create)
+      // Like (create)
       await this.prisma.like.create({
         data: {
           userId,
-          postId,
+          resourceType,
+          resourceId,
         },
       });
+    }
 
-      const count = await this.prisma.like.count({ where: { postId } });
+    // Get updated like count
+    const count = await this.prisma.like.count({
+      where: { resourceType, resourceId },
+    });
 
-      return {
-        liked: true,
-        likesCount: count,
-      };
+    return {
+      liked: !existing,
+      likeCount: count,
+    };
+  }
+
+  /**
+   * Get like count for a resource
+   */
+  async getLikeCount(resourceType: ResourceType, resourceId: number) {
+    return this.prisma.like.count({
+      where: { resourceType, resourceId },
+    });
+  }
+
+  /**
+   * Check if a user liked a resource
+   */
+  async isLikedByUser(
+    userId: number,
+    resourceType: ResourceType,
+    resourceId: number,
+  ) {
+    const like = await this.prisma.like.findUnique({
+      where: {
+        userId_resourceType_resourceId: {
+          userId,
+          resourceType,
+          resourceId,
+        },
+      },
+    });
+
+    return !!like;
+  }
+
+  /**
+   * Validate that the resource exists (post, video, article, etc.)
+   */
+  private async validateResourceExists(
+    resourceType: ResourceType,
+    resourceId: number,
+  ) {
+    switch (resourceType) {
+      case 'POST': {
+        const post = await this.prisma.post.findUnique({
+          where: { id: resourceId },
+        });
+        if (!post || post.deleted) {
+          throw new NotFoundException('Post not found');
+        }
+        break;
+      }
+      // case 'VIDEO': {
+      //   // TODO: Implement when video model is added
+      //   throw new BadRequestException('Video likes not yet implemented');
+      // }
+      // case 'ARTICLE': {
+      //   // TODO: Implement when article model is added
+      //   throw new BadRequestException('Article likes not yet implemented');
+      // }
+      default:
+        throw new BadRequestException('Invalid resource type');
     }
   }
 }

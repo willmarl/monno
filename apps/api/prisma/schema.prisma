@@ -32,6 +32,12 @@ enum UserStatus {
   DELETED
 }
 
+enum ResourceType {
+  POST
+  VIDEO
+  ARTICLE
+}
+
 model User {
   id                      Int                      @id @default(autoincrement())
   username                String                   @unique
@@ -165,7 +171,6 @@ model Post {
   updatedAt DateTime  @updatedAt
   deleted   Boolean   @default(false)
   deletedAt DateTime?
-  likes     Like[]
 }
 
 model Setting {
@@ -175,12 +180,16 @@ model Setting {
 }
 
 model Like {
-  id     Int @id @default(autoincrement())
-  userId Int
-  postId Int
+  id           Int          @id @default(autoincrement())
+  userId       Int
+  resourceType ResourceType
+  resourceId   Int
+  createdAt    DateTime     @default(now())
 
-  user User @relation(fields: [userId], references: [id])
-  post Post @relation(fields: [postId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, postId])
+  @@unique([userId, resourceType, resourceId])
+  @@index([resourceType])
+  @@index([userId])
+  @@index([resourceId])
 }

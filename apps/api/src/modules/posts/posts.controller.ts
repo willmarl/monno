@@ -14,6 +14,7 @@ import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
+import { JwtAccessOptionalGuard } from '../auth/guards/jwt-access-optional.guard';
 import { Query } from '@nestjs/common';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
@@ -32,18 +33,21 @@ export class PostsController {
     return this.postsService.create(body, userId);
   }
 
+  @UseGuards(JwtAccessOptionalGuard)
   @Get()
   findAll(@Query() searchDto: PostSearchDto, @Req() req) {
-    const userId = req.user?.sub ?? null;
+    const userId = req.user?.sub ? req.user.sub : undefined;
     return this.postsService.searchAll(searchDto, userId);
   }
 
+  @UseGuards(JwtAccessOptionalGuard)
   @Get('cursor')
   findAllCursor(@Query() searchDto: PostSearchCursorDto, @Req() req) {
-    const userId = req.user?.sub ?? null;
+    const userId = req.user?.sub ? req.user.sub : undefined;
     return this.postsService.searchAllCursor(searchDto, userId);
   }
 
+  @UseGuards(JwtAccessOptionalGuard)
   @ApiOperation({ summary: 'Search posts with offset pagination' })
   @ApiResponse({
     status: 200,
@@ -51,10 +55,11 @@ export class PostsController {
   })
   @Get('search')
   search(@Query() searchDto: PostSearchDto, @Req() req) {
-    const userId = req.user?.sub ?? null;
+    const userId = req.user?.sub ? req.user.sub : undefined;
     return this.postsService.searchAll(searchDto, userId);
   }
 
+  @UseGuards(JwtAccessOptionalGuard)
   @ApiOperation({ summary: 'Search posts with cursor pagination' })
   @ApiResponse({
     status: 200,
@@ -62,33 +67,42 @@ export class PostsController {
   })
   @Get('search/cursor')
   searchCursor(@Query() searchDto: PostSearchCursorDto, @Req() req) {
-    const userId = req.user?.sub ?? null;
+    const userId = req.user?.sub ? req.user.sub : undefined;
     return this.postsService.searchAllCursor(searchDto, userId);
   }
 
+  @Get('search/suggest')
+  findSuggest(@Query('q') q: string, @Query('limit') limit = 5, @Req() req) {
+    const userId = req.user?.sub ? req.user.sub : undefined;
+    return this.postsService.searchSuggest(q, Number(limit), userId);
+  }
+
+  @UseGuards(JwtAccessOptionalGuard)
   @Get('users/:userId')
   findByUserId(
     @Param('userId') userId: number,
     @Query() pag: PaginationDto,
     @Req() req,
   ) {
-    const currentUserId = req.user?.sub ?? null;
+    const currentUserId = req.user?.sub ? req.user.sub : undefined;
     return this.postsService.findByUserId(userId, pag, currentUserId);
   }
 
+  @UseGuards(JwtAccessOptionalGuard)
   @Get('users/:userId/cursor')
   findByUserIdCursor(
     @Param('userId') userId: number,
     @Query() pag: CursorPaginationDto,
     @Req() req,
   ) {
-    const currentUserId = req.user?.sub ?? null;
+    const currentUserId = req.user?.sub ? req.user.sub : undefined;
     return this.postsService.findByUserIdCursor(userId, pag, currentUserId);
   }
 
+  @UseGuards(JwtAccessOptionalGuard)
   @Get(':id')
   findById(@Param('id') id: number, @Req() req) {
-    const userId = req.user?.sub ?? null;
+    const userId = req.user?.sub ? req.user.sub : undefined;
     return this.postsService.findById(id, userId);
   }
 
@@ -104,11 +118,5 @@ export class PostsController {
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.postsService.remove(id);
-  }
-
-  @Get('search/suggest')
-  findSuggest(@Query('q') q: string, @Query('limit') limit = 5, @Req() req) {
-    const userId = req.user?.sub ?? null;
-    return this.postsService.searchSuggest(q, Number(limit), userId);
   }
 }

@@ -24,13 +24,6 @@ const DEFAULT_POST_SELECT = {
   deletedAt: true,
 };
 
-const DEFAULT_POST_WITH_LIKES = {
-  ...DEFAULT_POST_SELECT,
-  _count: {
-    select: { likes: true },
-  },
-};
-
 @Injectable()
 export class AdminPostService {
   constructor(
@@ -44,17 +37,20 @@ export class AdminPostService {
   async findById(postId: number) {
     const post = await this.prisma.post.findUnique({
       where: { id: postId },
-      select: DEFAULT_POST_WITH_LIKES,
+      select: DEFAULT_POST_SELECT,
     });
 
     if (!post) {
       throw new NotFoundException('Post not found');
     }
 
-    const { _count, ...postData } = post;
+    const likeCount = await this.prisma.like.count({
+      where: { resourceType: 'POST', resourceId: postId },
+    });
+
     return {
-      ...postData,
-      likeCount: _count.likes,
+      ...post,
+      likeCount,
     };
   }
 
@@ -95,16 +91,23 @@ export class AdminPostService {
       query: {
         where,
         orderBy,
-        select: DEFAULT_POST_WITH_LIKES,
+        select: DEFAULT_POST_SELECT,
       },
       countQuery: { where },
     });
 
-    return {
-      items: items.map(({ _count, ...post }) => ({
+    // Add like counts to items
+    const itemsWithLikes = await Promise.all(
+      items.map(async (post: any) => ({
         ...post,
-        likeCount: _count.likes,
+        likeCount: await this.prisma.like.count({
+          where: { resourceType: 'POST', resourceId: post.id },
+        }),
       })),
+    );
+
+    return {
+      items: itemsWithLikes,
       pageInfo,
       ...(isRedirected && { isRedirected: true }),
     };
@@ -147,15 +150,22 @@ export class AdminPostService {
       query: {
         where,
         orderBy,
-        select: DEFAULT_POST_WITH_LIKES,
+        select: DEFAULT_POST_SELECT,
       },
     });
 
-    return {
-      items: items.map(({ _count, ...post }) => ({
+    // Add like counts to items
+    const itemsWithLikes = await Promise.all(
+      items.map(async (post: any) => ({
         ...post,
-        likeCount: _count.likes,
+        likeCount: await this.prisma.like.count({
+          where: { resourceType: 'POST', resourceId: post.id },
+        }),
       })),
+    );
+
+    return {
+      items: itemsWithLikes,
       nextCursor,
     };
   }
@@ -175,7 +185,7 @@ export class AdminPostService {
     const updated = await this.prisma.post.update({
       where: { id: postId },
       data,
-      select: DEFAULT_POST_WITH_LIKES,
+      select: DEFAULT_POST_SELECT,
     });
 
     // Log the update
@@ -188,10 +198,13 @@ export class AdminPostService {
       description: `Admin updated post "${post.title}"`,
     });
 
-    const { _count, ...postData } = updated;
+    const likeCount = await this.prisma.like.count({
+      where: { resourceType: 'POST', resourceId: postId },
+    });
+
     return {
-      ...postData,
-      likeCount: _count.likes,
+      ...updated,
+      likeCount,
     };
   }
 
@@ -211,7 +224,7 @@ export class AdminPostService {
     const deleted = await this.prisma.post.update({
       where: { id: postId },
       data: { deleted: true, deletedAt: new Date() },
-      select: DEFAULT_POST_WITH_LIKES,
+      select: DEFAULT_POST_SELECT,
     });
 
     // Log the deletion
@@ -224,10 +237,13 @@ export class AdminPostService {
       description: `Admin deleted post "${post.title}"`,
     });
 
-    const { _count, ...postData } = deleted;
+    const likeCount = await this.prisma.like.count({
+      where: { resourceType: 'POST', resourceId: postId },
+    });
+
     return {
-      ...postData,
-      likeCount: _count.likes,
+      ...deleted,
+      likeCount,
     };
   }
 
@@ -247,7 +263,7 @@ export class AdminPostService {
     const restored = await this.prisma.post.update({
       where: { id: postId },
       data: { deleted: false, deletedAt: null },
-      select: DEFAULT_POST_WITH_LIKES,
+      select: DEFAULT_POST_SELECT,
     });
 
     // Log the restoration
@@ -260,10 +276,13 @@ export class AdminPostService {
       description: `Admin restored post "${post.title}"`,
     });
 
-    const { _count, ...postData } = restored;
+    const likeCount = await this.prisma.like.count({
+      where: { resourceType: 'POST', resourceId: postId },
+    });
+
     return {
-      ...postData,
-      likeCount: _count.likes,
+      ...restored,
+      likeCount,
     };
   }
 }

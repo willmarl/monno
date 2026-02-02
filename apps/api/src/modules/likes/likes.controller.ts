@@ -10,9 +10,9 @@ export class LikesController {
   @UseGuards(JwtAccessGuard)
   @Post('toggle')
   toggle(@Req() req, @Body() body: ToggleLikeDto) {
-    const userId = req.user.sub;
-    const { postId } = body;
+    const userId = Number(req.user.sub);
+    const { resourceType, resourceId } = body;
 
-    return this.likesService.toggleLike(userId, postId);
+    return this.likesService.toggleLike(userId, resourceType, resourceId);
   }
 }

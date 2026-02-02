@@ -21,16 +21,42 @@ const DEFAULT_POST_SELECT = {
   deletedAt: true,
 };
 
-const DEFAULT_POST_WITH_LIKES = {
-  ...DEFAULT_POST_SELECT,
-  _count: {
-    select: { likes: true },
-  },
-};
-
 @Injectable()
 export class PostsService {
   constructor(private prisma: PrismaService) {}
+
+  /**
+   * Enhance posts with like information
+   */
+  private async enhancePostsWithLikes(posts: any[], currentUserId?: number) {
+    return Promise.all(
+      posts.map(async (post) => {
+        const likeCount = await this.prisma.like.count({
+          where: { resourceType: 'POST', resourceId: post.id },
+        });
+
+        let likedByMe = false;
+        if (currentUserId) {
+          const userLike = await this.prisma.like.findUnique({
+            where: {
+              userId_resourceType_resourceId: {
+                userId: currentUserId,
+                resourceType: 'POST',
+                resourceId: post.id,
+              },
+            },
+          });
+          likedByMe = !!userLike;
+        }
+
+        return {
+          ...post,
+          likeCount,
+          likedByMe,
+        };
+      }),
+    );
+  }
 
   create(data: CreatePostDto, userId: number) {
     return this.prisma.post.create({
@@ -100,20 +126,18 @@ export class PostsService {
       query: {
         where,
         orderBy: { createdAt: 'desc' } as const,
-        select: {
-          ...DEFAULT_POST_WITH_LIKES,
-          likes: currentUserId ? { where: { userId: currentUserId } } : false,
-        },
+        select: DEFAULT_POST_SELECT,
       },
       countQuery: { where },
     });
 
+    const enhancedItems = await this.enhancePostsWithLikes(
+      items,
+      currentUserId,
+    );
+
     return {
-      items: items.map(({ _count, likes, ...post }) => ({
-        ...post,
-        likeCount: _count.likes,
-        likedByMe: currentUserId && likes ? likes.length > 0 : false,
-      })),
+      items: enhancedItems,
       pageInfo,
       ...(isRedirected && { isRedirected: true }),
     };
@@ -137,47 +161,36 @@ export class PostsService {
           creator: { status: 'ACTIVE' },
         },
         orderBy: { createdAt: 'desc' } as const,
-        select: {
-          ...DEFAULT_POST_WITH_LIKES,
-          likes: currentUserId ? { where: { userId: currentUserId } } : false,
-        },
+        select: DEFAULT_POST_SELECT,
       },
     });
 
+    const enhancedItems = await this.enhancePostsWithLikes(
+      items,
+      currentUserId,
+    );
+
     return {
-      items: items.map(({ _count, likes, ...post }) => ({
-        ...post,
-        likeCount: _count.likes,
-        likedByMe: currentUserId && likes ? likes.length > 0 : false,
-      })),
+      items: enhancedItems,
       nextCursor,
     };
   }
 
-  async findById(id: number, userId: number | null) {
+  async findById(id: number, userId: number | undefined) {
     const post = await this.prisma.post.findUnique({
       where: { id },
-      select: {
-        ...DEFAULT_POST_SELECT,
-        _count: {
-          select: {
-            likes: true,
-          },
-        },
-        likes: userId ? { where: { userId } } : false,
-      },
+      select: DEFAULT_POST_SELECT,
     });
 
     if (!post || post.deleted) {
       throw new NotFoundException('Post not found');
     }
 
-    const { _count, likes, ...postData } = post;
-    return {
-      ...postData,
-      likeCount: _count.likes,
-      likedByMe: userId && likes ? likes.length > 0 : false,
-    };
+    const [enhanced] = await this.enhancePostsWithLikes(
+      [post],
+      userId ?? undefined,
+    );
+    return enhanced;
   }
 
   update(id: number, data: UpdatePostDto) {
@@ -222,20 +235,18 @@ export class PostsService {
       query: {
         where: whereWithStatus,
         orderBy,
-        select: {
-          ...DEFAULT_POST_WITH_LIKES,
-          likes: currentUserId ? { where: { userId: currentUserId } } : false,
-        },
+        select: DEFAULT_POST_SELECT,
       },
       countQuery: { where: whereWithStatus },
     });
 
+    const enhancedItems = await this.enhancePostsWithLikes(
+      items,
+      currentUserId,
+    );
+
     return {
-      items: items.map(({ _count, likes, ...post }) => ({
-        ...post,
-        likeCount: _count.likes,
-        likedByMe: currentUserId && likes ? likes.length > 0 : false,
-      })),
+      items: enhancedItems,
       pageInfo,
       ...(isRedirected && { isRedirected: true }),
     };
@@ -264,19 +275,17 @@ export class PostsService {
       query: {
         where: { ...where, deleted: false, creator: { status: 'ACTIVE' } },
         orderBy,
-        select: {
-          ...DEFAULT_POST_WITH_LIKES,
-          likes: currentUserId ? { where: { userId: currentUserId } } : false,
-        },
+        select: DEFAULT_POST_SELECT,
       },
     });
 
+    const enhancedItems = await this.enhancePostsWithLikes(
+      items,
+      currentUserId,
+    );
+
     return {
-      items: items.map(({ _count, likes, ...post }) => ({
-        ...post,
-        likeCount: _count.likes,
-        likedByMe: currentUserId && likes ? likes.length > 0 : false,
-      })),
+      items: enhancedItems,
       nextCursor,
     };
   }
@@ -293,17 +302,10 @@ export class PostsService {
           { content: { contains: q, mode: 'insensitive' } },
         ],
       },
-      select: {
-        ...DEFAULT_POST_WITH_LIKES,
-        likes: currentUserId ? { where: { userId: currentUserId } } : false,
-      },
+      select: DEFAULT_POST_SELECT,
       take: limit,
     });
 
-    return posts.map(({ _count, likes, ...post }) => ({
-      ...post,
-      likeCount: _count.likes,
-      likedByMe: currentUserId && likes ? likes.length > 0 : false,
-    }));
+    return this.enhancePostsWithLikes(posts, currentUserId);
   }
 }
