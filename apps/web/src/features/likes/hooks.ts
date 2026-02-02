@@ -8,8 +8,10 @@ export function useToggleLike() {
     mutationFn: toggleLike,
     onSuccess: () => {
       // Invalidate all posts and post-related queries to refetch like status
-      qc.invalidateQueries({ queryKey: ["posts"] });
-      qc.invalidateQueries({ queryKey: ["post"] });
+      qc.invalidateQueries({ queryKey: ["posts"], exact: false });
+      qc.invalidateQueries({ queryKey: ["post"], exact: false });
+      qc.invalidateQueries({ queryKey: ["liked-by-user"], exact: false });
+      qc.invalidateQueries({ queryKey: ["posts-by-user"], exact: false });
     },
     throwOnError: false, // Don't throw errors, let component handle them
   });

@@ -10,6 +10,8 @@ import {
   fetchPosts,
   fetchPostsCursor,
   fetchPostSuggestions,
+  fetchLikedByUser,
+  fetchLikedByUserCursor,
   fetchPostsByUserId,
   fetchPostsByUserIdCursor,
   updatePost,
@@ -111,6 +113,31 @@ export function usePostsByUserIdCursor(userId: number, limit: number = 10) {
     queryKey: ["posts-by-user-cursor", userId],
     queryFn: ({ pageParam }) =>
       fetchPostsByUserIdCursor({
+        userId,
+        limit,
+        cursor: pageParam ?? null,
+      }),
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialPageParam: null as string | null,
+    enabled: !!userId,
+  });
+}
+
+export function useLikedByUser(userId: number, page: number, limit: number) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: ["liked-by-user", userId, page],
+    queryFn: () => fetchLikedByUser({ userId, limit, offset }),
+    enabled: !!userId,
+  });
+}
+
+export function useLikedByUserCursor(userId: number, limit: number = 10) {
+  return useInfiniteQuery({
+    queryKey: ["liked-by-user-cursor", userId],
+    queryFn: ({ pageParam }) =>
+      fetchLikedByUserCursor({
         userId,
         limit,
         cursor: pageParam ?? null,

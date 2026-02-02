@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { usePostsByUserId } from "@/features/posts/hooks";
 import { Post } from "@/components/ui/Post";
 import { PaginatedList } from "@/components/ui/pagination/PaginatedList";
+import { LikedPostsList } from "./LikedPostsList";
 import { PublicUser } from "@/features/users/types/user";
 
 interface UserProfileContentProps {
@@ -42,8 +43,13 @@ function PostsListContent({ user, isOwner }: UserProfileContentProps) {
 
 export function UserProfileContent({ user, isOwner }: UserProfileContentProps) {
   return (
-    <Suspense fallback={<p>Loading...</p>}>
-      <PostsListContent user={user} isOwner={isOwner} />
-    </Suspense>
+    <div className="space-y-8">
+      <Suspense fallback={<p>Loading...</p>}>
+        <PostsListContent user={user} isOwner={isOwner} />
+      </Suspense>
+      <Suspense fallback={<p>Loading...</p>}>
+        <LikedPostsList user={user} isOwner={isOwner} />
+      </Suspense>
+    </div>
   );
 }

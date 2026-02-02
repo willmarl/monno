@@ -1,9 +1,11 @@
 export interface PageInfo {
-  totalItems: number;
+  totalItems?: number;
+  total?: number;
   limit: number;
   offset?: number;
   hasNext?: boolean;
   hasPrev?: boolean;
+  hasMore?: boolean;
   nextOffset?: number | null;
   prevOffset?: number | null;
 }

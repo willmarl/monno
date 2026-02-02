@@ -103,6 +103,34 @@ export const fetchPostsByUserIdCursor = ({
     searchParams: { limit, cursor: cursor ?? undefined },
   });
 
+// GET /posts/liked/:userId?limit=10&offset=0
+export const fetchLikedByUser = ({
+  userId,
+  limit,
+  offset,
+}: {
+  userId: number;
+  limit: number;
+  offset: number;
+}) =>
+  fetcher<PostsList>(`/posts/liked/${userId}`, {
+    searchParams: { limit, offset },
+  });
+
+// GET /posts/liked/:userId/cursor?limit=10&cursor=abc123
+export const fetchLikedByUserCursor = ({
+  userId,
+  limit,
+  cursor,
+}: {
+  userId: number;
+  limit: number;
+  cursor?: string | null;
+}) =>
+  fetcher<PostListCursor>(`/posts/liked/${userId}/cursor`, {
+    searchParams: { limit, cursor: cursor ?? undefined },
+  });
+
 // POST /posts
 export const createPost = (data: CreatePostInput) =>
   fetcher<Post>("/posts", {
