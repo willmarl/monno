@@ -3,7 +3,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "./avatar";
 import { useRouter } from "next/navigation";
 import { Button } from "./button";
 import { Post as PostType } from "@/features/posts/types/post";
-import { Trash, Heart, PencilLine } from "lucide-react";
+import { Trash, Heart, PencilLine, Eye } from "lucide-react";
 import { ConfirmModal } from "../modal/ConfirmModal";
 import { useModal } from "../modal/ModalProvider";
 import { useDeletePost } from "@/features/posts/hooks";
@@ -25,19 +25,25 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
   function likeFeature() {
     if (data.likedByMe) {
       return (
-        <Heart
-          fill="#FF0000"
-          color="#FF0000"
-          onClick={handleLike}
-          className="cursor-pointer transition-transform hover:scale-110"
-        />
+        <div className="flex gap-1">
+          {data.likeCount}
+          <Heart
+            fill="#FF0000"
+            color="#FF0000"
+            onClick={handleLike}
+            className="cursor-pointer transition-transform hover:scale-110"
+          />
+        </div>
       );
     } else {
       return (
-        <Heart
-          onClick={handleLike}
-          className="cursor-pointer transition-transform hover:scale-110"
-        />
+        <div className="flex gap-1">
+          {data.likeCount}
+          <Heart
+            onClick={handleLike}
+            className="cursor-pointer transition-transform hover:scale-110"
+          />
+        </div>
       );
     }
   }
@@ -106,6 +112,9 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
               </Button>
             </>
           )}
+          <div className="flex gap-1">
+            {data.viewCount} <Eye />
+          </div>
           {user && likeFeature()}
         </div>
       </div>
