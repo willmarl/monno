@@ -59,7 +59,7 @@ export class PostSearchDto extends PaginationDto {
 
   @ApiPropertyOptional({
     description:
-      'Sort by field and direction (field|direction). E.g., createdAt|desc, updatedAt|asc',
+      'Sort by field and direction (field|direction). E.g., createdAt|desc, updatedAt|asc, viewCount|desc',
     example: 'createdAt|desc',
   })
   @IsOptional()
@@ -104,6 +104,7 @@ export class PostSearchDto extends PaginationDto {
   /**
    * Parse sort parameter into Prisma orderBy clause
    * Format: "field|direction" e.g., "createdAt|desc"
+   * Valid fields: createdAt, updatedAt, viewCount, likeCount
    * Defaults to createdAt|desc
    */
   getOrderBy(): Record<string, 'asc' | 'desc'> {
@@ -112,7 +113,7 @@ export class PostSearchDto extends PaginationDto {
     }
 
     const [field, direction] = this.sort.split('|');
-    const validFields = ['createdAt', 'updatedAt'];
+    const validFields = ['createdAt', 'updatedAt', 'viewCount', 'likeCount'];
     const validDirection = ['asc', 'desc'].includes(direction?.toLowerCase())
       ? (direction?.toLowerCase() as 'asc' | 'desc')
       : 'desc';
@@ -158,7 +159,7 @@ export class PostSearchCursorDto extends CursorPaginationDto {
 
   @ApiPropertyOptional({
     description:
-      'Sort by field and direction (field|direction). E.g., createdAt|desc, updatedAt|asc',
+      'Sort by field and direction (field|direction). E.g., createdAt|desc, updatedAt|asc, viewCount|desc',
     example: 'createdAt|desc',
   })
   @IsOptional()
@@ -203,6 +204,7 @@ export class PostSearchCursorDto extends CursorPaginationDto {
   /**
    * Parse sort parameter into Prisma orderBy clause
    * Format: "field|direction" e.g., "createdAt|desc"
+   * Valid fields: createdAt, updatedAt, viewCount, likeCount
    * Defaults to createdAt|desc
    */
   getOrderBy(): Record<string, 'asc' | 'desc'> {
@@ -211,7 +213,7 @@ export class PostSearchCursorDto extends CursorPaginationDto {
     }
 
     const [field, direction] = this.sort.split('|');
-    const validFields = ['createdAt', 'updatedAt'];
+    const validFields = ['createdAt', 'updatedAt', 'viewCount', 'likeCount'];
     const validDirection = ['asc', 'desc'].includes(direction?.toLowerCase())
       ? (direction?.toLowerCase() as 'asc' | 'desc')
       : 'desc';
