@@ -29,9 +29,17 @@ export class ViewRateLimiterService implements OnModuleInit, OnModuleDestroy {
   /**
    * Check if a view should be counted based on rate limiting
    * Returns true if view should be counted, false if rate limited
+   * Rate limit is PER RESOURCE per user/IP (not global)
    */
-  isViewAllowed(userId: number | undefined, ipAddress: string): boolean {
-    const key = userId ? `user:${userId}` : `ip:${ipAddress}`;
+  isViewAllowed(
+    userId: number | undefined,
+    ipAddress: string,
+    resourceType: string,
+    resourceId: number,
+  ): boolean {
+    // Key includes resource to allow viewing different posts, prevent spam on same post
+    const userKey = userId ? `user:${userId}` : `ip:${ipAddress}`;
+    const key = `${userKey}:${resourceType}:${resourceId}`;
     const now = Date.now();
     const cached = this.cache.get(key);
 

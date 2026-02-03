@@ -14,7 +14,16 @@ export const RateLimitView = createParamDecorator(
     const userId = request.user?.sub ? Number(request.user.sub) : undefined;
     const ipAddress = request.ip || request.socket.remoteAddress || 'unknown';
 
+    // Extract resourceType and resourceId from request body
+    const { resourceType, resourceId } = request.body || {};
+
     // Returns true if view should be counted, false if rate limited
-    return rateLimiter.isViewAllowed(userId, ipAddress);
+    // Rate limit is per resource (user can view different posts, but not spam same post)
+    return rateLimiter.isViewAllowed(
+      userId,
+      ipAddress,
+      resourceType,
+      resourceId,
+    );
   },
 );
