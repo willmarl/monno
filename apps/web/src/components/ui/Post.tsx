@@ -26,23 +26,23 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
     if (data.likedByMe) {
       return (
         <div className="flex gap-1">
-          {data.likeCount}
           <Heart
             fill="#FF0000"
             color="#FF0000"
             onClick={handleLike}
             className="cursor-pointer transition-transform hover:scale-110"
           />
+          {data.likeCount}
         </div>
       );
     } else {
       return (
         <div className="flex gap-1">
-          {data.likeCount}
           <Heart
             onClick={handleLike}
             className="cursor-pointer transition-transform hover:scale-110"
           />
+          {data.likeCount}
         </div>
       );
     }
@@ -113,7 +113,7 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
             </>
           )}
           <div className="flex gap-1">
-            {data.viewCount} <Eye />
+            <Eye /> {data.viewCount}
           </div>
           {user && likeFeature()}
         </div>
