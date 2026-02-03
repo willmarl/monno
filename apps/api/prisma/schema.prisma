@@ -53,6 +53,7 @@ model User {
   posts                   Post[]
   likes                   Like[]
   usernameHistory         UsernameHistory[]
+  collections             Collection[]
   // OAuth identity fields
   googleId                String?                  @unique
   githubId                String?                  @unique
@@ -194,4 +195,39 @@ model Like {
   @@index([resourceType])
   @@index([userId])
   @@index([resourceId])
+}
+
+model Collection {
+  id          Int              @id @default(autoincrement())
+  userId      Int
+  name        String // e.g., "favorites", "read later", "to review"
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  deleted     Boolean          @default(false)
+  deletedAt   DateTime?
+  items       CollectionItem[]
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name]) // Each user can't have duplicate collection names
+  @@index([userId])
+  @@index([deleted])
+}
+
+model CollectionItem {
+  id           Int          @id @default(autoincrement())
+  collectionId Int
+  resourceType ResourceType
+  resourceId   Int
+  addedAt      DateTime     @default(now())
+  deleted      Boolean      @default(false)
+  deletedAt    DateTime?
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, resourceType, resourceId]) // Prevent duplicate items in same collection
+  @@index([collectionId])
+  @@index([resourceType])
+  @@index([resourceId])
+  @@index([deleted])
 }

@@ -137,13 +137,30 @@ export class UsersService {
     const hashed = await bcrypt.hash(data.password, 10);
 
     try {
-      return await this.prisma.user.create({
-        data: {
-          ...data,
-          password: hashed,
-        },
-        select: DEFAULT_ADMIN_USER_SELECT,
+      // Use transaction to create user and default favorites collection atomically
+      const result = await this.prisma.$transaction(async (tx) => {
+        // Create user
+        const user = await tx.user.create({
+          data: {
+            ...data,
+            password: hashed,
+          },
+          select: DEFAULT_ADMIN_USER_SELECT,
+        });
+
+        // Create default "favorites" collection
+        await tx.collection.create({
+          data: {
+            userId: user.id,
+            name: 'favorites',
+            description: 'Your favorite posts, videos, and articles',
+          },
+        });
+
+        return user;
       });
+
+      return result;
     } catch (error: any) {
       // Handle Prisma unique constraint errors
       if (error?.code === 'P2002' && error?.meta?.target?.includes('email')) {

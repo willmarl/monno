@@ -18,6 +18,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { PostsModule } from './modules/posts/posts.module';
 import { LikesModule } from './modules/likes/likes.module';
 import { ViewsModule } from './modules/views/views.module';
+import { CollectionsModule } from './modules/collections/collections.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -95,6 +96,7 @@ import { ViewsModule } from './modules/views/views.module';
     PostsModule,
     LikesModule,
     ViewsModule,
+    CollectionsModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserAwareThrottlerGuard, QueueModule],
