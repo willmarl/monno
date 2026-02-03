@@ -21,11 +21,13 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
+import { CollectionsService } from '../collections/collections.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
+import { JwtAccessOptionalGuard } from '../auth/guards/jwt-access-optional.guard';
 import { Roles } from '../../decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { UseInterceptors, UploadedFile } from '@nestjs/common';
@@ -39,7 +41,10 @@ import { UserSearchDto, UserSearchCursorDto } from './dto/search-user.dto';
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly collectionsService: CollectionsService,
+  ) {}
 
   //==============
   //   Self
@@ -131,6 +136,30 @@ export class UsersController {
       throw new NotFoundException(`User with username "${username}" not found`);
     }
     return user;
+  }
+
+  @ApiOperation({ summary: 'Get user collections (public)' })
+  @ApiParam({
+    name: 'userId',
+    description: 'User ID',
+    example: 1,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User collections retrieved',
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @UseGuards(JwtAccessOptionalGuard)
+  @Get(':userId/collections')
+  async getUserCollections(@Param('userId', ParseIntPipe) userId: number) {
+    // Verify user exists
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID "${userId}" not found`);
+    }
+
+    // Get user's collections (excludes soft-deleted)
+    return this.collectionsService.findAllByUserId(userId);
   }
 
   @ApiOperation({ summary: 'Get all users (public)' })
