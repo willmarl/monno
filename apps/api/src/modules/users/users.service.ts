@@ -151,7 +151,7 @@ export class UsersService {
         // Create default "favorites" collection
         await tx.collection.create({
           data: {
-            userId: user.id,
+            creatorId: user.id,
             name: 'favorites',
             description: 'Your favorite posts, videos, and articles',
           },

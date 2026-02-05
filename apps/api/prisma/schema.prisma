@@ -199,7 +199,7 @@ model Like {
 
 model Collection {
   id          Int              @id @default(autoincrement())
-  userId      Int
+  creatorId   Int
   name        String // e.g., "favorites", "read later", "to review"
   description String?
   createdAt   DateTime         @default(now())
@@ -207,10 +207,10 @@ model Collection {
   deleted     Boolean          @default(false)
   deletedAt   DateTime?
   items       CollectionItem[]
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creator     User             @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, name]) // Each user can't have duplicate collection names
-  @@index([userId])
+  @@unique([creatorId, name]) // Each user can't have duplicate collection names
+  @@index([creatorId])
   @@index([deleted])
 }
 

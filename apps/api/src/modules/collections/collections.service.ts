@@ -13,11 +13,13 @@ import { CollectableResourceType } from 'src/common/types/resource.types';
 
 const DEFAULT_COLLECTION_SELECT = {
   id: true,
-  userId: true,
   name: true,
   description: true,
   createdAt: true,
   updatedAt: true,
+  creator: {
+    select: { id: true, username: true, avatarPath: true },
+  },
 };
 
 @Injectable()
@@ -31,7 +33,7 @@ export class CollectionsService {
     // Check if user already has a non-deleted collection with this name
     const existing = await this.prisma.collection.findFirst({
       where: {
-        userId,
+        creatorId: userId,
         name: data.name,
         deleted: false,
       },
@@ -45,7 +47,7 @@ export class CollectionsService {
 
     return this.prisma.collection.create({
       data: {
-        userId,
+        creatorId: userId,
         ...data,
       },
       select: DEFAULT_COLLECTION_SELECT,
@@ -57,16 +59,16 @@ export class CollectionsService {
    */
   async findAllByUserId(userId: number) {
     return this.prisma.collection.findMany({
-      where: { userId, deleted: false },
+      where: { creatorId: userId, deleted: false },
       select: DEFAULT_COLLECTION_SELECT,
       orderBy: { createdAt: 'desc' },
     });
   }
 
   /**
-   * Get a specific collection with its items (excluding soft-deleted)
+   * Get a specific collection with its items (public, excluding soft-deleted)
    */
-  async findOne(userId: number, collectionId: number) {
+  async findOne(collectionId: number) {
     const collection = await this.prisma.collection.findUnique({
       where: { id: collectionId },
       select: {
@@ -89,12 +91,6 @@ export class CollectionsService {
       throw new NotFoundException('Collection not found');
     }
 
-    if (collection.userId !== userId) {
-      throw new ForbiddenException(
-        'You do not have permission to access this collection',
-      );
-    }
-
     // Remove the deleted flag from response
     const { deleted, ...result } = collection;
     return result;
@@ -112,7 +108,7 @@ export class CollectionsService {
       throw new NotFoundException('Collection not found');
     }
 
-    if (collection.userId !== userId) {
+    if (collection.creatorId !== userId) {
       throw new ForbiddenException(
         'You do not have permission to access this collection',
       );
@@ -135,7 +131,7 @@ export class CollectionsService {
     if (data.name) {
       const existing = await this.prisma.collection.findFirst({
         where: {
-          userId,
+          creatorId: userId,
           name: data.name,
           deleted: false,
         },
@@ -309,7 +305,7 @@ export class CollectionsService {
   async createDefaultFavoritesCollection(userId: number) {
     return this.prisma.collection.create({
       data: {
-        userId,
+        creatorId: userId,
         name: 'favorites',
         description: 'Your favorite posts, videos, and articles',
       },

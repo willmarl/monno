@@ -20,7 +20,6 @@ import { RemoveCollectionItemDto } from './dto/remove-collection-item.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 
 @ApiBearerAuth()
-@UseGuards(JwtAccessGuard)
 @Controller('collections')
 export class CollectionsController {
   constructor(private readonly collectionsService: CollectionsService) {}
@@ -29,26 +28,13 @@ export class CollectionsController {
    * Create a new collection
    */
   @Post()
+  @UseGuards(JwtAccessGuard)
   @ApiOperation({ summary: 'Create a new collection' })
   @ApiResponse({ status: 201, description: 'Collection created successfully' })
   @ApiResponse({ status: 400, description: 'Collection name already exists' })
   create(@Req() req, @Body() body: CreateCollectionDto) {
     const userId = req.user.sub;
     return this.collectionsService.create(userId, body);
-  }
-
-  /**
-   * Get all collections for authenticated user
-   */
-  @Get()
-  @ApiOperation({ summary: 'Get all collections for authenticated user' })
-  @ApiResponse({
-    status: 200,
-    description: 'Collections retrieved successfully',
-  })
-  findAll(@Req() req) {
-    const userId = req.user.sub;
-    return this.collectionsService.findAllByUserId(userId);
   }
 
   /**
@@ -60,20 +46,16 @@ export class CollectionsController {
     status: 200,
     description: 'Collection retrieved successfully',
   })
-  @ApiResponse({
-    status: 403,
-    description: 'Not authorized to access this collection',
-  })
   @ApiResponse({ status: 404, description: 'Collection not found' })
-  findOne(@Req() req, @Param('id', ParseIntPipe) id: number) {
-    const userId = req.user.sub;
-    return this.collectionsService.findOne(userId, id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.collectionsService.findOne(id);
   }
 
   /**
    * Update a collection
    */
   @Patch(':id')
+  @UseGuards(JwtAccessGuard)
   @ApiOperation({ summary: 'Update collection name or description' })
   @ApiResponse({ status: 200, description: 'Collection updated successfully' })
   @ApiResponse({
@@ -98,6 +80,7 @@ export class CollectionsController {
    * Delete a collection
    */
   @Delete(':id')
+  @UseGuards(JwtAccessGuard)
   @HttpCode(200)
   @ApiOperation({ summary: 'Delete a collection' })
   @ApiResponse({ status: 200, description: 'Collection deleted successfully' })
@@ -115,6 +98,7 @@ export class CollectionsController {
    * Add an item to a collection
    */
   @Post(':id/items')
+  @UseGuards(JwtAccessGuard)
   @HttpCode(201)
   @ApiOperation({ summary: 'Add an item to a collection' })
   @ApiResponse({ status: 201, description: 'Item added successfully' })
@@ -140,6 +124,7 @@ export class CollectionsController {
    * Remove an item from a collection
    */
   @Delete(':id/items')
+  @UseGuards(JwtAccessGuard)
   @HttpCode(200)
   @ApiOperation({ summary: 'Remove an item from a collection' })
   @ApiResponse({ status: 200, description: 'Item removed successfully' })
