@@ -10,6 +10,7 @@ import {
   Req,
   HttpCode,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { CollectionsService } from './collections.service';
@@ -17,6 +18,7 @@ import { CreateCollectionDto } from './dto/create-collection.dto';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
 import { AddCollectionItemDto } from './dto/add-collection-item.dto';
 import { RemoveCollectionItemDto } from './dto/remove-collection-item.dto';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 
 @ApiBearerAuth()
@@ -47,8 +49,8 @@ export class CollectionsController {
     description: 'Collection retrieved successfully',
   })
   @ApiResponse({ status: 404, description: 'Collection not found' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.collectionsService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Query() pag: PaginationDto) {
+    return this.collectionsService.findOne(id, pag);
   }
 
   /**

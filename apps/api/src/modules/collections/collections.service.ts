@@ -10,6 +10,8 @@ import { UpdateCollectionDto } from './dto/update-collection.dto';
 import { AddCollectionItemDto } from './dto/add-collection-item.dto';
 import { RemoveCollectionItemDto } from './dto/remove-collection-item.dto';
 import { CollectableResourceType } from 'src/common/types/resource.types';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 
 const DEFAULT_COLLECTION_SELECT = {
   id: true,
@@ -57,18 +59,39 @@ export class CollectionsService {
   /**
    * Get all collections for a user (excluding soft-deleted)
    */
-  async findAllByUserId(userId: number) {
-    return this.prisma.collection.findMany({
-      where: { creatorId: userId, deleted: false },
-      select: DEFAULT_COLLECTION_SELECT,
-      orderBy: { createdAt: 'desc' },
+  async findAllByUserId(userId: number, pag: PaginationDto) {
+    const where = { creatorId: userId, deleted: false };
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
+      model: this.prisma.collection,
+      limit: pag.limit ?? 10,
+      offset: pag.offset ?? 0,
+      query: {
+        where,
+        orderBy: { createdAt: 'desc' } as const,
+        select: DEFAULT_COLLECTION_SELECT,
+      },
+      countQuery: { where },
     });
+
+    return {
+      items,
+      pageInfo,
+      ...(isRedirected && { isRedirected: true }),
+    };
   }
 
   /**
    * Get a specific collection with its items (public, excluding soft-deleted)
    */
-  async findOne(collectionId: number) {
+  async findOne(collectionId: number, pag?: PaginationDto) {
+    const limit = pag?.limit ?? 10;
+    const offset = pag?.offset ?? 0;
+
+    // Get total count of non-deleted items
+    const totalItemCount = await this.prisma.collectionItem.count({
+      where: { collectionId, deleted: false },
+    });
+
     const collection = await this.prisma.collection.findUnique({
       where: { id: collectionId },
       select: {
@@ -82,7 +105,9 @@ export class CollectionsService {
             resourceId: true,
             addedAt: true,
           },
-          orderBy: { addedAt: 'desc' },
+          orderBy: { addedAt: 'desc' } as const,
+          skip: offset,
+          take: limit,
         },
       },
     });
@@ -93,7 +118,16 @@ export class CollectionsService {
 
     // Remove the deleted flag from response
     const { deleted, ...result } = collection;
-    return result;
+
+    return {
+      ...result,
+      itemsPageInfo: {
+        total: totalItemCount,
+        limit,
+        offset,
+        hasMore: offset + limit < totalItemCount,
+      },
+    };
   }
 
   /**

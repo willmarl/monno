@@ -144,6 +144,18 @@ export class UsersController {
     description: 'User ID',
     example: 1,
   })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of items per page (default: 10)',
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    description: 'Number of items to skip (default: 0)',
+  })
   @ApiResponse({
     status: 200,
     description: 'User collections retrieved',
@@ -151,15 +163,18 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   @UseGuards(JwtAccessOptionalGuard)
   @Get(':userId/collections')
-  async getUserCollections(@Param('userId', ParseIntPipe) userId: number) {
+  async getUserCollections(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query() pag: PaginationDto,
+  ) {
     // Verify user exists
     const user = await this.usersService.findById(userId);
     if (!user) {
       throw new NotFoundException(`User with ID "${userId}" not found`);
     }
 
-    // Get user's collections (excludes soft-deleted)
-    return this.collectionsService.findAllByUserId(userId);
+    // Get user's collections with pagination (excludes soft-deleted)
+    return this.collectionsService.findAllByUserId(userId, pag);
   }
 
   @ApiOperation({ summary: 'Get all users (public)' })
