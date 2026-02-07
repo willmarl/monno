@@ -49,3 +49,8 @@ export interface CollectionItemInput {
   resourceType: string;
   resourceId: number;
 }
+
+export interface CollectionRef {
+  id: number;
+  name: string;
+}

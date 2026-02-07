@@ -6,6 +6,7 @@ import type {
   CollectionItem,
   CollectionWithPaginatedItems,
   CollectionItemInput,
+  CollectionRef,
 } from "./types/collection";
 
 // get all of user's collections
@@ -61,3 +62,7 @@ export const removeCollectionItem = (id: number, data: CollectionItemInput) =>
     method: "DELETE",
     json: data,
   });
+
+// get collections containing a specific post
+export const fetchCollectionsForPost = (postId: number) =>
+  fetcher<CollectionRef[]>(`/posts/${postId}/collections`);

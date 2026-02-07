@@ -8,6 +8,7 @@ import {
   deleteCollection,
   addCollectionItem,
   removeCollectionItem,
+  fetchCollectionsForPost,
 } from "./api";
 
 /**
@@ -39,6 +40,17 @@ export function useCollectionById(
     queryKey: ["collection", id, page, limit],
     queryFn: () => fetchCollectionById(id, limit, offset),
     enabled: !!id,
+  });
+}
+
+/**
+ * Get collections containing a specific post for current user
+ */
+export function useCollectionsForPost(postId: number) {
+  return useQuery({
+    queryKey: ["post-collections", postId],
+    queryFn: () => fetchCollectionsForPost(postId),
+    enabled: !!postId,
   });
 }
 
