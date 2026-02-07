@@ -1,6 +1,7 @@
 "use client";
 
 import { useModal } from "@/components/modal/ModalProvider";
+import { ModifyCollectionItemModal } from "@/components/modal/ModifyCollectionItemModal";
 import { Button } from "@/components/ui/button";
 
 export default function page() {
@@ -17,16 +18,8 @@ export default function page() {
       <Button
         onClick={() => {
           openModal({
-            title: "Confirm Action",
-            content: (
-              <div>
-                <p>Put text you want to appear for modal here.</p>
-                <Button variant={"outline"} onClick={handleClick}>
-                  Yes
-                </Button>
-                <Button onClick={closeModal}>No</Button>
-              </div>
-            ),
+            title: "TEST",
+            content: <ModifyCollectionItemModal postId={1} />,
           });
         }}
       >
