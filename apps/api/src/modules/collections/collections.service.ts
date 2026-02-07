@@ -9,7 +9,7 @@ import { CreateCollectionDto } from './dto/create-collection.dto';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
 import { AddCollectionItemDto } from './dto/add-collection-item.dto';
 import { RemoveCollectionItemDto } from './dto/remove-collection-item.dto';
-import { CollectableResourceType } from 'src/common/types/resource.types';
+import type { CollectableResourceType } from 'src/common/types/resource.types';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 
@@ -319,6 +319,15 @@ export class CollectionsService {
           throw new NotFoundException('Post not found or has been deleted');
         }
         break;
+
+      // case 'COMMENT':
+      //   const comment = await this.prisma.comment.findUnique({
+      //     where: { id: resourceId },
+      //   });
+      //   if (!comment || comment.deleted) {
+      //     throw new NotFoundException('Comment not found or has been deleted');
+      //   }
+      //   break;
 
       case 'VIDEO':
         // TODO: Implement video validation when Video model is added

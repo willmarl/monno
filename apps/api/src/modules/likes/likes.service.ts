@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
-import { LikeableResourceType } from 'src/common/types/resource.types';
+import type { LikeableResourceType } from 'src/common/types/resource.types';
 
 @Injectable()
 export class LikesService {
@@ -40,9 +40,14 @@ export class LikesService {
           userId_resourceType_resourceId: { userId, resourceType, resourceId },
         },
       });
-      // Decrement likeCount for posts
+      // Decrement likeCount
       if (resourceType === 'POST') {
         await this.prisma.post.update({
+          where: { id: resourceId },
+          data: { likeCount: { decrement: 1 } },
+        });
+      } else if (resourceType === 'COMMENT') {
+        await this.prisma.comment.update({
           where: { id: resourceId },
           data: { likeCount: { decrement: 1 } },
         });
@@ -56,9 +61,14 @@ export class LikesService {
           resourceId,
         },
       });
-      // Increment likeCount for posts
+      // Increment likeCount
       if (resourceType === 'POST') {
         await this.prisma.post.update({
+          where: { id: resourceId },
+          data: { likeCount: { increment: 1 } },
+        });
+      } else if (resourceType === 'COMMENT') {
+        await this.prisma.comment.update({
           where: { id: resourceId },
           data: { likeCount: { increment: 1 } },
         });
@@ -66,14 +76,24 @@ export class LikesService {
     }
 
     // Get denormalized likeCount (much faster than COUNT query)
-    const post = await this.prisma.post.findUnique({
-      where: { id: resourceId },
-      select: { likeCount: true },
-    });
+    let likeCount = 0;
+    if (resourceType === 'POST') {
+      const post = await this.prisma.post.findUnique({
+        where: { id: resourceId },
+        select: { likeCount: true },
+      });
+      likeCount = post?.likeCount ?? 0;
+    } else if (resourceType === 'COMMENT') {
+      const comment = await this.prisma.comment.findUnique({
+        where: { id: resourceId },
+        select: { likeCount: true },
+      });
+      likeCount = comment?.likeCount ?? 0;
+    }
 
     return {
       liked: !existing,
-      likeCount: post?.likeCount ?? 0,
+      likeCount,
     };
   }
 
@@ -88,6 +108,12 @@ export class LikesService {
         select: { likeCount: true },
       });
       return post?.likeCount ?? 0;
+    } else if (resourceType === 'COMMENT') {
+      const comment = await this.prisma.comment.findUnique({
+        where: { id: resourceId },
+        select: { likeCount: true },
+      });
+      return comment?.likeCount ?? 0;
     }
     // For future resource types (VIDEO, ARTICLE) when denormalization is added
     throw new BadRequestException(
@@ -130,6 +156,15 @@ export class LikesService {
         });
         if (!post || post.deleted) {
           throw new NotFoundException('Post not found');
+        }
+        break;
+      }
+      case 'COMMENT': {
+        const comment = await this.prisma.comment.findUnique({
+          where: { id: resourceId },
+        });
+        if (!comment || comment.deleted) {
+          throw new NotFoundException('Comment not found');
         }
         break;
       }

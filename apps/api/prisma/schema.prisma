@@ -36,6 +36,7 @@ enum ResourceType {
   POST
   VIDEO
   ARTICLE
+  COMMENT
 }
 
 model User {
@@ -52,6 +53,7 @@ model User {
   passwordResetTokens     PasswordResetToken[]
   posts                   Post[]
   likes                   Like[]
+  comments                Comment[]
   usernameHistory         UsernameHistory[]
   collections             Collection[]
   // OAuth identity fields
@@ -227,6 +229,26 @@ model CollectionItem {
 
   @@unique([collectionId, resourceType, resourceId]) // Prevent duplicate items in same collection
   @@index([collectionId])
+  @@index([resourceType])
+  @@index([resourceId])
+  @@index([deleted])
+}
+
+model Comment {
+  id           Int          @id @default(autoincrement())
+  userId       Int
+  resourceType ResourceType
+  resourceId   Int
+  content      String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  deleted      Boolean      @default(false)
+  deletedAt    DateTime?
+  likeCount    Int          @default(0)
+
+  creator User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
   @@index([resourceType])
   @@index([resourceId])
   @@index([deleted])
