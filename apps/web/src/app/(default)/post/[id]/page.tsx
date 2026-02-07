@@ -5,8 +5,9 @@ import { usePostById } from "@/features/posts/hooks";
 import { useSessionUser } from "@/features/auth/hooks";
 import { useRecordView } from "@/features/views/hook";
 import { useParams } from "next/navigation";
-import { Card } from "@/components/ui/card";
 import { useEffect } from "react";
+import { PageNotFound } from "@/components/common/PageNotFound";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
 
 export default function page() {
   const params = useParams();
@@ -27,15 +28,11 @@ export default function page() {
   }, [data?.id, recordView]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <PageLoadingState variant="post" />;
   }
 
   if (error || !data) {
-    return (
-      <Card className="flex justify-center items-center">
-        Post does not exist
-      </Card>
-    );
+    return <PageNotFound title="Post Not Found" />;
   }
 
   return (

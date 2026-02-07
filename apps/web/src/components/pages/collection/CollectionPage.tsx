@@ -14,25 +14,11 @@ import { useModal } from "@/components/modal/ModalProvider";
 import { DeleteCollection } from "./modal/DeleteCollection";
 import { EditCollection } from "./modal/EditCollection";
 import { useRouter } from "next/navigation";
+import { PageNotFound } from "@/components/common/PageNotFound";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
 interface CollectionPageProps {
   id: number;
   isOwner?: boolean;
-}
-
-function CollectionNotFound() {
-  return (
-    <Card className="p-8">
-      <div className="text-center space-y-4">
-        <h1 className="text-2xl font-bold">Collection Not Found</h1>
-        <p className="text-muted-foreground">
-          The collection you are looking for does not exist.
-        </p>
-        <Button asChild>
-          <Link href="/">Go Home</Link>
-        </Button>
-      </div>
-    </Card>
-  );
 }
 
 export function CollectionPage({ id }: CollectionPageProps) {
@@ -42,9 +28,9 @@ export function CollectionPage({ id }: CollectionPageProps) {
   const { openModal } = useModal();
   const isOwner = data?.creator.id === user?.id;
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <PageLoadingState variant="card" />;
 
-  if (!data || error) return <CollectionNotFound />;
+  if (!data || error) return <PageNotFound title="Collection Not Found" />;
 
   const formatted = formatDate(data?.createdAt);
 
