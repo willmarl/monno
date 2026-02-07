@@ -123,6 +123,20 @@ export class PostsController {
     return this.postsService.findByUserIdCursor(userId, pag, currentUserId);
   }
 
+  @UseGuards(JwtAccessGuard)
+  @ApiOperation({
+    summary: 'Get collections containing this post for the current user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Array of collections containing the post',
+  })
+  @Get(':id/collections')
+  getPostCollections(@Param('id', ParseIntPipe) id: number, @Req() req) {
+    const userId = req.user.sub;
+    return this.postsService.getCollectionsForPost(id, userId);
+  }
+
   @UseGuards(JwtAccessOptionalGuard)
   @Get(':id')
   findById(@Param('id', ParseIntPipe) id: number, @Req() req) {

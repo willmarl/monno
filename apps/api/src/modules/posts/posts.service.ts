@@ -433,4 +433,31 @@ export class PostsService {
 
     return this.enhancePostsWithLikes(posts, currentUserId);
   }
+
+  /**
+   * Get all collections that contain a specific post for a user
+   */
+  async getCollectionsForPost(postId: number, userId: number) {
+    const collections = await this.prisma.collectionItem.findMany({
+      where: {
+        resourceType: 'POST',
+        resourceId: postId,
+        deleted: false,
+        collection: {
+          creatorId: userId,
+          deleted: false,
+        },
+      },
+      select: {
+        collection: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return collections.map((item) => item.collection);
+  }
 }
