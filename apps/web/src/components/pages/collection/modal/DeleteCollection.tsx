@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { useDeleteCollection } from "@/features/collections/hooks";
 import { useModal } from "@/components/modal/ModalProvider";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export function DeleteCollection({ data }: { data: Collection }) {
+  const router = useRouter();
   const deleteData = useDeleteCollection();
   const { closeModal } = useModal();
 
@@ -13,6 +15,7 @@ export function DeleteCollection({ data }: { data: Collection }) {
     deleteData.mutate(data.id, {
       onSuccess: () => {
         toast.success(`Successfully deleted ${data.name}`);
+        router.push(`/user/${data.creator.username}`);
       },
       onError: (err) => {
         toast.error(`Failed to delete data. ${err.message}`);

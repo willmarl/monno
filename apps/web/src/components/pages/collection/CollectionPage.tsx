@@ -13,6 +13,7 @@ import { useSessionUser } from "@/features/auth/hooks";
 import { useModal } from "@/components/modal/ModalProvider";
 import { DeleteCollection } from "./modal/DeleteCollection";
 import { EditCollection } from "./modal/EditCollection";
+import { useRouter } from "next/navigation";
 interface CollectionPageProps {
   id: number;
   isOwner?: boolean;
@@ -35,6 +36,7 @@ function CollectionNotFound() {
 }
 
 export function CollectionPage({ id }: CollectionPageProps) {
+  const router = useRouter();
   const { data: user } = useSessionUser();
   const { data, isLoading, error } = useCollectionById(id);
   const { openModal } = useModal();
@@ -51,7 +53,14 @@ export function CollectionPage({ id }: CollectionPageProps) {
       <div className="flex flex-col">
         <div className="flex justify-between">
           <p>{data?.name}</p>
-          <p>{data?.creator.username}</p>
+          <p
+            className="cursor-pointer"
+            onClick={() => {
+              router.push(`/user/${data?.creator.username}`);
+            }}
+          >
+            {data?.creator.username}
+          </p>
         </div>
         <div className="flex justify-between">
           <p>{data?.description}</p>
