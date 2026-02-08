@@ -3,7 +3,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "./avatar";
 import { useRouter } from "next/navigation";
 import { Button } from "./button";
 import { Post as PostType } from "@/features/posts/types/post";
-import { Trash, Heart, PencilLine, Eye, BookmarkPlus } from "lucide-react";
+import { Trash, ThumbsUp, PencilLine, Eye, BookmarkPlus } from "lucide-react";
 import { ConfirmModal } from "../modal/ConfirmModal";
 import { useModal } from "../modal/ModalProvider";
 import { useDeletePost } from "@/features/posts/hooks";
@@ -97,7 +97,7 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
             onClick={handleLike}
             className="cursor-pointer transition-transform hover:scale-110"
           >
-            <Heart fill="#FF0000" color="#FF0000" />
+            <ThumbsUp fill="#000000" color="#000000" />
           </Button>
           {data.likeCount}
         </div>
@@ -110,7 +110,7 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
             onClick={handleLike}
             className="cursor-pointer transition-transform hover:scale-110"
           >
-            <Heart onClick={handleLike} />
+            <ThumbsUp onClick={handleLike} />
           </Button>
           {data.likeCount}
         </div>
