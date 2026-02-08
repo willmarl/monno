@@ -9,7 +9,9 @@ import { useEffect } from "react";
 import { PageNotFound } from "@/components/common/PageNotFound";
 import { PageLoadingState } from "@/components/common/PageLoadingState";
 import { InlineCommentForm } from "@/features/comments/components/InlineCommentForm";
+import { CommentPagInline } from "@/components/pages/post/CommnetPagInline";
 import { toast } from "sonner";
+import { Suspense } from "react";
 
 export default function page() {
   const params = useParams();
@@ -51,6 +53,11 @@ export default function page() {
           isAlwaysOpen={true}
           user={user}
         />
+        <div className="mt-10">
+          <Suspense>
+            <CommentPagInline resourceType="POST" resourceId={data?.id} />
+          </Suspense>
+        </div>
       </div>
     </div>
   );
