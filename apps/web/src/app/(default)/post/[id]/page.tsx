@@ -8,6 +8,8 @@ import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { PageNotFound } from "@/components/common/PageNotFound";
 import { PageLoadingState } from "@/components/common/PageLoadingState";
+import { InlineCommentForm } from "@/features/comments/components/InlineCommentForm";
+import { toast } from "sonner";
 
 export default function page() {
   const params = useParams();
@@ -36,8 +38,20 @@ export default function page() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto space-y-6">
       <Post data={data} isOwner={isOwner} />
+      <div className="bg-card rounded-lg p-4">
+        <h3 className="font-semibold mb-4">Comments</h3>
+        <InlineCommentForm
+          resourceType="POST"
+          resourceId={data.id}
+          onSuccess={() => {
+            toast.success("Comment posted!");
+          }}
+          isAlwaysOpen={true}
+          user={user}
+        />
+      </div>
     </div>
   );
 }
