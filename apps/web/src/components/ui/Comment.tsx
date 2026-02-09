@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -9,9 +10,22 @@ import { useRouter } from "next/navigation";
 import { Avatar, AvatarImage, AvatarFallback } from "./avatar";
 import { formatDate } from "@/lib/utils/date";
 import { Button } from "./button";
-import { ThumbsUp } from "lucide-react";
+import { Textarea } from "./textarea";
+import { EllipsisVertical, ThumbsUp, X } from "lucide-react";
 import { useToggleLike } from "@/features/likes/hooks";
 import { Comment as CommentType } from "@/features/comments/types/comment";
+import { useModal } from "@/components/modal/ModalProvider";
+import { ConfirmModal } from "../modal/ConfirmModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./dropdown-menu";
+import { useDeleteComment, useUpdateComment } from "@/features/comments/hooks";
 
 export function Comment({
   data,
@@ -20,11 +34,14 @@ export function Comment({
   data: CommentType;
   isOwner: boolean;
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(data.content);
   const like = useToggleLike();
-
+  const { openModal, closeModal } = useModal();
   const router = useRouter();
-
   const commentDate = formatDate(data.createdAt);
+  const deleteComment = useDeleteComment();
+  const updateComment = useUpdateComment();
 
   let isEdited: boolean = false;
 
@@ -47,6 +64,57 @@ export function Comment({
           <p>Edited on {editedDate}</p>
         </TooltipContent>
       </Tooltip>
+    );
+  }
+
+  function handleEdit() {
+    updateComment.mutate(
+      {
+        id: data.id,
+        data: { content: editContent },
+      },
+      {
+        onSuccess: () => {
+          setIsEditing(false);
+        },
+      },
+    );
+  }
+
+  function handleDelete() {
+    return openModal({
+      title: "Delete comment",
+      content: (
+        <ConfirmModal
+          message="Are you sure you want to delete comment"
+          onConfirm={() => {
+            deleteComment.mutate(data.id);
+            closeModal();
+          }}
+        />
+      ),
+    });
+  }
+
+  function commentMenu() {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost">
+            <EllipsisVertical />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent side="left" align="start" sideOffset={-5}>
+          <DropdownMenuGroup>
+            <DropdownMenuItem onClick={() => setIsEditing(true)}>
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDelete} variant="destructive">
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
     );
   }
 
@@ -116,7 +184,11 @@ export function Comment({
       </Avatar>
 
       {/* Content - Right Side */}
-      <div className="flex-1">
+      <div className="flex-1 relative">
+        {/* comment menu options - Top Right */}
+        <div className="absolute right-0 top-0">
+          {isOwner ? commentMenu() : ""}
+        </div>
         {/* Top: Username and Date */}
         <div className="flex items-center gap-2 mb-1">
           <p
@@ -132,12 +204,52 @@ export function Comment({
           {isEdited && renderEditVisual()}
         </div>
 
-        {/* Bottom: Comment Content */}
-        <p className="text-sm text-foreground mb-2">{data?.content || ""}</p>
+        {/* Bottom: Comment Content or Edit Textarea */}
+        {isEditing ? (
+          <div className="space-y-2 mb-2">
+            <Textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              placeholder="Edit your comment..."
+              className="resize-none min-h-[60px] text-sm"
+              disabled={updateComment.isPending}
+            />
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setEditContent(data.content);
+                  setIsEditing(false);
+                }}
+                disabled={updateComment.isPending}
+                className="h-8"
+              >
+                <X size={16} className="mr-1" />
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                onClick={handleEdit}
+                disabled={
+                  updateComment.isPending || editContent === data.content
+                }
+                className="h-8"
+              >
+                {updateComment.isPending ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-foreground mb-2">{data?.content || ""}</p>
+        )}
 
-        {/* Actions */}
-
-        <div className="flex items-center gap-2">{likeFeature(isOwner)}</div>
+        {/* Actions - Only show when not editing */}
+        {!isEditing && (
+          <div className="flex items-center gap-2">{likeFeature(isOwner)}</div>
+        )}
       </div>
     </div>
   );
