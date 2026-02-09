@@ -19,7 +19,12 @@ export function SearchFilterRadio({
 
   function update(value: string) {
     const qs = new URLSearchParams(params.toString());
-    qs.set(filter.name, value);
+    if (value === "__all__") {
+      // Clear this specific filter without clearing others
+      qs.delete(filter.name);
+    } else {
+      qs.set(filter.name, value);
+    }
     router.push(`${basePath}?${qs.toString()}`);
   }
 
@@ -27,7 +32,13 @@ export function SearchFilterRadio({
     <div className="p-3 space-y-2">
       <p className="font-semibold text-sm">{filter.label}</p>
 
-      <RadioGroup value={selected} onValueChange={update}>
+      <RadioGroup value={selected || "__all__"} onValueChange={update}>
+        {/* All option - clears this filter */}
+        <div className="flex items-center gap-2">
+          <RadioGroupItem value="__all__" />
+          <Label>All</Label>
+        </div>
+
         {filter.options?.map((opt) => (
           <div key={opt.value} className="flex items-center gap-2">
             <RadioGroupItem value={opt.value} />
