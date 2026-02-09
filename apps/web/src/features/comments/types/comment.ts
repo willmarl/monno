@@ -1,4 +1,5 @@
 import { PaginatedResponse } from "@/types/pagination";
+import type { ResourceType } from "@/types/resource";
 
 export interface CommentCreator {
   id: number;
@@ -9,7 +10,7 @@ export interface CommentCreator {
 export interface Comment {
   id: number;
   content: string;
-  resourceType: string;
+  resourceType: ResourceType;
   resourceId: number;
   likeCount: number;
   likedByMe: boolean;
@@ -23,7 +24,7 @@ export interface Comment {
 export type CommentsList = PaginatedResponse<Comment>;
 
 export interface CommentInput {
-  resourceType: string;
+  resourceType: ResourceType;
   resourceId: number;
   content: string;
 }

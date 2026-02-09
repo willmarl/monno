@@ -5,6 +5,7 @@ import type {
   CommentInput,
   UpdateCommentInput,
 } from "./types/comment";
+import type { ResourceType } from "@/types/resource";
 
 // create comment on a resource
 export const createComment = (data: CommentInput) =>
@@ -15,7 +16,7 @@ export const createComment = (data: CommentInput) =>
 
 // get all comments for a resource (post, video, article, comment, etc.)
 export const fetchCommentsByResource = (
-  resourceType: string,
+  resourceType: ResourceType,
   resourceId: number,
   limit: number = 10,
   offset: number = 0,

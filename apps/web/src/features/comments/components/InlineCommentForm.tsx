@@ -10,12 +10,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, X } from "lucide-react";
 import { User as UserType } from "@/features/users/types/user";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import type { ResourceType } from "@/types/resource";
 
 interface InlineCommentFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   isAlwaysOpen?: boolean;
-  resourceType: string;
+  resourceType: ResourceType;
   resourceId: number;
   user?: UserType;
 }

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { CommentInput, UpdateCommentInput } from "./types/comment";
+import type { ResourceType } from "@/types/resource";
 import {
   createComment,
   fetchCommentsByResource,
@@ -16,7 +17,7 @@ import {
  * Get all comments for a resource (post, video, article, comment, etc.)
  */
 export function useCommentsByResource(
-  resourceType: string,
+  resourceType: ResourceType,
   resourceId: number,
   page: number = 1,
   limit: number = 10,

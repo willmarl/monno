@@ -5,9 +5,10 @@ import { useCommentsByResource } from "@/features/comments/hooks";
 import { Comment } from "@/components/ui/Comment";
 import { PaginatedListInline } from "@/components/ui/pagination/PaginatedListInline";
 import { useSessionUser } from "@/features/auth/hooks";
+import type { ResourceType } from "@/types/resource";
 
 interface CommentsListProps {
-  resourceType: string;
+  resourceType: ResourceType;
   resourceId: number;
 }
 

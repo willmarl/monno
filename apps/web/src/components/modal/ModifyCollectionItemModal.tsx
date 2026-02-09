@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/components/modal/ModalProvider";
+import { RESOURCE_TYPES } from "@/types/resource";
 import { InlineNewCollectionForm } from "@/features/collections/components/InlineNewCollectionForm";
 import { toast } from "sonner";
 import { Separator } from "../ui/separator";
@@ -57,7 +58,7 @@ export function ModifyCollectionItemModal({
       addItem.mutate(
         {
           collectionId,
-          data: { resourceType: "POST", resourceId: postId },
+          data: { resourceType: RESOURCE_TYPES.POST, resourceId: postId },
         },
         {
           onSuccess: () => {
@@ -74,7 +75,7 @@ export function ModifyCollectionItemModal({
       removeItem.mutate(
         {
           collectionId,
-          data: { resourceType: "POST", resourceId: postId },
+          data: { resourceType: RESOURCE_TYPES.POST, resourceId: postId },
         },
         {
           onSuccess: () => {

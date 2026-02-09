@@ -7,6 +7,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useRouter } from "next/navigation";
+import { RESOURCE_TYPES } from "@/types/resource";
 import { Avatar, AvatarImage, AvatarFallback } from "./avatar";
 import { formatDate } from "@/lib/utils/date";
 import { Button } from "./button";
@@ -119,7 +120,7 @@ export function Comment({
   }
 
   function handleLike() {
-    like.mutate({ resourceType: "COMMENT", resourceId: data.id });
+    like.mutate({ resourceType: RESOURCE_TYPES.COMMENT, resourceId: data.id });
   }
 
   function likeFeature(isOwner: boolean) {

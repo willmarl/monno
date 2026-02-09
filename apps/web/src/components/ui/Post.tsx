@@ -3,6 +3,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "./avatar";
 import { useRouter } from "next/navigation";
 import { Button } from "./button";
 import { Post as PostType } from "@/features/posts/types/post";
+import { RESOURCE_TYPES } from "@/types/resource";
 import { Trash, ThumbsUp, PencilLine, Eye, BookmarkPlus } from "lucide-react";
 import { ConfirmModal } from "../modal/ConfirmModal";
 import { useModal } from "../modal/ModalProvider";
@@ -84,7 +85,7 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
   }
 
   function handleLike() {
-    like.mutate({ resourceType: "POST", resourceId: data.id });
+    like.mutate({ resourceType: RESOURCE_TYPES.POST, resourceId: data.id });
   }
 
   function likeFeature() {

@@ -1,4 +1,5 @@
 import { PaginatedResponse } from "@/types/pagination";
+import type { ResourceType } from "@/types/resource";
 
 export interface CollectionCreator {
   id: number;
@@ -25,7 +26,7 @@ export interface CollectionInput {
 
 export interface CollectionItem {
   id: number;
-  resourceType: string;
+  resourceType: ResourceType;
   resourceId: number;
   addedAt: string;
 }
@@ -46,7 +47,7 @@ export interface CollectionWithPaginatedItems extends Omit<
 }
 
 export interface CollectionItemInput {
-  resourceType: string;
+  resourceType: ResourceType;
   resourceId: number;
 }
 

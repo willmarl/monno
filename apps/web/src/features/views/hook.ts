@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { ResourceType } from "@/types/resource";
 import { recordView, fetchViewStats } from "./api";
 
 export function useRecordView() {
@@ -14,7 +15,7 @@ export function useRecordView() {
   });
 }
 
-export function useViewStats(resourceType: string, resourceId: number) {
+export function useViewStats(resourceType: ResourceType, resourceId: number) {
   return useQuery({
     queryKey: ["view", resourceId],
     queryFn: () => fetchViewStats(resourceType, resourceId),

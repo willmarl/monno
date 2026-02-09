@@ -1,5 +1,6 @@
 import { fetcher } from "@/lib/fetcher";
 import type { View, ViewInput } from "./types/view";
+import type { ResourceType } from "@/types/resource";
 
 // POST /views
 export const recordView = (data: ViewInput) =>
@@ -9,5 +10,7 @@ export const recordView = (data: ViewInput) =>
   });
 
 // GET /views/FOO/2
-export const fetchViewStats = (resourceType: string, resourceId: number) =>
-  fetcher<View>(`/views/${resourceType}/${resourceId}`);
+export const fetchViewStats = (
+  resourceType: ResourceType,
+  resourceId: number,
+) => fetcher<View>(`/views/${resourceType}/${resourceId}`);
