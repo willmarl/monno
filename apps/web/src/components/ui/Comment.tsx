@@ -12,7 +12,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "./avatar";
 import { formatDate } from "@/lib/utils/date";
 import { Button } from "./button";
 import { Textarea } from "./textarea";
-import { EllipsisVertical, ThumbsUp, X } from "lucide-react";
+import { EllipsisVertical, X } from "lucide-react";
 import { useToggleLike } from "@/features/likes/hooks";
 import { Comment as CommentType } from "@/features/comments/types/comment";
 import { useModal } from "@/components/modal/ModalProvider";
@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "./dropdown-menu";
 import { useDeleteComment, useUpdateComment } from "@/features/comments/hooks";
+import { LikeButton } from "../common/LikeButton";
 
 export function Comment({
   data,
@@ -123,48 +124,6 @@ export function Comment({
     like.mutate({ resourceType: RESOURCE_TYPES.COMMENT, resourceId: data.id });
   }
 
-  function likeFeature(isOwner: boolean) {
-    if (!isOwner) {
-      return (
-        <div className="flex gap-1 items-center">
-          <Button variant="ghost">
-            <ThumbsUp />
-          </Button>
-          {data.likeCount}
-        </div>
-      );
-    } else {
-      if (data.likedByMe) {
-        return (
-          <div className="flex gap-1 items-center">
-            <Button
-              variant="ghost"
-              // className="cursor-pointer"
-              onClick={handleLike}
-              className="cursor-pointer transition-transform hover:scale-110"
-            >
-              <ThumbsUp fill="#000000" color="#000000" />
-            </Button>
-            {data.likeCount}
-          </div>
-        );
-      } else {
-        return (
-          <div className="flex gap-1 items-center">
-            <Button
-              variant="ghost"
-              onClick={handleLike}
-              className="cursor-pointer transition-transform hover:scale-110"
-            >
-              <ThumbsUp onClick={handleLike} />
-            </Button>
-            {data.likeCount}
-          </div>
-        );
-      }
-    }
-  }
-
   return (
     <div className="flex gap-3">
       {/* Avatar - Left Side */}
@@ -249,7 +208,14 @@ export function Comment({
 
         {/* Actions - Only show when not editing */}
         {!isEditing && (
-          <div className="flex items-center gap-2">{likeFeature(isOwner)}</div>
+          <div className="flex items-center gap-2">
+            <LikeButton
+              isOwner={isOwner}
+              likedByMe={data.likedByMe}
+              likeCount={data.likeCount}
+              onLike={handleLike}
+            />
+          </div>
         )}
       </div>
     </div>

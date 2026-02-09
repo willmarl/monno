@@ -16,7 +16,7 @@ export interface Post {
   deleted: boolean;
   deletedAt: string;
   likeCount: number;
-  likedByMe?: boolean;
+  likedByMe: boolean;
   viewCount: number;
 }
 

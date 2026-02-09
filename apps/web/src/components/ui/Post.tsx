@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "./button";
 import { Post as PostType } from "@/features/posts/types/post";
 import { RESOURCE_TYPES } from "@/types/resource";
-import { Trash, ThumbsUp, PencilLine, Eye, BookmarkPlus } from "lucide-react";
+import { Trash, PencilLine, Eye, BookmarkPlus } from "lucide-react";
 import { ConfirmModal } from "../modal/ConfirmModal";
 import { useModal } from "../modal/ModalProvider";
 import { useDeletePost } from "@/features/posts/hooks";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useSessionUser } from "@/features/auth/hooks";
 import { useToggleLike } from "@/features/likes/hooks";
 import { ModifyCollectionItemModal } from "../modal/ModifyCollectionItemModal";
+import { LikeButton } from "../common/LikeButton";
 
 export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
   const { data: user } = useSessionUser();
@@ -88,37 +89,6 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
     like.mutate({ resourceType: RESOURCE_TYPES.POST, resourceId: data.id });
   }
 
-  function likeFeature() {
-    if (data.likedByMe) {
-      return (
-        <div className="flex gap-1 items-center">
-          <Button
-            variant="ghost"
-            // className="cursor-pointer"
-            onClick={handleLike}
-            className="cursor-pointer transition-transform hover:scale-110"
-          >
-            <ThumbsUp fill="#000000" color="#000000" />
-          </Button>
-          {data.likeCount}
-        </div>
-      );
-    } else {
-      return (
-        <div className="flex gap-1 items-center">
-          <Button
-            variant="ghost"
-            onClick={handleLike}
-            className="cursor-pointer transition-transform hover:scale-110"
-          >
-            <ThumbsUp onClick={handleLike} />
-          </Button>
-          {data.likeCount}
-        </div>
-      );
-    }
-  }
-
   return (
     <Card className="p-4">
       <div className="flex justify-between">
@@ -154,7 +124,12 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
           <div className="flex gap-1">
             <Eye /> {data.viewCount}
           </div>
-          {user && likeFeature()}
+          <LikeButton
+            isOwner={isOwner}
+            likedByMe={data.likedByMe}
+            likeCount={data.likeCount}
+            onLike={handleLike}
+          />
         </div>
       </div>
     </Card>
