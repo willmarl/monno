@@ -1,6 +1,12 @@
 "use client";
 
-import { LayoutDashboard, Users, FileText, Logs } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
+  Logs,
+  MessageSquare,
+} from "lucide-react";
 import { useSessionUser } from "@/features/auth/hooks";
 import {
   Sidebar,
@@ -36,6 +42,11 @@ export const items = [
     title: "Posts",
     url: "/admin/posts",
     icon: FileText,
+  },
+  {
+    title: "Comments",
+    url: "/admin/comments",
+    icon: MessageSquare,
   },
   {
     title: "Logs",

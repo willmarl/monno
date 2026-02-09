@@ -13,22 +13,22 @@ export interface SearchParams {
 }
 
 /**
- * Admin users search params (extends base SearchParams)
+ * Admin search params (extends base SearchParams)
  */
 export interface AdminUserSearchParams extends SearchParams {
   roles?: string;
   status?: string;
 }
-
-/**
- * Admin posts search params (extends base SearchParams)
- */
 export interface AdminPostSearchParams extends SearchParams {
   deleted?: string;
 }
 
+export interface AdminCommentSearchParams extends SearchParams {
+  deleted?: string;
+}
+
 /**
- * Public posts search params (extends base SearchParams)
+ * Public search params (extends base SearchParams)
  */
 export interface PublicPostSearchParams extends SearchParams {}
 

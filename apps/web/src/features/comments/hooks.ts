@@ -6,6 +6,10 @@ import {
   fetchCommentById,
   updateComment,
   deleteComment,
+  fetchAdminComments,
+  fetchAdminCommentById,
+  deleteAdminComment,
+  restoreAdminComment,
 } from "./api";
 
 /**
@@ -94,6 +98,83 @@ export function useDeleteComment() {
     onSuccess: (_, id) => {
       qc.removeQueries({ queryKey: ["comment", id] });
       qc.invalidateQueries({ queryKey: ["comments-resource"] });
+    },
+    throwOnError: false,
+  });
+}
+
+//==============
+//   Admin
+//==============
+
+export function useAdminComments(
+  page: number = 1,
+  limit: number = 10,
+  query?: string,
+  options?: {
+    searchFields?: string;
+    sort?: string;
+    caseSensitive?: boolean;
+    deleted?: boolean;
+    resourceType?: string;
+  },
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: [
+      "adminComments",
+      page,
+      query,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+      options?.deleted,
+      options?.resourceType,
+    ],
+    queryFn: () =>
+      fetchAdminComments({
+        query,
+        limit,
+        offset,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+        deleted: options?.deleted,
+        resourceType: options?.resourceType,
+      }),
+  });
+}
+
+export function useAdminCommentById(id: number) {
+  return useQuery({
+    queryKey: ["adminComment", id],
+    queryFn: () => fetchAdminCommentById(id),
+    enabled: !!id,
+  });
+}
+
+export function useAdminDeleteComment() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteAdminComment,
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ["adminComments"] });
+      qc.removeQueries({ queryKey: ["adminComment", id] });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useAdminRestoreComment() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: restoreAdminComment,
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ["adminComments"] });
+      qc.invalidateQueries({ queryKey: ["adminComment", id] });
     },
     throwOnError: false,
   });

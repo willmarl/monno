@@ -16,6 +16,8 @@ export interface Comment {
   createdAt: string;
   updatedAt: string;
   creator: CommentCreator;
+  deleted?: boolean;
+  deletedAt?: string | null;
 }
 
 export type CommentsList = PaginatedResponse<Comment>;
