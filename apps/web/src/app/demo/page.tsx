@@ -1,30 +1,24 @@
 "use client";
 
-import { useModal } from "@/components/modal/ModalProvider";
-import { ModifyCollectionItemModal } from "@/components/modal/ModifyCollectionItemModal";
+import { usePostHogEvents } from "@/hooks/usePostHogEvents";
 import { Button } from "@/components/ui/button";
 
 export default function page() {
-  const { openModal, closeModal } = useModal();
+  const { captureEvent } = usePostHogEvents();
 
-  function handleClick(): void {
-    alert("clicked!");
-    closeModal();
-  }
+  const handleClick = () => {
+    // Track the demo button click
+    captureEvent("demo_button_clicked", {
+      buttonText: "Click me",
+    });
+
+    alert("Clicked!");
+  };
 
   return (
     <div>
-      <div>demo page</div>
-      <Button
-        onClick={() => {
-          openModal({
-            title: "TEST",
-            content: <ModifyCollectionItemModal postId={1} />,
-          });
-        }}
-      >
-        Click me to open modal
-      </Button>
+      <p>Hi. this is a demo page.</p>
+      <Button onClick={handleClick}>Click me</Button>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, LoginInput } from "../schemas/login.schema";
 import { useLogin } from "../hooks";
+import { usePostHogEvents } from "@/hooks/usePostHogEvents";
 import {
   Form,
   FormField,
@@ -30,9 +31,15 @@ export default function LoginForm() {
     formState: { isValid },
   } = form;
   const loginMutation = useLogin();
+  const { captureEvent } = usePostHogEvents();
 
   function onSubmit(data: LoginInput) {
     loginMutation.mutate(data);
+
+    // Track login attempt
+    captureEvent("login_attempted", {
+      username: data.username,
+    });
   }
 
   return (

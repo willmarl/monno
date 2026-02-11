@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, RegisterInput } from "../schemas/register.schema";
 import { useRegister } from "../hooks";
+import { usePostHogEvents } from "@/hooks/usePostHogEvents";
 import {
   Form,
   FormField,
@@ -31,6 +32,7 @@ export default function RegisterForm() {
     formState: { isValid },
   } = form;
   const registerMutation = useRegister();
+  const { captureEvent } = usePostHogEvents();
 
   function onSubmit(data: RegisterInput) {
     // Only send username, email, and password to backend
@@ -41,6 +43,12 @@ export default function RegisterForm() {
       password: data.password,
     };
     registerMutation.mutate(payload);
+
+    // Track signup completion
+    captureEvent("signup_completed", {
+      username: data.username,
+      hasEmail: !!data.email,
+    });
   }
 
   return (

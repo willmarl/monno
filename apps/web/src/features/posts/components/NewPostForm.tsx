@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { newPostSchema, NewPostInput } from "../schemas/newPost.schema";
 import { useCreatePost } from "../hooks";
+import { usePostHogEvents } from "@/hooks/usePostHogEvents";
 import {
   Form,
   FormField,
@@ -20,6 +21,7 @@ import { useRouter } from "next/navigation";
 
 export default function NewPostForm() {
   const router = useRouter();
+  const { captureEvent } = usePostHogEvents();
   const form = useForm<NewPostInput>({
     resolver: zodResolver(newPostSchema),
     mode: "onChange",
@@ -34,6 +36,14 @@ export default function NewPostForm() {
     newPostMutation.mutate(data, {
       onSuccess: (response) => {
         toast.success("Post created");
+
+        // Track post creation
+        captureEvent("post_created", {
+          postId: response.id,
+          titleLength: data.title.length,
+          contentLength: data.content.length,
+        });
+
         router.push(`/post/${response.id}`); // assuming response has an id
       },
     });
