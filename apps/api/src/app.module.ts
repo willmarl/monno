@@ -20,6 +20,7 @@ import { LikesModule } from './modules/likes/likes.module';
 import { ViewsModule } from './modules/views/views.module';
 import { CollectionsModule } from './modules/collections/collections.module';
 import { CommentsModule } from './modules/comments/comments.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -99,6 +100,7 @@ import { CommentsModule } from './modules/comments/comments.module';
     ViewsModule,
     CollectionsModule,
     CommentsModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserAwareThrottlerGuard, QueueModule],
