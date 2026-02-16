@@ -283,9 +283,10 @@ model Comment {
 
 // Subscription model
 model Subscription {
-  id     Int  @id @default(autoincrement())
-  userId Int  @unique // One subscription per user
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       Int    @id @default(autoincrement())
+  userId   Int    @unique // One subscription per user
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeId String @unique
 
   // Status
   status SubscriptionStatus // active, canceled, past_due, trialing, paused
@@ -305,12 +306,12 @@ model Subscription {
 
 // One-time product purchases (courses, ebooks, videos, etc.)
 model ProductPurchase {
-  id     Int  @id @default(autoincrement())
-  userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeId String @unique
 
-  productId String // "course-react-advanced", "ebook-stripe-guide", etc.
-
+  productId   String
   purchasedAt DateTime @default(now())
 
   @@unique([userId, productId]) // Can't buy same product twice
@@ -320,15 +321,14 @@ model ProductPurchase {
 
 // Credit/gem purchases
 model CreditPurchase {
-  id     Int  @id @default(autoincrement())
-  userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeId String @unique
 
   amount    Int // How many credits bought
   pricePaid Int // Amount paid in cents
   currency  String @default("usd")
-
-  stripeSessionId String? @unique
 
   purchasedAt DateTime @default(now())
 
