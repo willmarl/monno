@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -34,6 +35,9 @@ const DEFAULT_ADMIN_USER_SELECT = {
   statusReason: true,
   deleted: true,
   deletedAt: true,
+  subscription: {
+    select: { status: true, tier: true },
+  },
 };
 
 const DEFAULT_PUBLIC_USER_SELECT = {
@@ -332,7 +336,7 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-
+    Logger.log('TEST');
     return user;
   }
 

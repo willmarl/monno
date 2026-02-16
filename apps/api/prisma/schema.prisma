@@ -39,6 +39,25 @@ enum ResourceType {
   COMMENT
 }
 
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  TRIALING
+}
+
+enum SubscriptionTier {
+  FREE
+  BASIC
+  PRO
+}
+
+enum CreditTransactionType {
+  PURCHASE
+  SPEND
+  REFUND
+  ADMIN_ADJUST
+}
+
 model User {
   id                      Int                      @id @default(autoincrement())
   username                String                   @unique
@@ -73,6 +92,14 @@ model User {
   deletedAt               DateTime?
   auditLogs               AuditLog[]               @relation("AdminActor")
   targetedAuditLogs       AuditLog[]               @relation("AuditTarget")
+  // Stripe integration
+  stripeCustomerId        String?                  @unique
+  subscription            Subscription?
+  purchases               ProductPurchase[]
+  creditPurchases         CreditPurchase[]
+  creditTransactions      CreditTransaction[]
+  // Credits balance
+  credits                 Int                      @default(0)
 }
 
 model Session {
@@ -252,4 +279,76 @@ model Comment {
   @@index([resourceType])
   @@index([resourceId])
   @@index([deleted])
+}
+
+// Subscription model
+model Subscription {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique // One subscription per user
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Status
+  status SubscriptionStatus // active, canceled, past_due, trialing, paused
+  tier   SubscriptionTier // basic, pro (derived from stripePriceId)
+
+  // Billing period
+  periodStart DateTime
+  periodEnd   DateTime
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+// One-time product purchases (courses, ebooks, videos, etc.)
+model ProductPurchase {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId String // "course-react-advanced", "ebook-stripe-guide", etc.
+
+  purchasedAt DateTime @default(now())
+
+  @@unique([userId, productId]) // Can't buy same product twice
+  @@index([userId])
+  @@index([productId])
+}
+
+// Credit/gem purchases
+model CreditPurchase {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount    Int // How many credits bought
+  pricePaid Int // Amount paid in cents
+  currency  String @default("usd")
+
+  stripeSessionId String? @unique
+
+  purchasedAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// Credit transaction audit trail
+model CreditTransaction {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type          CreditTransactionType // PURCHASE, SPEND, REFUND, ADMIN_ADJUST
+  amount        Int // Amount changed
+  reason        String? // e.g., "article_unlock", "course_purchase"
+  balanceBefore Int // Balance before transaction
+  balanceAfter  Int // Balance after transaction
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
 }
