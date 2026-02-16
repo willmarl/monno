@@ -32,4 +32,11 @@ export class StripeController {
   async webhook(@Req() req, @Body() body) {
     return this.stripeService.handleWebhook(body);
   }
+
+  @Post('customer-portal')
+  @UseGuards(JwtAccessGuard)
+  async customerPortal(@Req() req) {
+    const userId = req.user.sub;
+    return this.stripeService.createCustomerPortal(userId);
+  }
 }

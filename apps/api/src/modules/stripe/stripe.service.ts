@@ -70,11 +70,6 @@ export class StripeService {
       // This shouldnt happen because of valid price ID check but just in case
     }
 
-    // TODO # check if purchase is applicable :
-    // make canceling sub endpoint? actually theres customer portal. /create-portal-session
-    // handle auto renew sub
-    // handle payment fail
-
     const mode = priceInfo.type === 'subscription' ? 'subscription' : 'payment';
 
     // ======================================
@@ -158,8 +153,9 @@ export class StripeService {
 
   // MAKE HANDLER FOR EACH PRODUCT/TYPE FOR EACH PRICE
   // remove logs when finish implmenting
-  // Update prisma schema to store stripe session ids just in case
   // Extract the logic into something like ./handlers/subscription-created.ts credits-added.ts
+  // handle auto renew sub
+  // handle payment fail
   async handleWebhook(event) {
     switch (event.type) {
       case 'checkout.session.completed':
@@ -275,5 +271,21 @@ export class StripeService {
     }
 
     return { received: true };
+  }
+
+  async createCustomerPortal(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    const stripe = this.getStripeClient();
+    if (!user?.stripeCustomerId) {
+      throw new BadRequestException('User is not stripe customer');
+    }
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: user.stripeCustomerId,
+      return_url: `http://localhost:3000`, // Where to return after
+    });
+
+    return { url: portalSession.url };
   }
 }
