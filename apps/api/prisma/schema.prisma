@@ -289,8 +289,9 @@ model Subscription {
   stripeId String @unique
 
   // Status
-  status SubscriptionStatus // active, canceled, past_due, trialing, paused
-  tier   SubscriptionTier // basic, pro (derived from stripePriceId)
+  status  SubscriptionStatus // active, canceled, past_due, trialing, paused
+  tier    SubscriptionTier // basic, pro (derived from stripePriceId)
+  nexTier SubscriptionTier?
 
   // Billing period
   periodStart DateTime

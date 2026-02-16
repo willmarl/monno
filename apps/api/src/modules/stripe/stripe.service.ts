@@ -31,6 +31,8 @@ export class StripeService {
     return new Stripe(apiKey);
   }
 
+  // Todo for all funcs in this file. toggle option to send email
+
   async createCheckoutSession(userId: number, data: CreateCheckoutSessionDto) {
     // Get or create Stripe customer
     const user = await this.prisma.user.findUnique({
@@ -75,7 +77,11 @@ export class StripeService {
     // ======================================
     // if subscription price logic
     // ======================================
-    if (priceInfo.type === 'subscription') {
+    const userTier = await this.prisma.subscription.findUnique({
+      where: { userId: user.id },
+      select: { tier: true },
+    });
+    if (userTier && priceInfo.type === 'subscription') {
       const userTier = await this.prisma.subscription.findUnique({
         where: { userId: user.id },
         select: { tier: true },
@@ -85,9 +91,12 @@ export class StripeService {
         throw new BadRequestException(`User already ${priceInfo.name} tier`);
       }
 
-      // if upgrading to better tier, sub.update (proration_behavior)
+      // mayber add check that on stripe's side user is also on basic tier
+
       // FREE to BASIC || PRO is just normal checkout.
       // If more tiers then put logic here
+
+      // if upgrading to better tier, sub.update (proration_behavior)
       if (userTier?.tier === 'BASIC' && priceInfo.name === 'PRO') {
         // 1. Get their current subscription
         const subscriptions = await stripe.subscriptions.list({
@@ -103,17 +112,58 @@ export class StripeService {
           items: [
             {
               id: subscription.items.data[0].id,
-              price: priceInfo.id,
+              price: STRIPE_SUBSCRIPTION_PRICES.PRO.id,
             },
           ],
           proration_behavior: 'create_prorations',
         });
 
-        return `successfully updated subscription for user ${user.id}`;
-      }
+        // 3. Update my DB
+        const updatedUser = await this.prisma.subscription.update({
+          where: { userId: user.id },
+          data: {
+            tier: 'PRO',
+          },
+        });
 
-      // if downgrading/canceling deny. tell to use customer portal endpoint
+        return `successfully updated subscription tier from ${userTier.tier} to ${STRIPE_SUBSCRIPTION_PRICES.PRO.tier} for user ${user.username}`;
+      }
+      // if downgrading from PRO to BASIC
       if (userTier?.tier === 'PRO' && priceInfo.name === 'BASIC') {
+        // 1. Get their current subscription
+        const subscriptions = await stripe.subscriptions.list({
+          customer: customerId,
+          status: 'active',
+          limit: 1,
+        });
+
+        const subscription = subscriptions.data[0];
+
+        // 2. Update it directly - Stripe charges the card on file
+        const updated = await stripe.subscriptions.update(subscription.id, {
+          items: [
+            {
+              id: subscription.items.data[0].id,
+              price: STRIPE_SUBSCRIPTION_PRICES.BASIC.id,
+            },
+          ],
+          proration_behavior: 'create_prorations',
+        });
+
+        // 3. Update my DB
+        const updatedUser = await this.prisma.subscription.update({
+          where: { userId: user.id },
+          data: {
+            nexTier: 'BASIC',
+          },
+        });
+        return `successfully downgrade subscription tier from ${userTier.tier} to ${STRIPE_SUBSCRIPTION_PRICES.BASIC.tier} for user ${user.username}`;
+      }
+      // if canceling deny. tell to use customer portal endpoint
+      if (
+        userTier?.tier === 'PRO' ||
+        (userTier?.tier === 'BASIC' && priceInfo.name === 'FREE')
+      ) {
         throw new BadRequestException(
           'Use customer portal. endpoint is /stripe/customer-portal',
         );
@@ -157,6 +207,10 @@ export class StripeService {
   // handle auto renew sub
   // handle payment fail
   async handleWebhook(event) {
+    // Logger.log('===============');
+    // Logger.log('===============');
+    // Logger.log('===============');
+    // Logger.log(event);
     switch (event.type) {
       case 'checkout.session.completed':
         // Get user by stripeCustomerId (more efficient - it's indexed)
@@ -179,28 +233,30 @@ export class StripeService {
             event.data.object.subscription,
           );
           const subPriceId = sub['plan']['id'];
-          const priceInfo = STRIPE_PRICE_LOOKUP[
-            subPriceId as keyof typeof STRIPE_PRICE_LOOKUP
-          ] as any;
-          const newTier = priceInfo?.tier || 'BASIC';
+          const priceInfo = getPriceInfo(subPriceId);
+          const newTier = priceInfo?.name;
+          const validTiers = ['FREE', 'BASIC', 'PRO'];
+          if (!newTier || !validTiers.includes(newTier)) {
+            throw new InternalServerErrorException('Invalid tier name');
+          }
 
           await this.prisma.subscription.upsert({
             where: { userId: user.id },
             create: {
               userId: user.id,
-              stripeId: event.subscription,
+              stripeId: event.data.object.id,
               status: 'ACTIVE',
-              tier: newTier,
+              tier: newTier as any,
               periodStart: new Date(
-                sub.items.data[0].current_period_end * 1000,
+                sub.items.data[0].current_period_start * 1000,
               ),
               periodEnd: new Date(sub.items.data[0].current_period_end * 1000),
             },
             update: {
               status: 'ACTIVE',
-              tier: newTier,
+              tier: newTier as any,
               periodStart: new Date(
-                sub.items.data[0].current_period_end * 1000,
+                sub.items.data[0].current_period_start * 1000,
               ),
               periodEnd: new Date(sub.items.data[0].current_period_end * 1000),
             },
@@ -258,11 +314,44 @@ export class StripeService {
             });
           }
         }
-        // Logger.log('===============');
-        // Logger.log('===============');
-        // Logger.log('===============');
-        // Logger.log(item);
 
+        break;
+      // ###################################
+      // For any subscription update check for nextTier
+      // ###################################
+      case 'correct tier/nextier':
+        Logger.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1');
+        break;
+      // User cancels subscription via customer portal
+      // Resub after cance
+      // cancel then immidietly resub
+      case 'customer.subscription.updated':
+        // Detect if cancel
+        if (event.data.object.cancel_at) {
+          const user = await this.prisma.user.findUnique({
+            where: { stripeCustomerId: event.data.object.customer },
+          });
+          if (!user) {
+            throw new InternalServerErrorException(
+              'User does not exist on my side but does on stripe',
+            );
+          }
+          const updatedUser = await this.prisma.subscription.update({
+            where: { userId: user.id },
+            data: {
+              tier: 'FREE',
+            },
+          });
+        }
+
+        break;
+      // subscription downgraded
+      case 'subscription downgraded':
+        Logger.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+        break;
+      // Check if sub is renewed
+      case 'invoice.payment_succeded':
+        Logger.log('***********************');
         break;
       default:
         Logger.log('Unhandled event type');
