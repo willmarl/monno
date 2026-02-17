@@ -154,7 +154,7 @@ export class StripeService {
         const updatedUser = await this.prisma.subscription.update({
           where: { userId: user.id },
           data: {
-            nexTier: 'BASIC',
+            nextTier: 'BASIC',
           },
         });
         return `successfully downgrade subscription tier from ${userTier.tier} to ${STRIPE_SUBSCRIPTION_PRICES.BASIC.tier} for user ${user.username}`;
@@ -207,11 +207,11 @@ export class StripeService {
   // handle auto renew sub
   // handle payment fail
   async handleWebhook(event) {
-    // Logger.log('===============');
-    // Logger.log('===============');
-    // Logger.log('===============');
-    // Logger.log(event);
+    const stripe = this.getStripeClient();
     switch (event.type) {
+      // ============================
+      // confirm payment for new subs and one time payments
+      // ============================
       case 'checkout.session.completed':
         // Get user by stripeCustomerId (more efficient - it's indexed)
         const user = await this.prisma.user.findUnique({
@@ -222,8 +222,6 @@ export class StripeService {
           Logger.warn('Customer not found:', event.data.object.customer);
           break;
         }
-
-        const stripe = this.getStripeClient();
 
         // -----------------------------
         // Subscription
@@ -314,20 +312,79 @@ export class StripeService {
             });
           }
         }
+        break;
+
+      // ============================
+      // subscription events
+      // ============================
+      // User cancels or uncancels subscription via customer portal
+      case 'customer.subscription.updated':
+        const userForUpdate = await this.prisma.user.findUnique({
+          where: { stripeCustomerId: event.data.object.customer },
+        });
+        if (!userForUpdate) {
+          throw new InternalServerErrorException(
+            'User does not exist on my side but does on stripe',
+          );
+        }
+
+        // Detect if cancel scheduled
+        if (event.data.object.cancel_at) {
+          // User canceled - set nextTier='FREE' for end of billing cycle
+          await this.prisma.subscription.update({
+            where: { userId: userForUpdate.id },
+            data: {
+              nextTier: 'FREE',
+            },
+          });
+        } else {
+          // User UNCANCELED - clear any pending tier change
+          // Check if there was a pending change
+          const existingSub = await this.prisma.subscription.findUnique({
+            where: { userId: userForUpdate.id },
+            select: { nextTier: true, tier: true },
+          });
+
+          if (existingSub?.nextTier === 'FREE') {
+            // They uncanceled - restore the tier by clearing nextTier
+            await this.prisma.subscription.update({
+              where: { userId: userForUpdate.id },
+              data: {
+                nextTier: null,
+              },
+            });
+          }
+        }
+        break;
+
+      // Cancelation fully complete. sets current tier to FREE
+      case 'customer.subscription.deleted':
+        const userToDelete = await this.prisma.user.findUnique({
+          where: { stripeCustomerId: event.data.object.customer },
+        });
+        if (!userToDelete) {
+          throw new InternalServerErrorException(
+            'User does not exist on my side but does on stripe',
+          );
+        }
+
+        await this.prisma.subscription.update({
+          where: { userId: userToDelete.id },
+          data: {
+            status: 'CANCELED',
+            tier: 'FREE',
+            nextTier: null,
+          },
+        });
 
         break;
-      // ###################################
-      // For any subscription update check for nextTier
-      // ###################################
-      case 'correct tier/nextier':
-        Logger.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1');
-        break;
-      // User cancels subscription via customer portal
-      // Resub after cance
-      // cancel then immidietly resub
-      case 'customer.subscription.updated':
-        // Detect if cancel
-        if (event.data.object.cancel_at) {
+
+      // Check if sub is renewed. check by billing_reason
+      case 'invoice.payment_succeeded':
+        if (event.data.object.billing_reason === 'subscription_cycle') {
+          // renew sub by updating my DB period start/end and tier
+          const mainInfo = event.data.object.lines.data[0];
+
           const user = await this.prisma.user.findUnique({
             where: { stripeCustomerId: event.data.object.customer },
           });
@@ -336,22 +393,20 @@ export class StripeService {
               'User does not exist on my side but does on stripe',
             );
           }
-          const updatedUser = await this.prisma.subscription.update({
+          const priceId = mainInfo.pricing.price_details.price;
+          const priceInfo = getPriceInfo(priceId);
+          const sub = await this.prisma.subscription.update({
             where: { userId: user.id },
             data: {
-              tier: 'FREE',
+              status: 'ACTIVE',
+              tier: priceInfo?.name as any,
+              nextTier: null,
+              periodStart: new Date(mainInfo.period.start * 1000),
+              periodEnd: new Date(mainInfo.period.end * 1000),
+              stripeId: event.data.object.id,
             },
           });
         }
-
-        break;
-      // subscription downgraded
-      case 'subscription downgraded':
-        Logger.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
-        break;
-      // Check if sub is renewed
-      case 'invoice.payment_succeded':
-        Logger.log('***********************');
         break;
       default:
         Logger.log('Unhandled event type');
