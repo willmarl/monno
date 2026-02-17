@@ -111,7 +111,7 @@ export function getPriceInfo(priceId: string) {
 
   return {
     name: priceName,
-    category: priceData.type, // 'subscription' | 'course' | 'credits'
+    category: priceData.type, // 'subscription' | 'product' | 'credits'
     ...priceData, // all other info: amount, tier, credits, etc.
   };
 }

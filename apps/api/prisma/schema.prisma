@@ -52,6 +52,11 @@ enum SubscriptionTier {
   PRO
 }
 
+enum ProductStatus {
+  ACTIVE
+  REFUNDED
+}
+
 enum CreditTransactionType {
   PURCHASE
   SPEND
@@ -308,13 +313,15 @@ model Subscription {
 
 // One-time product purchases (courses, ebooks, videos, etc.)
 model ProductPurchase {
-  id       Int    @id @default(autoincrement())
-  userId   Int
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stripeId String @unique
+  id        Int    @id @default(autoincrement())
+  userId    Int
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeId  String @unique
+  productId String
 
-  productId   String
-  purchasedAt DateTime @default(now())
+  status      ProductStatus @default(ACTIVE)
+  refundedAt  DateTime?
+  purchasedAt DateTime      @default(now())
 
   @@unique([userId, productId]) // Can't buy same product twice
   @@index([userId])
@@ -339,9 +346,10 @@ model CreditPurchase {
 
 // Credit transaction audit trail
 model CreditTransaction {
-  id     Int  @id @default(autoincrement())
-  userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       Int     @id @default(autoincrement())
+  userId   Int
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeId String?
 
   type          CreditTransactionType // PURCHASE, SPEND, REFUND, ADMIN_ADJUST
   amount        Int // Amount changed

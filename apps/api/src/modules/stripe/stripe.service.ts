@@ -173,9 +173,12 @@ export class StripeService {
     // if one time price logic
     // ======================================
     if (priceInfo.type === 'product') {
-      // check if user trying to buy product already owned
+      // check if user trying to buy product already owned (only ACTIVE purchases)
       const usersProducts = await this.prisma.productPurchase.findMany({
-        where: { userId: user.id },
+        where: {
+          userId: user.id,
+          status: 'ACTIVE',
+        },
       });
       const alreadyOwned = usersProducts.some(
         (p) => p.productId === priceInfo.productId,
@@ -195,17 +198,17 @@ export class StripeService {
           quantity: 1,
         },
       ],
+      metadata: {
+        userId: user.id,
+        priceId: priceInfo.id,
+      },
       mode: mode,
     });
 
+    // return session;
     return { url: session.url };
   }
 
-  // MAKE HANDLER FOR EACH PRODUCT/TYPE FOR EACH PRICE
-  // remove logs when finish implmenting
-  // Extract the logic into something like ./handlers/subscription-created.ts credits-added.ts
-  // handle auto renew sub
-  // handle payment fail
   async handleWebhook(event) {
     const stripe = this.getStripeClient();
     switch (event.type) {
@@ -213,6 +216,19 @@ export class StripeService {
       // confirm payment for new subs and one time payments
       // ============================
       case 'checkout.session.completed':
+        // set metadata. not needed for confirm payments but will help with refund
+        const paymentIntentId = event.data.object.payment_intent;
+        const sessionMetadata = event.data.object.metadata;
+        const updatedPaymentIntent = await stripe.paymentIntents.update(
+          paymentIntentId,
+          {
+            metadata: {
+              userId: sessionMetadata.userId,
+              priceId: sessionMetadata.priceId,
+            },
+          },
+        );
+
         // Get user by stripeCustomerId (more efficient - it's indexed)
         const user = await this.prisma.user.findUnique({
           where: { stripeCustomerId: event.data.object.customer },
@@ -274,13 +290,32 @@ export class StripeService {
           ] as any;
 
           if (priceInfo?.type === 'product') {
-            // Idempotency: check if product already purchased
-            const existingPurchase =
-              await this.prisma.productPurchase.findUnique({
-                where: { stripeId: event.data.object.id },
-              });
+            // check if need to create or update
+            const usersProduct = await this.prisma.productPurchase.findUnique({
+              where: {
+                userId_productId: {
+                  userId: user.id,
+                  productId: priceInfo.productId,
+                },
+              },
+            });
 
-            if (!existingPurchase) {
+            if (usersProduct) {
+              //it exists which means its refunded. update it
+              await this.prisma.productPurchase.update({
+                where: {
+                  userId_productId: {
+                    userId: user.id,
+                    productId: priceInfo.productId,
+                  },
+                },
+                data: {
+                  refundedAt: null,
+                  status: 'ACTIVE',
+                },
+              });
+            } else {
+              // first time bought, no refund history. create
               await this.prisma.productPurchase.create({
                 data: {
                   userId: user.id,
@@ -430,10 +465,6 @@ export class StripeService {
 
       // Payment failed for subscription renewal or one-time purchase
       case 'payment_intent.payment_failed':
-        // Logger.log('============');
-        // Logger.log('============');
-        // Logger.log('============');
-        // Logger.log(event);
         const userForFailure = await this.prisma.user.findUnique({
           where: { stripeCustomerId: event.data.object.customer },
         });
@@ -466,6 +497,78 @@ export class StripeService {
         }
         break;
 
+      case 'charge.refunded':
+        const paymentId = event.data.object.payment_intent;
+        const paymentIntentInfo =
+          await stripe.paymentIntents.retrieve(paymentId);
+        const metadata = paymentIntentInfo.metadata;
+        const priceInfo = getPriceInfo(metadata.priceId);
+        Logger.log('============');
+        Logger.log(event);
+        Logger.log('---------------');
+        Logger.log(paymentIntentInfo);
+        Logger.log('===========');
+
+        const userToRefund = await this.prisma.user.findUnique({
+          where: { id: Number(metadata.userId) },
+        });
+
+        if (!userToRefund) {
+          throw new InternalServerErrorException(
+            'User does not exist on my side',
+          );
+        }
+        // ----------------------
+        // credits refund logic
+        // ----------------------
+        if (priceInfo?.type == 'credits') {
+          const balanceBefore = userToRefund.credits;
+          const creditsToSubtract = priceInfo.credits;
+
+          await this.prisma.user.update({
+            where: { id: userToRefund.id },
+            data: {
+              credits: { decrement: creditsToSubtract },
+            },
+          });
+
+          await this.prisma.creditTransaction.create({
+            data: {
+              userId: userToRefund.id,
+              type: 'REFUND',
+              amount: creditsToSubtract,
+              balanceBefore: balanceBefore,
+              balanceAfter: balanceBefore - creditsToSubtract,
+            },
+          });
+        }
+        // ----------------------
+        // product refund logic
+        // ----------------------
+        if (priceInfo?.type == 'product') {
+          const refundedProduct = await this.prisma.productPurchase.update({
+            where: {
+              userId_productId: {
+                userId: userToRefund.id,
+                productId: priceInfo.productId,
+              },
+            },
+            data: {
+              status: 'REFUNDED',
+              refundedAt: new Date(),
+            },
+          });
+        }
+        // ----------------------
+        // subscription refund logic
+        // ----------------------
+        if (priceInfo?.type == 'subscription') {
+          // Subscription refunds don't change subscription status.
+          // Users must explicitly cancel via customer portal.
+          // Refund is just a payment reversal.
+        }
+
+        break;
       default:
         Logger.log('Unhandled event type');
         // Logger.log('Unhandled event type:', event.type);
