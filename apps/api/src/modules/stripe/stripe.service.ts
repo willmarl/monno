@@ -274,42 +274,61 @@ export class StripeService {
           ] as any;
 
           if (priceInfo?.type === 'product') {
-            await this.prisma.productPurchase.create({
-              data: {
-                userId: user.id,
-                stripeId: event.data.object.id,
-                productId: priceInfo.productId,
-              },
-            });
+            // Idempotency: check if product already purchased
+            const existingPurchase =
+              await this.prisma.productPurchase.findUnique({
+                where: { stripeId: event.data.object.id },
+              });
+
+            if (!existingPurchase) {
+              await this.prisma.productPurchase.create({
+                data: {
+                  userId: user.id,
+                  stripeId: event.data.object.id,
+                  productId: priceInfo.productId,
+                },
+              });
+            }
           }
 
           if (priceInfo?.type === 'credits') {
-            const balanceBefore = user.credits;
-            const creditsToAdd = priceInfo.credits;
-            await this.prisma.creditPurchase.create({
-              data: {
-                userId: user.id,
-                stripeId: event.data.object.id,
-                amount: creditsToAdd,
-                pricePaid: item.data[0].amount_total,
-                currency: item.data[0].price?.currency,
-              },
-            });
-            await this.prisma.user.update({
-              where: { id: user.id },
-              data: {
-                credits: { increment: creditsToAdd },
-              },
-            });
-            await this.prisma.creditTransaction.create({
-              data: {
-                userId: user.id,
-                type: 'PURCHASE',
-                amount: creditsToAdd,
-                balanceBefore: balanceBefore,
-                balanceAfter: balanceBefore + creditsToAdd,
-              },
-            });
+            // Idempotency: check if credits already purchased
+            const existingPurchase =
+              await this.prisma.creditPurchase.findUnique({
+                where: { stripeId: event.data.object.id },
+              });
+
+            if (!existingPurchase) {
+              const balanceBefore = user.credits;
+              const creditsToAdd = priceInfo.credits;
+
+              await this.prisma.creditPurchase.create({
+                data: {
+                  userId: user.id,
+                  stripeId: event.data.object.id,
+                  amount: creditsToAdd,
+                  pricePaid: item.data[0].amount_total,
+                  currency: item.data[0].price?.currency,
+                },
+              });
+
+              await this.prisma.user.update({
+                where: { id: user.id },
+                data: {
+                  credits: { increment: creditsToAdd },
+                },
+              });
+
+              await this.prisma.creditTransaction.create({
+                data: {
+                  userId: user.id,
+                  type: 'PURCHASE',
+                  amount: creditsToAdd,
+                  balanceBefore: balanceBefore,
+                  balanceAfter: balanceBefore + creditsToAdd,
+                },
+              });
+            }
           }
         }
         break;
@@ -408,6 +427,45 @@ export class StripeService {
           });
         }
         break;
+
+      // Payment failed for subscription renewal or one-time purchase
+      case 'payment_intent.payment_failed':
+        // Logger.log('============');
+        // Logger.log('============');
+        // Logger.log('============');
+        // Logger.log(event);
+        const userForFailure = await this.prisma.user.findUnique({
+          where: { stripeCustomerId: event.data.object.customer },
+        });
+
+        if (userForFailure) {
+          Logger.warn(
+            `Payment failed for user ${userForFailure.id}. Amount: ${event.data.object.amount / 100} ${event.data.object.currency.toUpperCase()}. Reason: ${event.data.object.last_payment_error?.message || 'Unknown'}`,
+          );
+
+          // Mark subscription as past_due if this is a subscription payment
+          const subscription = await this.prisma.subscription.findUnique({
+            where: { userId: userForFailure.id },
+          });
+
+          if (subscription && subscription.status === 'ACTIVE') {
+            await this.prisma.subscription.update({
+              where: { userId: userForFailure.id },
+              data: {
+                status: 'PAST_DUE',
+              },
+            });
+            Logger.warn(
+              `Subscription marked as PAST_DUE for user ${userForFailure.id}`,
+            );
+          }
+        } else {
+          Logger.warn(
+            `Payment failed for unknown customer ${event.data.object.customer}`,
+          );
+        }
+        break;
+
       default:
         Logger.log('Unhandled event type');
         // Logger.log('Unhandled event type:', event.type);
