@@ -21,6 +21,7 @@ import { ViewsModule } from './modules/views/views.module';
 import { CollectionsModule } from './modules/collections/collections.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { StripeModule } from './modules/stripe/stripe.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -101,6 +102,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     CollectionsModule,
     CommentsModule,
     AnalyticsModule,
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserAwareThrottlerGuard, QueueModule],
