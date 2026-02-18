@@ -17,12 +17,6 @@ export class RefundHandler {
     const metadata = paymentIntentInfo.metadata;
     const priceInfo = getPriceInfo(metadata.priceId);
 
-    Logger.log('============');
-    Logger.log(event);
-    Logger.log('---------------');
-    Logger.log(paymentIntentInfo);
-    Logger.log('===========');
-
     const userToRefund = await this.prisma.user.findUnique({
       where: { id: Number(metadata.userId) },
     });
