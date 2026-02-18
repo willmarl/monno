@@ -38,6 +38,7 @@ const DEFAULT_ADMIN_USER_SELECT = {
   subscription: {
     select: { status: true, tier: true },
   },
+  credits: true,
 };
 
 const DEFAULT_PUBLIC_USER_SELECT = {
@@ -336,7 +337,6 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-    Logger.log('TEST');
     return user;
   }
 
