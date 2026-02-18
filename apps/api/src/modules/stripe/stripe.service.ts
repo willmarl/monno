@@ -13,6 +13,10 @@ import {
   STRIPE_PRICE_LOOKUP,
   ALL_VALID_PRICE_IDS,
   VALID_SUB_PRICE_IDS,
+  TIER_HIERARCHY,
+  TierName,
+  isUpgrade,
+  isDowngrade,
 } from '../../common/constants/stripe.constants';
 import Stripe from 'stripe';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto';
@@ -82,23 +86,28 @@ export class StripeService {
       select: { tier: true },
     });
     if (userTier && priceInfo.type === 'subscription') {
-      const userTier = await this.prisma.subscription.findUnique({
-        where: { userId: user.id },
-        select: { tier: true },
-      });
-      // check if user buying same tier sub
-      if (userTier?.tier === priceInfo.name) {
-        throw new BadRequestException(`User already ${priceInfo.name} tier`);
+      const currentTier = userTier.tier as TierName;
+      const newTier = priceInfo.name as TierName;
+
+      // Check if user already on this tier
+      if (currentTier === newTier) {
+        throw new BadRequestException(`User already on ${newTier} tier`);
       }
 
-      // mayber add check that on stripe's side user is also on basic tier
+      // Get price from constants
+      const newPrice =
+        STRIPE_SUBSCRIPTION_PRICES[
+          newTier as keyof typeof STRIPE_SUBSCRIPTION_PRICES
+        ];
 
-      // FREE to BASIC || PRO is just normal checkout.
-      // If more tiers then put logic here
+      if (!newPrice) {
+        throw new BadRequestException(`Price not found for tier: ${newTier}`);
+      }
 
-      // if upgrading to better tier, sub.update (proration_behavior)
-      if (userTier?.tier === 'BASIC' && priceInfo.name === 'PRO') {
-        // 1. Get their current subscription
+      // ===============================
+      // UPGRADE: To a higher tier
+      // ===============================
+      if (isUpgrade(currentTier, newTier)) {
         const subscriptions = await stripe.subscriptions.list({
           customer: customerId,
           status: 'active',
@@ -107,30 +116,39 @@ export class StripeService {
 
         const subscription = subscriptions.data[0];
 
-        // 2. Update it directly - Stripe charges the card on file
-        const updated = await stripe.subscriptions.update(subscription.id, {
+        // Update subscription on Stripe (proration charges immediately)
+        await stripe.subscriptions.update(subscription.id, {
           items: [
             {
               id: subscription.items.data[0].id,
-              price: STRIPE_SUBSCRIPTION_PRICES.PRO.id,
+              price: newPrice.id,
             },
           ],
           proration_behavior: 'create_prorations',
         });
 
-        // 3. Update my DB
-        const updatedUser = await this.prisma.subscription.update({
+        // Update database
+        await this.prisma.subscription.update({
           where: { userId: user.id },
           data: {
-            tier: 'PRO',
+            tier: newTier,
           },
         });
 
-        return `successfully updated subscription tier from ${userTier.tier} to ${STRIPE_SUBSCRIPTION_PRICES.PRO.tier} for user ${user.username}`;
+        return `Successfully upgraded from ${currentTier} to ${newTier} for user ${user.username}`;
       }
-      // if downgrading from PRO to BASIC
-      if (userTier?.tier === 'PRO' && priceInfo.name === 'BASIC') {
-        // 1. Get their current subscription
+
+      // ===============================
+      // DOWNGRADE: To a lower tier
+      // ===============================
+      if (isDowngrade(currentTier, newTier)) {
+        // Prevent downgrade to FREE - use customer portal instead
+        if (newTier === 'FREE') {
+          throw new BadRequestException(
+            'To cancel subscription, use customer portal at /stripe/customer-portal',
+          );
+        }
+
         const subscriptions = await stripe.subscriptions.list({
           customer: customerId,
           status: 'active',
@@ -139,34 +157,26 @@ export class StripeService {
 
         const subscription = subscriptions.data[0];
 
-        // 2. Update it directly - Stripe charges the card on file
-        const updated = await stripe.subscriptions.update(subscription.id, {
+        // Update subscription on Stripe
+        await stripe.subscriptions.update(subscription.id, {
           items: [
             {
               id: subscription.items.data[0].id,
-              price: STRIPE_SUBSCRIPTION_PRICES.BASIC.id,
+              price: newPrice.id,
             },
           ],
           proration_behavior: 'create_prorations',
         });
 
-        // 3. Update my DB
-        const updatedUser = await this.prisma.subscription.update({
+        // Downgrade takes effect at the end of current billing period
+        await this.prisma.subscription.update({
           where: { userId: user.id },
           data: {
-            nextTier: 'BASIC',
+            nextTier: newTier,
           },
         });
-        return `successfully downgrade subscription tier from ${userTier.tier} to ${STRIPE_SUBSCRIPTION_PRICES.BASIC.tier} for user ${user.username}`;
-      }
-      // if canceling deny. tell to use customer portal endpoint
-      if (
-        userTier?.tier === 'PRO' ||
-        (userTier?.tier === 'BASIC' && priceInfo.name === 'FREE')
-      ) {
-        throw new BadRequestException(
-          'Use customer portal. endpoint is /stripe/customer-portal',
-        );
+
+        return `Successfully scheduled downgrade from ${currentTier} to ${newTier} for user ${user.username}`;
       }
     }
     // ======================================
@@ -190,8 +200,8 @@ export class StripeService {
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      success_url: 'https://example.com/success',
-      cancel_url: 'http://localhost:3000',
+      success_url: `${process.env.FRONTEND_URL}/checkout/success`,
+      cancel_url: `${process.env.FRONTEND_URL}/checkout/cancel`,
       line_items: [
         {
           price: data.priceId,
@@ -216,19 +226,32 @@ export class StripeService {
       // confirm payment for new subs and one time payments
       // ============================
       case 'checkout.session.completed':
-        // set metadata. not needed for confirm payments but will help with refund
+        // set metadata. not needed for confirm payments but will help with refund, update, etc
+        const subscriptionId = event.data.object.subscription;
         const paymentIntentId = event.data.object.payment_intent;
         const sessionMetadata = event.data.object.metadata;
-        const updatedPaymentIntent = await stripe.paymentIntents.update(
-          paymentIntentId,
-          {
-            metadata: {
-              userId: sessionMetadata.userId,
-              priceId: sessionMetadata.priceId,
+        if (paymentIntentId) {
+          const updatedPaymentIntent = await stripe.paymentIntents.update(
+            paymentIntentId,
+            {
+              metadata: {
+                userId: sessionMetadata.userId,
+                priceId: sessionMetadata.priceId,
+              },
             },
-          },
-        );
-
+          );
+        }
+        if (subscriptionId) {
+          const updatedSubscription = await stripe.subscriptions.update(
+            subscriptionId,
+            {
+              metadata: {
+                userId: sessionMetadata.userId,
+                priceId: sessionMetadata.priceId,
+              },
+            },
+          );
+        }
         // Get user by stripeCustomerId (more efficient - it's indexed)
         const user = await this.prisma.user.findUnique({
           where: { stripeCustomerId: event.data.object.customer },
@@ -240,17 +263,15 @@ export class StripeService {
         }
 
         // -----------------------------
-        // Subscription
+        // Set Subscription Active on my DB
         // -----------------------------
         if (event.data.object.subscription) {
           const sub = await stripe.subscriptions.retrieve(
             event.data.object.subscription,
           );
-          const subPriceId = sub['plan']['id'];
-          const priceInfo = getPriceInfo(subPriceId);
+          const priceInfo = getPriceInfo(event.data.object.metadata.priceId);
           const newTier = priceInfo?.name;
-          const validTiers = ['FREE', 'BASIC', 'PRO'];
-          if (!newTier || !validTiers.includes(newTier)) {
+          if (!newTier || !TIER_HIERARCHY.includes(newTier as TierName)) {
             throw new InternalServerErrorException('Invalid tier name');
           }
 
@@ -588,7 +609,7 @@ export class StripeService {
     }
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: user.stripeCustomerId,
-      return_url: `http://localhost:3000`, // Where to return after
+      return_url: `${process.env.FRONTEND_URL}/settings`, // Where to return after
     });
 
     return { url: portalSession.url };
