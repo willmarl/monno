@@ -11,10 +11,12 @@ import {
   Logger,
 } from '@nestjs/common';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
+import { StripeConfiguredGuard } from '../../common/guards/stripe-configured.guard';
 import { StripeService } from './stripe.service';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto';
 
 @Controller('stripe')
+@UseGuards(StripeConfiguredGuard)
 export class StripeController {
   constructor(private readonly stripeService: StripeService) {}
 
