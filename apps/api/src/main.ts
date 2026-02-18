@@ -16,6 +16,7 @@ import cookieParser from 'cookie-parser';
 import { setupBullBoard } from './modules/queue/bull-board.setup';
 import { QueueService } from './modules/queue/queue.service';
 import { SeedService } from './modules/admin/seed.service';
+import * as express from 'express';
 
 Print.log('Server running on port ' + process.env.PORT);
 Print.log('Database URL ' + process.env.DATABASE_URL);
@@ -33,6 +34,18 @@ async function bootstrap() {
     new CorrelationIdInterceptor(app.get(Logger)),
     new ProfilingInterceptor(app.get(Logger)),
   );
+
+  // Preserve raw body for Stripe webhook signature verification
+  app.use(
+    express.json({
+      verify: (req: any, res: any, buf: Buffer) => {
+        if (req.originalUrl.includes('/stripe/webhook')) {
+          req.rawBody = buf.toString('utf-8');
+        }
+      },
+    }),
+  );
+
   app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
