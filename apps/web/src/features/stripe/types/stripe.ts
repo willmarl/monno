@@ -1,16 +1,51 @@
 export type TierName = "FREE" | "BASIC" | "PRO";
+export type ProductStatus = "ACTIVE" | "REFUNDED";
+export type SubscriptionStatus =
+  | "ACTIVE"
+  | "CANCELED"
+  | "PAST_DUE"
+  | "TRIALING";
+export type CreditTransactionType =
+  | "PURCHASE"
+  | "SPEND"
+  | "REFUND"
+  | "ADMIN_ADJUST";
 
 export interface Subscription {
   id: number;
-  userId: number;
-  stripeId: string;
+  status: SubscriptionStatus;
   tier: TierName;
   nextTier: TierName | null;
-  status: "ACTIVE" | "PAST_DUE" | "CANCELED";
   periodStart: Date;
   periodEnd: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ProductPurchase {
+  id: number;
+  productId: string;
+  status: ProductStatus;
+  purchasedAt: Date;
+  refundedAt: Date | null;
+}
+
+export interface CreditPurchase {
+  id: number;
+  amount: number;
+  pricePaid: number;
+  currency: string;
+  purchasedAt: Date;
+}
+
+export interface CreditTransaction {
+  id: number;
+  type: CreditTransactionType;
+  amount: number;
+  reason: string | null;
+  balanceBefore: number;
+  balanceAfter: number;
+  createdAt: Date;
 }
 
 export interface CheckoutSessionRequest {

@@ -1,8 +1,14 @@
 import { PaginatedResponse } from "@/types/pagination";
+import { TierName } from "@/features/stripe/types/stripe";
 
 export type UserStatus = "ACTIVE" | "SUSPENDED" | "BANNED" | "DELETED";
 
 export type UsersList = PaginatedResponse<User>;
+
+interface SubscriptionData {
+  status: "ACTIVE" | "PAST_DUE" | "CANCELED";
+  tier: TierName;
+}
 
 export interface User {
   id: number;
@@ -24,6 +30,8 @@ export interface User {
   statusReason: string | null;
   deleted: boolean;
   deletedAt: Date | null;
+  subscription: SubscriptionData;
+  credits: number;
 }
 
 export interface PublicUser {
