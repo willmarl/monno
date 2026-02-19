@@ -3,6 +3,7 @@ import {
   Injectable,
   BadRequestException,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import {
@@ -279,5 +280,96 @@ export class StripeService {
     });
 
     return { url: portalSession.url };
+  }
+
+  async getUserSubscription(userId: number) {
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { userId },
+      select: {
+        id: true,
+        status: true,
+        tier: true,
+        nextTier: true,
+        periodStart: true,
+        periodEnd: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException('User has no subscription');
+    }
+
+    return subscription;
+  }
+
+  async getUserAllProducts(userId: number) {
+    const purchases = await this.prisma.productPurchase.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        productId: true,
+        status: true,
+        purchasedAt: true,
+        refundedAt: true,
+      },
+      orderBy: { purchasedAt: 'desc' },
+    });
+
+    return purchases;
+  }
+
+  async getUserOwnedProducts(userId: number) {
+    const purchases = await this.prisma.productPurchase.findMany({
+      where: {
+        userId,
+        status: 'ACTIVE',
+      },
+      select: {
+        id: true,
+        productId: true,
+        status: true,
+        purchasedAt: true,
+        refundedAt: true,
+      },
+      orderBy: { purchasedAt: 'desc' },
+    });
+
+    return purchases;
+  }
+
+  async getUserCreditPurchases(userId: number) {
+    const purchases = await this.prisma.creditPurchase.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        amount: true,
+        pricePaid: true,
+        currency: true,
+        purchasedAt: true,
+      },
+      orderBy: { purchasedAt: 'desc' },
+    });
+
+    return purchases;
+  }
+
+  async getUserCreditTransactions(userId: number) {
+    const transactions = await this.prisma.creditTransaction.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        type: true,
+        amount: true,
+        reason: true,
+        balanceBefore: true,
+        balanceAfter: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return transactions;
   }
 }
