@@ -1,6 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { Plans } from "./Plans";
-import { Courses } from "./Courses";
+import { Products } from "./Products";
+import { Credits } from "./Credits";
 
 export function PricingPage() {
   return (
@@ -11,8 +12,8 @@ export function PricingPage() {
           Upgrade your plan
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Choose the tier that fits your needs — or grab individual courses with
-          lifetime access.
+          Choose the tier that fits your needs — or grab individual products
+          with lifetime access.
         </p>
       </div>
 
@@ -22,16 +23,30 @@ export function PricingPage() {
       {/* Divider */}
       <Separator className="my-24" />
 
-      {/* One-time Courses Heading */}
+      {/* One-time Products Heading */}
       <div className="text-center mb-12">
-        <h2 className="text-3xl font-semibold mb-3">One-time Courses</h2>
+        <h2 className="text-3xl font-semibold mb-3">One-time Products</h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           Lifetime access — no subscription needed.
         </p>
       </div>
 
-      {/* One-time Courses */}
-      <Courses />
+      {/* One-time Products */}
+      <Products />
+
+      {/* Divider */}
+      <Separator className="my-24" />
+
+      {/* Credits Heading */}
+      <div className="text-center mb-12">
+        <h2 className="text-3xl font-semibold mb-3">Credits & Tokens</h2>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          Get credits for one-time purchases — use them anytime.
+        </p>
+      </div>
+
+      {/* Credits */}
+      <Credits />
     </main>
   );
 }
