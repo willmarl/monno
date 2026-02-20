@@ -23,6 +23,37 @@ import { SubscriptionDeleteHandler } from './handlers/webhook/subscription-delet
 import { InvoicePaymentHandler } from './handlers/webhook/invoice-payment.handler';
 import { PaymentFailureHandler } from './handlers/webhook/payment-failure.handler';
 import { RefundHandler } from './handlers/webhook/refund.handler';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+import { offsetPaginate } from 'src/common/pagination/offset-pagination';
+
+const DEFAULT_SUBSCRIPTION_SELECT = {
+  id: true,
+  status: true,
+  tier: true,
+  nextTier: true,
+  periodStart: true,
+  periodEnd: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+const DEFAULT_PRODUCTS_SELECT = {
+  id: true,
+  productId: true,
+  status: true,
+  purchasedAt: true,
+  refundedAt: true,
+};
+
+const DEFAULT_CREDITS_SELECT = {
+  id: true,
+  type: true,
+  amount: true,
+  reason: true,
+  balanceBefore: true,
+  balanceAfter: true,
+  createdAt: true,
+};
 
 @Injectable()
 export class StripeService {
@@ -285,16 +316,7 @@ export class StripeService {
   async getUserSubscription(userId: number) {
     const subscription = await this.prisma.subscription.findUnique({
       where: { userId },
-      select: {
-        id: true,
-        status: true,
-        tier: true,
-        nextTier: true,
-        periodStart: true,
-        periodEnd: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: DEFAULT_SUBSCRIPTION_SELECT,
     });
 
     if (!subscription) {
@@ -304,72 +326,43 @@ export class StripeService {
     return subscription;
   }
 
-  async getUserAllProducts(userId: number) {
-    const purchases = await this.prisma.productPurchase.findMany({
-      where: { userId },
-      select: {
-        id: true,
-        productId: true,
-        status: true,
-        purchasedAt: true,
-        refundedAt: true,
+  async getUserOwnedProducts(userId: number, pag: PaginationDto) {
+    const where = { userId: userId, status: 'ACTIVE' };
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
+      model: this.prisma.productPurchase,
+      limit: pag.limit ?? 10,
+      offset: pag.offset ?? 0,
+      query: {
+        where,
+        orderBy: { purchasedAt: 'desc' } as const,
+        select: DEFAULT_PRODUCTS_SELECT,
       },
-      orderBy: { purchasedAt: 'desc' },
     });
 
-    return purchases;
+    return {
+      items,
+      pageInfo,
+      ...(isRedirected && { isRedirected: true }),
+    };
   }
 
-  async getUserOwnedProducts(userId: number) {
-    const purchases = await this.prisma.productPurchase.findMany({
-      where: {
-        userId,
-        status: 'ACTIVE',
+  async getUserCreditTransactions(userId: number, pag: PaginationDto) {
+    const where = { userId: userId };
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
+      model: this.prisma.creditTransaction,
+      limit: pag.limit ?? 10,
+      offset: pag.offset ?? 0,
+      query: {
+        where,
+        orderBy: { createdAt: 'desc' } as const,
+        select: DEFAULT_CREDITS_SELECT,
       },
-      select: {
-        id: true,
-        productId: true,
-        status: true,
-        purchasedAt: true,
-        refundedAt: true,
-      },
-      orderBy: { purchasedAt: 'desc' },
     });
 
-    return purchases;
-  }
-
-  async getUserCreditPurchases(userId: number) {
-    const purchases = await this.prisma.creditPurchase.findMany({
-      where: { userId },
-      select: {
-        id: true,
-        amount: true,
-        pricePaid: true,
-        currency: true,
-        purchasedAt: true,
-      },
-      orderBy: { purchasedAt: 'desc' },
-    });
-
-    return purchases;
-  }
-
-  async getUserCreditTransactions(userId: number) {
-    const transactions = await this.prisma.creditTransaction.findMany({
-      where: { userId },
-      select: {
-        id: true,
-        type: true,
-        amount: true,
-        reason: true,
-        balanceBefore: true,
-        balanceAfter: true,
-        createdAt: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return transactions;
+    return {
+      items,
+      pageInfo,
+      ...(isRedirected && { isRedirected: true }),
+    };
   }
 }

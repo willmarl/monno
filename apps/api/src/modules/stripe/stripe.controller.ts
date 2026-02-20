@@ -19,6 +19,8 @@ import { OwnerOrAdminGuard } from '../../common/guards/owner-or-admin.guard';
 import { StripeService } from './stripe.service';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto';
 import Stripe from 'stripe';
+import { Query } from '@nestjs/common';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 
 @Controller('stripe')
 @UseGuards(StripeConfiguredGuard)
@@ -69,35 +71,39 @@ export class StripeController {
     return this.stripeService.createCustomerPortal(userId);
   }
 
-  @Get('subscription/:userId')
-  @UseGuards(JwtAccessGuard, OwnerOrAdminGuard)
-  async getUserSubscription(@Param('userId', ParseIntPipe) userId: number) {
+  @Get('subscription')
+  @UseGuards(JwtAccessGuard)
+  async getUserSubscription(@Req() req: any) {
+    const userId = req.user?.sub ?? null;
     return this.stripeService.getUserSubscription(userId);
   }
 
-  @Get('products/:userId')
-  @UseGuards(JwtAccessGuard, OwnerOrAdminGuard)
-  async getUserAllProducts(@Param('userId', ParseIntPipe) userId: number) {
-    return this.stripeService.getUserAllProducts(userId);
+  // @Get('products/:userId')
+  // @UseGuards(JwtAccessGuard, OwnerOrAdminGuard)
+  // async getUserAllProducts(@Query() pag: PaginationDto, @Param('userId', ParseIntPipe) userId: number) {
+  //   return this.stripeService.getUserAllProducts(userId, pag);
+  // }
+
+  @Get('products/owned/')
+  @UseGuards(JwtAccessGuard)
+  async getUserOwnedProducts(@Query() pag: PaginationDto, @Req() req: any) {
+    const userId = req.user?.sub ?? null;
+    return this.stripeService.getUserOwnedProducts(userId, pag);
   }
 
-  @Get('products/owned/:userId')
-  @UseGuards(JwtAccessGuard, OwnerOrAdminGuard)
-  async getUserOwnedProducts(@Param('userId', ParseIntPipe) userId: number) {
-    return this.stripeService.getUserOwnedProducts(userId);
-  }
+  // @Get('credit-purchases/:userId')
+  // @UseGuards(JwtAccessGuard, OwnerOrAdminGuard)
+  // async getUserCreditPurchases(@Param('userId', ParseIntPipe) userId: number) {
+  //   return this.stripeService.getUserCreditPurchases(userId);
+  // }
 
-  @Get('credit-purchases/:userId')
-  @UseGuards(JwtAccessGuard, OwnerOrAdminGuard)
-  async getUserCreditPurchases(@Param('userId', ParseIntPipe) userId: number) {
-    return this.stripeService.getUserCreditPurchases(userId);
-  }
-
-  @Get('credit-transactions/:userId')
-  @UseGuards(JwtAccessGuard, OwnerOrAdminGuard)
+  @Get('credit-transactions/')
+  @UseGuards(JwtAccessGuard)
   async getUserCreditTransactions(
-    @Param('userId', ParseIntPipe) userId: number,
+    @Query() pag: PaginationDto,
+    @Req() req: any,
   ) {
-    return this.stripeService.getUserCreditTransactions(userId);
+    const userId = req.user?.sub ?? null;
+    return this.stripeService.getUserCreditTransactions(userId, pag);
   }
 }
