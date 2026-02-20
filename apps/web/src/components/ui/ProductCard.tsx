@@ -1,26 +1,60 @@
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { ProductPurchase } from "@/features/stripe/types/stripe";
 
-interface ProductCardProps {
-  title: string;
-  description: string;
-  price: number;
-}
+export function ProductCard({ data }: { data: ProductPurchase }) {
+  const { productId, status, purchasedAt, refundedAt } = data;
 
-export function ProductCard({ title, description, price }: ProductCardProps) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "ACTIVE":
+        return "default";
+      case "REFUNDED":
+        return "secondary";
+      default:
+        return "outline";
+    }
+  };
+
   return (
-    <Card className="p-6 flex flex-col hover:border-border transition-colors">
-      <h3 className="text-xl font-semibold mb-2">{title}</h3>
-      <p className="text-muted-foreground mb-4 min-h-[3rem] flex-grow">
-        {description}
-      </p>
-      <div className="flex items-baseline mb-5">
-        <span className="text-2xl font-bold">${price}</span>
-        <span className="text-muted-foreground ml-2 text-sm">one-time</span>
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
+      {/* Image Section */}
+      <div className="relative w-full aspect-square bg-gradient-to-br from-blue-400 to-purple-300 overflow-hidden flex items-center justify-center">
+        <div className="text-center text-white">
+          <p className="text-sm font-medium opacity-70">Product Image</p>
+        </div>
       </div>
-      <Button variant="outline" className="w-full">
-        Purchase
-      </Button>
+
+      {/* Info Section */}
+      <div className="p-4 flex-1 flex flex-col justify-between">
+        {/* Title and Product ID */}
+        <div className="mb-3">
+          <h3 className="font-semibold text-sm line-clamp-2 mb-1">
+            Product {productId}
+          </h3>
+          <p className="text-xs text-muted-foreground">ID: {productId}</p>
+        </div>
+
+        {/* Status Badge */}
+        <div className="mb-3">
+          <Badge variant={getStatusColor(status) as any}>{status}</Badge>
+        </div>
+
+        {/* Dates */}
+        <div className="space-y-1 text-xs text-muted-foreground">
+          <div>
+            <span className="font-medium">Purchased:</span>{" "}
+            {format(new Date(purchasedAt), "MMM d, yyyy")}
+          </div>
+          {refundedAt && (
+            <div>
+              <span className="font-medium">Refunded:</span>{" "}
+              {format(new Date(refundedAt), "MMM d, yyyy")}
+            </div>
+          )}
+        </div>
+      </div>
     </Card>
   );
 }

@@ -1,4 +1,4 @@
-import { ProductCard } from "@/components/ui/ProductCard";
+import { ProductCard } from "@/components/pages/pricing/ProductCard";
 
 export function Products() {
   return (

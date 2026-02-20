@@ -19,6 +19,15 @@ export default function Header({ user }: { user: User | null }) {
   const router = useRouter();
   const logout = useLogout();
 
+  function DebugInfo() {
+    return (
+      <div className="flex gap-2 border-red-500 border">
+        <p>TIER:{user?.subscription.tier}</p>
+        <p>CREDITS:{user?.credits}</p>
+      </div>
+    );
+  }
+
   function LoggedIn() {
     if (!user) return null;
 
@@ -29,6 +38,10 @@ export default function Header({ user }: { user: User | null }) {
 
     const handleSettings = () => {
       router.push("/settings");
+    };
+
+    const handleProducts = () => {
+      router.push("/purchases");
     };
 
     const handleLogout = () => {
@@ -56,6 +69,9 @@ export default function Header({ user }: { user: User | null }) {
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={handleProfile}>Profile</DropdownMenuItem>
           <DropdownMenuItem onClick={handleSettings}>Settings</DropdownMenuItem>
+          <DropdownMenuItem onClick={handleProducts}>
+            Owned Products
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleLogout} variant="destructive">
             Logout
             <LogOut className="mr-2 h-4 w-4" />
@@ -84,6 +100,7 @@ export default function Header({ user }: { user: User | null }) {
         Monno
       </Link>
       <div className="ml-auto flex items-center">
+        {user ? DebugInfo() : ""}
         {user ? LoggedIn() : Guest()}
       </div>
       <ThemeToggle />

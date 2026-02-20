@@ -1,4 +1,4 @@
-import { PlanCard } from "@/components/ui/PlanCard";
+import { PlanCard } from "@/components/pages/pricing/PlanCard";
 
 export function Plans() {
   return (
