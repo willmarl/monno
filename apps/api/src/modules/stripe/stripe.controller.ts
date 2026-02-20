@@ -106,4 +106,9 @@ export class StripeController {
     const userId = req.user?.sub ?? null;
     return this.stripeService.getUserCreditTransactions(userId, pag);
   }
+
+  @Get('health')
+  healthCheck() {
+    return { status: 'healthy' };
+  }
 }

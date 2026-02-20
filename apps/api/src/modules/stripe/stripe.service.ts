@@ -337,6 +337,7 @@ export class StripeService {
         orderBy: { purchasedAt: 'desc' } as const,
         select: DEFAULT_PRODUCTS_SELECT,
       },
+      countQuery: { where },
     });
 
     return {

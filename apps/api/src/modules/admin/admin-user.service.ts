@@ -41,6 +41,10 @@ const DEFAULT_USER_SELECT = {
   statusReason: true,
   deleted: true,
   deletedAt: true,
+  subscription: {
+    select: { status: true, tier: true },
+  },
+  credits: true,
 };
 
 @Injectable()
