@@ -57,6 +57,22 @@ export const columns: ColumnDef<User>[] = [
     header: ({ column }) => <SortableHeader column={column} label="Role" />,
   },
   {
+    accessorKey: "credits",
+    header: ({ column }) => <SortableHeader column={column} label="Credits" />,
+  },
+  {
+    accessorKey: "subscription.status",
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Sub. status" />
+    ),
+  },
+  {
+    accessorKey: "subscription.tier",
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Sub. tier" />
+    ),
+  },
+  {
     accessorKey: "status",
     header: ({ column }) => <SortableHeader column={column} label="Status" />,
   },

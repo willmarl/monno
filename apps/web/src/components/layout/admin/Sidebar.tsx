@@ -6,6 +6,7 @@ import {
   FileText,
   Logs,
   MessageSquare,
+  CreditCard,
 } from "lucide-react";
 import { useSessionUser } from "@/features/auth/hooks";
 import {
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/sidebar";
 import { SideBarUser } from "./SidebarUser";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { useStripeHealth } from "@/features/stripe/hooks";
 
 // Menu items.
 export const items = [
@@ -55,9 +57,35 @@ export const items = [
   },
 ];
 
+export const stripeItems = [
+  {
+    title: "Subscriptions",
+    url: "/admin/subscriptions",
+    icon: CreditCard,
+  },
+  {
+    title: "Products Purchased",
+    url: "/admin/products-purchased",
+    icon: CreditCard,
+  },
+  {
+    title: "Credit Purchases",
+    url: "/admin/credit-purchases",
+    icon: CreditCard,
+  },
+  {
+    title: "Credit Transactions",
+    url: "/admin/credit-transactions",
+    icon: CreditCard,
+  },
+];
+
 export function AppSidebar() {
   const { data: user, isLoading } = useSessionUser();
+  const { data: health } = useStripeHealth();
   const { state } = useSidebar();
+
+  const allItems = health ? [...items, ...stripeItems] : items;
 
   return (
     <Sidebar collapsible="icon">
@@ -69,7 +97,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {allItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
                     <a href={item.url}>

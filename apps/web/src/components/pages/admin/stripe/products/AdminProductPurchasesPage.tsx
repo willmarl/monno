@@ -1,0 +1,18 @@
+import { ProductPurchaseSearchBar } from "@/features/stripe/components/ProductPurchasesSearchBar";
+import { ProductPurchasesDataTable } from "./ProductPurchasesDataTable";
+import { AdminProductPurchasesSearchParams } from "@/types/search-params";
+
+interface AdminProductPurchasesPageProps {
+  searchParams?: AdminProductPurchasesSearchParams;
+}
+
+export function AdminProductPurchasesPage({
+  searchParams,
+}: AdminProductPurchasesPageProps) {
+  return (
+    <div>
+      <ProductPurchaseSearchBar basePath="/admin/product-purchases" />
+      <ProductPurchasesDataTable searchParams={searchParams} />
+    </div>
+  );
+}

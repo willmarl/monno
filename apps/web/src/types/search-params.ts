@@ -27,6 +27,11 @@ export interface AdminCommentSearchParams extends SearchParams {
   deleted?: string;
 }
 
+export interface AdminCreditPurchasesSearchParams extends SearchParams {}
+export interface AdminCreditTransactionsSearchParams extends SearchParams {}
+export interface AdminProductPurchasesSearchParams extends SearchParams {}
+export interface AdminSubscriptionsSearchParams extends SearchParams {}
+
 /**
  * Public search params (extends base SearchParams)
  */
