@@ -2,63 +2,181 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   createCheckoutSession,
   createCustomerPortal,
-  getUserSubscription,
-  getUserAllProducts,
-  getUserOwnedProducts,
-  getUserCreditPurchases,
-  getUserCreditTransactions,
+  fetchUserSubscription,
+  fetchUserOwnedProducts,
+  fetchUserCreditTransactions,
+  fetchStripeHealth,
+  fetchAdminSubscriptions,
+  fetchAdminProducts,
+  fetchAdminCreditPurchases,
+  fetchAdminCreditTransactions,
 } from "./api";
 
-export const useCreateCheckoutSession = () => {
+export function useCreateCheckoutSession() {
   return useMutation({
     mutationFn: (priceId: string) => createCheckoutSession(priceId),
     throwOnError: false,
   });
-};
+}
 
-export const useCustomerPortal = () => {
+export function useCustomerPortal() {
   return useMutation({
     mutationFn: createCustomerPortal,
     throwOnError: false,
   });
-};
+}
 
-export const useUserSubscription = (userId: number | null) => {
+// Current user subscription
+export function useUserSubscription() {
   return useQuery({
-    queryKey: ["stripe", "subscription", userId],
-    queryFn: () => getUserSubscription(userId!),
-    enabled: !!userId,
+    queryKey: ["stripe", "subscription"],
+    queryFn: fetchUserSubscription,
   });
-};
+}
 
-export const useUserAllProducts = (userId: number | null) => {
-  return useQuery({
-    queryKey: ["stripe", "products", userId],
-    queryFn: () => getUserAllProducts(userId!),
-    enabled: !!userId,
-  });
-};
+// Current user owned products with pagination
+export function useUserOwnedProducts(page: number, limit: number) {
+  const offset = (page - 1) * limit;
 
-export const useUserOwnedProducts = (userId: number | null) => {
   return useQuery({
-    queryKey: ["stripe", "products", "owned", userId],
-    queryFn: () => getUserOwnedProducts(userId!),
-    enabled: !!userId,
+    queryKey: ["stripe", "products", "owned", page],
+    queryFn: () => fetchUserOwnedProducts({ limit, offset }),
   });
-};
+}
 
-export const useUserCreditPurchases = (userId: number | null) => {
-  return useQuery({
-    queryKey: ["stripe", "credit-purchases", userId],
-    queryFn: () => getUserCreditPurchases(userId!),
-    enabled: !!userId,
-  });
-};
+// Current user credit transactions with pagination
+export function useUserCreditTransactions(page: number, limit: number) {
+  const offset = (page - 1) * limit;
 
-export const useUserCreditTransactions = (userId: number | null) => {
   return useQuery({
-    queryKey: ["stripe", "credit-transactions", userId],
-    queryFn: () => getUserCreditTransactions(userId!),
-    enabled: !!userId,
+    queryKey: ["stripe", "credit-transactions", page],
+    queryFn: () => fetchUserCreditTransactions({ limit, offset }),
   });
-};
+}
+
+export function useStripeHealth() {
+  return useQuery({
+    queryKey: ["stripe", "health"],
+    queryFn: fetchStripeHealth,
+  });
+}
+
+export function useAdminSubscription(
+  page: number = 1,
+  limit: number = 10,
+  query?: string,
+  options?: { searchFields?: string; sort?: string; caseSensitive?: boolean },
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: [
+      "admin",
+      "subscriptions",
+      page,
+      query,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+    ],
+    queryFn: () =>
+      fetchAdminSubscriptions({
+        query,
+        limit,
+        offset,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+      }),
+  });
+}
+
+export function useAdminProducts(
+  page: number = 1,
+  limit: number = 10,
+  query?: string,
+  options?: { searchFields?: string; sort?: string; caseSensitive?: boolean },
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: [
+      "admin",
+      "products",
+      page,
+      query,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+    ],
+    queryFn: () =>
+      fetchAdminProducts({
+        query,
+        limit,
+        offset,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+      }),
+  });
+}
+
+export function useAdminCreditPurchases(
+  page: number = 1,
+  limit: number = 10,
+  query?: string,
+  options?: { searchFields?: string; sort?: string; caseSensitive?: boolean },
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: [
+      "admin",
+      "credit-purchases",
+      page,
+      query,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+    ],
+    queryFn: () =>
+      fetchAdminCreditPurchases({
+        query,
+        limit,
+        offset,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+      }),
+  });
+}
+
+export function useAdminCreditTransactions(
+  page: number = 1,
+  limit: number = 10,
+  query?: string,
+  options?: { searchFields?: string; sort?: string; caseSensitive?: boolean },
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: [
+      "admin",
+      "credit-transactions",
+      page,
+      query,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+    ],
+    queryFn: () =>
+      fetchAdminCreditTransactions({
+        query,
+        limit,
+        offset,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+      }),
+  });
+}

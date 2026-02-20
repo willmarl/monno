@@ -1,3 +1,5 @@
+import { PaginatedResponse } from "@/types/pagination";
+
 export type TierName = "FREE" | "BASIC" | "PRO";
 export type ProductStatus = "ACTIVE" | "REFUNDED";
 export type SubscriptionStatus =
@@ -22,6 +24,8 @@ export interface Subscription {
   updatedAt: Date;
 }
 
+export type SubscriptionList = PaginatedResponse<Subscription>;
+
 export interface ProductPurchase {
   id: number;
   productId: string;
@@ -30,6 +34,8 @@ export interface ProductPurchase {
   refundedAt: Date | null;
 }
 
+export type ProductPurchaseList = PaginatedResponse<ProductPurchase>;
+
 export interface CreditPurchase {
   id: number;
   amount: number;
@@ -37,6 +43,8 @@ export interface CreditPurchase {
   currency: string;
   purchasedAt: Date;
 }
+
+export type CreditPurchaseList = PaginatedResponse<CreditPurchase>;
 
 export interface CreditTransaction {
   id: number;
@@ -47,6 +55,8 @@ export interface CreditTransaction {
   balanceAfter: number;
   createdAt: Date;
 }
+
+export type CreditTransactionList = PaginatedResponse<CreditTransaction>;
 
 export interface CheckoutSessionRequest {
   priceId: string;
@@ -59,7 +69,6 @@ export interface CheckoutSessionResponse {
 export interface CustomerPortalResponse {
   url: string;
 }
-
 export interface TierInfo {
   name: TierName;
   amount: number;

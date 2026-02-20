@@ -4,9 +4,13 @@ import type {
   CheckoutSessionResponse,
   CustomerPortalResponse,
   Subscription,
+  SubscriptionList,
   ProductPurchase,
-  CreditPurchase,
+  ProductPurchaseList,
   CreditTransaction,
+  CreditTransactionList,
+  CreditPurchase,
+  CreditPurchaseList,
 } from "./types/stripe";
 
 export const createCheckoutSession = (priceId: string) =>
@@ -20,17 +24,153 @@ export const createCustomerPortal = () =>
     method: "POST",
   });
 
-export const getUserSubscription = (userId: number) =>
-  fetcher<Subscription>(`/stripe/subscription/${userId}`);
+// Current user subscription
+export const fetchUserSubscription = () =>
+  fetcher<Subscription>("/stripe/subscription");
 
-export const getUserAllProducts = (userId: number) =>
-  fetcher<ProductPurchase[]>(`/stripe/products/${userId}`);
+// Current user owned products with pagination
+export const fetchUserOwnedProducts = ({
+  limit,
+  offset,
+}: {
+  limit: number;
+  offset: number;
+}) =>
+  fetcher<ProductPurchaseList>("/stripe/products/owned/", {
+    searchParams: { limit, offset },
+  });
 
-export const getUserOwnedProducts = (userId: number) =>
-  fetcher<ProductPurchase[]>(`/stripe/products/owned/${userId}`);
+// Current user credit transactions with pagination
+export const fetchUserCreditTransactions = ({
+  limit,
+  offset,
+}: {
+  limit: number;
+  offset: number;
+}) =>
+  fetcher<CreditTransactionList>("/stripe/credit-transactions/", {
+    searchParams: { limit, offset },
+  });
 
-export const getUserCreditPurchases = (userId: number) =>
-  fetcher<CreditPurchase[]>(`/stripe/credit-purchases/${userId}`);
+export const fetchStripeHealth = () => {
+  return fetcher("/stripe/health");
+};
 
-export const getUserCreditTransactions = (userId: number) =>
-  fetcher<CreditTransaction[]>(`/stripe/credit-transactions/${userId}`);
+//==============
+//   Admin
+//==============
+export const fetchAdminSubscriptions = ({
+  query,
+  limit = 10,
+  offset = 0,
+  searchFields,
+  sort,
+  caseSensitive,
+}: {
+  query?: string;
+  limit?: number;
+  offset?: number;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+} = {}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (query) searchParams.query = query;
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+
+  return fetcher<SubscriptionList>("/admin/stripe/subscription", {
+    searchParams,
+  });
+};
+
+export const fetchAdminProducts = ({
+  query,
+  limit = 10,
+  offset = 0,
+  searchFields,
+  sort,
+  caseSensitive,
+}: {
+  query?: string;
+  limit?: number;
+  offset?: number;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+} = {}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (query) searchParams.query = query;
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+
+  return fetcher<ProductPurchaseList>("/admin/stripe/products", {
+    searchParams,
+  });
+};
+
+export const fetchAdminCreditPurchases = ({
+  query,
+  limit = 10,
+  offset = 0,
+  searchFields,
+  sort,
+  caseSensitive,
+}: {
+  query?: string;
+  limit?: number;
+  offset?: number;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+} = {}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (query) searchParams.query = query;
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+
+  return fetcher<CreditPurchaseList>("/admin/stripe/credit-purchases", {
+    searchParams,
+  });
+};
+
+export const fetchAdminCreditTransactions = ({
+  query,
+  limit = 10,
+  offset = 0,
+  searchFields,
+  sort,
+  caseSensitive,
+}: {
+  query?: string;
+  limit?: number;
+  offset?: number;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+} = {}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (query) searchParams.query = query;
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+
+  return fetcher<CreditTransactionList>("/admin/stripe/credit-transactions", {
+    searchParams,
+  });
+};
