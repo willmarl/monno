@@ -36,7 +36,7 @@ const DEFAULT_ADMIN_USER_SELECT = {
   deleted: true,
   deletedAt: true,
   subscription: {
-    select: { status: true, tier: true },
+    select: { status: true, tier: true, nextTier: true },
   },
   credits: true,
 };

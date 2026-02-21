@@ -22,7 +22,7 @@ export default function Header({ user }: { user: User | null }) {
   function DebugInfo() {
     return (
       <div className="flex gap-2 border-red-500 border">
-        <p>TIER:{user?.subscription.tier}</p>
+        <p>TIER:{user?.subscription?.tier}</p>
         <p>CREDITS:{user?.credits}</p>
       </div>
     );

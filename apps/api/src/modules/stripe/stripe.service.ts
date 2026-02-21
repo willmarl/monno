@@ -243,7 +243,7 @@ export class StripeService {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       success_url: `${process.env.FRONTEND_URL}/checkout/success`,
-      cancel_url: `${process.env.FRONTEND_URL}/checkout/cancel`,
+      cancel_url: `${process.env.FRONTEND_URL}/pricing`,
       line_items: [
         {
           price: data.priceId,

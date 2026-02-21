@@ -1,13 +1,14 @@
 import { PaginatedResponse } from "@/types/pagination";
-import { TierName } from "@/features/stripe/types/stripe";
+import { TierName, SubscriptionStatus } from "@/features/stripe/types/stripe";
 
 export type UserStatus = "ACTIVE" | "SUSPENDED" | "BANNED" | "DELETED";
 
 export type UsersList = PaginatedResponse<User>;
 
 interface SubscriptionData {
-  status: "ACTIVE" | "PAST_DUE" | "CANCELED";
+  status: SubscriptionStatus;
   tier: TierName;
+  nextTier: TierName;
 }
 
 export interface User {

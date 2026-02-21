@@ -67,7 +67,14 @@ export function SubscriptionSection() {
         ) : subscription ? (
           <>
             {/* Current Tier and Status */}
-            <div className="grid grid-cols-2 gap-4">
+            <div
+              className={`grid gap-4 ${
+                subscription.nextTier &&
+                subscription.nextTier !== subscription.tier
+                  ? "grid-cols-3"
+                  : "grid-cols-2"
+              }`}
+            >
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">
                   Current Plan
@@ -87,6 +94,20 @@ export function SubscriptionSection() {
                   {subscription.status}
                 </Badge>
               </div>
+              {subscription.nextTier &&
+                subscription.nextTier !== subscription.tier && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Next Plan
+                    </p>
+                    <Badge
+                      variant={getTierBadgeColor(subscription.nextTier)}
+                      className="text-base px-3 py-1"
+                    >
+                      {subscription.nextTier}
+                    </Badge>
+                  </div>
+                )}
             </div>
 
             {/* Pending Downgrade or Next Billing */}

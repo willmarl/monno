@@ -1,3 +1,24 @@
+// ====================================
+// TIER HIERARCHY - Define ordering once from FREE to most expensive
+// ====================================
+export const TIER_HIERARCHY = ["FREE", "BASIC", "PRO"] as const;
+export type TierName = (typeof TIER_HIERARCHY)[number];
+
+// Get numeric level for tier (higher = better)
+export function getTierLevel(tier: TierName): number {
+  return TIER_HIERARCHY.indexOf(tier);
+}
+
+// Check if moving to a better tier
+export function isUpgrade(from: TierName, to: TierName): boolean {
+  return getTierLevel(to) > getTierLevel(from);
+}
+
+// Check if moving to a worse tier
+export function isDowngrade(from: TierName, to: TierName): boolean {
+  return getTierLevel(to) < getTierLevel(from);
+}
+
 // Subscription tier prices
 export const STRIPE_SUBSCRIPTION_PRICES = {
   BASIC: {

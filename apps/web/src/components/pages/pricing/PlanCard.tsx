@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -10,7 +11,9 @@ interface PlanCardProps {
   buttonText: string;
   buttonVariant?: "default" | "secondary" | "destructive" | "outline" | "ghost";
   buttonDisabled?: boolean;
+  isLoading?: boolean;
   isRecommended?: boolean;
+  onClick?: () => void;
   children?: ReactNode;
 }
 
@@ -22,7 +25,9 @@ export function PlanCard({
   buttonText,
   buttonVariant = "outline",
   buttonDisabled = false,
+  isLoading = false,
   isRecommended = false,
+  onClick,
 }: PlanCardProps) {
   return (
     <Card
@@ -59,10 +64,18 @@ export function PlanCard({
       <div className="p-8 pt-0">
         <Button
           variant={buttonVariant}
-          disabled={buttonDisabled}
+          disabled={buttonDisabled || isLoading}
+          onClick={onClick}
           className="w-full cursor-pointer"
         >
-          {buttonText}
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin cursor-wait" />
+              Loading...
+            </>
+          ) : (
+            buttonText
+          )}
         </Button>
       </div>
     </Card>
