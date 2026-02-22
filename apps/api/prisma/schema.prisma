@@ -64,6 +64,12 @@ enum CreditTransactionType {
   ADMIN_ADJUST
 }
 
+enum SupportTicketStatus {
+  OPEN
+  RESPONDED
+  CLOSED
+}
+
 model User {
   id                      Int                      @id @default(autoincrement())
   username                String                   @unique
@@ -81,6 +87,7 @@ model User {
   comments                Comment[]
   usernameHistory         UsernameHistory[]
   collections             Collection[]
+  supportTicket           SupportTicket[]
   // OAuth identity fields
   googleId                String?                  @unique
   githubId                String?                  @unique
@@ -361,4 +368,21 @@ model CreditTransaction {
 
   @@index([userId])
   @@index([createdAt])
+}
+
+model SupportTicket {
+  id         Int                 @id @default(autoincrement())
+  userId     Int? // Optional - null for guests
+  email      String? // may want to make email required 
+  title      String
+  message    String
+  status     SupportTicketStatus @default(OPEN) // OPEN, RESPONDED, CLOSED
+  adminNotes String?
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
 }
