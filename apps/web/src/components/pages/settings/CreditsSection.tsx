@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { formatDate } from "@/lib/utils/date";
 import { useRouter } from "next/navigation";
 import {
@@ -29,14 +30,21 @@ export function CreditsSection() {
         <CardTitle>Credits : {user.credits}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Button
-          className="cursor-pointer"
-          variant="outline"
-          size="sm"
-          onClick={() => router.push("/purchases/credits")}
-        >
-          Full history
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            className="cursor-pointer"
+            variant="outline"
+            size="sm"
+            onClick={() => router.push("/purchases/credits")}
+          >
+            Full history
+          </Button>
+          <Link href="/pricing#credits">
+            <Button className="cursor-pointer" size="sm">
+              Buy more credits
+            </Button>
+          </Link>
+        </div>
         <Table>
           <TableCaption>Recent transactions.</TableCaption>
           <TableHeader>

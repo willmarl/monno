@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   Card,
   CardHeader,
@@ -58,11 +59,6 @@ export function SubscriptionSection() {
           <div className="space-y-4">
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-20 w-full" />
-          </div>
-        ) : error ? (
-          <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-700 rounded-lg text-red-700 dark:text-red-300">
-            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-            <p className="text-sm">Failed to load subscription info</p>
           </div>
         ) : subscription ? (
           <>
@@ -191,9 +187,11 @@ export function SubscriptionSection() {
         ) : (
           <div className="text-center py-8">
             <p className="text-muted-foreground">No active subscription</p>
-            <Button variant="outline" className="mt-4">
-              View Plans
-            </Button>
+            <Link href="/pricing#subscriptions">
+              <Button variant="outline" className="mt-4 cursor-pointer">
+                View Plans
+              </Button>
+            </Link>
           </div>
         )}
       </CardContent>
