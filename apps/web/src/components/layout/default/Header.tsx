@@ -9,24 +9,20 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 import { LogOut } from "lucide-react";
 import { useLogout } from "@/features/auth/hooks";
 import { UserAvatar } from "./UserAvatar";
 import { User } from "@/features/users/types/user";
 
+// Feature flag: Set to false if your boilerplate doesn't have Stripe/Credits
+const SHOW_ACCOUNT_STATUS = false;
+
 export default function Header({ user }: { user: User | null }) {
   const router = useRouter();
   const logout = useLogout();
-
-  function DebugInfo() {
-    return (
-      <div className="flex gap-2 border-red-500 border">
-        <p>TIER:{user?.subscription?.tier}</p>
-        <p>CREDITS:{user?.credits}</p>
-      </div>
-    );
-  }
 
   function LoggedIn() {
     if (!user) return null;
@@ -66,12 +62,30 @@ export default function Header({ user }: { user: User | null }) {
             <Button variant="ghost">Hello, {user.username}</Button>
           </DropdownMenuTrigger>
         </div>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="w-48">
+          {SHOW_ACCOUNT_STATUS && (
+            <>
+              <div className="px-2 py-2 space-y-2">
+                <div className="text-sm font-semibold text-muted-foreground">
+                  Account Status
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  <Badge variant="outline">
+                    {user.subscription?.tier || "FREE"}
+                  </Badge>
+                  <Badge variant="secondary">{user.credits} credits</Badge>
+                </div>
+              </div>
+              <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuItem onClick={handleProfile}>Profile</DropdownMenuItem>
           <DropdownMenuItem onClick={handleSettings}>Settings</DropdownMenuItem>
-          <DropdownMenuItem onClick={handleProducts}>
-            Owned Products
-          </DropdownMenuItem>
+          {SHOW_ACCOUNT_STATUS && (
+            <DropdownMenuItem onClick={handleProducts}>
+              Owned Products
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onClick={handleLogout} variant="destructive">
             Logout
             <LogOut className="mr-2 h-4 w-4" />
@@ -100,7 +114,6 @@ export default function Header({ user }: { user: User | null }) {
         Monno
       </Link>
       <div className="ml-auto flex items-center">
-        {user ? DebugInfo() : ""}
         {user ? LoggedIn() : Guest()}
       </div>
       <ThemeToggle />
