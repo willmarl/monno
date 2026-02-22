@@ -86,9 +86,9 @@ export class StripeController {
 
   @Get('products/owned/')
   @UseGuards(JwtAccessGuard)
-  async getUserOwnedProducts(@Query() pag: PaginationDto, @Req() req: any) {
+  async getUserOwnedProducts(@Req() req: any) {
     const userId = req.user?.sub ?? null;
-    return this.stripeService.getUserOwnedProducts(userId, pag);
+    return this.stripeService.getUserOwnedProducts(userId);
   }
 
   // @Get('credit-purchases/:userId')

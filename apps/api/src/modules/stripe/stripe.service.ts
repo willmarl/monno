@@ -326,25 +326,23 @@ export class StripeService {
     return subscription;
   }
 
-  async getUserOwnedProducts(userId: number, pag: PaginationDto) {
-    const where = { userId: userId, status: 'ACTIVE' };
-    const { items, pageInfo, isRedirected } = await offsetPaginate({
-      model: this.prisma.productPurchase,
-      limit: pag.limit ?? 10,
-      offset: pag.offset ?? 0,
-      query: {
-        where,
-        orderBy: { purchasedAt: 'desc' } as const,
-        select: DEFAULT_PRODUCTS_SELECT,
+  async getUserOwnedProducts(userId: number) {
+    const purchases = await this.prisma.productPurchase.findMany({
+      where: {
+        userId,
+        status: 'ACTIVE',
       },
-      countQuery: { where },
+      select: {
+        id: true,
+        productId: true,
+        status: true,
+        purchasedAt: true,
+        refundedAt: true,
+      },
+      orderBy: { purchasedAt: 'desc' },
     });
 
-    return {
-      items,
-      pageInfo,
-      ...(isRedirected && { isRedirected: true }),
-    };
+    return purchases;
   }
 
   async getUserCreditTransactions(userId: number, pag: PaginationDto) {
