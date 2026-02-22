@@ -89,9 +89,10 @@ async function bootstrap() {
   const bullBoardAdapter = setupBullBoard(queueService.getJobsQueue());
   app.use('/admin/queues', bullBoardAdapter.getRouter());
 
-  /* Seed admin account on startup*/
+  /* Seed admin account and products on startup*/
   const seedService = app.get(SeedService);
   await seedService.seedAdminAccount();
+  await seedService.seedProducts();
 
   await app.listen(process.env.PORT ?? 3001);
 }

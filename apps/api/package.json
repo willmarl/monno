@@ -39,6 +39,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "cookie-parser": "^1.4.7",
+    "gray-matter": "^4.0.3",
     "keyv": "^5.5.5",
     "nestjs-pino": "^4.5.0",
     "node-fetch": "^3.3.2",
@@ -52,6 +53,7 @@
     "resend": "^6.6.0",
     "rxjs": "^7.8.1",
     "sharp": "^0.34.5",
+    "stripe": "^20.3.1",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^13.0.0"
   },

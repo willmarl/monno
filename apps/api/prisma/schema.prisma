@@ -57,6 +57,11 @@ enum ProductStatus {
   REFUNDED
 }
 
+enum PaymentMethod {
+  MONEY
+  CREDITS
+}
+
 enum CreditTransactionType {
   PURCHASE
   SPEND
@@ -311,21 +316,56 @@ model Subscription {
   @@index([status])
 }
 
+// Product model - single creator can create and sell products
+model Product {
+  id          String  @id @default(uuid())
+  slug        String  @unique
+  title       String
+  description String?
+  type        String // course, ebook, cheatsheet, etc.
+
+  // Pricing - flexible (supports money, credits, or both)
+  priceInCents   Int? // Price in USD cents (optional)
+  priceInCredits Int? // Price in credits (optional)
+
+  // Subscription requirement
+  requiresSubscription Boolean           @default(false)
+  requiredTier         SubscriptionTier?
+
+  // Content
+  contentMarkdown String // Raw markdown content with frontmatter
+
+  // Publishing
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  purchases ProductPurchase[]
+
+  @@index([slug])
+  @@index([published])
+  @@index([createdAt])
+}
+
 // One-time product purchases (courses, ebooks, videos, etc.)
+// One purchase per user per product (one-time only)
 model ProductPurchase {
-  id        Int    @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   userId    Int
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stripeId  String @unique
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  stripeId  String  @unique
 
-  status      ProductStatus @default(ACTIVE)
-  refundedAt  DateTime?
-  purchasedAt DateTime      @default(now())
+  paymentMethod PaymentMethod
+  status        ProductStatus @default(ACTIVE)
+  refundedAt    DateTime?
+  purchasedAt   DateTime      @default(now())
 
-  @@unique([userId, productId]) // Can't buy same product twice
+  @@unique([userId, productId]) // One purchase per user per product
   @@index([userId])
   @@index([productId])
+  @@index([paymentMethod])
 }
 
 // Credit/gem purchases

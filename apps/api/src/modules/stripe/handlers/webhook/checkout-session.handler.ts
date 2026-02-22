@@ -132,6 +132,7 @@ export class CheckoutSessionHandler {
     });
 
     if (usersProduct) {
+      // Re-purchase: reactivate the product
       await this.prisma.productPurchase.update({
         where: {
           userId_productId: {
@@ -142,14 +143,17 @@ export class CheckoutSessionHandler {
         data: {
           refundedAt: null,
           status: 'ACTIVE',
+          paymentMethod: 'MONEY',
         },
       });
     } else {
+      // First purchase
       await this.prisma.productPurchase.create({
         data: {
           userId: user.id,
           stripeId: event.data.object.id,
           productId: priceInfo.productId,
+          paymentMethod: 'MONEY',
         },
       });
     }

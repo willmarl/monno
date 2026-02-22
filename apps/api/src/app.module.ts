@@ -22,6 +22,7 @@ import { CollectionsModule } from './modules/collections/collections.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { StripeModule } from './modules/stripe/stripe.module';
+import { ProductsModule } from './modules/products/products.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -103,6 +104,7 @@ import { StripeModule } from './modules/stripe/stripe.module';
     CommentsModule,
     AnalyticsModule,
     StripeModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserAwareThrottlerGuard, QueueModule],
