@@ -35,12 +35,10 @@ export function useUserSubscription() {
 }
 
 // Current user owned products with pagination
-export function useUserOwnedProducts(page: number, limit: number) {
-  const offset = (page - 1) * limit;
-
+export function useUserOwnedProducts() {
   return useQuery({
-    queryKey: ["stripe", "products", "owned", page],
-    queryFn: () => fetchUserOwnedProducts({ limit, offset }),
+    queryKey: ["stripe", "products", "owned"],
+    queryFn: () => fetchUserOwnedProducts(),
   });
 }
 

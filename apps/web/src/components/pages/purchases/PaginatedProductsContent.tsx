@@ -1,46 +1,48 @@
-"use client";
+// Do not use until stripe 2 revamp
 
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { useUserOwnedProducts } from "@/features/stripe/hooks";
-import { ProductCard } from "@/components/ui/ProductCard";
-import { PaginatedList } from "@/components/ui/pagination/PaginatedList";
-import { useSessionUser } from "@/features/auth/hooks";
+// "use client";
 
-const DEFAULT_LIMIT = 1;
+// import { Suspense } from "react";
+// import { useSearchParams } from "next/navigation";
+// import { useUserOwnedProducts } from "@/features/stripe/hooks";
+// import { ProductCard } from "@/components/ui/ProductCard";
+// import { PaginatedList } from "@/components/ui/pagination/PaginatedList";
+// import { useSessionUser } from "@/features/auth/hooks";
 
-function ProductCardsListContent() {
-  const { data: user } = useSessionUser();
+// const DEFAULT_LIMIT = 1;
 
-  const searchParams = useSearchParams();
+// function ProductCardsListContent() {
+//   const { data: user } = useSessionUser();
 
-  // Get page from query params
-  const page = parseInt(searchParams.get("page") ?? "1", 10);
+//   const searchParams = useSearchParams();
 
-  const { data, isLoading } = useUserOwnedProducts(page, DEFAULT_LIMIT);
+//   // Get page from query params
+//   const page = parseInt(searchParams.get("page") ?? "1", 10);
 
-  const productcards = data?.items ?? [];
-  const totalItems = data?.pageInfo?.totalItems ?? 0;
+//   const { data, isLoading } = useUserOwnedProducts(page, DEFAULT_LIMIT);
 
-  return (
-    <PaginatedList
-      url="./purchases"
-      page={page}
-      limit={DEFAULT_LIMIT}
-      items={productcards}
-      totalItems={totalItems}
-      isLoading={isLoading}
-      renderItem={(productcard) => <ProductCard data={productcard} />}
-      title="Owned products"
-      layout="grid"
-    />
-  );
-}
+//   const productcards = data?.items ?? [];
+//   const totalItems = data?.pageInfo?.totalItems ?? 0;
 
-export function PaginatedProductContent() {
-  return (
-    <Suspense fallback={<p>Loading...</p>}>
-      <ProductCardsListContent />
-    </Suspense>
-  );
-}
+//   return (
+//     <PaginatedList
+//       url="./purchases"
+//       page={page}
+//       limit={DEFAULT_LIMIT}
+//       items={productcards}
+//       totalItems={totalItems}
+//       isLoading={isLoading}
+//       renderItem={(productcard) => <ProductCard data={productcard} />}
+//       title="Owned products"
+//       layout="grid"
+//     />
+//   );
+// }
+
+// export function PaginatedProductContent() {
+//   return (
+//     <Suspense fallback={<p>Loading...</p>}>
+//       <ProductCardsListContent />
+//     </Suspense>
+//   );
+// }

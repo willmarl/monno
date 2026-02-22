@@ -29,16 +29,8 @@ export const fetchUserSubscription = () =>
   fetcher<Subscription>("/stripe/subscription");
 
 // Current user owned products with pagination
-export const fetchUserOwnedProducts = ({
-  limit,
-  offset,
-}: {
-  limit: number;
-  offset: number;
-}) =>
-  fetcher<ProductPurchaseList>("/stripe/products/owned/", {
-    searchParams: { limit, offset },
-  });
+export const fetchUserOwnedProducts = () =>
+  fetcher<ProductPurchase[]>("/stripe/products/owned/");
 
 // Current user credit transactions with pagination
 export const fetchUserCreditTransactions = ({
