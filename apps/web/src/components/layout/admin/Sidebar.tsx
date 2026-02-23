@@ -7,6 +7,7 @@ import {
   Logs,
   MessageSquare,
   CreditCard,
+  Contact,
 } from "lucide-react";
 import { useSessionUser } from "@/features/auth/hooks";
 import {
@@ -54,6 +55,11 @@ export const items = [
     title: "Logs",
     url: "/admin/logs",
     icon: Logs,
+  },
+  {
+    title: "Support",
+    url: "/admin/support",
+    icon: Contact,
   },
 ];
 
