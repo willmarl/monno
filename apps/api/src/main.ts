@@ -20,6 +20,12 @@ import * as express from 'express';
 
 Print.log('Server running on port ' + process.env.PORT);
 Print.log('Database URL ' + process.env.DATABASE_URL);
+Print.log(
+  'Redis config: ' +
+    (process.env.REDIS_HOST || 'localhost') +
+    ':' +
+    (process.env.REDIS_PORT || 6379),
+);
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,

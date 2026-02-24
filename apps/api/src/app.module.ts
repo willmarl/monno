@@ -23,6 +23,7 @@ import { CommentsModule } from './modules/comments/comments.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { StripeModule } from './modules/stripe/stripe.module';
 import { SupportModule } from './modules/support/support.module';
+import { CacheModule } from './common/cache/cache.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -105,6 +106,7 @@ import { SupportModule } from './modules/support/support.module';
     AnalyticsModule,
     StripeModule,
     SupportModule,
+    CacheModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserAwareThrottlerGuard, QueueModule],

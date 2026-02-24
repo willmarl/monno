@@ -8,6 +8,8 @@ import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 import { PostSearchDto, PostSearchCursorDto } from './dto/search-post.dto';
 import { buildSearchWhere } from 'src/common/search/search.utils';
+import { CacheService } from '../../common/cache/cache.service';
+import { CacheTTL, CacheKeys } from '../../common/cache/cache-keys';
 
 const DEFAULT_POST_SELECT = {
   id: true,
@@ -24,39 +26,58 @@ const DEFAULT_POST_SELECT = {
 
 @Injectable()
 export class PostsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cache: CacheService,
+  ) {}
 
   /**
-   * Enhance posts with like information
+   * Enhance posts with like information - batch query version
+   * Instead of N+1 queries, does just 2 queries total
    */
   private async enhancePostsWithLikes(posts: any[], currentUserId?: number) {
-    return Promise.all(
-      posts.map(async (post) => {
-        const likeCount = await this.prisma.like.count({
-          where: { resourceType: 'POST', resourceId: post.id },
-        });
+    if (posts.length === 0) {
+      return [];
+    }
 
-        let likedByMe = false;
-        if (currentUserId) {
-          const userLike = await this.prisma.like.findUnique({
-            where: {
-              userId_resourceType_resourceId: {
-                userId: currentUserId,
-                resourceType: 'POST',
-                resourceId: post.id,
-              },
-            },
-          });
-          likedByMe = !!userLike;
-        }
+    const postIds = posts.map((p) => p.id);
 
-        return {
-          ...post,
-          likeCount,
-          likedByMe,
-        };
-      }),
-    );
+    // Single query to get all like counts
+    const likeCounts = await this.prisma.like.groupBy({
+      by: ['resourceId'],
+      where: {
+        resourceType: 'POST',
+        resourceId: { in: postIds },
+      },
+      _count: true,
+    });
+
+    // Create a map of postId -> likeCount
+    const likeCountMap = new Map<number, number>();
+    likeCounts.forEach((lc) => {
+      likeCountMap.set(lc.resourceId, lc._count);
+    });
+
+    // Single query to get current user's likes
+    let likedPostIds = new Set<number>();
+    if (currentUserId) {
+      const userLikes = await this.prisma.like.findMany({
+        where: {
+          userId: currentUserId,
+          resourceType: 'POST',
+          resourceId: { in: postIds },
+        },
+        select: { resourceId: true },
+      });
+      likedPostIds = new Set(userLikes.map((l) => l.resourceId));
+    }
+
+    // Map the data back to posts
+    return posts.map((post) => ({
+      ...post,
+      likeCount: likeCountMap.get(post.id) ?? 0,
+      likedByMe: likedPostIds.has(post.id),
+    }));
   }
 
   create(data: CreatePostDto, userId: number) {
@@ -338,6 +359,18 @@ export class PostsService {
   //--------------
 
   async searchAll(searchDto: PostSearchDto, currentUserId?: number) {
+    // Create cache key based on pagination params (note: user doesn't affect feed cache)
+    const cacheKey = CacheKeys.posts.searchFeed(
+      searchDto.offset ?? 0,
+      searchDto.limit ?? 10,
+    );
+
+    // Try to get from cache first
+    const cached = await this.cache.get<any>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
     const orderBy = searchDto.getOrderBy();
@@ -353,6 +386,8 @@ export class PostsService {
       deleted: false,
       creator: { status: 'ACTIVE' },
     };
+
+    // Cache miss - fetch from database
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.post,
       limit: searchDto.limit ?? 10,
@@ -370,11 +405,16 @@ export class PostsService {
       currentUserId,
     );
 
-    return {
+    const result = {
       items: enhancedItems,
       pageInfo,
       ...(isRedirected && { isRedirected: true }),
     };
+
+    // Cache for 30 seconds
+    await this.cache.set(cacheKey, result, CacheTTL.SHORT);
+
+    return result;
   }
 
   async searchAllCursor(
