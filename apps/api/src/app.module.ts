@@ -23,8 +23,11 @@ import { CommentsModule } from './modules/comments/comments.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { StripeModule } from './modules/stripe/stripe.module';
 import { SupportModule } from './modules/support/support.module';
+import { SentryModule } from '@sentry/nestjs/setup';
+import { PrismaService } from './prisma.service';
 @Module({
   imports: [
+    SentryModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -107,7 +110,7 @@ import { SupportModule } from './modules/support/support.module';
     SupportModule,
   ],
   controllers: [AppController],
-  providers: [AppService, UserAwareThrottlerGuard, QueueModule],
+  providers: [AppService, UserAwareThrottlerGuard, QueueModule, PrismaService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -5,11 +5,15 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAccessGuard } from './modules/auth/guards/jwt-access.guard';
 import { Roles } from './decorators/roles.decorator';
 import { RolesGuard } from './common/guards/roles.guard';
+import { PrismaService } from './prisma.service';
 
 @ApiTags('Generic / Health')
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @ApiOperation({ summary: 'Health check endpoint' })
   @ApiResponse({
@@ -23,6 +27,20 @@ export class AppController {
   @Get()
   getHello(): string {
     return this.appService.getHello();
+  }
+
+  @Get('health')
+  async health() {
+    // lightweight DB check
+    await this.prisma.$queryRaw`SELECT 1`;
+    return { ok: true };
+  }
+
+  @UseGuards(JwtAccessGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Get('/debug-sentry')
+  getError() {
+    throw new Error('My Sentry error!');
   }
 
   @ApiOperation({ summary: 'Test rate limiting' })

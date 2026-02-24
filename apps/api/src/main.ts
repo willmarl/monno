@@ -1,3 +1,5 @@
+import 'dotenv/config'; // Load env vars FIRST
+import './instrument';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger as Print } from '@nestjs/common';
