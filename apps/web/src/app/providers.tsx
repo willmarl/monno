@@ -1,5 +1,6 @@
 "use client";
 
+import "../sentry.client.config";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import { QueryClientProvider } from "@tanstack/react-query";
