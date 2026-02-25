@@ -17,16 +17,6 @@ import { toastSuccess, toastError } from "@/lib/toast";
 import { SessionManager } from "@/features/auth/components/SessionManager";
 
 export function SecurityTab() {
-  const handleLogoutSession = (sessionId: string) => {
-    // TODO: Add mutation to logout specific session
-    console.log("Logout session:", sessionId);
-  };
-
-  const handleLogoutAllSessions = () => {
-    // TODO: Add mutation to logout all sessions
-    console.log("Logout all sessions");
-  };
-
   return (
     <div className="space-y-6">
       {/* Change Password Card */}
