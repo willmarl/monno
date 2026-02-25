@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { User } from "@/features/users/types/user";
 import { PaginatedPosts } from "./PaginatedPostsContent";
 import { PostSearchBar } from "@/features/posts/components/PostSearchBar";
-import { SearchTabs } from "@/components/SearchTabs";
+import { SearchTabs } from "@/components/common/SearchTabs";
 import { PublicPostSearchParams } from "@/types/search-params";
 
 interface DefaultPostPageProps {

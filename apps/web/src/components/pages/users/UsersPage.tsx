@@ -1,6 +1,6 @@
 import { PaginatedUsers } from "./PaginatedUsersContent";
 import { UserSearchBar } from "@/features/users/components/UserSearchBar";
-import { SearchTabs } from "@/components/SearchTabs";
+import { SearchTabs } from "@/components/common/SearchTabs";
 import { PublicUserSearchParams } from "@/types/search-params";
 
 interface UserPageProps {
