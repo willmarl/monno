@@ -35,6 +35,14 @@ export const api = ky.create({
             return response;
           }
 
+          // Check if user has a refresh token (i.e., was ever logged in)
+          const hasRefreshToken = document.cookie.includes("refreshToken");
+
+          // If no refresh token, user was never logged in → don't show error
+          if (!hasRefreshToken) {
+            return response;
+          }
+
           // === REFRESH DEDUPLICATION ===
           if (!isRefreshing) {
             isRefreshing = true;
