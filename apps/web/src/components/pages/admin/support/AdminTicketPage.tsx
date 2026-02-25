@@ -1,4 +1,4 @@
-import { TicketSearchBar } from "@/features/support/components/TicketSearchBar";
+import { TicketSearchBar } from "@/features/admin/support/components/TicketSearchBar";
 import { AdminSupportTicketSearchParams } from "@/types/search-params";
 import { TicketDataTable } from "./TicketDataTable";
 

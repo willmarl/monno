@@ -1,4 +1,4 @@
-import { ProductPurchaseSearchBar } from "@/features/stripe/components/ProductPurchasesSearchBar";
+import { ProductPurchaseSearchBar } from "@/features/admin/stripe/components/ProductPurchasesSearchBar";
 import { ProductPurchasesDataTable } from "./ProductPurchasesDataTable";
 import { AdminProductPurchasesSearchParams } from "@/types/search-params";
 

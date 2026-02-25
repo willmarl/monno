@@ -1,4 +1,4 @@
-import { CreditPurchaseSearchBar } from "@/features/stripe/components/CreditPurchaseSearchBar";
+import { CreditPurchaseSearchBar } from "@/features/admin/stripe/components/CreditPurchaseSearchBar";
 import { CreditPurchasesDataTable } from "./CreditPurchasesDataTable";
 import { AdminCreditPurchasesSearchParams } from "@/types/search-params";
 

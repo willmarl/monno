@@ -1,4 +1,4 @@
-import { CreditTransactionSearchBar } from "@/features/stripe/components/CreditTransactionSearchBar";
+import { CreditTransactionSearchBar } from "@/features/admin/stripe/components/CreditTransactionSearchBar";
 import { CreditTransactionsDataTable } from "./CreditTransactionsDataTable";
 import { AdminCreditTransactionsSearchParams } from "@/types/search-params";
 

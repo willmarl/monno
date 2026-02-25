@@ -1,4 +1,4 @@
-import { SubscriptionSearchBar } from "@/features/stripe/components/SubscriptionsSearchBar";
+import { SubscriptionSearchBar } from "@/features/admin/stripe/components/SubscriptionsSearchBar";
 import { SubscriptionDataTable } from "./SubscriptionsDataTable";
 import { AdminSubscriptionsSearchParams } from "@/types/search-params";
 

@@ -5,8 +5,8 @@ import { SearchFilterDropdown } from "@/features/search/components/SearchFilterD
 import {
   productSearchFilters,
   productSearchSorts,
-} from "@/features/stripe/types/search-product-purchases-config";
-import { ProductPurchase } from "../types/stripe";
+} from "@/features/admin/stripe/types/search-product-purchases-config";
+import { ProductPurchase } from "@/features/stripe/types/stripe";
 
 interface ProductPurchaseSearchBarProps {
   basePath?: string;

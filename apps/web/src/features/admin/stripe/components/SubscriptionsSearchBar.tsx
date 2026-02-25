@@ -5,8 +5,8 @@ import { SearchFilterDropdown } from "@/features/search/components/SearchFilterD
 import {
   subscriptionSearchFilters,
   subscriptionSearchSorts,
-} from "@/features/stripe/types/search-subsctipions-config";
-import { Subscription } from "../types/stripe";
+} from "@/features/admin/stripe/types/search-subsctipions-config";
+import { Subscription } from "@/features/stripe/types/stripe";
 
 interface SubscriptionSearchBarProps {
   basePath?: string;

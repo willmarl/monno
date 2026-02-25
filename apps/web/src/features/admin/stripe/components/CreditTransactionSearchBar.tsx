@@ -5,8 +5,8 @@ import { SearchFilterDropdown } from "@/features/search/components/SearchFilterD
 import {
   creditTransactionSearchFilters,
   creditTransactionSearchSorts,
-} from "@/features/stripe/types/search-credit-transactions-config";
-import { CreditTransaction } from "../types/stripe";
+} from "@/features/admin/stripe/types/search-credit-transactions-config";
+import { CreditTransaction } from "@/features/stripe/types/stripe";
 
 interface CreditTransactionSearchBarProps {
   basePath?: string;

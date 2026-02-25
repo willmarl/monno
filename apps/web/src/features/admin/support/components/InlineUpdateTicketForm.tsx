@@ -6,8 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   updateTicketSchema,
   UpdateTicketInput,
-} from "../schemas/updateTicket.schema";
-import { useUpdateSupportTicket } from "../hooks";
+} from "../../../support/schemas/updateTicket.schema";
+import { useUpdateSupportTicket } from "../../../support/hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
-import { SupportTicket } from "../types/support";
+import { SupportTicket } from "../../../support/types/support";
 
 interface InlineUpdateTicketFormProps {
   onSuccess?: () => void;
