@@ -11,7 +11,7 @@ interface ProductPurchasesDataTableProps {
   searchParams?: AdminProductPurchasesSearchParams;
 }
 
-const DEFAULT_LIMIT = 4;
+const DEFAULT_LIMIT = 1;
 
 export function ProductPurchasesDataTable({
   searchParams,

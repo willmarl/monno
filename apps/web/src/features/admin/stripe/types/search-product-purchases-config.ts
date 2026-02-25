@@ -11,7 +11,6 @@ export const productSearchFilters: SearchFilterOption[] = [
     label: "Search In",
     options: [
       { value: "productId", label: "Product ID" },
-      { value: "status", label: "Status" },
       { value: "user.username", label: "Username" },
     ],
   },
@@ -19,6 +18,15 @@ export const productSearchFilters: SearchFilterOption[] = [
     type: "toggle",
     name: "caseSensitive",
     label: "Case Sensitive",
+  },
+  {
+    type: "radio-combobox",
+    name: "status",
+    label: "Filter by status",
+    options: [
+      { value: "ACTIVE", label: "Active" },
+      { value: "REFUNDED", label: "Refunded" },
+    ],
   },
 ];
 

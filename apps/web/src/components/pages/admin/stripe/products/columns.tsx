@@ -4,6 +4,7 @@ import { ColumnDef, Column } from "@tanstack/react-table";
 import { ArrowUpDown, Divide } from "lucide-react";
 import { ProductPurchase } from "@/features/stripe/types/stripe";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface SortableHeaderProps {
   column: Column<any, unknown>;
@@ -38,6 +39,24 @@ export const columns: ColumnDef<ProductPurchase>[] = [
   {
     accessorKey: "id",
     header: ({ column }) => <SortableHeader column={column} label="ID" />,
+  },
+  {
+    accessorKey: "user",
+    header: ({ column }) => <SortableHeader column={column} label="Username" />,
+    cell: ({ row }) => {
+      const username: string = row.original.user.username;
+      const avatarPath: string | null = row.original.user.avatarPath;
+
+      return (
+        <div className="flex gap-1 items-center">
+          <Avatar className="h-8 w-8">
+            {avatarPath && <AvatarImage src={avatarPath} alt={username} />}
+            <AvatarFallback>{username[0]}</AvatarFallback>
+          </Avatar>
+          <p>{username}</p>
+        </div>
+      );
+    },
   },
   {
     accessorKey: "productId",

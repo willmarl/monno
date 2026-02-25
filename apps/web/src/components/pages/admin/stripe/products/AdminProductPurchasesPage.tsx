@@ -11,7 +11,7 @@ export function AdminProductPurchasesPage({
 }: AdminProductPurchasesPageProps) {
   return (
     <div>
-      <ProductPurchaseSearchBar basePath="/admin/product-purchases" />
+      <ProductPurchaseSearchBar basePath="/admin/products-purchased" />
       <ProductPurchasesDataTable searchParams={searchParams} />
     </div>
   );

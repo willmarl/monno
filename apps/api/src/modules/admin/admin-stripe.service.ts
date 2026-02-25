@@ -123,21 +123,37 @@ export class AdminStripeService {
     const searchOptions = searchDto.getSearchOptions();
     const orderBy = searchDto.getOrderBy();
 
-    const where = buildSearchWhere({
+    const textSearchWhere = buildSearchWhere({
       query: searchDto.query ?? '',
       fields: searchFields,
       options: searchOptions,
     });
+
+    // Build filter conditions for enums
+    const filterConditions: any[] = [];
+
+    if (searchDto.status) {
+      filterConditions.push({ status: searchDto.status });
+    }
+
+    // Combine text search and filters
+    const where = {
+      ...(Object.keys(textSearchWhere).length > 0 && textSearchWhere),
+      ...(filterConditions.length > 0 && {
+        AND: filterConditions,
+      }),
+    };
 
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.productPurchase,
       limit: searchDto.limit ?? 10,
       offset: searchDto.offset ?? 0,
       query: {
-        where: where,
+        where,
         orderBy,
         select: DEFAULT_PRODUCTS_SELECT,
       },
+      countQuery: { where },
     });
 
     return {

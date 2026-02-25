@@ -39,6 +39,7 @@ export interface ProductPurchase {
   status: ProductStatus;
   purchasedAt: Date;
   refundedAt: Date | null;
+  user: UserInfo;
 }
 
 export type ProductPurchaseList = PaginatedResponse<ProductPurchase>;

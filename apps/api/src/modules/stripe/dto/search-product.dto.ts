@@ -66,20 +66,38 @@ export class ProductSearchDto extends PaginationDto {
   @IsString()
   sort?: string;
 
+  @ApiPropertyOptional({
+    description: 'Filter by product purchase status (ACTIVE, REFUNDED)',
+    example: 'ACTIVE',
+  })
+  @IsOptional()
+  @IsString()
+  status?: string;
+
   /**
    * Parse and validate searchFields into an array of valid fields
    * Invalid fields are silently ignored
+   * Enum fields (status) are excluded from text search - use status filter instead
    */
   getSearchFields(): string[] {
     if (!this.searchFields) {
-      // Default to all fields
-      return VALID_PRODUCT_SEARCH_FIELDS;
+      // Default to only string fields (exclude enum: status)
+      return [ProductSearchFields.PRODUCT_ID, ProductSearchFields.USERNAME];
     }
 
     return this.searchFields
       .split(',')
       .map((field) => field.trim())
-      .filter((field) => VALID_PRODUCT_SEARCH_FIELDS.includes(field as any));
+      .filter((field) => {
+        if (!VALID_PRODUCT_SEARCH_FIELDS.includes(field as any)) {
+          return false;
+        }
+        // Exclude enum field from text search
+        if (field === ProductSearchFields.STATUS) {
+          return false;
+        }
+        return true;
+      });
   }
 
   /**

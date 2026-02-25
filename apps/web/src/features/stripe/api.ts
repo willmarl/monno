@@ -93,6 +93,7 @@ export const fetchAdminProducts = ({
   searchFields,
   sort,
   caseSensitive,
+  status,
 }: {
   query?: string;
   limit?: number;
@@ -100,6 +101,7 @@ export const fetchAdminProducts = ({
   searchFields?: string;
   sort?: string;
   caseSensitive?: boolean;
+  status?: string;
 } = {}) => {
   const searchParams: Record<string, string | number | boolean> = {
     limit,
@@ -109,6 +111,7 @@ export const fetchAdminProducts = ({
   if (searchFields) searchParams.searchFields = searchFields;
   if (sort) searchParams.sort = sort;
   if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+  if (status) searchParams.status = status;
 
   return fetcher<ProductPurchaseList>("/admin/stripe/products", {
     searchParams,
