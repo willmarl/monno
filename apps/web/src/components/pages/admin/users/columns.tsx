@@ -15,10 +15,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useModal } from "@/components/providers/ModalProvider";
-import { ConfirmModal } from "@/components/modal/ConfirmModal";
 import { EditUser } from "@/components/pages/admin/users/modal/EditUser";
 import { DeleteUser } from "./modal/DeleteUser";
 import { SortableHeader } from "@/components/table/SortableHeader";
+import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 import { formatDate } from "@/lib/utils/date";
 
 export const columns: ColumnDef<User>[] = [
@@ -79,33 +79,12 @@ export const columns: ColumnDef<User>[] = [
   {
     accessorKey: "statusReason",
     header: ({ column }) => <SortableHeader column={column} label="Reason" />,
-    cell: ({ row }) => {
-      const { openModal } = useModal();
-      const reason = (row.getValue("statusReason") as string) ?? "";
-      const truncated =
-        reason.length > 30 ? reason.slice(0, 27) + "..." : reason;
-
-      return (
-        <div
-          onClick={() => {
-            openModal({
-              title: "Status Reason",
-              content: (
-                <ConfirmModal
-                  message={reason}
-                  showButton={false}
-                  onConfirm={() => null}
-                />
-              ),
-            });
-          }}
-          className="max-w-40 truncate text-sm cursor-pointer"
-          title={reason || undefined}
-        >
-          {truncated || "—"}
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <TextPreviewCell
+        value={(row.getValue("statusReason") as string) ?? ""}
+        title="Status Reason"
+      />
+    ),
   },
   {
     accessorKey: "createdAt",

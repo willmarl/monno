@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useModal } from "@/components/providers/ModalProvider";
+import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 import { UpdateTicket } from "@/components/pages/admin/support/modal/UpdateTicket";
 
 interface SortableHeaderProps {
@@ -59,6 +60,13 @@ export const columns: ColumnDef<SupportTicket>[] = [
   {
     accessorKey: "message",
     header: ({ column }) => <SortableHeader column={column} label="Message" />,
+    cell: ({ row }) => (
+      <TextPreviewCell
+        value={(row.getValue("message") as string) ?? ""}
+        title="Message"
+        maxLength={40}
+      />
+    ),
   },
   {
     accessorKey: "status",
@@ -67,6 +75,13 @@ export const columns: ColumnDef<SupportTicket>[] = [
   {
     accessorKey: "adminNotes",
     header: ({ column }) => <SortableHeader column={column} label="Notes" />,
+    cell: ({ row }) => (
+      <TextPreviewCell
+        value={(row.getValue("adminNotes") as string) ?? ""}
+        title="Admin Notes"
+        maxLength={40}
+      />
+    ),
   },
   {
     accessorKey: "email",

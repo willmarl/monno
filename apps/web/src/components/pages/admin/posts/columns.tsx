@@ -18,9 +18,8 @@ import {
   useAdminRestorePost,
 } from "@/features/posts/hooks";
 import { useRouter } from "next/navigation";
-import { useModal } from "@/components/providers/ModalProvider";
-import { ConfirmModal } from "@/components/modal/ConfirmModal";
 import { SortableHeader } from "@/components/table/SortableHeader";
+import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 import { formatDate } from "@/lib/utils/date";
 
 export const columns: ColumnDef<Post>[] = [
@@ -31,63 +30,22 @@ export const columns: ColumnDef<Post>[] = [
   {
     accessorKey: "title",
     header: ({ column }) => <SortableHeader column={column} label="Title" />,
-    cell: ({ row }) => {
-      const { openModal } = useModal();
-      const title = (row.getValue("title") as string) ?? "";
-      const truncated = title.length > 30 ? title.slice(0, 27) + "..." : title;
-
-      return (
-        <div
-          onClick={() => {
-            openModal({
-              title: "Title",
-              content: (
-                <ConfirmModal
-                  message={title}
-                  showButton={false}
-                  onConfirm={() => null}
-                />
-              ),
-            });
-          }}
-          className="max-w-40 truncate text-sm cursor-pointer"
-          title={title || undefined}
-        >
-          {truncated || "—"}
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <TextPreviewCell
+        value={(row.getValue("title") as string) ?? ""}
+        title="Title"
+      />
+    ),
   },
   {
     accessorKey: "content",
     header: ({ column }) => <SortableHeader column={column} label="Content" />,
-    cell: ({ row }) => {
-      const { openModal } = useModal();
-      const content = (row.getValue("content") as string) ?? "";
-      const truncated =
-        content.length > 30 ? content.slice(0, 27) + "..." : content;
-
-      return (
-        <div
-          onClick={() => {
-            openModal({
-              title: "content",
-              content: (
-                <ConfirmModal
-                  message={content}
-                  showButton={false}
-                  onConfirm={() => null}
-                />
-              ),
-            });
-          }}
-          className="max-w-40 truncate text-sm cursor-pointer"
-          title={content || undefined}
-        >
-          {truncated || "—"}
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <TextPreviewCell
+        value={(row.getValue("content") as string) ?? ""}
+        title="Content"
+      />
+    ),
   },
   {
     accessorKey: "viewCount",

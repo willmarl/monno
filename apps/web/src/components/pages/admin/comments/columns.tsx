@@ -18,9 +18,8 @@ import {
   useAdminRestoreComment,
 } from "@/features/comments/hooks";
 import { useRouter } from "next/navigation";
-import { useModal } from "@/components/providers/ModalProvider";
-import { ConfirmModal } from "@/components/modal/ConfirmModal";
 import { SortableHeader } from "@/components/table/SortableHeader";
+import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 import { formatDate } from "@/lib/utils/date";
 
 export const columns: ColumnDef<Comment>[] = [
@@ -43,33 +42,13 @@ export const columns: ColumnDef<Comment>[] = [
   {
     accessorKey: "content",
     header: ({ column }) => <SortableHeader column={column} label="Content" />,
-    cell: ({ row }) => {
-      const { openModal } = useModal();
-      const content = (row.getValue("content") as string) ?? "";
-      const truncated =
-        content.length > 40 ? content.slice(0, 37) + "..." : content;
-
-      return (
-        <div
-          onClick={() => {
-            openModal({
-              title: "Comment Content",
-              content: (
-                <ConfirmModal
-                  message={content}
-                  showButton={false}
-                  onConfirm={() => null}
-                />
-              ),
-            });
-          }}
-          className="max-w-md truncate text-sm cursor-pointer"
-          title={content || undefined}
-        >
-          {truncated || "—"}
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <TextPreviewCell
+        value={(row.getValue("content") as string) ?? ""}
+        title="Comment Content"
+        maxLength={40}
+      />
+    ),
   },
   {
     accessorKey: "likeCount",

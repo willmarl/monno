@@ -5,8 +5,7 @@ import { ArrowUpDown, Divide } from "lucide-react";
 import { CreditTransaction } from "@/features/stripe/types/stripe";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useModal } from "@/components/providers/ModalProvider";
-import { ConfirmModal } from "@/components/modal/ConfirmModal";
+import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 
 interface SortableHeaderProps {
   column: Column<any, unknown>;
@@ -93,32 +92,11 @@ export const columns: ColumnDef<CreditTransaction>[] = [
   {
     accessorKey: "reason",
     header: ({ column }) => <SortableHeader column={column} label="Reason" />,
-    cell: ({ row }) => {
-      const { openModal } = useModal();
-      const reason = (row.getValue("reason") as string) ?? "";
-      const truncated =
-        reason.length > 30 ? reason.slice(0, 27) + "..." : reason;
-
-      return (
-        <div
-          onClick={() => {
-            openModal({
-              title: "Reason",
-              content: (
-                <ConfirmModal
-                  message={reason}
-                  showButton={false}
-                  onConfirm={() => null}
-                />
-              ),
-            });
-          }}
-          className="max-w-40 truncate text-sm cursor-pointer"
-          title={reason || undefined}
-        >
-          {truncated || "—"}
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <TextPreviewCell
+        value={(row.getValue("reason") as string) ?? ""}
+        title="Reason"
+      />
+    ),
   },
 ];
