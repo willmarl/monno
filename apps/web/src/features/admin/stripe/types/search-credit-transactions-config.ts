@@ -10,7 +10,6 @@ export const creditTransactionSearchFilters: SearchFilterOption[] = [
     name: "searchFields",
     label: "Search In",
     options: [
-      { value: "type", label: "Type" },
       { value: "reason", label: "Reason" },
       { value: "user.username", label: "Username" },
     ],
@@ -19,6 +18,17 @@ export const creditTransactionSearchFilters: SearchFilterOption[] = [
     type: "toggle",
     name: "caseSensitive",
     label: "Case Sensitive",
+  },
+  {
+    type: "radio-combobox",
+    name: "type",
+    label: "Filter by type",
+    options: [
+      { value: "PURCHASE", label: "Purchase" },
+      { value: "SPEND", label: "Spend" },
+      { value: "REFUND", label: "Refund" },
+      { value: "ADMIN_ADJUST", label: "Admin Adjust" },
+    ],
   },
 ];
 

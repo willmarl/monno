@@ -154,6 +154,7 @@ export const fetchAdminCreditTransactions = ({
   searchFields,
   sort,
   caseSensitive,
+  type,
 }: {
   query?: string;
   limit?: number;
@@ -161,6 +162,7 @@ export const fetchAdminCreditTransactions = ({
   searchFields?: string;
   sort?: string;
   caseSensitive?: boolean;
+  type?: string;
 } = {}) => {
   const searchParams: Record<string, string | number | boolean> = {
     limit,
@@ -170,6 +172,7 @@ export const fetchAdminCreditTransactions = ({
   if (searchFields) searchParams.searchFields = searchFields;
   if (sort) searchParams.sort = sort;
   if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+  if (type) searchParams.type = type;
 
   return fetcher<CreditTransactionList>("/admin/stripe/credit-transactions", {
     searchParams,

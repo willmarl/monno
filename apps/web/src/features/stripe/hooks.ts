@@ -172,7 +172,13 @@ export function useAdminCreditTransactions(
   page: number = 1,
   limit: number = 10,
   query?: string,
-  options?: { searchFields?: string; sort?: string; caseSensitive?: boolean },
+  options?: {
+    searchFields?: string;
+    sort?: string;
+    caseSensitive?: boolean;
+    type?: string;
+    [key: string]: any;
+  },
 ) {
   const offset = (page - 1) * limit;
 
@@ -185,6 +191,7 @@ export function useAdminCreditTransactions(
       options?.searchFields,
       options?.sort,
       options?.caseSensitive,
+      options?.type,
     ],
     queryFn: () =>
       fetchAdminCreditTransactions({
@@ -194,6 +201,7 @@ export function useAdminCreditTransactions(
         searchFields: options?.searchFields,
         sort: options?.sort,
         caseSensitive: options?.caseSensitive,
+        type: options?.type,
       }),
   });
 }

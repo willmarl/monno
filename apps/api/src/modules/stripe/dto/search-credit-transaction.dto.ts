@@ -66,20 +66,42 @@ export class CreditTransactionSearchDto extends PaginationDto {
   @IsString()
   sort?: string;
 
+  @ApiPropertyOptional({
+    description:
+      'Filter by transaction type (PURCHASE, SPEND, REFUND, ADMIN_ADJUST)',
+    example: 'PURCHASE',
+  })
+  @IsOptional()
+  @IsString()
+  type?: string;
+
   /**
    * Parse and validate searchFields into an array of valid fields
    * Invalid fields are silently ignored
+   * Enum fields (type) are excluded from text search - use type filter instead
    */
   getSearchFields(): string[] {
     if (!this.searchFields) {
-      // Default to all fields
-      return VALID_CREDIT_SEARCH_FIELDS;
+      // Default to only string fields (exclude enum: type)
+      return [
+        CreditTransactionSearchFields.REASON,
+        CreditTransactionSearchFields.USERNAME,
+      ];
     }
 
     return this.searchFields
       .split(',')
       .map((field) => field.trim())
-      .filter((field) => VALID_CREDIT_SEARCH_FIELDS.includes(field as any));
+      .filter((field) => {
+        if (!VALID_CREDIT_SEARCH_FIELDS.includes(field as any)) {
+          return false;
+        }
+        // Exclude enum field from text search
+        if (field === CreditTransactionSearchFields.TYPE) {
+          return false;
+        }
+        return true;
+      });
   }
 
   /**
