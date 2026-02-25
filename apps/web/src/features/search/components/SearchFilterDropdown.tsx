@@ -13,6 +13,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { SearchFilterOption, SearchSortOption } from "../types";
 import { SearchFilterCheckbox } from "./SearchFilterCheckbox";
 import { SearchFilterRadio } from "./SearchFilterRadio";
+import { SearchFilterRadioCombobox } from "./SearchFilterRadioCombobox";
 import { SearchFilterToggle } from "./SearchFilterToggle";
 import { SearchSortSection } from "./SearchSortSection";
 
@@ -69,13 +70,19 @@ export function SearchFilterDropdown({
               filter={filter}
               basePath={basePath}
             />
+          ) : filter.type === "radio-combobox" ? (
+            <SearchFilterRadioCombobox
+              key={filter.name}
+              filter={filter}
+              basePath={basePath}
+            />
           ) : (
             <SearchFilterToggle
               key={filter.name}
               filter={filter}
               basePath={basePath}
             />
-          )
+          ),
         )}
 
         {/* Add sort section only if sorts exist */}

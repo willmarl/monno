@@ -9,7 +9,7 @@ export type SearchSortOption = {
 };
 
 export type SearchFilterOption = {
-  type: "checkbox" | "radio" | "toggle";
+  type: "checkbox" | "radio" | "toggle" | "radio-combobox";
   name: string;
   label: string;
   options?: Array<{ value: string; label: string }>;
