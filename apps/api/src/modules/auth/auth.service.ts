@@ -90,12 +90,12 @@ export class AuthService {
     const payload = { sub: userId, role: user.role };
 
     const accessToken = this.jwt.sign(payload, {
-      expiresIn: '15m',
+      expiresIn: (process.env.ACCESS_TOKEN_EXPIRY || '15m') as any,
       secret: process.env.ACCESS_TOKEN_SECRET,
     });
 
     const refreshToken = this.jwt.sign(payload, {
-      expiresIn: '7d',
+      expiresIn: (process.env.REFRESH_TOKEN_EXPIRY || '7d') as any,
       secret: process.env.REFRESH_TOKEN_SECRET,
     });
 
@@ -211,12 +211,12 @@ export class AuthService {
     const payload = { sub: user.id, role: user.role };
 
     const accessToken = this.jwt.sign(payload, {
-      expiresIn: '15m',
+      expiresIn: (process.env.ACCESS_TOKEN_EXPIRY || '15m') as any,
       secret: process.env.ACCESS_TOKEN_SECRET,
     });
 
     const newRefreshToken = this.jwt.sign(payload, {
-      expiresIn: '7d',
+      expiresIn: (process.env.REFRESH_TOKEN_EXPIRY || '7d') as any,
       secret: process.env.REFRESH_TOKEN_SECRET,
     });
 

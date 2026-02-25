@@ -1,6 +1,8 @@
 import { fetcher } from "@/lib/fetcher";
 import { User } from "../users/types/user";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { setRefreshCallback } from "@/lib/kyClient";
 import {
   login,
   register,
@@ -38,6 +40,15 @@ export function useRegister() {
 }
 
 export const useSessionUser = () => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    // Register callback so kyClient can invalidate this cache after token refresh
+    setRefreshCallback(() => {
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+    });
+  }, [queryClient]);
+
   return useQuery<User | undefined>({
     queryKey: ["session"],
     queryFn: () => fetcher<User>("/users/me"),

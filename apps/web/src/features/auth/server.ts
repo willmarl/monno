@@ -1,3 +1,4 @@
+// server.ts  (updated version)
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -9,41 +10,65 @@ export async function requireAuth() {
 
 export async function getServerUser() {
   const cookieStore = await cookies();
-  const cookieHeader = cookieStore
+  let cookieHeader = cookieStore
     .getAll()
     .map((cookie) => `${cookie.name}=${cookie.value}`)
     .join("; ");
 
   let res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
     method: "GET",
-    headers: {
-      Cookie: cookieHeader,
-    },
+    headers: { Cookie: cookieHeader },
     credentials: "include",
     cache: "no-store",
   });
 
   if (res.status === 401) {
     // Try refresh
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {
-      method: "POST",
-      headers: { Cookie: cookieHeader },
-      credentials: "include",
-    });
+    const refreshRes = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+      {
+        method: "POST",
+        headers: { Cookie: cookieHeader },
+        credentials: "include",
+      },
+    );
 
-    // Retry /users/me
+    if (refreshRes.ok) {
+      // Extract the NEW cookies the backend just set
+      const setCookies = refreshRes.headers.getSetCookie?.() || [];
+      const newCookieParts = setCookies.map((c) => c.split(";")[0]); // "name=value"
+
+      // Merge old + new (new values win for same name)
+      const allCookies = new Map<string, string>();
+      cookieHeader.split("; ").forEach((part) => {
+        if (part) {
+          const [name] = part.split("=");
+          allCookies.set(name, part);
+        }
+      });
+      newCookieParts.forEach((part) => {
+        if (part) {
+          const [name] = part.split("=");
+          allCookies.set(name, part);
+        }
+      });
+
+      cookieHeader = Array.from(allCookies.values()).join("; ");
+    }
+
+    // Retry /users/me with the fresh cookies
     res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
+      method: "GET",
       headers: { Cookie: cookieHeader },
       credentials: "include",
       cache: "no-store",
     });
   }
 
+  if (!res.ok) return null;
+
   const json = await res.json();
-
-  if (!json.success) return null;
-
-  return json.data;
+  return json.success ? json.data : null;
 }
 
 export async function redirectIfLoggedIn() {
