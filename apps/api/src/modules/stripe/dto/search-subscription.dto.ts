@@ -18,7 +18,7 @@ const TransformBoolean = () =>
 export enum SubscriptionSearchFields {
   TIER = 'tier',
   STATUS = 'status',
-  USERNAME = 'userId.username',
+  USERNAME = 'user.username',
 }
 
 const VALID_SUBSCRIPTION_SEARCH_FIELDS = Object.values(
@@ -68,22 +68,50 @@ export class SubscriptionSearchDto extends PaginationDto {
   @IsString()
   sort?: string;
 
+  @ApiPropertyOptional({
+    description:
+      'Filter by subscription status (ACTIVE, CANCELED, PAST_DUE, TRIALING)',
+    example: 'ACTIVE',
+  })
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter by subscription tier (FREE, BASIC, PRO)',
+    example: 'PRO',
+  })
+  @IsOptional()
+  @IsString()
+  tier?: string;
+
   /**
    * Parse and validate searchFields into an array of valid fields
    * Invalid fields are silently ignored
+   * Enum fields (tier, status) are excluded from text search - use status/tier filters instead
    */
   getSearchFields(): string[] {
     if (!this.searchFields) {
-      // Default to all fields
-      return VALID_SUBSCRIPTION_SEARCH_FIELDS;
+      // Default to only string fields (exclude enums: tier, status)
+      return [SubscriptionSearchFields.USERNAME];
     }
 
     return this.searchFields
       .split(',')
       .map((field) => field.trim())
-      .filter((field) =>
-        VALID_SUBSCRIPTION_SEARCH_FIELDS.includes(field as any),
-      );
+      .filter((field) => {
+        if (!VALID_SUBSCRIPTION_SEARCH_FIELDS.includes(field as any)) {
+          return false;
+        }
+        // Exclude enum fields from text search
+        if (
+          field === SubscriptionSearchFields.TIER ||
+          field === SubscriptionSearchFields.STATUS
+        ) {
+          return false;
+        }
+        return true;
+      });
   }
 
   /**

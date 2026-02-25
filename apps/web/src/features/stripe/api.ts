@@ -58,6 +58,8 @@ export const fetchAdminSubscriptions = ({
   searchFields,
   sort,
   caseSensitive,
+  status,
+  tier,
 }: {
   query?: string;
   limit?: number;
@@ -65,6 +67,8 @@ export const fetchAdminSubscriptions = ({
   searchFields?: string;
   sort?: string;
   caseSensitive?: boolean;
+  status?: string;
+  tier?: string;
 } = {}) => {
   const searchParams: Record<string, string | number | boolean> = {
     limit,
@@ -74,6 +78,8 @@ export const fetchAdminSubscriptions = ({
   if (searchFields) searchParams.searchFields = searchFields;
   if (sort) searchParams.sort = sort;
   if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+  if (status) searchParams.status = status;
+  if (tier) searchParams.tier = tier;
 
   return fetcher<SubscriptionList>("/admin/stripe/subscription", {
     searchParams,

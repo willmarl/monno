@@ -74,22 +74,41 @@ export class AdminStripeService {
     const searchOptions = searchDto.getSearchOptions();
     const orderBy = searchDto.getOrderBy();
 
-    const where = buildSearchWhere({
+    const textSearchWhere = buildSearchWhere({
       query: searchDto.query ?? '',
       fields: searchFields,
       options: searchOptions,
     });
+
+    // Build filter conditions for enums
+    const filterConditions: any[] = [];
+
+    if (searchDto.status) {
+      filterConditions.push({ status: searchDto.status });
+    }
+
+    if (searchDto.tier) {
+      filterConditions.push({ tier: searchDto.tier });
+    }
+
+    // Combine text search and filters
+    const where = {
+      ...(Object.keys(textSearchWhere).length > 0 && textSearchWhere),
+      ...(filterConditions.length > 0 && {
+        AND: filterConditions,
+      }),
+    };
 
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.subscription,
       limit: searchDto.limit ?? 10,
       offset: searchDto.offset ?? 0,
       query: {
-        where: where,
+        where,
         orderBy,
         select: DEFAULT_SUBSCRIPTION_SELECT,
       },
-      countQuery: { where: where },
+      countQuery: { where },
     });
 
     return {

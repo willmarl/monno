@@ -13,6 +13,12 @@ export type CreditTransactionType =
   | "REFUND"
   | "ADMIN_ADJUST";
 
+export interface UserInfo {
+  id: number;
+  username: string;
+  avatarPath: string | null;
+}
+
 export interface Subscription {
   id: number;
   status: SubscriptionStatus;
@@ -22,6 +28,7 @@ export interface Subscription {
   periodEnd: Date;
   createdAt: Date;
   updatedAt: Date;
+  user: UserInfo;
 }
 
 export type SubscriptionList = PaginatedResponse<Subscription>;

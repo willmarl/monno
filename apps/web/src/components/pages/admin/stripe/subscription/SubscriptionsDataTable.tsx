@@ -11,7 +11,7 @@ interface SubscriptionDataTableProps {
   searchParams?: AdminSubscriptionsSearchParams;
 }
 
-const DEFAULT_LIMIT = 4;
+const DEFAULT_LIMIT = 1;
 
 export function SubscriptionDataTable({
   searchParams,

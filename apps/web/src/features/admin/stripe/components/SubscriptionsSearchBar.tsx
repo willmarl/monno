@@ -5,7 +5,7 @@ import { SearchFilterDropdown } from "@/features/search/components/SearchFilterD
 import {
   subscriptionSearchFilters,
   subscriptionSearchSorts,
-} from "@/features/admin/stripe/types/search-subsctipions-config";
+} from "@/features/admin/stripe/types/search-subscriptions-config";
 import { Subscription } from "@/features/stripe/types/stripe";
 
 interface SubscriptionSearchBarProps {
@@ -18,7 +18,7 @@ export function SubscriptionSearchBar({
   return (
     <div className="flex gap-2">
       <SearchBar<Subscription>
-        placeholder="Search posts..."
+        placeholder="Search subscriptions..."
         queryParam="q"
         basePath={basePath}
       />
