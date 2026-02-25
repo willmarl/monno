@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useModal } from "@/components/modal/ModalProvider";
+import { useModal } from "@/components/providers/ModalProvider";
 import { ConfirmModal } from "@/components/modal/ConfirmModal";
 import { EditUser } from "@/components/pages/admin/users/modal/EditUser";
 import { DeleteUser } from "./modal/DeleteUser";

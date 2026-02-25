@@ -2,7 +2,7 @@
 import { User } from "@/features/users/types/user";
 import { Button } from "@/components/ui/button";
 import { useAdminDeleteUser } from "@/features/users/hooks";
-import { useModal } from "@/components/modal/ModalProvider";
+import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 
 export function DeleteUser({ user }: { user: User }) {

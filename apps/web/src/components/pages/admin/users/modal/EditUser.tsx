@@ -2,7 +2,7 @@
 
 import { InlineUpdateUserAdminForm } from "@/features/users/components/InlineUpdateUserAdminForm";
 import { User } from "@/features/users/types/user";
-import { useModal } from "@/components/modal/ModalProvider";
+import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 
 export function EditUser({ user }: { user: User }) {

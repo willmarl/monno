@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useModal } from "@/components/modal/ModalProvider";
+import { useModal } from "@/components/providers/ModalProvider";
 import { RESOURCE_TYPES } from "@/types/resource";
 import { InlineNewCollectionForm } from "@/features/collections/components/InlineNewCollectionForm";
 import { toast } from "sonner";

@@ -15,7 +15,7 @@ import { Textarea } from "./textarea";
 import { EllipsisVertical, X } from "lucide-react";
 import { useToggleLike } from "@/features/likes/hooks";
 import { Comment as CommentType } from "@/features/comments/types/comment";
-import { useModal } from "@/components/modal/ModalProvider";
+import { useModal } from "@/components/providers/ModalProvider";
 import { ConfirmModal } from "../modal/ConfirmModal";
 import {
   DropdownMenu,

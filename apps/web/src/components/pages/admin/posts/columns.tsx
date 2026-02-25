@@ -18,7 +18,7 @@ import {
   useAdminRestorePost,
 } from "@/features/posts/hooks";
 import { useRouter } from "next/navigation";
-import { useModal } from "@/components/modal/ModalProvider";
+import { useModal } from "@/components/providers/ModalProvider";
 import { ConfirmModal } from "@/components/modal/ConfirmModal";
 import { SortableHeader } from "@/components/table/SortableHeader";
 import { formatDate } from "@/lib/utils/date";

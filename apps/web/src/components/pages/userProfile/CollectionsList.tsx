@@ -8,7 +8,7 @@ import { PublicUser } from "@/features/users/types/user";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { NewCollection } from "./modal/NewCollection";
-import { useModal } from "@/components/modal/ModalProvider";
+import { useModal } from "@/components/providers/ModalProvider";
 
 interface CollectionsListProps {
   user: PublicUser;

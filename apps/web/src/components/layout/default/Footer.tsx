@@ -1,7 +1,7 @@
 "use client";
 
 import { CreateTicket } from "../../pages/admin/support/modal/CreateTicket";
-import { useModal } from "@/components/modal/ModalProvider";
+import { useModal } from "@/components/providers/ModalProvider";
 
 export default function Footer() {
   const { openModal } = useModal();

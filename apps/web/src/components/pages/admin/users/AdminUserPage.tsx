@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { AdminUserSearchBar } from "@/features/admin/users/components/AdminUserSearchBar";
 import { UserDataTable } from "./UserDataTable";
-import { useModal } from "@/components/modal/ModalProvider";
+import { useModal } from "@/components/providers/ModalProvider";
 import { CreateUser } from "./modal/CreateUser";
 import { AdminUserSearchParams } from "@/types/search-params";
 

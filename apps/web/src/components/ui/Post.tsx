@@ -6,7 +6,7 @@ import { Post as PostType } from "@/features/posts/types/post";
 import { RESOURCE_TYPES } from "@/types/resource";
 import { Trash, PencilLine, Eye, BookmarkPlus } from "lucide-react";
 import { ConfirmModal } from "../modal/ConfirmModal";
-import { useModal } from "../modal/ModalProvider";
+import { useModal } from "../providers/ModalProvider";
 import { useDeletePost } from "@/features/posts/hooks";
 import { toast } from "sonner";
 import { useSessionUser } from "@/features/auth/hooks";

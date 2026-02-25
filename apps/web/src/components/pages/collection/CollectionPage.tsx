@@ -10,7 +10,7 @@ import { formatDate } from "@/lib/utils/date";
 import { CollectionItemsList } from "./CollectionItemsList";
 import { Suspense } from "react";
 import { useSessionUser } from "@/features/auth/hooks";
-import { useModal } from "@/components/modal/ModalProvider";
+import { useModal } from "@/components/providers/ModalProvider";
 import { DeleteCollection } from "./modal/DeleteCollection";
 import { EditCollection } from "./modal/EditCollection";
 import { useRouter } from "next/navigation";

@@ -2,7 +2,7 @@
 import { Collection } from "@/features/collections/types/collection";
 import { Button } from "@/components/ui/button";
 import { useDeleteCollection } from "@/features/collections/hooks";
-import { useModal } from "@/components/modal/ModalProvider";
+import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 

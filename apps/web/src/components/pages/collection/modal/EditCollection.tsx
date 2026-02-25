@@ -1,5 +1,5 @@
 import { InlineUpdateCollectionForm } from "@/features/collections/components/InlineUpdateCollectionForm";
-import { useModal } from "@/components/modal/ModalProvider";
+import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 import { Collection } from "@/features/collections/types/collection";
 

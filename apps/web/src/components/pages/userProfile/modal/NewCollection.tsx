@@ -1,5 +1,5 @@
 import { InlineNewCollectionForm } from "@/features/collections/components/InlineNewCollectionForm";
-import { useModal } from "@/components/modal/ModalProvider";
+import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 
 export function NewCollection() {
