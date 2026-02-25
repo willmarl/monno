@@ -50,6 +50,7 @@ export interface CreditPurchase {
   pricePaid: number;
   currency: string;
   purchasedAt: Date;
+  user: UserInfo;
 }
 
 export type CreditPurchaseList = PaginatedResponse<CreditPurchase>;
@@ -62,6 +63,7 @@ export interface CreditTransaction {
   balanceBefore: number;
   balanceAfter: number;
   createdAt: Date;
+  user: UserInfo;
 }
 
 export type CreditTransactionList = PaginatedResponse<CreditTransaction>;
