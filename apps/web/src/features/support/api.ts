@@ -26,6 +26,7 @@ export const fetchSupportTickets = ({
   searchFields,
   sort,
   caseSensitive,
+  status,
 }: {
   query?: string;
   limit?: number;
@@ -33,6 +34,7 @@ export const fetchSupportTickets = ({
   searchFields?: string;
   sort?: string;
   caseSensitive?: boolean;
+  status?: string;
 } = {}) => {
   const searchParams: Record<string, string | number | boolean> = {
     limit,
@@ -42,6 +44,7 @@ export const fetchSupportTickets = ({
   if (searchFields) searchParams.searchFields = searchFields;
   if (sort) searchParams.sort = sort;
   if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+  if (status) searchParams.status = status;
 
   return fetcher<SupportTicketList>("/admin/support", { searchParams });
 };

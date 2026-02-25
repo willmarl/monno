@@ -11,7 +11,7 @@ interface TicketDataTableProps {
   searchParams?: AdminSupportTicketSearchParams;
 }
 
-const DEFAULT_LIMIT = 4;
+const DEFAULT_LIMIT = 1;
 
 export function TicketDataTable({ searchParams }: TicketDataTableProps) {
   const {
@@ -36,7 +36,7 @@ export function TicketDataTable({ searchParams }: TicketDataTableProps) {
       <DataTable columns={columns} data={tickets} />
       <div className="mt-4">
         <OffsetPagination
-          url="/admin/support"
+          url="admin/support"
           page={page}
           limit={DEFAULT_LIMIT}
           queryParams={queryParams}

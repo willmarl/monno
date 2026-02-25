@@ -20,6 +20,16 @@ export const ticketSearchFilters: SearchFilterOption[] = [
     name: "caseSensitive",
     label: "Case Sensitive",
   },
+  {
+    type: "radio-combobox",
+    name: "status",
+    label: "Filter by status",
+    options: [
+      { value: "OPEN", label: "Open" },
+      { value: "RESPONDED", label: "Responded" },
+      { value: "CLOSED", label: "Closed" },
+    ],
+  },
 ];
 
 export const ticketSearchSorts: SearchSortOption[] = [

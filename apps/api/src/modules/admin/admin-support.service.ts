@@ -50,8 +50,12 @@ export class AdminSupportService {
       options: searchOptions,
     });
 
-    // Build filter conditions
+    // Build filter conditions for enums
     const filterConditions: any[] = [];
+
+    if (searchDto.status) {
+      filterConditions.push({ status: searchDto.status });
+    }
 
     // Combine text search and filters
     const where = {

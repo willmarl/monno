@@ -65,13 +65,22 @@ export class SupportSearchDto extends PaginationDto {
   @IsString()
   sort?: string;
 
+  @ApiPropertyOptional({
+    description: 'Filter by ticket status (OPEN, RESPONDED, CLOSED)',
+    example: 'OPEN',
+  })
+  @IsOptional()
+  @IsString()
+  status?: string;
+
   /**
    * Parse and validate searchFields into an array of valid fields
    * Invalid fields are silently ignored
+   * Enum fields (status) are excluded from text search - use status filter instead
    */
   getSearchFields(): string[] {
     if (!this.searchFields) {
-      // Default to all fields
+      // Default to all string fields
       return VALID_SUPPORT_SEARCH_FIELDS;
     }
 

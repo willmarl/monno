@@ -38,7 +38,13 @@ export function useSupporTicket(
   page: number = 1,
   limit: number = 10,
   query?: string,
-  options?: { searchFields?: string; sort?: string; caseSensitive?: boolean },
+  options?: {
+    searchFields?: string;
+    sort?: string;
+    caseSensitive?: boolean;
+    status?: string;
+    [key: string]: any;
+  },
 ) {
   const offset = (page - 1) * limit;
 
@@ -50,6 +56,7 @@ export function useSupporTicket(
       options?.searchFields,
       options?.sort,
       options?.caseSensitive,
+      options?.status,
     ],
     queryFn: () =>
       fetchSupportTickets({
@@ -59,6 +66,7 @@ export function useSupporTicket(
         searchFields: options?.searchFields,
         sort: options?.sort,
         caseSensitive: options?.caseSensitive,
+        status: options?.status,
       }),
   });
 }
