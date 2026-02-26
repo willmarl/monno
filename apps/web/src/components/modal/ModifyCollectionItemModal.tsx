@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Separator } from "../ui/separator";
 import { Checkbox } from "../ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { PaginatedListInline } from "@/components/ui/pagination/PaginatedListInline";
 import {
   useCollectionsByUserId,
   useCollectionsForPost,
@@ -31,7 +32,7 @@ export function ModifyCollectionItemModal({
   const { closeModal } = useModal();
   const { data: user } = useSessionUser();
   const [page, setPage] = useState(1);
-  const { data: userCollections } = useCollectionsByUserId(
+  const { data: userCollections, isLoading } = useCollectionsByUserId(
     user?.id ?? 0,
     page,
     LIMIT,
@@ -90,6 +91,12 @@ export function ModifyCollectionItemModal({
     }
   };
 
+  const collections = userCollections?.items ?? [];
+  const totalItems =
+    userCollections?.pageInfo?.total ??
+    userCollections?.pageInfo?.totalItems ??
+    0;
+
   return (
     <div className="flex flex-col gap-4">
       <InlineNewCollectionForm
@@ -102,47 +109,31 @@ export function ModifyCollectionItemModal({
         isAlwaysOpen={false}
       />
       <Separator />
-      <FieldGroup className="">
-        <Field orientation="vertical">
-          {userCollections?.items.map((collection) => (
-            <FieldLabel key={collection.id}>
-              <Checkbox
-                checked={checkedCollections.has(collection.id)}
-                onCheckedChange={(checked) =>
-                  handleCollectionToggle(collection.id, checked === true)
-                }
-                disabled={addItem.isPending || removeItem.isPending}
-              />
-              {collection.name}
-            </FieldLabel>
-          ))}
-        </Field>
-      </FieldGroup>
 
-      {/* Pagination */}
-      {userCollections?.pageInfo && (
-        <div className="flex items-center justify-between gap-2 text-sm">
-          <Button
-            onClick={() => setPage(Math.max(1, page - 1))}
-            disabled={page === 1}
-            variant="outline"
-            size="sm"
-          >
-            Previous
-          </Button>
-          <span>
-            Page {page} ({userCollections.pageInfo.total} total)
-          </span>
-          <Button
-            onClick={() => setPage(page + 1)}
-            disabled={!userCollections.pageInfo.hasMore}
-            variant="outline"
-            size="sm"
-          >
-            Next
-          </Button>
-        </div>
-      )}
+      <PaginatedListInline
+        page={page}
+        limit={LIMIT}
+        items={collections}
+        totalItems={totalItems}
+        isLoading={isLoading}
+        onPageChange={setPage}
+        renderItem={(collection) => (
+          <FieldLabel className="flex items-center gap-2">
+            <Checkbox
+              checked={checkedCollections.has(collection.id)}
+              onCheckedChange={(checked) =>
+                handleCollectionToggle(collection.id, checked === true)
+              }
+              disabled={addItem.isPending || removeItem.isPending}
+            />
+            {collection.name}
+          </FieldLabel>
+        )}
+        title="Your Collections"
+        layout="flex"
+        gridClassName="flex flex-col gap-3"
+        emptyMessage="No collections yet."
+      />
 
       <Button onClick={closeModal} className="mt-2 w-full">
         Done

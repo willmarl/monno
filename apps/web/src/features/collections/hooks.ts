@@ -64,6 +64,7 @@ export function useCreateCollection() {
     mutationFn: createCollection,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["collections"] });
+      qc.invalidateQueries({ queryKey: ["collections-by-user"] });
     },
     throwOnError: false,
   });

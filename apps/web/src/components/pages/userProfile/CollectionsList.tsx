@@ -15,7 +15,7 @@ interface CollectionsListProps {
   isOwner: boolean;
 }
 
-const DEFAULT_LIMIT = 9;
+const DEFAULT_LIMIT = 2;
 
 export function CollectionsList({ user, isOwner }: CollectionsListProps) {
   const { openModal } = useModal();

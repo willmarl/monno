@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, ChevronUp, Plus } from "lucide-react";
 
 interface InlineNewCollectionFormProps {
-  onSuccess?: () => void;
+  onSuccess?: (response: any) => void;
   onCancel?: () => void;
   isAlwaysOpen?: boolean;
 }
@@ -37,12 +37,12 @@ export function InlineNewCollectionForm({
 
   const handleSubmit = (data: NewCollectionInput) => {
     newCollectionMutation.mutate(data, {
-      onSuccess: () => {
+      onSuccess: (response) => {
         form.reset();
         if (!isAlwaysOpen) {
           setIsOpen(false);
         }
-        onSuccess?.();
+        onSuccess?.(response);
       },
     });
   };
