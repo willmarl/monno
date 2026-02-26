@@ -28,18 +28,10 @@ export const api = ky.create({
 
     afterResponse: [
       async (request, options, response) => {
-        // Special case for your sessions list
         if (response.status === 401) {
+          // Special case: revoking own session from sessions list
           if (request.method === "GET" && request.url.includes("/sessions")) {
             window.location.href = "/login";
-            return response;
-          }
-
-          // Check if user has a refresh token (i.e., was ever logged in)
-          const hasRefreshToken = document.cookie.includes("refreshToken");
-
-          // If no refresh token, user was never logged in → don't show error
-          if (!hasRefreshToken) {
             return response;
           }
 
@@ -68,13 +60,11 @@ export const api = ky.create({
               onRefreshSuccess();
             }
 
-            // Retry original request (use native fetch to avoid loop)
-            return fetch(request.clone());
+            // Retry original request with fresh tokens
+            return api(request);
           } catch (err) {
             // Refresh itself failed → real logout
             toastError("Session expired. Please log in again.");
-            // Optional: clear cookies or redirect
-            // window.location.href = "/login";
             return response;
           }
         }
