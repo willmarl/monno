@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { Collection } from "../types/collection";
+import { Textarea } from "@/components/ui/textarea";
 
 interface InlineUpdateCollectionFormProps {
   data: Collection;
@@ -39,7 +40,6 @@ export function InlineUpdateCollectionForm({
 
   const updateCollectionMutation = useUpdateCollection();
   const { isValid } = form.formState;
-  console.log(collectionData);
   const handleSubmit = (data: UpdateCollectionInput) => {
     updateCollectionMutation.mutate(
       { id: collectionData.id, data },
@@ -90,9 +90,8 @@ export function InlineUpdateCollectionForm({
         <Label htmlFor="inline-description" className="text-sm">
           Description
         </Label>
-        <Input
+        <Textarea
           id="inline-description"
-          type="text"
           placeholder="description"
           disabled={updateCollectionMutation.isPending}
           {...form.register("description")}
@@ -106,10 +105,11 @@ export function InlineUpdateCollectionForm({
 
       {/* Action Buttons */}
       <div className="flex gap-3 pt-2">
-        <Button
+        {/* <Button
           type="button"
           variant="outline"
           size="sm"
+          className="cursor-pointer"
           onClick={() => {
             if (!isAlwaysOpen) {
               setIsOpen(false);
@@ -120,18 +120,19 @@ export function InlineUpdateCollectionForm({
           disabled={updateCollectionMutation.isPending}
         >
           {isAlwaysOpen ? "Clear" : "Cancel"}
-        </Button>
+        </Button> */}
         <Button
           type="submit"
           size="sm"
           disabled={updateCollectionMutation.isPending || !isValid}
+          className="cursor-pointer"
         >
           {updateCollectionMutation.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
           {updateCollectionMutation.isPending
-            ? "Loading..."
-            : "SUBMIT | CHANGE ME"}
+            ? "Updating..."
+            : "Update collection"}
         </Button>
       </div>
     </form>

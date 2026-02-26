@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2, ChevronUp, Plus } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 interface InlineNewCollectionFormProps {
   onSuccess?: (response: any) => void;
@@ -82,9 +83,8 @@ export function InlineNewCollectionForm({
         <Label htmlFor="inline-description" className="text-sm">
           Description (optional)
         </Label>
-        <Input
+        <Textarea
           id="inline-description"
-          type="text"
           placeholder="description"
           disabled={newCollectionMutation.isPending}
           {...form.register("description")}
@@ -98,10 +98,11 @@ export function InlineNewCollectionForm({
 
       {/* Action Buttons */}
       <div className="flex gap-3 pt-2">
-        <Button
+        {/* <Button
           type="button"
           variant="outline"
           size="sm"
+          className="cursor-pointer"
           onClick={() => {
             if (!isAlwaysOpen) {
               setIsOpen(false);
@@ -118,18 +119,19 @@ export function InlineNewCollectionForm({
               <ChevronUp /> Collapse
             </div>
           )}
-        </Button>
+        </Button> */}
         <Button
           type="submit"
           size="sm"
           disabled={newCollectionMutation.isPending || !isValid}
+          className="cursor-pointer"
         >
           {newCollectionMutation.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
           {newCollectionMutation.isPending
-            ? "Loading..."
-            : "SUBMIT | CHANGE ME"}
+            ? "Creating..."
+            : "Create collection"}
         </Button>
       </div>
     </form>
