@@ -25,6 +25,10 @@ export default function NewPostForm() {
   const form = useForm<NewPostInput>({
     resolver: zodResolver(newPostSchema),
     mode: "onChange",
+    defaultValues: {
+      title: "",
+      content: "",
+    },
   });
 
   const {
