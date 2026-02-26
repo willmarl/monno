@@ -79,7 +79,7 @@ export default function ResetPasswordForm() {
           toast.error(message);
           setTokenError(message);
         },
-      }
+      },
     );
   }
 
@@ -190,7 +190,7 @@ export default function ResetPasswordForm() {
 
           <Button
             type="submit"
-            className="w-full h-10 font-semibold"
+            className="w-full h-10 font-semibold cursor-pointer"
             disabled={resetMutation.isPending || !isValid}
           >
             {resetMutation.isPending ? "Resetting..." : "Reset Password"}

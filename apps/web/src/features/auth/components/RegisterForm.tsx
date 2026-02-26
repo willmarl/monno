@@ -86,9 +86,9 @@ export default function RegisterForm() {
                   />
                 </FormControl>
 
-                <FormDescription>
-                  What your friends will call you.
-                </FormDescription>
+                {/* <FormDescription>
+                  What people will see you as.
+                </FormDescription> */}
 
                 <FormMessage />
               </FormItem>

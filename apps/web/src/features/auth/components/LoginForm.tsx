@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
+import { toast } from "sonner";
 
 export default function LoginForm() {
   const form = useForm<LoginInput>({
@@ -34,7 +35,11 @@ export default function LoginForm() {
   const { captureEvent } = usePostHogEvents();
 
   function onSubmit(data: LoginInput) {
-    loginMutation.mutate(data);
+    loginMutation.mutate(data, {
+      onError: (e) => {
+        toast.error(String(e));
+      },
+    });
 
     // Track login attempt
     captureEvent("login_attempted", {
@@ -116,7 +121,7 @@ export default function LoginForm() {
 
           <Button
             type="submit"
-            className="w-full h-10 font-semibold"
+            className="w-full h-10 font-semibold cursor-pointer"
             disabled={loginMutation.isPending || !isValid}
           >
             {loginMutation.isPending ? "Logging in..." : "Login"}

@@ -19,7 +19,10 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  email: z
+    .string()
+    .email("Please enter a valid email address")
+    .max(256, "email must be at most 256 characters"),
 });
 
 type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
@@ -76,7 +79,10 @@ export default function ForgotPasswordForm() {
           </p>
         </div>
         <Link href="/login" className="block">
-          <Button variant="outline" className="w-full h-10 font-semibold">
+          <Button
+            variant="outline"
+            className="w-full h-10 font-semibold cursor-pointer"
+          >
             Back to Login
           </Button>
         </Link>
@@ -122,7 +128,7 @@ export default function ForgotPasswordForm() {
 
           <Button
             type="submit"
-            className="w-full h-10 font-semibold"
+            className="w-full h-10 font-semibold cursor-pointer"
             disabled={resetMutation.isPending || !isValid}
           >
             {resetMutation.isPending ? "Sending..." : "Send Reset Link"}
