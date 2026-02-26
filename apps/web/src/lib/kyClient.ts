@@ -63,8 +63,11 @@ export const api = ky.create({
             // Retry original request with fresh tokens
             return api(request);
           } catch (err) {
-            // Refresh itself failed → real logout
-            toastError("Session expired. Please log in again.");
+            // Refresh itself failed → only show error if user was logged in
+            const wasLoggedIn = document.cookie.includes("refreshToken");
+            if (wasLoggedIn) {
+              toastError("Session expired. Please log in again.");
+            }
             return response;
           }
         }
