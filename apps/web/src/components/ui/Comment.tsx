@@ -102,16 +102,23 @@ export function Comment({
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost">
+          <Button variant="ghost" className="cursor-pointer">
             <EllipsisVertical />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="left" align="start" sideOffset={-5}>
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => setIsEditing(true)}>
+            <DropdownMenuItem
+              onClick={() => setIsEditing(true)}
+              className="cursor-pointer"
+            >
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleDelete} variant="destructive">
+            <DropdownMenuItem
+              onClick={handleDelete}
+              variant="destructive"
+              className="cursor-pointer"
+            >
               Delete
             </DropdownMenuItem>
           </DropdownMenuGroup>
@@ -147,7 +154,7 @@ export function Comment({
       <div className="flex-1 relative">
         {/* comment menu options - Top Right */}
         <div className="absolute right-0 top-0">
-          {isOwner ? commentMenu() : ""}
+          {isOwner && !isEditing ? commentMenu() : ""}
         </div>
         {/* Top: Username and Date */}
         <div className="flex items-center gap-2 mb-1">
@@ -184,9 +191,9 @@ export function Comment({
                   setIsEditing(false);
                 }}
                 disabled={updateComment.isPending}
-                className="h-8"
+                className="h-8 cursor-pointer"
               >
-                <X size={16} className="mr-1" />
+                <X size={16} className="mr-1 cursor-pointer" />
                 Cancel
               </Button>
               <Button
@@ -196,7 +203,7 @@ export function Comment({
                 disabled={
                   updateComment.isPending || editContent === data.content
                 }
-                className="h-8"
+                className="h-8 cursor-pointer"
               >
                 {updateComment.isPending ? "Saving..." : "Save"}
               </Button>

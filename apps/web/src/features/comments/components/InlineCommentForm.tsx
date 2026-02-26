@@ -62,7 +62,11 @@ export function InlineCommentForm({
 
   if (!isAlwaysOpen && !isOpen) {
     return (
-      <Button onClick={() => setIsOpen(true)} variant="outline">
+      <Button
+        onClick={() => setIsOpen(true)}
+        variant="outline"
+        className="cursor-pointer"
+      >
         Add Comment
       </Button>
     );
@@ -121,16 +125,16 @@ export function InlineCommentForm({
                   onCancel?.();
                 }}
                 disabled={commentMutation.isPending}
-                className="h-8"
+                className="h-8 cursor-pointer"
               >
-                <X size={16} className="mr-1" />
+                <X size={16} className="mr-1 cursor-pointer" />
                 Cancel
               </Button>
               <Button
                 type="submit"
                 size="sm"
                 disabled={commentMutation.isPending || !isValid}
-                className="h-8"
+                className="h-8 cursor-pointer"
               >
                 {commentMutation.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
