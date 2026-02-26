@@ -91,14 +91,20 @@ export const columns: ColumnDef<SupportTicket>[] = [
     accessorKey: "user",
     header: ({ column }) => <SortableHeader column={column} label="User" />,
     cell: ({ row }) => {
-      const username: string | null = row.original.user.username;
-      const avatarPath: string | null = row.original.user.avatarPath;
+      const user = row.original.user;
+
+      if (!user) {
+        return <span className="text-muted-foreground">No user</span>;
+      }
+
+      const username: string | null = user.username;
+      const avatarPath: string | null = user.avatarPath;
 
       return (
         <div className="flex gap-1 items-center">
           <Avatar className="h-8 w-8">
             {avatarPath && <AvatarImage src={avatarPath} alt={username} />}
-            <AvatarFallback>{username[0]}</AvatarFallback>
+            <AvatarFallback>{username?.[0]}</AvatarFallback>
           </Avatar>
           <p>{username}</p>
         </div>
