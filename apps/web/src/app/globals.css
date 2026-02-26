@@ -126,7 +126,7 @@
 
 @layer base {
   html {
-    scrollbar-gutter: stable;
+    /* scrollbar-gutter: stable; not having scrollbar-gutter suprisingly fixes modal nudge issue */
   }
   * {
     @apply border-border outline-ring/50;

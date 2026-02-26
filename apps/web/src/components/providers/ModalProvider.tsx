@@ -42,7 +42,9 @@ export function ModalProvider({ children }: { children: ReactNode }) {
       <Dialog open={modal.isOpen} onOpenChange={closeModal}>
         <DialogContent>
           <DialogTitle>{modal.title}</DialogTitle>
-          <div className="mt-4">{modal.content}</div>
+          <div className="mt-4 p-1 max-h-[calc(100vh-200px)] overflow-y-auto">
+            {modal.content}
+          </div>
         </DialogContent>
       </Dialog>
     </ModalContext.Provider>
