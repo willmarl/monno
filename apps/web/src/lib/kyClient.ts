@@ -79,8 +79,13 @@ export const api = ky.create({
           }
         }
 
-        // Generic 5xx error handling (unchanged)
-        if (!response.ok && response.status >= 500) {
+        // Generic 5xx error handling
+        // Skip toast for stripe health check (Stripe may not be configured)
+        if (
+          !response.ok &&
+          response.status >= 500 &&
+          !request.url.includes("/stripe/health")
+        ) {
           const error = (await response
             .clone()
             .json()

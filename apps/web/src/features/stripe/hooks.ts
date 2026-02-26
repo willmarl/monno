@@ -53,9 +53,35 @@ export function useUserCreditTransactions(page: number, limit: number) {
 }
 
 export function useStripeHealth() {
+  const cacheKey = "stripe_health_cached";
+
+  // Read from localStorage synchronously for instant render
+  const getCachedHealth = () => {
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    }
+    return undefined;
+  };
+
   return useQuery({
     queryKey: ["stripe", "health"],
-    queryFn: fetchStripeHealth,
+    queryFn: async () => {
+      try {
+        const result = await fetchStripeHealth();
+        localStorage.setItem(cacheKey, JSON.stringify(result));
+        return result;
+      } catch (error) {
+        // If health check fails, Stripe is not configured
+        // Return undefined silently (no toast, no retry)
+        return undefined;
+      }
+    },
+    initialData: getCachedHealth(),
+    staleTime: Infinity, // Cached data never becomes stale
+    retry: false,
   });
 }
 
