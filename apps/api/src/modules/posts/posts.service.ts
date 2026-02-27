@@ -182,6 +182,15 @@ export class PostsService {
     pag: PaginationDto,
     currentUserId?: number,
   ) {
+    // Check if user exists
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     // Get total count of posts liked by the user
     const totalCount = await this.prisma.like.count({
       where: {
@@ -251,6 +260,15 @@ export class PostsService {
     pag: CursorPaginationDto,
     currentUserId?: number,
   ) {
+    // Check if user exists
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     const { cursor, limit } = pag;
 
     // Get paginated likes using cursor pagination
