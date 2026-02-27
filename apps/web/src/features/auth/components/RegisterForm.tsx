@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
+import { toast } from "sonner";
 
 export default function RegisterForm() {
   const form = useForm<RegisterInput>({
@@ -42,7 +43,11 @@ export default function RegisterForm() {
       email: data.email || undefined,
       password: data.password,
     };
-    registerMutation.mutate(payload);
+    registerMutation.mutate(payload, {
+      onError: (err) => {
+        toast.error(String(err));
+      },
+    });
 
     // Track signup completion
     captureEvent("signup_completed", {
