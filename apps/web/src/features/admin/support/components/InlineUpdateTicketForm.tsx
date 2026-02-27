@@ -140,6 +140,7 @@ export function InlineUpdateTicketForm({
           type="button"
           variant="outline"
           size="sm"
+          className="cursor-pointer"
           onClick={() => {
             if (!isAlwaysOpen) {
               setIsOpen(false);
@@ -149,17 +150,18 @@ export function InlineUpdateTicketForm({
           }}
           disabled={updateTicketMutation.isPending}
         >
-          {isAlwaysOpen ? "Clear" : "Cancel"}
+          {isAlwaysOpen ? "Reset" : "Cancel"}
         </Button>
         <Button
           type="submit"
           size="sm"
           disabled={updateTicketMutation.isPending || !isValid}
+          className="cursor-pointer"
         >
           {updateTicketMutation.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          {updateTicketMutation.isPending ? "Loading..." : "SUBMIT | CHANGE ME"}
+          {updateTicketMutation.isPending ? "Updating..." : "Update"}
         </Button>
       </div>
     </form>
