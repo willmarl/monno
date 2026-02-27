@@ -16,12 +16,14 @@ import { Loader2 } from "lucide-react";
 interface InlineCreateTicketFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  onError?: (error: any) => void;
   isAlwaysOpen?: boolean;
 }
 
 export function InlineCreateTicketForm({
   onSuccess,
   onCancel,
+  onError,
   isAlwaysOpen = false,
 }: InlineCreateTicketFormProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -48,6 +50,9 @@ export function InlineCreateTicketForm({
           setIsOpen(false);
         }
         onSuccess?.();
+      },
+      onError: (err) => {
+        onError?.(err);
       },
     });
   };
@@ -121,7 +126,7 @@ export function InlineCreateTicketForm({
 
       {/* Action Buttons */}
       <div className="flex gap-3 pt-2">
-        {/* <Button
+        <Button
           type="button"
           variant="outline"
           size="sm"
@@ -136,7 +141,7 @@ export function InlineCreateTicketForm({
           disabled={createTicketMutation.isPending}
         >
           {isAlwaysOpen ? "Clear" : "Cancel"}
-        </Button> */}
+        </Button>
         <Button
           type="submit"
           size="sm"

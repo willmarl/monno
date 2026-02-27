@@ -15,7 +15,7 @@ export function EditUser({ user }: { user: User }) {
         toast.success(`Editted ${user.username} successfully`);
         closeModal();
       }}
-      onCancel={() => {
+      onError={() => {
         toast.error(`Error trying to edit ${user.username}`);
       }}
       isAlwaysOpen={true}

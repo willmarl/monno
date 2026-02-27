@@ -19,6 +19,7 @@ interface InlineUpdateCollectionFormProps {
   data: Collection;
   onSuccess?: () => void;
   onCancel?: () => void;
+  onError?: (error: any) => void;
   isAlwaysOpen?: boolean;
 }
 
@@ -26,6 +27,7 @@ export function InlineUpdateCollectionForm({
   data: collectionData,
   onSuccess,
   onCancel,
+  onError,
   isAlwaysOpen = false,
 }: InlineUpdateCollectionFormProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -50,6 +52,9 @@ export function InlineUpdateCollectionForm({
             setIsOpen(false);
           }
           onSuccess?.();
+        },
+        onError: (err) => {
+          onError?.(err);
         },
       },
     );
@@ -105,7 +110,7 @@ export function InlineUpdateCollectionForm({
 
       {/* Action Buttons */}
       <div className="flex gap-3 pt-2">
-        {/* <Button
+        <Button
           type="button"
           variant="outline"
           size="sm"
@@ -120,7 +125,7 @@ export function InlineUpdateCollectionForm({
           disabled={updateCollectionMutation.isPending}
         >
           {isAlwaysOpen ? "Clear" : "Cancel"}
-        </Button> */}
+        </Button>
         <Button
           type="submit"
           size="sm"

@@ -11,7 +11,7 @@ export function CreateTicket() {
         toast.success("Successfully sent message");
         closeModal();
       }}
-      onCancel={() => {
+      onError={() => {
         toast.error("Error trying to send message");
       }}
       isAlwaysOpen={true}

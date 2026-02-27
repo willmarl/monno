@@ -23,12 +23,15 @@ import { Loader2 } from "lucide-react";
 interface InlineCreateUserAdminFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  onError?: (error: any) => void;
+
   isAlwaysOpen?: boolean;
 }
 
 export function InlineCreateUserAdminForm({
   onSuccess,
   onCancel,
+  onError,
   isAlwaysOpen = false,
 }: InlineCreateUserAdminFormProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,6 +58,9 @@ export function InlineCreateUserAdminForm({
           setIsOpen(false);
         }
         onSuccess?.();
+      },
+      onError: (err) => {
+        onError?.(err);
       },
     });
   };

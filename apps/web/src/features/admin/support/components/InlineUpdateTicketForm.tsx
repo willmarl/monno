@@ -25,6 +25,8 @@ import { SupportTicket } from "../../../support/types/support";
 interface InlineUpdateTicketFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  onError?: (error: any) => void;
+
   isAlwaysOpen?: boolean;
   ticket: SupportTicket;
 }
@@ -32,6 +34,7 @@ interface InlineUpdateTicketFormProps {
 export function InlineUpdateTicketForm({
   onSuccess,
   onCancel,
+  onError,
   isAlwaysOpen = false,
   ticket,
 }: InlineUpdateTicketFormProps) {
@@ -64,6 +67,9 @@ export function InlineUpdateTicketForm({
             setIsOpen(false);
           }
           onSuccess?.();
+        },
+        onError: (err) => {
+          onError?.(err);
         },
       },
     );

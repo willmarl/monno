@@ -13,7 +13,7 @@ export function EditCollection({ data }: { data: Collection }) {
         toast.success("Successfully edit collection");
         closeModal();
       }}
-      onCancel={() => {
+      onError={() => {
         toast.error("Error trying to edit collection");
       }}
       isAlwaysOpen={true}

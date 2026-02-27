@@ -11,7 +11,7 @@ export function CreateUser() {
         toast.success("Successfully made user");
         closeModal();
       }}
-      onCancel={() => {
+      onError={() => {
         toast.error("Error trying to make user");
       }}
       isAlwaysOpen={true}

@@ -17,12 +17,15 @@ import { Textarea } from "@/components/ui/textarea";
 interface InlineNewCollectionFormProps {
   onSuccess?: (response: any) => void;
   onCancel?: () => void;
+  onError?: (error: any) => void;
   isAlwaysOpen?: boolean;
 }
 
 export function InlineNewCollectionForm({
   onSuccess,
   onCancel,
+  onError,
+
   isAlwaysOpen = false,
 }: InlineNewCollectionFormProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -44,6 +47,9 @@ export function InlineNewCollectionForm({
           setIsOpen(false);
         }
         onSuccess?.(response);
+      },
+      onError: (err) => {
+        onError?.(err);
       },
     });
   };
@@ -98,7 +104,7 @@ export function InlineNewCollectionForm({
 
       {/* Action Buttons */}
       <div className="flex gap-3 pt-2">
-        {/* <Button
+        <Button
           type="button"
           variant="outline"
           size="sm"
@@ -119,7 +125,7 @@ export function InlineNewCollectionForm({
               <ChevronUp /> Collapse
             </div>
           )}
-        </Button> */}
+        </Button>
         <Button
           type="submit"
           size="sm"

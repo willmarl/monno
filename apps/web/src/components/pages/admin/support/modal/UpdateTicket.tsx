@@ -13,7 +13,7 @@ export function UpdateTicket({ ticket }: { ticket: SupportTicket }) {
         toast.success("Successfully updated ticket");
         closeModal();
       }}
-      onCancel={() => {
+      onError={() => {
         toast.error("Error trying to update ticket");
       }}
       isAlwaysOpen={true}

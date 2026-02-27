@@ -27,6 +27,7 @@ interface InlineUpdateUserAdminFormProps {
   user: User;
   onSuccess?: () => void;
   onCancel?: () => void;
+  onError?: (error: any) => void;
   isAlwaysOpen?: boolean;
 }
 
@@ -34,6 +35,7 @@ export function InlineUpdateUserAdminForm({
   user,
   onSuccess,
   onCancel,
+  onError,
   isAlwaysOpen = false,
 }: InlineUpdateUserAdminFormProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -73,6 +75,9 @@ export function InlineUpdateUserAdminForm({
             setIsOpen(false);
           }
           onSuccess?.();
+        },
+        onError: (err) => {
+          onError?.(err);
         },
       },
     );
