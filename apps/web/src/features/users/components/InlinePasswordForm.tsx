@@ -16,6 +16,7 @@ import { Loader2 } from "lucide-react";
 interface InlinePasswordFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  onError?: (error: any) => void;
   isAlwaysOpen?: boolean;
 }
 
@@ -29,6 +30,7 @@ type FormInputs = {
 export function InlinePasswordForm({
   onSuccess,
   onCancel,
+  onError,
   isAlwaysOpen = false,
 }: InlinePasswordFormProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,6 +57,9 @@ export function InlinePasswordForm({
           setIsOpen(false);
         }
         onSuccess?.();
+      },
+      onError: (err) => {
+        onError?.(err);
       },
     });
   };
@@ -132,6 +137,7 @@ export function InlinePasswordForm({
           type="button"
           variant="outline"
           size="sm"
+          className="cursor-pointer"
           onClick={() => {
             if (!isAlwaysOpen) {
               setIsOpen(false);
@@ -146,6 +152,7 @@ export function InlinePasswordForm({
         <Button
           type="submit"
           size="sm"
+          className="cursor-pointer"
           disabled={updatePasswordMutation.isPending || !isValid}
         >
           {updatePasswordMutation.isPending && (

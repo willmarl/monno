@@ -37,7 +37,10 @@ export function SecurityTab() {
               toastSuccess("Password changed successfully");
             }}
             onCancel={() => {
-              toastError("Password form cancelled");
+              // toastError("Password form cancelled");
+            }}
+            onError={(err) => {
+              toastError(String(err));
             }}
             isAlwaysOpen={true}
           />

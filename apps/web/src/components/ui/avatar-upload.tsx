@@ -144,6 +144,7 @@ export function AvatarUpload({
                 size="sm"
                 onClick={() => setZoom(Math.max(1, zoom - 0.1))}
                 disabled={disabled || zoom <= 1}
+                className="cursor-pointer"
               >
                 <ZoomOut className="h-4 w-4" />
               </Button>
@@ -153,6 +154,7 @@ export function AvatarUpload({
                 size="sm"
                 onClick={() => setZoom(Math.min(3, zoom + 0.1))}
                 disabled={disabled || zoom >= 3}
+                className="cursor-pointer"
               >
                 <ZoomIn className="h-4 w-4" />
               </Button>
@@ -168,10 +170,16 @@ export function AvatarUpload({
               variant="outline"
               onClick={handleCancel}
               disabled={disabled}
+              className="cursor-pointer"
             >
               Cancel
             </Button>
-            <Button type="button" onClick={handleSave} disabled={disabled}>
+            <Button
+              type="button"
+              onClick={handleSave}
+              disabled={disabled}
+              className="cursor-pointer"
+            >
               Save Avatar
             </Button>
           </div>
@@ -207,7 +215,7 @@ export function AvatarUpload({
             "relative rounded-full h-32 w-32 border-2 border-dashed flex items-center justify-center cursor-pointer transition-colors",
             disabled
               ? "border-gray-300 bg-gray-50 cursor-not-allowed opacity-50"
-              : "border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-primary"
+              : "border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-primary",
           )}
         >
           {previewUrl ? (
@@ -238,7 +246,7 @@ export function AvatarUpload({
             size="sm"
             onClick={handleReset}
             disabled={disabled}
-            className="gap-2"
+            className="gap-2 cursor-pointer"
           >
             <X className="h-4 w-4" />
             Change

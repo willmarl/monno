@@ -64,12 +64,16 @@ export function AccInfoTab() {
       { data: payload, file: selectedFile || undefined },
       {
         onSuccess: () => {
+          toastSuccess("Successfully updated profile");
           setIsEditing(false);
           setSelectedFile(null);
           // Redirect to refresh SSR component (Header) with updated user data
           router.refresh();
         },
-      }
+        onError: (err) => {
+          toastError(String(err));
+        },
+      },
     );
   };
 
@@ -235,10 +239,15 @@ export function AccInfoTab() {
                       form.reset();
                     }}
                     disabled={isPending}
+                    className="cursor-pointer"
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isPending}>
+                  <Button
+                    type="submit"
+                    disabled={isPending}
+                    className="cursor-pointer"
+                  >
                     {isPending && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
@@ -246,7 +255,11 @@ export function AccInfoTab() {
                   </Button>
                 </>
               ) : (
-                <Button type="button" onClick={() => setIsEditing(true)}>
+                <Button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="cursor-pointer"
+                >
                   Edit Profile
                 </Button>
               )}
