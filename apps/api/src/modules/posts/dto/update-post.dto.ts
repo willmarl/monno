@@ -18,13 +18,13 @@ export class UpdatePostDto {
   @ApiProperty({
     description: 'Post content',
     minLength: 1,
-    maxLength: 128,
+    maxLength: 1000,
     required: false,
     example: 'This is the updated post content with sufficient length.',
   })
   @IsOptional()
   @IsString()
-  @MaxLength(128)
-  @MinLength(1000)
+  @MinLength(1)
+  @MaxLength(1000)
   content?: string;
 }
