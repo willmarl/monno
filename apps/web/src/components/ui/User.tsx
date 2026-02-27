@@ -11,8 +11,8 @@ export function User({ data }: { data: UserType }) {
 
   return (
     <Card
-      onClick={() => router.push(`/user/${data.id}`)}
-      className="p-3 hover:bg-slate-50 transition-colors cursor-pointer"
+      onClick={() => router.push(`/user/${data.username}`)}
+      className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
     >
       <div className="flex items-center gap-3">
         <Avatar className="h-10 w-10 flex-shrink-0">
@@ -21,7 +21,9 @@ export function User({ data }: { data: UserType }) {
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm truncate">{data.username}</p>
+          <p className="font-semibold text-sm truncate text-slate-900 dark:text-slate-50">
+            {data.username}
+          </p>
           <p className="text-xs text-slate-500">
             Joined {formatDate(String(data.createdAt))}
           </p>
