@@ -34,6 +34,10 @@ export default function ResetPasswordForm() {
   const form = useForm<ResetPasswordInput>({
     resolver: zodResolver(resetPasswordSchema),
     mode: "onChange",
+    defaultValues: {
+      newPassword: "",
+      confirmPassword: "",
+    },
   });
 
   // Validate token on mount

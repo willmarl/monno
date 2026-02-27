@@ -25,6 +25,12 @@ export default function RegisterForm() {
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     mode: "onChange",
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";

@@ -35,6 +35,9 @@ export function InlineCommentForm({
   const form = useForm<CommentInput>({
     resolver: zodResolver(commentSchema),
     mode: "onChange",
+    defaultValues: {
+      content: "",
+    },
   });
 
   const commentMutation = useCreateComment();

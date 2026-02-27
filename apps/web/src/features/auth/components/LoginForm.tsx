@@ -24,6 +24,10 @@ export default function LoginForm() {
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     mode: "onChange",
+    defaultValues: {
+      username: "",
+      password: "",
+    },
   });
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";

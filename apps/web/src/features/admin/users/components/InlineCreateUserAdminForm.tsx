@@ -39,6 +39,15 @@ export function InlineCreateUserAdminForm({
   const form = useForm<CreateUserAdminInput>({
     resolver: zodResolver(createUserAdminSchema),
     mode: "onChange",
+    defaultValues: {
+      avatarPath: "",
+      email: "",
+      password: "",
+      role: "USER",
+      status: "ACTIVE",
+      statusReason: "",
+      username: "",
+    },
   });
 
   const createUserAdminMutation = useAdminCreateUser();

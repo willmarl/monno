@@ -38,6 +38,11 @@ export function InlinePasswordForm({
   const form = useForm<FormInputs>({
     resolver: zodResolver(updatePasswordSchema),
     mode: "onChange",
+    defaultValues: {
+      confirmPassword: "",
+      currentPassword: "",
+      newPassword: "",
+    },
   });
 
   const updatePasswordMutation = useChangePassword();

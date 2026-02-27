@@ -33,6 +33,10 @@ export function InlineNewCollectionForm({
   const form = useForm<NewCollectionInput>({
     resolver: zodResolver(newCollectionSchema),
     mode: "onChange",
+    defaultValues: {
+      description: "",
+      name: "",
+    },
   });
 
   const newCollectionMutation = useCreateCollection();

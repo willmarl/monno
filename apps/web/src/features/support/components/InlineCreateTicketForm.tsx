@@ -31,6 +31,11 @@ export function InlineCreateTicketForm({
   const form = useForm<CreateTicketInput>({
     resolver: zodResolver(createTicketSchema),
     mode: "onChange",
+    defaultValues: {
+      email: "",
+      message: "",
+      title: "",
+    },
   });
 
   const createTicketMutation = useCreateSupportTicket();
