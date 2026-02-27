@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/sidebar";
 import { SideBarUser } from "./SidebarUser";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import { useStripeHealth } from "@/features/stripe/hooks";
 
 // Menu items.
 export const items = [
@@ -88,10 +87,10 @@ export const stripeItems = [
 
 export function AppSidebar() {
   const { data: user, isLoading } = useSessionUser();
-  const { data: health } = useStripeHealth();
   const { state } = useSidebar();
+  const isStripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true";
 
-  const allItems = health ? [...items, ...stripeItems] : items;
+  const allItems = isStripeEnabled ? [...items, ...stripeItems] : items;
 
   return (
     <Sidebar collapsible="icon">

@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 
 export function ProfileSettingsLayout() {
   const [hash, setHash] = useState("");
+  const isStripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true";
 
   useEffect(() => {
     // 1. Get initial hash on load (e.g., "#account")
@@ -53,13 +54,15 @@ export function ProfileSettingsLayout() {
               <Lock className="h-4 w-4" />
               Security
             </TabsTrigger>
-            <TabsTrigger
-              value="payment"
-              className="flex items-center gap-2 cursor-pointer"
-            >
-              <CreditCard className="h-4 w-4" />
-              Payment
-            </TabsTrigger>
+            {isStripeEnabled && (
+              <TabsTrigger
+                value="payment"
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <CreditCard className="h-4 w-4" />
+                Payment
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="account" className="space-y-6">
@@ -70,9 +73,11 @@ export function ProfileSettingsLayout() {
             <SecurityTab />
           </TabsContent>
 
-          <TabsContent value="payment" className="space-y-6">
-            <PaymentTab />
-          </TabsContent>
+          {isStripeEnabled && (
+            <TabsContent value="payment" className="space-y-6">
+              <PaymentTab />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
