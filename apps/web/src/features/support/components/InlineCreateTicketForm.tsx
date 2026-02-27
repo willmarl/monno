@@ -145,7 +145,7 @@ export function InlineCreateTicketForm({
           }}
           disabled={createTicketMutation.isPending}
         >
-          {isAlwaysOpen ? "Clear" : "Cancel"}
+          {isAlwaysOpen ? "Reset" : "Cancel"}
         </Button>
         <Button
           type="submit"

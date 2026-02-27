@@ -152,7 +152,7 @@ export function InlinePasswordForm({
           }}
           disabled={updatePasswordMutation.isPending}
         >
-          {isAlwaysOpen ? "Clear" : "Cancel"}
+          {isAlwaysOpen ? "Reset" : "Cancel"}
         </Button>
         <Button
           type="submit"

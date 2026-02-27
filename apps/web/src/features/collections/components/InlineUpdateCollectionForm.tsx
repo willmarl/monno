@@ -124,7 +124,7 @@ export function InlineUpdateCollectionForm({
           }}
           disabled={updateCollectionMutation.isPending}
         >
-          {isAlwaysOpen ? "Clear" : "Cancel"}
+          {isAlwaysOpen ? "Reset" : "Cancel"}
         </Button>
         <Button
           type="submit"

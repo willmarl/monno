@@ -256,7 +256,7 @@ export function InlineUpdateUserAdminForm({
           }}
           disabled={updateUserAdminMutation.isPending}
         >
-          {isAlwaysOpen ? "Clear" : "Cancel"}
+          {isAlwaysOpen ? "Reset" : "Cancel"}
         </Button>
         <Button
           type="submit"
