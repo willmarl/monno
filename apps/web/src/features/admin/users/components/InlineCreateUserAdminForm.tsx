@@ -7,7 +7,7 @@ import {
   createUserAdminSchema,
   CreateUserAdminInput,
 } from "../schemas/createUserAdmin.schema";
-import { useAdminCreateUser } from "../hooks";
+import { useAdminCreateUser } from "../../../users/hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";

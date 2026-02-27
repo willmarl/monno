@@ -1,4 +1,4 @@
-import { InlineCreateUserAdminForm } from "@/features/users/components/InlineCreateUserAdminForm";
+import { InlineCreateUserAdminForm } from "@/features/admin/users/components/InlineCreateUserAdminForm";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 

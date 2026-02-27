@@ -1,4 +1,4 @@
-import { InlineUpdateTicketForm } from "@/features/admin/support/components/InlineUpdateTicketForm";
+import { InlineUpdateTicketForm } from "@/features/admin/support/components/InlineUpdateTicketAdminForm";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 import { SupportTicket } from "@/features/support/types/support";

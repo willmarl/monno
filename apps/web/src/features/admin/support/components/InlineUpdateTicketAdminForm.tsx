@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   updateTicketSchema,
   UpdateTicketInput,
-} from "../../../support/schemas/updateTicket.schema";
+} from "../schemas/updateTicketAdmin.schema";
 import { useUpdateSupportTicket } from "../../../support/hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

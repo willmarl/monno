@@ -7,7 +7,7 @@ import {
   updateUserAdminSchema,
   UpdateUserAdminInput,
 } from "../schemas/updateUserAdmin.schema";
-import { useAdminUpdateUser } from "../hooks";
+import { useAdminUpdateUser } from "../../../users/hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
