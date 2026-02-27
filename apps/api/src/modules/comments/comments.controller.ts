@@ -72,6 +72,15 @@ export class CommentsController {
   @Delete(':id')
   @UseGuards(JwtAccessGuard)
   @ApiOperation({ summary: 'Delete a comment' })
+  @ApiResponse({
+    status: 200,
+    description: 'Comment deleted successfully or was already deleted',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Not authorized to delete this comment',
+  })
+  @ApiResponse({ status: 404, description: 'Comment not found' })
   remove(@Req() req, @Param('id', ParseIntPipe) id: number) {
     const userId = req.user.sub;
     return this.commentsService.remove(userId, id);

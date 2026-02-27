@@ -117,6 +117,10 @@ export class AdminCommentService {
       throw new NotFoundException('Comment not found');
     }
 
+    if (comment.deleted) {
+      return { message: 'Comment was already deleted' };
+    }
+
     const deleted = await this.prisma.comment.update({
       where: { id: commentId },
       data: { deleted: true, deletedAt: new Date() },

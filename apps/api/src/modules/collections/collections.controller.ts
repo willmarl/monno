@@ -85,7 +85,10 @@ export class CollectionsController {
   @UseGuards(JwtAccessGuard)
   @HttpCode(200)
   @ApiOperation({ summary: 'Delete a collection' })
-  @ApiResponse({ status: 200, description: 'Collection deleted successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Collection deleted successfully or was already deleted',
+  })
   @ApiResponse({
     status: 403,
     description: 'Not authorized to delete this collection',

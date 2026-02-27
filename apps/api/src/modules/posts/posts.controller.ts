@@ -154,6 +154,12 @@ export class PostsController {
   @UseGuards(JwtAccessGuard, CreatorGuard)
   @ProtectedResource('post')
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a post' })
+  @ApiResponse({
+    status: 200,
+    description: 'Post deleted successfully or was already deleted',
+  })
+  @ApiResponse({ status: 404, description: 'Post not found' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.postsService.remove(id);
   }

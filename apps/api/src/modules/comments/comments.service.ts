@@ -173,7 +173,7 @@ export class CommentsService {
       where: { id: commentId },
     });
 
-    if (!comment || comment.deleted) {
+    if (!comment) {
       throw new NotFoundException('Comment not found');
     }
 
@@ -181,6 +181,10 @@ export class CommentsService {
       throw new ForbiddenException(
         'You do not have permission to delete this comment',
       );
+    }
+
+    if (comment.deleted) {
+      return { message: 'Comment was already deleted' };
     }
 
     const deleted = await this.prisma.comment.update({

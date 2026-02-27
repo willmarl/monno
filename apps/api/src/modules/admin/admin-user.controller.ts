@@ -187,7 +187,7 @@ export class AdminUsersController {
   })
   @ApiResponse({
     status: 200,
-    description: 'User deleted successfully',
+    description: 'User deleted successfully or was already deleted',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })

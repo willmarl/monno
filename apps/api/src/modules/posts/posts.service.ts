@@ -343,9 +343,23 @@ export class PostsService {
     });
   }
 
-  remove(id: number) {
+  async remove(id: number) {
+    // Check if post exists
+    const post = await this.prisma.post.findUnique({
+      where: { id },
+      select: { id: true, deleted: true },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    if (post.deleted) {
+      return { message: 'Post was already deleted' };
+    }
+
     // Soft delete the post
-    return this.prisma.post.update({
+    await this.prisma.post.update({
       where: { id },
       data: { deleted: true, deletedAt: new Date() },
     });

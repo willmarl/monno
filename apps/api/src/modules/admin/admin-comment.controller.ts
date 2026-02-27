@@ -96,7 +96,7 @@ export class AdminCommentsController {
   })
   @ApiResponse({
     status: 200,
-    description: 'Comment deleted successfully',
+    description: 'Comment deleted successfully or was already deleted',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })

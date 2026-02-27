@@ -189,7 +189,23 @@ export class CollectionsService {
    * Soft delete a collection
    */
   async remove(userId: number, collectionId: number) {
-    await this.getByIdAndUserId(collectionId, userId);
+    const collection = await this.prisma.collection.findUnique({
+      where: { id: collectionId },
+    });
+
+    if (!collection) {
+      throw new NotFoundException('Collection not found');
+    }
+
+    if (collection.creatorId !== userId) {
+      throw new ForbiddenException(
+        'You do not have permission to access this collection',
+      );
+    }
+
+    if (collection.deleted) {
+      return { message: 'Collection was already deleted' };
+    }
 
     return this.prisma.collection.update({
       where: { id: collectionId },

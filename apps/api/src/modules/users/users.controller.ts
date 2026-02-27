@@ -104,7 +104,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiResponse({
     status: 200,
-    description: 'Account deleted successfully (soft delete)',
+    description: 'Account deleted successfully or was already deleted',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User not found' })

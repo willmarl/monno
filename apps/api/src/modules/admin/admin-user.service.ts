@@ -299,6 +299,11 @@ export class AdminUserService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
+    // Check if user is already deleted
+    if (user.status === 'DELETED') {
+      return { message: 'User was already deleted' };
+    }
+
     const deleted = await this.usersService.softDeleteUserWithCascade(
       userId,
       reason || 'admin_deletion',

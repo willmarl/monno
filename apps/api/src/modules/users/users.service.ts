@@ -81,7 +81,7 @@ export class UsersService {
 
     // Check if user is already deleted
     if (user.status === 'DELETED') {
-      throw new BadRequestException('User is already deleted');
+      return { message: 'User was already deleted' };
     }
 
     // Generate renamed username: d_{username}

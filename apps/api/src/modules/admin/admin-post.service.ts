@@ -222,6 +222,10 @@ export class AdminPostService {
       throw new NotFoundException('Post not found');
     }
 
+    if (post.deleted) {
+      return { message: 'Post was already deleted' };
+    }
+
     const deleted = await this.prisma.post.update({
       where: { id: postId },
       data: { deleted: true, deletedAt: new Date() },
