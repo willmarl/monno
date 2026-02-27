@@ -11,9 +11,13 @@ export const registerSchema = z
         "username can only contain alphanumeric characters, hyphens, and underscores",
       ),
     email: z
-      .string()
-      .email("invalid email address")
-      .max(256, "email must be at most 256 characters")
+      .union([
+        z
+          .string()
+          .email("invalid email address")
+          .max(256, "email must be at most 256 characters"),
+        z.literal(""),
+      ])
       .optional(),
     password: z
       .string()

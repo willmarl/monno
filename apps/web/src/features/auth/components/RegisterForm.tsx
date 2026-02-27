@@ -46,8 +46,8 @@ export default function RegisterForm() {
     // confirmPassword is only for frontend validation
     const payload = {
       username: data.username,
-      email: data.email || undefined,
       password: data.password,
+      ...(data.email && { email: data.email }),
     };
     registerMutation.mutate(payload, {
       onError: (err) => {
