@@ -336,7 +336,11 @@ export class OauthService {
         // Link this OAuth provider to existing account
         return this.prisma.user.update({
           where: { id: user.id },
-          data: { [providerField]: providerId },
+          data: {
+            [providerField]: providerId,
+            isEmailVerified: true, // OAuth email is from trusted provider
+            emailVerifiedAt: new Date(),
+          },
         });
       }
     }
