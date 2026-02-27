@@ -121,10 +121,11 @@ export function InlineCreateTicketForm({
 
       {/* Action Buttons */}
       <div className="flex gap-3 pt-2">
-        <Button
+        {/* <Button
           type="button"
           variant="outline"
           size="sm"
+          className="cursor-pointer"
           onClick={() => {
             if (!isAlwaysOpen) {
               setIsOpen(false);
@@ -135,16 +136,17 @@ export function InlineCreateTicketForm({
           disabled={createTicketMutation.isPending}
         >
           {isAlwaysOpen ? "Clear" : "Cancel"}
-        </Button>
+        </Button> */}
         <Button
           type="submit"
           size="sm"
+          className="cursor-pointer"
           disabled={createTicketMutation.isPending || !isValid}
         >
           {createTicketMutation.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          {createTicketMutation.isPending ? "Loading..." : "SUBMIT | CHANGE ME"}
+          {createTicketMutation.isPending ? "Submitting..." : "Submit"}
         </Button>
       </div>
     </form>
