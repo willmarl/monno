@@ -33,7 +33,7 @@ export function LikeButton({
           onClick={onLike}
           className="cursor-pointer transition-transform hover:scale-110"
         >
-          <ThumbsUp fill="#000000" color="#000000" />
+          <ThumbsUp fill="currentColor" className="dark:text-white" />
         </Button>
         {likeCount}
       </div>
