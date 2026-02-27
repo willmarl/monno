@@ -12,7 +12,7 @@ interface CreditPurchasesDataTableProps {
   searchParams?: AdminCreditPurchasesSearchParams;
 }
 
-const DEFAULT_LIMIT = 1;
+const DEFAULT_LIMIT = 20;
 
 export function CreditPurchasesDataTable({
   searchParams,

@@ -12,7 +12,7 @@ interface CommentsListProps {
   resourceId: number;
 }
 
-const DEFAULT_LIMIT = 10;
+const DEFAULT_LIMIT = 20;
 
 export function CommentPagInline({
   resourceType,

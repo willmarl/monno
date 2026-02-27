@@ -24,7 +24,7 @@ interface ModifyCollectionItemModalProps {
   postId: number;
 }
 
-const LIMIT = 2; // Testing limit
+const LIMIT = 10;
 
 export function ModifyCollectionItemModal({
   postId,

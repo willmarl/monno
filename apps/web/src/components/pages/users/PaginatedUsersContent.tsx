@@ -8,7 +8,7 @@ import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { UserSkeleton } from "@/components/skeletons/UserSkeleton";
 import { PublicUserSearchParams } from "@/types/search-params";
 
-const DEFAULT_LIMIT = 4;
+const DEFAULT_LIMIT = 20;
 interface PaginatedUsersProps {
   searchParams?: PublicUserSearchParams;
 }

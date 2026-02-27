@@ -9,7 +9,7 @@ import { useCursorPaginatedSearch } from "@/hooks/useCursorPaginatedSearch";
 // import { PostSkeleton } from "@/components/skeletons/PostSkeleton";
 import { Post } from "@/features/posts/types/post";
 
-const DEFAULT_LIMIT = 4;
+const DEFAULT_LIMIT = 20;
 
 interface CursorPostsContentProps {
   searchParams?: {

@@ -12,7 +12,7 @@ interface TicketDataTableProps {
   searchParams?: AdminSupportTicketSearchParams;
 }
 
-const DEFAULT_LIMIT = 1;
+const DEFAULT_LIMIT = 20;
 
 export function TicketDataTable({ searchParams }: TicketDataTableProps) {
   const {

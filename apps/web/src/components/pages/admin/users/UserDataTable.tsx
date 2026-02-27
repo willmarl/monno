@@ -8,7 +8,7 @@ import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
 import { AdminUserSearchParams } from "@/types/search-params";
 import { PageLoadingState } from "@/components/common/PageLoadingState";
 
-const DEFAULT_LIMIT = 2; // this set to low number for debugging next page
+const DEFAULT_LIMIT = 20;
 
 interface UserDataTableProps {
   searchParams?: AdminUserSearchParams;

@@ -9,7 +9,7 @@
 // import { PaginatedList } from "@/components/ui/pagination/PaginatedList";
 // import { useSessionUser } from "@/features/auth/hooks";
 
-// const DEFAULT_LIMIT = 1;
+// const DEFAULT_LIMIT = 20;
 
 // function ProductCardsListContent() {
 //   const { data: user } = useSessionUser();

@@ -6,7 +6,7 @@ import { useUserCreditTransactions } from "@/features/stripe/hooks";
 import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
 import { useSearchParams } from "next/navigation";
 
-const DEFAULT_LIMIT = 4;
+const DEFAULT_LIMIT = 20;
 
 export function CreditsDataTable() {
   // Parse page and limit from search params

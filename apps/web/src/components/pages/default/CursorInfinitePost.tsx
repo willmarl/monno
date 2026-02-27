@@ -5,7 +5,7 @@ import { CursorInfiniteList } from "@/components/ui/pagination/CursorInfiniteLis
 import { usePostsCursor } from "@/features/posts/hooks";
 import { useSessionUser } from "@/features/auth/hooks";
 
-const DEFAULT_LIMIT = 4;
+const DEFAULT_LIMIT = 20;
 
 export function CursorInfinitePost() {
   const { data: user } = useSessionUser();

@@ -7,7 +7,7 @@ import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
 import { useSearchParams } from "next/navigation";
 import { PageLoadingState } from "@/components/common/PageLoadingState";
 
-const DEFAULT_LIMIT = 4;
+const DEFAULT_LIMIT = 20;
 
 export function LogDataTable() {
   // Parse page and limit from search params

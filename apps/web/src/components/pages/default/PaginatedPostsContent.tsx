@@ -9,7 +9,7 @@ import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { PostSkeleton } from "@/components/skeletons/PostSkeleton";
 import { PublicPostSearchParams } from "@/types/search-params";
 
-const DEFAULT_LIMIT = 4;
+const DEFAULT_LIMIT = 10;
 interface PaginatedPostsProps {
   searchParams?: PublicPostSearchParams;
 }

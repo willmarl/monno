@@ -13,7 +13,7 @@ interface CommentDataTableProps {
   searchParams?: AdminCommentSearchParams;
 }
 
-const DEFAULT_LIMIT = 4;
+const DEFAULT_LIMIT = 20;
 
 export function CommentDataTable({ searchParams }: CommentDataTableProps) {
   const {

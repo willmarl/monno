@@ -8,7 +8,7 @@ import { useAdminPosts } from "@/features/posts/hooks";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { AdminPostSearchParams } from "@/types/search-params";
 
-const DEFAULT_LIMIT = 10;
+const DEFAULT_LIMIT = 20;
 
 interface PostDataTableProps {
   searchParams?: AdminPostSearchParams;

@@ -5,7 +5,7 @@ import { CursorList } from "@/components/ui/pagination/CursorList";
 import { usePostsCursor } from "@/features/posts/hooks";
 import { useSessionUser } from "@/features/auth/hooks";
 
-const DEFAULT_LIMIT = 4;
+const DEFAULT_LIMIT = 20;
 
 export function CursorPost() {
   const { data: user } = useSessionUser();
