@@ -172,7 +172,7 @@ export default function RegisterForm() {
 
           <Button
             type="submit"
-            className="w-full h-10 font-semibold"
+            className="w-full h-10 font-semibold cursor-pointer"
             disabled={registerMutation.isPending || !isValid}
           >
             {registerMutation.isPending
