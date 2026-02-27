@@ -10,7 +10,7 @@ export function AdminSubscriptionsPage({
   searchParams,
 }: AdminSubscriptionsPageProps) {
   return (
-    <div>
+    <div className="container mx-auto py-10 flex flex-col gap-4">
       <SubscriptionSearchBar basePath="/admin/subscriptions" />
       <SubscriptionDataTable searchParams={searchParams} />
     </div>

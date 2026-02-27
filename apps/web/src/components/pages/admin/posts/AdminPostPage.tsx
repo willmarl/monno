@@ -8,8 +8,7 @@ interface AdminPostPageProps {
 
 export function AdminPostPage({ searchParams }: AdminPostPageProps) {
   return (
-    <div>
-      <p>admin post page here</p>
+    <div className="container mx-auto py-10 flex flex-col gap-4">
       <AdminPostSearchBar basePath="/admin/posts" />
       <PostDataTable />
     </div>

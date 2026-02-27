@@ -8,7 +8,7 @@ interface AdminTicketPageProps {
 
 export function AdminTicketPage({ searchParams }: AdminTicketPageProps) {
   return (
-    <div>
+    <div className="container mx-auto py-10 flex flex-col gap-4">
       <TicketSearchBar basePath="/admin/support" />
       <TicketDataTable searchParams={searchParams} />
     </div>

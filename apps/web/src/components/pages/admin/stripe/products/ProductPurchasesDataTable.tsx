@@ -6,6 +6,7 @@ import { useAdminProducts } from "@/features/stripe/hooks";
 import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { AdminProductPurchasesSearchParams } from "@/types/search-params";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
 
 interface ProductPurchasesDataTableProps {
   searchParams?: AdminProductPurchasesSearchParams;
@@ -34,8 +35,7 @@ export function ProductPurchasesDataTable({
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
-    // replace me with skeleton later
+    return <PageLoadingState variant="data-table" />;
   }
 
   return (

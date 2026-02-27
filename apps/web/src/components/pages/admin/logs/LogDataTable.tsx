@@ -5,6 +5,7 @@ import { columns } from "./columns";
 import { DataTable } from "@/components/ui/data-table";
 import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
 import { useSearchParams } from "next/navigation";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
 
 const DEFAULT_LIMIT = 4;
 
@@ -18,8 +19,7 @@ export function LogDataTable() {
   const { data, isLoading, error } = useLogs(page, DEFAULT_LIMIT);
 
   if (isLoading) {
-    return <div>Loading...</div>;
-    // replace me with skeleton later
+    return <PageLoadingState variant="data-table" />;
   }
 
   if (error || !data) {
@@ -29,7 +29,7 @@ export function LogDataTable() {
   }
 
   return (
-    <div className="container mx-auto py-10">
+    <div>
       <DataTable columns={columns} data={data.items} />
       <div className="mt-4">
         <OffsetPagination

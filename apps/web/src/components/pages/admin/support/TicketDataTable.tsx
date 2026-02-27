@@ -6,6 +6,7 @@ import { useSupporTicket } from "@/features/support/hooks";
 import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { AdminSupportTicketSearchParams } from "@/types/search-params";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
 
 interface TicketDataTableProps {
   searchParams?: AdminSupportTicketSearchParams;
@@ -31,8 +32,12 @@ export function TicketDataTable({ searchParams }: TicketDataTableProps) {
         : "No posts available.",
   });
 
+  if (isLoading) {
+    return <PageLoadingState variant="data-table" />;
+  }
+
   return (
-    <div className="container mx-auto py-10">
+    <div>
       <DataTable columns={columns} data={tickets} />
       <div className="mt-4">
         <OffsetPagination

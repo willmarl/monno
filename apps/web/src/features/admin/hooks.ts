@@ -14,6 +14,6 @@ export function useStats(refetchInterval?: number) {
   return useQuery({
     queryKey: ["admin-stats"],
     queryFn: fetchStats,
-    refetchInterval: refetchInterval ?? 10000, // Default 10s
+    refetchInterval: refetchInterval ?? 1000, // 1s
   });
 }

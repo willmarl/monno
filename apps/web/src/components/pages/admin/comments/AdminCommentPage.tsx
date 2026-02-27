@@ -8,8 +8,7 @@ interface AdminCommentPageProps {
 
 export function AdminCommentPage({ searchParams }: AdminCommentPageProps) {
   return (
-    <div>
-      <p>admin comment page here</p>
+    <div className="container mx-auto py-10 flex flex-col gap-4">
       <AdminCommentSearchBar basePath="/admin/comments" />
       <CommentDataTable />
     </div>

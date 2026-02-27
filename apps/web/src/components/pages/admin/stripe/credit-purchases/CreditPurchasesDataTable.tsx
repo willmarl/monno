@@ -6,6 +6,7 @@ import { useAdminCreditPurchases } from "@/features/stripe/hooks";
 import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { AdminCreditPurchasesSearchParams } from "@/types/search-params";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
 
 interface CreditPurchasesDataTableProps {
   searchParams?: AdminCreditPurchasesSearchParams;
@@ -34,8 +35,7 @@ export function CreditPurchasesDataTable({
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
-    // replace me with skeleton later
+    return <PageLoadingState variant="data-table" />;
   }
 
   return (

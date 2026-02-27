@@ -3,6 +3,7 @@
 import { columns } from "./columns";
 import { DataTable } from "@/components/ui/data-table";
 import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
 import { useAdminPosts } from "@/features/posts/hooks";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { AdminPostSearchParams } from "@/types/search-params";
@@ -32,12 +33,11 @@ export function PostDataTable({ searchParams }: PostDataTableProps) {
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
-    // replace me with skeleton later
+    return <PageLoadingState variant="data-table" />;
   }
 
   return (
-    <div className="container mx-auto py-10">
+    <div>
       <DataTable columns={columns} data={posts} />
       <div className="mt-4">
         <OffsetPagination

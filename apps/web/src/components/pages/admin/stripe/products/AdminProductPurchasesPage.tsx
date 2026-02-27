@@ -10,7 +10,7 @@ export function AdminProductPurchasesPage({
   searchParams,
 }: AdminProductPurchasesPageProps) {
   return (
-    <div>
+    <div className="container mx-auto py-10 flex flex-col gap-4">
       <ProductPurchaseSearchBar basePath="/admin/products-purchased" />
       <ProductPurchasesDataTable searchParams={searchParams} />
     </div>

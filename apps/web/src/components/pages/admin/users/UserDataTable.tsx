@@ -6,6 +6,7 @@ import { useAdminUsers } from "@/features/users/hooks";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
 import { AdminUserSearchParams } from "@/types/search-params";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
 
 const DEFAULT_LIMIT = 2; // this set to low number for debugging next page
 
@@ -32,9 +33,8 @@ export function UserDataTable({ searchParams }: UserDataTableProps) {
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <PageLoadingState variant="data-table" />;
   }
-
   return (
     <div>
       <DataTable columns={columns} data={users} />

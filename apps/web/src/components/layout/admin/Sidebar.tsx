@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   LayoutDashboard,
   Users,
@@ -8,6 +9,7 @@ import {
   MessageSquare,
   CreditCard,
   Contact,
+  Home,
 } from "lucide-react";
 import { useSessionUser } from "@/features/auth/hooks";
 import {
@@ -119,6 +121,12 @@ export function AppSidebar() {
       <SidebarFooter
         className={`flex gap-2 ${state === "collapsed" ? "flex-col" : "flex-row items-center"}`}
       >
+        <Link
+          href="/"
+          className="text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Home size={20} />
+        </Link>
         <ThemeToggle />
         {user ? <SideBarUser user={user} /> : "Skeleton here"}
       </SidebarFooter>

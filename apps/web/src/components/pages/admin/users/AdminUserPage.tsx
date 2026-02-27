@@ -15,7 +15,7 @@ export function AdminUserPage({ searchParams }: AdminUserPageProps) {
   const { openModal } = useModal();
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto py-10 flex flex-col gap-4">
       <div className="flex gap-2 mb-6">
         <AdminUserSearchBar basePath="/admin/users" />
         <Button

@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { useAdminComments } from "@/features/comments/hooks";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { AdminCommentSearchParams } from "@/types/search-params";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
 
 interface CommentDataTableProps {
   searchParams?: AdminCommentSearchParams;
@@ -33,12 +34,11 @@ export function CommentDataTable({ searchParams }: CommentDataTableProps) {
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
-    // replace me with skeleton later
+    return <PageLoadingState variant="data-table" />;
   }
 
   return (
-    <div className="container mx-auto py-10">
+    <div>
       <DataTable columns={columns} data={comments} />
       <div className="mt-4">
         <OffsetPagination

@@ -6,6 +6,7 @@ import { useAdminSubscription } from "@/features/stripe/hooks";
 import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { AdminSubscriptionsSearchParams } from "@/types/search-params";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
 
 interface SubscriptionDataTableProps {
   searchParams?: AdminSubscriptionsSearchParams;
@@ -34,8 +35,7 @@ export function SubscriptionDataTable({
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
-    // replace me with skeleton later
+    return <PageLoadingState variant="data-table" />;
   }
 
   return (

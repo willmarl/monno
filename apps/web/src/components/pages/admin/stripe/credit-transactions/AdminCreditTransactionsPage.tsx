@@ -10,7 +10,7 @@ export function AdminCreditTransactionsPage({
   searchParams,
 }: AdminCreditTransactionsPageProps) {
   return (
-    <div>
+    <div className="container mx-auto py-10 flex flex-col gap-4">
       <CreditTransactionSearchBar basePath="/admin/credit-transactions" />
       <CreditTransactionsDataTable searchParams={searchParams} />
     </div>

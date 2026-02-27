@@ -10,7 +10,7 @@ export function AdminCreditPurchasesPage({
   searchParams,
 }: AdminCreditPurchasesPageProps) {
   return (
-    <div>
+    <div className="container mx-auto py-10 flex flex-col gap-4">
       <CreditPurchaseSearchBar basePath="/admin/credit-purchases" />
       <CreditPurchasesDataTable searchParams={searchParams} />
     </div>

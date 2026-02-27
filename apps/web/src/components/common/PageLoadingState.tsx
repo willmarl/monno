@@ -7,7 +7,8 @@ type PageLoadingStateVariant =
   | "post"
   | "list-item"
   | "card"
-  | "simple";
+  | "simple"
+  | "data-table";
 
 interface PageLoadingStateProps {
   variant?: PageLoadingStateVariant;
@@ -85,6 +86,31 @@ function SimpleSkeleton() {
   );
 }
 
+function DataTableSkeleton() {
+  return (
+    <div className="space-y-4">
+      {/* Table header */}
+      <div className="flex gap-4">
+        <Skeleton className="h-8 w-12" />
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-8 w-24" />
+        <Skeleton className="h-8 w-20" />
+      </div>
+      {/* Table rows */}
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="flex gap-4">
+          <Skeleton className="h-10 w-12" />
+          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-40" />
+          <Skeleton className="h-10 w-24" />
+          <Skeleton className="h-10 w-20" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function PageLoadingState({
   variant = "profile",
 }: PageLoadingStateProps) {
@@ -94,6 +120,7 @@ export function PageLoadingState({
     "list-item": <ListItemSkeleton />,
     card: <CardSkeleton />,
     simple: <SimpleSkeleton />,
+    "data-table": <DataTableSkeleton />,
   }[variant];
 
   return <Card className="p-8">{skeletonContent}</Card>;
