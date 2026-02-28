@@ -275,16 +275,17 @@ model CollectionItem {
 }
 
 model Comment {
-  id           Int          @id @default(autoincrement())
-  userId       Int
-  resourceType ResourceType
-  resourceId   Int
-  content      String
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  deleted      Boolean      @default(false)
-  deletedAt    DateTime?
-  likeCount    Int          @default(0)
+  id               Int          @id @default(autoincrement())
+  userId           Int
+  resourceType     ResourceType
+  resourceId       Int
+  content          String
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  contentUpdatedAt DateTime     @default(now()) // Only updated when content is edited
+  deleted          Boolean      @default(false)
+  deletedAt        DateTime?
+  likeCount        Int          @default(0)
 
   creator User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

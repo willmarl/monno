@@ -19,6 +19,7 @@ const DEFAULT_COMMENT_SELECT = {
   likeCount: true,
   createdAt: true,
   updatedAt: true,
+  contentUpdatedAt: true,
   creator: {
     select: { id: true, username: true, avatarPath: true },
   },
@@ -155,9 +156,15 @@ export class CommentsService {
       );
     }
 
+    // Only update contentUpdatedAt if content is being changed
+    const updateData = { ...data };
+    if (data.content !== undefined) {
+      updateData['contentUpdatedAt'] = new Date();
+    }
+
     const updated = await this.prisma.comment.update({
       where: { id: commentId },
-      data,
+      data: updateData,
       select: DEFAULT_COMMENT_SELECT,
     });
 

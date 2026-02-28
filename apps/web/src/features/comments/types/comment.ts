@@ -16,6 +16,7 @@ export interface Comment {
   likedByMe: boolean;
   createdAt: string;
   updatedAt: string;
+  contentUpdatedAt: string;
   creator: CommentCreator;
   deleted?: boolean;
   deletedAt?: string | null;

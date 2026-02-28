@@ -47,14 +47,14 @@ export function Comment({
 
   let isEdited: boolean = false;
 
-  //   check if edited
-  if (data.createdAt != data.updatedAt) {
+  //   check if content was edited
+  if (data.createdAt != data.contentUpdatedAt) {
     isEdited = true;
   }
 
   function renderEditVisual() {
-    if (!data?.updatedAt) return null;
-    const editedDate = formatDate(data.updatedAt);
+    if (!data?.contentUpdatedAt) return null;
+    const editedDate = formatDate(data.contentUpdatedAt);
     return (
       <Tooltip>
         <TooltipTrigger asChild>

@@ -14,11 +14,30 @@ export function LikeButton({
   likeCount,
   onLike,
 }: LikeButtonProps) {
-  if (!isOwner) {
+  if (!isOwner && !likedByMe) {
     return (
       <div className="flex gap-1 items-center">
-        <Button variant="ghost">
+        <Button
+          variant="ghost"
+          onClick={onLike}
+          className="cursor-pointer transition-transform hover:scale-110"
+        >
           <ThumbsUp />
+        </Button>
+        {likeCount}
+      </div>
+    );
+  }
+
+  if (!isOwner && likedByMe) {
+    return (
+      <div className="flex gap-1 items-center">
+        <Button
+          variant="ghost"
+          onClick={onLike}
+          className="cursor-pointer transition-transform hover:scale-110"
+        >
+          <ThumbsUp fill="currentColor" className="dark:text-white" />
         </Button>
         {likeCount}
       </div>
