@@ -15,7 +15,7 @@ interface CollectionsListProps {
   isOwner: boolean;
 }
 
-const DEFAULT_LIMIT = 10;
+const DEFAULT_LIMIT = 9;
 
 export function CollectionsList({ user, isOwner }: CollectionsListProps) {
   const { openModal } = useModal();
@@ -44,7 +44,7 @@ export function CollectionsList({ user, isOwner }: CollectionsListProps) {
         )}
         title={`Collections by ${user.username}`}
         layout="custom"
-        gridClassName="flex gap-4"
+        gridClassName="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         emptyMessage="No collections yet."
       />
       <Button

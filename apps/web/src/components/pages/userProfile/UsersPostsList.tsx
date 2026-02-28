@@ -30,7 +30,7 @@ export function UsersPostsList({ user, isOwner }: UsersPostsListProps) {
       isLoading={isLoading}
       onPageChange={setPage}
       renderItem={(post) => <Post data={post} isOwner={isOwner} />}
-      title={`Post's by ${user.username}`}
+      title={`Posts by ${user.username}`}
       layout="grid"
       emptyMessage="No posts yet."
     />

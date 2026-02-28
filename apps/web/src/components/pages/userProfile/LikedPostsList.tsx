@@ -30,7 +30,7 @@ export function LikedPostsList({ user, isOwner }: LikedPostsListProps) {
       isLoading={isLoading}
       onPageChange={setPage}
       renderItem={(post) => <Post data={post} isOwner={isOwner} />}
-      title={`${user.username}'s Liked Posts`}
+      title={`Liked Posts by ${user.username}`}
       layout="grid"
       emptyMessage="No liked posts yet."
     />

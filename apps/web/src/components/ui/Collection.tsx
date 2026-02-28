@@ -15,13 +15,13 @@ export function CollectionCard({
   return (
     <Card
       onClick={() => router.push(`/collection/${data.id}`)}
-      className="w-50 p-4 cursor-pointer transition-all hover:shadow-md hover:scale-105 active:scale-95"
+      className="p-6 cursor-pointer"
     >
-      <div className="flex items-center gap-2 mb-2">
-        <FolderPlus className="w-5 h-5 flex-shrink-0 text-muted-foreground" />
-        <h3 className="font-semibold text-sm truncate">{data?.name}</h3>
+      <div className="flex items-center gap-3 mb-3">
+        <FolderPlus className="w-6 h-6 flex-shrink-0 text-muted-foreground" />
+        <h3 className="font-semibold text-base truncate">{data?.name}</h3>
       </div>
-      <p className="text-xs text-muted-foreground line-clamp-2">
+      <p className="text-sm text-muted-foreground line-clamp-2">
         {data?.description}
       </p>
     </Card>
