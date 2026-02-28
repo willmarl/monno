@@ -16,8 +16,8 @@ export function UserProfileContent({ user, isOwner }: UserProfileContentProps) {
     <div className="space-y-8">
       <Suspense fallback={<p>Loading...</p>}>
         <UsersPostsList user={user} isOwner={isOwner} />
-        <LikedPostsList user={user} isOwner={isOwner} />
-        <CollectionsList user={user} isOwner={isOwner} />
+        {isOwner && <LikedPostsList user={user} isOwner={isOwner} />}
+        {isOwner && <CollectionsList user={user} isOwner={isOwner} />}
       </Suspense>
     </div>
   );
