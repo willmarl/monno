@@ -19,7 +19,7 @@ interface Props<T> {
 }
 
 const LAYOUT_CLASSES = {
-  grid: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10",
+  grid: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-10",
   flex: "flex flex-col gap-4",
 };
 
@@ -44,8 +44,10 @@ export function PaginatedListInline<T extends { id: string | number }>({
   // Show skeletons while loading
   if (isLoading && items.length === 0 && renderSkeleton) {
     return (
-      <div className="space-y-8">
-        {title && <h1 className="text-3xl font-bold">{title}</h1>}
+      <div className="space-y-6 md:space-y-8">
+        {title && (
+          <h1 className="text-xl md:text-3xl font-bold break-words">{title}</h1>
+        )}
         <div className={containerClassName}>
           {Array.from({ length: limit }).map((_, i) => (
             <div key={`skeleton-${i}`}>{renderSkeleton()}</div>
@@ -57,8 +59,10 @@ export function PaginatedListInline<T extends { id: string | number }>({
 
   if (items.length === 0) {
     return (
-      <div className="space-y-8">
-        {title && <h1 className="text-3xl font-bold">{title}</h1>}
+      <div className="space-y-6 md:space-y-8">
+        {title && (
+          <h1 className="text-xl md:text-3xl font-bold break-words">{title}</h1>
+        )}
         <div className="text-center text-muted-foreground py-12">
           <p>{emptyMessage}</p>
         </div>
@@ -67,8 +71,10 @@ export function PaginatedListInline<T extends { id: string | number }>({
   }
 
   return (
-    <div className="space-y-8">
-      {title && <h1 className="text-3xl font-bold">{title}</h1>}
+    <div className="space-y-6 md:space-y-8">
+      {title && (
+        <h1 className="text-xl md:text-3xl font-bold break-words">{title}</h1>
+      )}
 
       <div className={containerClassName}>
         {items.map((item) => (

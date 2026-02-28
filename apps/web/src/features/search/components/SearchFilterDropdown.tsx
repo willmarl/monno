@@ -44,8 +44,8 @@ export function SearchFilterDropdown({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline">
-          <Filter className="h-4 w-4 mr-2" />
-          Filters
+          <Filter className="h-4 w-4 md:mr-2" />
+          <span className="hidden md:inline">Filters</span>
           {hasActiveFilters && (
             <span className="ml-2 inline-block h-2 w-2 rounded-full bg-blue-500" />
           )}

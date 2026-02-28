@@ -14,7 +14,15 @@ import { useToggleLike } from "@/features/likes/hooks";
 import { ModifyCollectionItemModal } from "../modal/ModifyCollectionItemModal";
 import { LikeButton } from "../common/LikeButton";
 
-export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
+export function Post({
+  data,
+  isOwner,
+  truncateContent = true,
+}: {
+  data: PostType;
+  isOwner: boolean;
+  truncateContent?: boolean;
+}) {
   const { data: user } = useSessionUser();
   const deletePost = useDeletePost();
   const { openModal, closeModal } = useModal();
@@ -26,10 +34,20 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
       return;
     } else {
       return (
-        <div className="flex gap-1.5">
+        <div className="flex gap-1">
           <Button
-            className="cursor-pointer transition-transform hover:scale-110"
-            variant="outline"
+            size="sm"
+            className="cursor-pointer transition-transform hover:scale-110 h-8 w-8 p-0"
+            variant="ghost"
+            onClick={() => router.push(`/post/edit/${data.id}`)}
+            title="Edit post"
+          >
+            <PencilLine className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            className="cursor-pointer transition-transform hover:scale-110 h-8 w-8 p-0"
+            variant="ghost"
             onClick={() => {
               openModal({
                 title: "Delete Post",
@@ -52,15 +70,9 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
                 ),
               });
             }}
+            title="Delete post"
           >
-            <Trash />
-          </Button>
-          <Button
-            className="cursor-pointer transition-transform hover:scale-110"
-            variant="outline"
-            onClick={() => router.push(`/post/edit/${data.id}`)}
-          >
-            <PencilLine />
+            <Trash className="h-4 w-4" />
           </Button>
         </div>
       );
@@ -71,16 +83,18 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
     if (!user) return "";
     return (
       <Button
+        size="sm"
         variant="ghost"
-        className="cursor-pointer"
+        className="cursor-pointer h-8 w-8 p-0"
         onClick={() => {
           openModal({
             title: "Add post to collection",
             content: <ModifyCollectionItemModal postId={data.id} />,
           });
         }}
+        title="Add to collection"
       >
-        <BookmarkPlus />
+        <BookmarkPlus className="h-4 w-4" />
       </Button>
     );
   }
@@ -90,39 +104,45 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
   }
 
   return (
-    <Card className="p-4">
-      <div className="flex justify-between">
+    <Card className="p-3 md:p-4 hover:shadow-md transition-shadow">
+      <div className="flex justify-between items-start gap-2 pb-3 border-b border-border/50">
         <h2
-          className="cursor-pointer"
+          className="cursor-pointer break-words text-sm md:text-base font-semibold hover:text-blue-500 transition-colors flex-1 overflow-wrap-break"
+          style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
           onClick={() => router.push(`/post/${data.id}`)}
         >
           {data?.title}
         </h2>
         {modifyPost(isOwner)}
       </div>
-      <p className="text-sm text-foreground">{data?.content}</p>
-      <div className="flex gap-3 items-center">
+      <p
+        className={`text-xs md:text-sm text-foreground my-3 break-words ${truncateContent ? "line-clamp-3" : ""}`}
+        style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
+      >
+        {data?.content}
+      </p>
+      <div className="flex items-center justify-between gap-3 mt-3">
         <div
-          className="flex items-center gap-1 cursor-pointer"
+          className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => router.push(data?.creator.username)}
         >
-          <Avatar className="h-8 w-8 flex-shrink-0">
+          <Avatar className="h-7 w-7 flex-shrink-0">
             <AvatarImage
               src={data?.creator.avatarPath}
               alt={data?.creator.username}
             />
-            <AvatarFallback>
+            <AvatarFallback className="text-xs">
               {data?.creator.username?.[0]?.toUpperCase() || "?"}
             </AvatarFallback>
           </Avatar>
-          <p className="text-sm font-medium text-muted-foreground">
+          <p className="text-xs md:text-sm font-medium text-muted-foreground truncate max-w-[150px]">
             {data?.creator.username}
           </p>
         </div>
-        <div className="ml-auto flex gap-2 items-center">
-          {bookmarkFeature(data?.id)}
-          <div className="flex gap-1">
-            <Eye /> {data.viewCount}
+        <div className="flex gap-2 items-center text-xs md:text-sm">
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <Eye className="h-4 w-4" />
+            <span>{data.viewCount}</span>
           </div>
           <LikeButton
             isOwner={isOwner}
@@ -130,6 +150,7 @@ export function Post({ data, isOwner }: { data: PostType; isOwner: boolean }) {
             likeCount={data.likeCount}
             onLike={handleLike}
           />
+          {bookmarkFeature(data?.id)}
         </div>
       </div>
     </Card>

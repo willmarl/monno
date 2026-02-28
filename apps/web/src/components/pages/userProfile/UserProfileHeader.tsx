@@ -47,25 +47,40 @@ export function UserProfileHeader({ user, isOwner }: UserProfileHeaderProps) {
     .slice(0, 2);
 
   return (
-    <div className="flex gap-6 items-start">
+    <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-start">
       {/* Profile Avatar */}
-      <Avatar className="h-24 w-24">
+      <Avatar className="h-16 md:h-24 w-16 md:w-24 flex-shrink-0">
         {user.avatarPath && (
           <AvatarImage src={user.avatarPath} alt={user.username} />
         )}
-        <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
+        <AvatarFallback className="text-lg md:text-2xl">
+          {initials}
+        </AvatarFallback>
       </Avatar>
 
       {/* User Info */}
-      <div className="flex-1">
-        <h1 className="text-3xl font-bold text-foreground">{user.username}</h1>
-        <div className="mt-4 flex items-center gap-2 text-muted-foreground">
-          <Calendar className="h-4 w-4" />
-          <span className="text-sm">Joined {joinedText}</span>
+      <div className="flex-1 w-full flex flex-col">
+        <h1 className="text-xl md:text-3xl font-bold text-foreground break-words">
+          {user.username}
+        </h1>
+        <div className="mt-2 md:mt-4 flex items-center gap-2 text-muted-foreground">
+          <Calendar className="h-4 w-4 flex-shrink-0" />
+          <span className="text-xs md:text-sm">Joined {joinedText}</span>
         </div>
+        {isOwner && (
+          <div className="mt-4">
+            <Button onClick={handleSettings} className="w-full md:w-auto">
+              Edit Profile
+            </Button>
+          </div>
+        )}
       </div>
 
-      {isOwner ? <Button onClick={handleSettings}>Edit Profile</Button> : ""}
+      {isOwner && (
+        <div className="hidden md:block">
+          <Button onClick={handleSettings}>Edit Profile</Button>
+        </div>
+      )}
     </div>
   );
 }

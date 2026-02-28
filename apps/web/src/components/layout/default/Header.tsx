@@ -109,12 +109,75 @@ export default function Header({ user }: { user: User | null }) {
   }
 
   return (
-    <header className="bg-sidebar text-sidebar-foreground p-4 flex gap-3">
-      <Link href={"/"} className="text-2xl font-bold">
+    <header className="bg-sidebar text-sidebar-foreground p-4 flex gap-2 md:gap-3 items-center justify-between md:justify-start flex-wrap">
+      <Link href={"/"} className="mr-auto text-xl md:text-2xl font-bold">
         Monno
       </Link>
-      <div className="ml-auto flex items-center">
+      <div className="hidden md:flex items-center gap-3">
         {user ? LoggedIn() : Guest()}
+      </div>
+      <div className="flex md:hidden items-center gap-2 ml-auto">
+        {user && (
+          <>
+            <UserAvatar user={user} />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="px-2">
+                  {user.username}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {SHOW_ACCOUNT_STATUS && (
+                  <>
+                    <div className="px-2 py-2 space-y-2">
+                      <div className="text-sm font-semibold text-muted-foreground">
+                        Account Status
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
+                        <Badge variant="outline">
+                          {user.subscription?.tier || "FREE"}
+                        </Badge>
+                        <Badge variant="secondary">
+                          {user.credits} credits
+                        </Badge>
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                <DropdownMenuItem
+                  onClick={() => router.push("/user/" + user.username)}
+                >
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/settings")}>
+                  Settings
+                </DropdownMenuItem>
+                {SHOW_ACCOUNT_STATUS && (
+                  <DropdownMenuItem onClick={() => router.push("/purchases")}>
+                    Owned Products
+                  </DropdownMenuItem>
+                )}
+                {user.role === "ADMIN" && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => router.push("/admin")}>
+                      Admin Dashboard
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuItem
+                  onClick={() => logout.mutate()}
+                  variant="destructive"
+                >
+                  Logout
+                  <LogOut className="mr-2 h-4 w-4" />
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        )}
+        {!user && Guest()}
       </div>
       <ThemeToggle />
     </header>
