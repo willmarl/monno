@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
   ParseIntPipe,
+  HttpCode,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -157,10 +158,11 @@ export class PostsController {
   @UseGuards(JwtAccessGuard, CreatorGuard)
   @ProtectedResource('post')
   @Delete(':id')
+  @HttpCode(204)
   @ApiOperation({ summary: 'Delete a post' })
   @ApiResponse({
-    status: 200,
-    description: 'Post deleted successfully or was already deleted',
+    status: 204,
+    description: 'Post deleted successfully',
   })
   @ApiResponse({ status: 404, description: 'Post not found' })
   remove(@Param('id', ParseIntPipe) id: number) {

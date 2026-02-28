@@ -8,6 +8,7 @@ import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 import { PostSearchDto, PostSearchCursorDto } from './dto/search-post.dto';
 import { buildSearchWhere } from 'src/common/search/search.utils';
+import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 
 const DEFAULT_POST_SELECT = {
   id: true,
@@ -355,7 +356,7 @@ export class PostsService {
     }
 
     if (post.deleted) {
-      return { message: 'Post was already deleted' };
+      throw new AlreadyDeletedException('Post was already deleted');
     }
 
     // Soft delete the post

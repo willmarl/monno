@@ -5,6 +5,7 @@ import { buildSearchWhere } from 'src/common/search/search.utils';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 import { AdminService } from './admin.service';
+import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 
 const DEFAULT_COMMENT_SELECT = {
   id: true,
@@ -118,7 +119,7 @@ export class AdminCommentService {
     }
 
     if (comment.deleted) {
-      return { message: 'Comment was already deleted' };
+      throw new AlreadyDeletedException('Comment was already deleted');
     }
 
     const deleted = await this.prisma.comment.update({

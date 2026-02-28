@@ -20,6 +20,7 @@ import {
 import { buildSearchWhere } from 'src/common/search/search.utils';
 import { FileProcessingService } from '../../common/file-processing/file-processing.service';
 import { uploadLocation } from '../../common/file-processing/upload-location';
+import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 
 /**
  * Admin User Service
@@ -301,7 +302,7 @@ export class AdminUserService {
 
     // Check if user is already deleted
     if (user.status === 'DELETED') {
-      return { message: 'User was already deleted' };
+      throw new AlreadyDeletedException('User was already deleted');
     }
 
     const deleted = await this.usersService.softDeleteUserWithCascade(

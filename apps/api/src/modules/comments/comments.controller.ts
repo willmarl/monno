@@ -10,6 +10,7 @@ import {
   UseGuards,
   ParseIntPipe,
   Query,
+  HttpCode,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -73,17 +74,19 @@ export class CommentsController {
   }
 
   @Delete(':id')
+  @HttpCode(204)
   @UseGuards(JwtAccessGuard)
   @ApiOperation({ summary: 'Delete a comment' })
   @ApiResponse({
-    status: 200,
-    description: 'Comment deleted successfully or was already deleted',
+    status: 204,
+    description: 'Comment deleted successfully',
   })
   @ApiResponse({
     status: 403,
     description: 'Not authorized to delete this comment',
   })
   @ApiResponse({ status: 404, description: 'Comment not found' })
+  @ApiResponse({ status: 410, description: 'Comment was already deleted' })
   remove(@Req() req, @Param('id', ParseIntPipe) id: number) {
     const userId = req.user.sub;
     return this.commentsService.remove(userId, id);

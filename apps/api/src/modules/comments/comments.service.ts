@@ -10,6 +10,7 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import type { ResourceType } from 'src/common/types/resource.types';
+import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 
 const DEFAULT_COMMENT_SELECT = {
   id: true,
@@ -191,7 +192,7 @@ export class CommentsService {
     }
 
     if (comment.deleted) {
-      return { message: 'Comment was already deleted' };
+      throw new AlreadyDeletedException('Comment was already deleted');
     }
 
     const deleted = await this.prisma.comment.update({

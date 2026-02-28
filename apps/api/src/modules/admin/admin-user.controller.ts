@@ -186,13 +186,14 @@ export class AdminUsersController {
     example: 1,
   })
   @ApiResponse({
-    status: 200,
-    description: 'User deleted successfully or was already deleted',
+    status: 204,
+    description: 'User deleted successfully',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @Delete(':id')
+  @HttpCode(204)
   delete(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
     const adminId = req.user?.sub;
     return this.adminUserService.delete(id, adminId);

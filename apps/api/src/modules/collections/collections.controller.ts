@@ -83,17 +83,18 @@ export class CollectionsController {
    */
   @Delete(':id')
   @UseGuards(JwtAccessGuard)
-  @HttpCode(200)
+  @HttpCode(204)
   @ApiOperation({ summary: 'Delete a collection' })
   @ApiResponse({
-    status: 200,
-    description: 'Collection deleted successfully or was already deleted',
+    status: 204,
+    description: 'Collection deleted successfully',
   })
   @ApiResponse({
     status: 403,
     description: 'Not authorized to delete this collection',
   })
   @ApiResponse({ status: 404, description: 'Collection not found' })
+  @ApiResponse({ status: 410, description: 'Collection was already deleted' })
   remove(@Req() req, @Param('id', ParseIntPipe) id: number) {
     const userId = req.user.sub;
     return this.collectionsService.remove(userId, id);
@@ -130,9 +131,9 @@ export class CollectionsController {
    */
   @Delete(':id/items')
   @UseGuards(JwtAccessGuard)
-  @HttpCode(200)
+  @HttpCode(204)
   @ApiOperation({ summary: 'Remove an item from a collection' })
-  @ApiResponse({ status: 200, description: 'Item removed successfully' })
+  @ApiResponse({ status: 204, description: 'Item removed successfully' })
   @ApiResponse({
     status: 403,
     description: 'Not authorized to remove items from this collection',

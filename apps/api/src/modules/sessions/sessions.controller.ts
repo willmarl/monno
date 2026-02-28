@@ -6,6 +6,7 @@ import {
   UseGuards,
   Req,
   ForbiddenException,
+  HttpCode,
 } from '@nestjs/common';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { PrismaService } from '../../prisma.service';
@@ -49,10 +50,11 @@ export class SessionsController {
   }
 
   @Delete(':id')
+  @HttpCode(204)
   @ApiOperation({
     summary: 'Revoke a specific session (log out from a device)',
   })
-  @ApiResponse({ status: 200, description: 'Session revoked successfully' })
+  @ApiResponse({ status: 204, description: 'Session revoked successfully' })
   @ApiResponse({
     status: 403,
     description: 'Forbidden - session does not belong to user',

@@ -8,6 +8,7 @@ import {
   Query,
   Req,
   Post,
+  HttpCode,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -53,18 +54,18 @@ export class AdminCommentsController {
     return this.adminCommentService.search(searchDto);
   }
 
-  @ApiOperation({ summary: 'Search comments (admin only)' })
-  @ApiBearerAuth()
-  @ApiResponse({
-    status: 200,
-    description: 'Search results',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
-  @Get('search')
-  search(@Query() searchDto: CommentSearchDto) {
-    return this.adminCommentService.search(searchDto);
-  }
+  // @ApiOperation({ summary: 'Search comments (admin only)' })
+  // @ApiBearerAuth()
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'Search results',
+  // })
+  // @ApiResponse({ status: 401, description: 'Unauthorized' })
+  // @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
+  // @Get('search')
+  // search(@Query() searchDto: CommentSearchDto) {
+  //   return this.adminCommentService.search(searchDto);
+  // }
 
   @ApiOperation({
     summary: 'Find comment by ID (admin only, including deleted)',
@@ -95,13 +96,15 @@ export class AdminCommentsController {
     example: 1,
   })
   @ApiResponse({
-    status: 200,
-    description: 'Comment deleted successfully or was already deleted',
+    status: 204,
+    description: 'Comment deleted successfully',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @ApiResponse({ status: 404, description: 'Comment not found' })
+  @ApiResponse({ status: 410, description: 'Comment was already deleted' })
   @Delete(':id')
+  @HttpCode(204)
   delete(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
     const adminId = req.user?.sub;
     return this.adminCommentService.delete(id, adminId);

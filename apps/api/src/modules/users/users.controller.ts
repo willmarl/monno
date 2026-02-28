@@ -10,6 +10,7 @@ import {
   UseGuards,
   Req,
   NotFoundException,
+  HttpCode,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -103,13 +104,14 @@ export class UsersController {
   @ApiOperation({ summary: 'Delete current user account' })
   @ApiBearerAuth()
   @ApiResponse({
-    status: 200,
-    description: 'Account deleted successfully or was already deleted',
+    status: 204,
+    description: 'Account deleted successfully',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @UseGuards(JwtAccessGuard)
   @Delete('me')
+  @HttpCode(204)
   deleteAccount(@Req() req: any) {
     const userId = req.user.sub;
     return this.usersService.deleteAccount(userId);

@@ -12,6 +12,7 @@ import { RemoveCollectionItemDto } from './dto/remove-collection-item.dto';
 import type { CollectableResourceType } from 'src/common/types/resource.types';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
+import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 
 const DEFAULT_COLLECTION_SELECT = {
   id: true,
@@ -204,7 +205,7 @@ export class CollectionsService {
     }
 
     if (collection.deleted) {
-      return { message: 'Collection was already deleted' };
+      throw new AlreadyDeletedException('Collection was already deleted');
     }
 
     return this.prisma.collection.update({
