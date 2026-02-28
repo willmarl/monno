@@ -42,7 +42,6 @@ export const adminCommentSearchSorts: SearchSortOption[] = [
   { value: "createdAt|asc", label: "Oldest" },
   { value: "updatedAt|desc", label: "Recently Updated" },
   { value: "updatedAt|asc", label: "Least Recently Updated" },
-  // future:
-  // { value: "likes|desc", label: "Most Liked" },
-  // { value: "price|asc", label: "Lowest Price" },
+  { value: "likes|desc", label: "Most Liked" },
+  { value: "likes|asc", label: "Least Liked" },
 ];
