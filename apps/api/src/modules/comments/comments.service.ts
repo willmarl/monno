@@ -225,13 +225,13 @@ export class CommentsService {
         break;
       }
 
-      case 'VIDEO':
-        // TODO: Implement video validation when Video model is added
-        break;
+      // case 'VIDEO':
+      //   // TODO: Implement video validation when Video model is added
+      //   break;
 
-      case 'ARTICLE':
-        // TODO: Implement article validation when Article model is added
-        break;
+      // case 'ARTICLE':
+      //   // TODO: Implement article validation when Article model is added
+      //   break;
 
       default:
         throw new BadRequestException('Invalid resource type');

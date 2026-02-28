@@ -5,10 +5,10 @@ import type { ResourceType } from 'src/common/types/resource.types';
 export class CreateCommentDto {
   @ApiProperty({
     description: 'The type of resource being commented on',
-    enum: ['POST', 'VIDEO', 'ARTICLE', 'COMMENT'],
+    enum: ['POST', 'COMMENT'],
     example: 'POST',
   })
-  @IsEnum(['POST', 'VIDEO', 'ARTICLE', 'COMMENT'])
+  @IsEnum(['POST', 'COMMENT'])
   resourceType!: ResourceType;
 
   @ApiProperty({

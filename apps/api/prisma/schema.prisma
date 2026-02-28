@@ -34,8 +34,8 @@ enum UserStatus {
 
 enum ResourceType {
   POST
-  VIDEO
-  ARTICLE
+  // VIDEO
+  // ARTICLE
   COMMENT
 }
 

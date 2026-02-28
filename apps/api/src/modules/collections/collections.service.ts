@@ -345,15 +345,15 @@ export class CollectionsService {
       //   }
       //   break;
 
-      case 'VIDEO':
-        // TODO: Implement video validation when Video model is added
-        // For now, we'll assume video exists
-        break;
+      // case 'VIDEO':
+      //   // TODO: Implement video validation when Video model is added
+      //   // For now, we'll assume video exists
+      //   break;
 
-      case 'ARTICLE':
-        // TODO: Implement article validation when Article model is added
-        // For now, we'll assume article exists
-        break;
+      // case 'ARTICLE':
+      //   // TODO: Implement article validation when Article model is added
+      //   // For now, we'll assume article exists
+      //   break;
     }
   }
 
