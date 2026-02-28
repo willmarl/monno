@@ -16,15 +16,18 @@ import { SearchFilterRadio } from "./SearchFilterRadio";
 import { SearchFilterRadioCombobox } from "./SearchFilterRadioCombobox";
 import { SearchFilterToggle } from "./SearchFilterToggle";
 import { SearchSortSection } from "./SearchSortSection";
+import { SearchSortCombobox } from "./SearchSortCombobox";
 
 export function SearchFilterDropdown({
   filters,
   sorts = [],
   basePath = "/search",
+  sortVariant = "combobox",
 }: {
   filters: SearchFilterOption[];
   sorts?: SearchSortOption[];
   basePath?: string;
+  sortVariant?: "section" | "combobox";
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -89,7 +92,11 @@ export function SearchFilterDropdown({
         {sorts.length > 0 && (
           <>
             <DropdownMenuSeparator />
-            <SearchSortSection sorts={sorts} basePath={basePath} />
+            {sortVariant === "combobox" ? (
+              <SearchSortCombobox sorts={sorts} basePath={basePath} />
+            ) : (
+              <SearchSortSection sorts={sorts} basePath={basePath} />
+            )}
           </>
         )}
 
