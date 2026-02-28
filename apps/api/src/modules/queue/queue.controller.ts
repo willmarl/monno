@@ -1,8 +1,13 @@
-import { Controller, Post } from '@nestjs/common';
+import { Controller, Post, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { QueueService } from './queue.service';
+import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
+import { Roles } from '../../decorators/roles.decorator';
+import { RolesGuard } from '../../common/guards/roles.guard';
 
 @ApiTags('Queue')
+@UseGuards(JwtAccessGuard, RolesGuard)
+@Roles('ADMIN')
 @Controller('queue')
 export class QueueController {
   constructor(private readonly queueService: QueueService) {}
