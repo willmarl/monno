@@ -1,7 +1,11 @@
 import RegisterForm from "@/features/auth/components/RegisterForm";
 import { Card } from "@/components/ui/card";
 import { redirectIfLoggedIn } from "@/features/auth/server";
+import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "Register",
+};
 export default async function RegisterPage() {
   await redirectIfLoggedIn();
 

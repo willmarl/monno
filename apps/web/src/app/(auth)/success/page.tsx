@@ -17,6 +17,9 @@ import { useRouter } from "next/navigation";
  */
 export default function AuthSuccessPage() {
   const router = useRouter();
+  useEffect(() => {
+    document.title = `Success | ${process.env.NEXT_PUBLIC_APP_NAME}`;
+  }, []);
 
   useEffect(() => {
     // Cookies are already set by backend, just redirect to home

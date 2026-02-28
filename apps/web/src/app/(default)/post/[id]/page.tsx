@@ -21,6 +21,10 @@ export default function page() {
   const { mutate: recordView } = useRecordView();
   const isOwner = data?.creator.id === user?.id;
 
+  useEffect(() => {
+    document.title = `${data?.title} | ${process.env.NEXT_PUBLIC_APP_NAME}`;
+  }, [data?.title]);
+
   // Record view when post loads
   useEffect(() => {
     if (data?.id) {

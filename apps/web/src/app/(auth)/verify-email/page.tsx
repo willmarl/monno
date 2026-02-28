@@ -17,6 +17,10 @@ export default function VerifyEmailPage() {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
+    document.title = `Verify Email | ${process.env.NEXT_PUBLIC_APP_NAME}`;
+  }, []);
+
+  useEffect(() => {
     if (!token) {
       setVerificationState("error");
       setErrorMessage("No verification token provided");

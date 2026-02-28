@@ -1,7 +1,11 @@
 import LoginForm from "@/features/auth/components/LoginForm";
 import { Card } from "@/components/ui/card";
 import { redirectIfLoggedIn } from "@/features/auth/server";
+import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "Login",
+};
 async function LoginPage() {
   await redirectIfLoggedIn();
 

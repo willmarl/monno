@@ -1,7 +1,11 @@
 import { Lock } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "Unauthorized",
+};
 export default function UnauthorizedPage() {
   return (
     <div className="flex justify-center min-h-screen m-8">

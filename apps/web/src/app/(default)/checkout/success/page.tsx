@@ -19,6 +19,10 @@ export default function CheckoutSuccessPage() {
   const { refetch } = useSessionUser();
 
   useEffect(() => {
+    document.title = `Checkout Success | ${process.env.NEXT_PUBLIC_APP_NAME}`;
+  }, []);
+
+  useEffect(() => {
     // Refetch user data to get updated subscription/credits
     refetch().then(() => {
       // Give user a moment to see success, then redirect

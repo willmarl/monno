@@ -16,6 +16,7 @@ import { EditCollection } from "./modal/EditCollection";
 import { useRouter } from "next/navigation";
 import { PageNotFound } from "@/components/common/PageNotFound";
 import { PageLoadingState } from "@/components/common/PageLoadingState";
+import { useEffect } from "react";
 interface CollectionPageProps {
   id: number;
   isOwner?: boolean;
@@ -27,6 +28,9 @@ export function CollectionPage({ id }: CollectionPageProps) {
   const { data, isLoading, error } = useCollectionById(id);
   const { openModal } = useModal();
   const isOwner = data?.creator.id === user?.id;
+  useEffect(() => {
+    document.title = `${data?.name || "Collection"} | ${process.env.NEXT_PUBLIC_APP_NAME}`;
+  }, [data?.name]);
 
   if (isLoading) return <PageLoadingState variant="card" />;
 
