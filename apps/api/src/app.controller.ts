@@ -5,7 +5,12 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAccessGuard } from './modules/auth/guards/jwt-access.guard';
 import { Roles } from './decorators/roles.decorator';
 import { RolesGuard } from './common/guards/roles.guard';
+import { TestEndpointsGuard } from './common/guards/test-endpoints.guard';
 import { PrismaService } from './prisma.service';
+
+// Go to test-TestEndpointsGuard.guard.ts file
+// to toggle bool to allow endpoints in
+// app.controller or not
 
 @ApiTags('Generic / Health')
 @Controller()
@@ -36,7 +41,7 @@ export class AppController {
     return { ok: true };
   }
 
-  @UseGuards(JwtAccessGuard, RolesGuard)
+  @UseGuards(TestEndpointsGuard, JwtAccessGuard, RolesGuard)
   @Roles('ADMIN')
   @Get('/debug-sentry')
   getError() {
@@ -60,24 +65,26 @@ export class AppController {
     status: 429,
     description: 'Too many requests - rate limit exceeded (3 per minute)',
   })
+  @UseGuards(TestEndpointsGuard)
   @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 per minute
   @Get('rate')
   getRateTest(): string {
     return this.appService.rateLimitTest();
   }
 
+  @UseGuards(TestEndpointsGuard)
   @Get('worker')
   workerTest(): Promise<string> {
     return this.appService.workerTest();
   }
 
-  @UseGuards(JwtAccessGuard)
+  @UseGuards(TestEndpointsGuard, JwtAccessGuard)
   @Get('userNeeded')
   userOnlyTest(): string {
     return this.appService.userOnlyTest();
   }
 
-  @UseGuards(JwtAccessGuard, RolesGuard)
+  @UseGuards(TestEndpointsGuard, JwtAccessGuard, RolesGuard)
   @Roles('ADMIN')
   @Get('adminOnly')
   adminOnlyTest(): string {
@@ -89,6 +96,7 @@ export class AppController {
     status: 500,
     description: 'Returns a 500 error for testing',
   })
+  @UseGuards(TestEndpointsGuard)
   @Get('error')
   errorTest(): void {
     return this.appService.errorTest();
