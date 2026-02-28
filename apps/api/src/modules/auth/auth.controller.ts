@@ -5,6 +5,8 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAccessGuard } from './guards/jwt-access.guard';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
+import { Throttle } from '@nestjs/throttler';
+import { rateLimitConfig } from 'src/config/rate-limit.config';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -19,6 +21,7 @@ export class AuthController {
     schema: { example: { success: true } },
   })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
+  @Throttle({ default: rateLimitConfig.normal })
   @Post('register')
   async register(
     @Body() body: RegisterDto,
@@ -58,6 +61,7 @@ export class AuthController {
     schema: { example: { success: true } },
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  @Throttle({ default: rateLimitConfig.normal })
   @Post('login')
   async login(
     @Body() body: LoginDto,
@@ -155,6 +159,7 @@ export class AuthController {
     schema: { example: { success: true } },
   })
   @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
+  @Throttle({ default: rateLimitConfig.normal })
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
   async refresh(@Req() req, @Res({ passthrough: true }) res) {

@@ -13,11 +13,13 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { StripeConfiguredGuard } from '../../common/guards/stripe-configured.guard';
 import { OwnerOrAdminGuard } from '../../common/guards/owner-or-admin.guard';
 import { StripeService } from './stripe.service';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto';
+import { rateLimitConfig } from 'src/config/rate-limit.config';
 import Stripe from 'stripe';
 import { Query } from '@nestjs/common';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
@@ -27,6 +29,7 @@ import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 export class StripeController {
   constructor(private readonly stripeService: StripeService) {}
 
+  @Throttle({ default: rateLimitConfig.strict })
   @Post('checkout')
   @UseGuards(JwtAccessGuard)
   async createCheckoutSession(

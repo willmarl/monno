@@ -7,6 +7,7 @@ import { RequestIdMiddleware } from './middleware/request-id.middleware';
 import { ViewRateLimitMiddleware } from './common/middleware/view-rate-limit.middleware';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { UserAwareThrottlerGuard } from './common/guards/throttle-user.guard';
+import { rateLimitConfig } from './config/rate-limit.config';
 import { QueueModule } from './modules/queue/queue.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -34,8 +35,8 @@ import { PrismaService } from './prisma.service';
     // Rate limiting with Redis storage
     ThrottlerModule.forRoot([
       {
-        ttl: 60000, // 60 seconds in milliseconds
-        limit: 1000, // 1000 requests per 60 seconds globally
+        ttl: parseInt(process.env.THROTTLE_GLOBAL_TTL || '60000', 10),
+        limit: parseInt(process.env.THROTTLE_GLOBAL_LIMIT || '100', 10),
       },
     ]),
     // Configure Pino HTTP logger

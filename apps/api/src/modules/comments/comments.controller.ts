@@ -11,8 +11,10 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CommentsService } from './comments.service';
+import { rateLimitConfig } from 'src/config/rate-limit.config';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
@@ -23,6 +25,7 @@ import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
+  @Throttle({ default: rateLimitConfig.lenient })
   @Post()
   @UseGuards(JwtAccessGuard)
   @ApiOperation({ summary: 'Create a new comment on a resource' })

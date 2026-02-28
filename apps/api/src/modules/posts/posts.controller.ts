@@ -10,8 +10,10 @@ import {
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PostsService } from './posts.service';
+import { rateLimitConfig } from 'src/config/rate-limit.config';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
@@ -27,6 +29,7 @@ import { PostSearchDto, PostSearchCursorDto } from './dto/search-post.dto';
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
+  @Throttle({ default: rateLimitConfig.lenient })
   @Post()
   @UseGuards(JwtAccessGuard)
   create(@Req() req, @Body() body: CreatePostDto) {

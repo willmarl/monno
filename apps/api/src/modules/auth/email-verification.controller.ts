@@ -8,6 +8,8 @@ import {
   BadRequestException,
   Response,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
+import { rateLimitConfig } from 'src/config/rate-limit.config';
 import { EmailVerificationService } from './email-verification.service';
 import { JwtAccessGuard } from './guards/jwt-access.guard';
 import { AuthService } from './auth.service';
@@ -22,6 +24,7 @@ export class EmailVerificationController {
   /**
    * Authenticated user clicks "Send verification email"
    */
+  @Throttle({ default: rateLimitConfig.normal })
   @UseGuards(JwtAccessGuard)
   @Post('send-verification')
   async send(@Req() req: any) {
