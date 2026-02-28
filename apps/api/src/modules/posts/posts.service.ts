@@ -468,7 +468,7 @@ export class PostsService {
   }
 
   /**
-   * Get all collections that contain a specific post for a user
+   * Get all collections that contain a specific post
    */
   async getCollectionsForPost(postId: number, userId: number) {
     const collections = await this.prisma.collectionItem.findMany({
@@ -477,7 +477,6 @@ export class PostsService {
         resourceId: postId,
         deleted: false,
         collection: {
-          creatorId: userId,
           deleted: false,
         },
       },
