@@ -4,13 +4,15 @@ import { useRouter } from "next/navigation";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { useUserOwnedProducts } from "@/features/stripe/hooks";
 import { STRIPE_PRODUCT_PRICES } from "@/features/stripe/constants";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
 
 export function PurchasesPage() {
   const router = useRouter();
   const { data, isLoading, error } = useUserOwnedProducts();
 
-  if (isLoading) return "loading...";
-  // replace me with skeleton
+  if (isLoading) {
+    return <PageLoadingState variant="data-table" />;
+  }
 
   const getProductName = (productId: string): string | undefined => {
     return Object.entries(STRIPE_PRODUCT_PRICES).find(

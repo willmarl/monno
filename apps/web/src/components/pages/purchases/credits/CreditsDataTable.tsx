@@ -5,6 +5,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { useUserCreditTransactions } from "@/features/stripe/hooks";
 import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
 import { useSearchParams } from "next/navigation";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
 
 const DEFAULT_LIMIT = 20;
 
@@ -21,8 +22,7 @@ export function CreditsDataTable() {
   );
 
   if (isLoading) {
-    return <div>Loading...</div>;
-    // replace me with skeleton later
+    return <PageLoadingState variant="data-table" />;
   }
 
   if (error || !data) {
