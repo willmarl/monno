@@ -32,7 +32,7 @@ import { PrismaService } from './prisma.service';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    // Rate limiting with Redis storage
+    // Rate limiting
     ThrottlerModule.forRoot([
       {
         ttl: parseInt(process.env.THROTTLE_GLOBAL_TTL || '60000', 10),
