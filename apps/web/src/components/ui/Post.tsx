@@ -18,10 +18,12 @@ export function Post({
   data,
   isOwner,
   truncateContent = true,
+  truncateTitle = true,
 }: {
   data: PostType;
   isOwner: boolean;
   truncateContent?: boolean;
+  truncateTitle?: boolean;
 }) {
   const { data: user } = useSessionUser();
   const deletePost = useDeletePost();
@@ -107,7 +109,7 @@ export function Post({
     <Card className="p-3 md:p-4 hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start gap-2 pb-3 border-b border-border/50">
         <h2
-          className="cursor-pointer break-words text-sm md:text-base font-semibold hover:text-blue-500 transition-colors flex-1 overflow-wrap-break"
+          className={`cursor-pointer break-words text-sm md:text-base font-semibold hover:text-blue-500 transition-colors flex-1 overflow-wrap-break ${truncateTitle ? "line-clamp-2" : ""}`}
           style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
           onClick={() => router.push(`/post/${data.id}`)}
         >
@@ -121,9 +123,9 @@ export function Post({
       >
         {data?.content}
       </p>
-      <div className="flex items-center justify-between gap-3 mt-3">
+      <div className="flex items-center justify-between gap-2 mt-3 min-w-0">
         <div
-          className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+          className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity min-w-0"
           onClick={() => router.push(data?.creator.username)}
         >
           <Avatar className="h-7 w-7 flex-shrink-0">
@@ -135,11 +137,11 @@ export function Post({
               {data?.creator.username?.[0]?.toUpperCase() || "?"}
             </AvatarFallback>
           </Avatar>
-          <p className="text-xs md:text-sm font-medium text-muted-foreground truncate max-w-[150px]">
+          <p className="text-xs md:text-sm font-medium text-muted-foreground truncate">
             {data?.creator.username}
           </p>
         </div>
-        <div className="flex gap-2 items-center text-xs md:text-sm">
+        <div className="flex gap-2 items-center text-xs md:text-sm flex-shrink-0">
           <div className="flex items-center gap-1 text-muted-foreground">
             <Eye className="h-4 w-4" />
             <span>{data.viewCount}</span>

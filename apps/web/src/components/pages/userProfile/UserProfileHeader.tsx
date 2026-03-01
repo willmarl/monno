@@ -75,12 +75,6 @@ export function UserProfileHeader({ user, isOwner }: UserProfileHeaderProps) {
           </div>
         )}
       </div>
-
-      {isOwner && (
-        <div className="hidden md:block">
-          <Button onClick={handleSettings}>Edit Profile</Button>
-        </div>
-      )}
     </div>
   );
 }

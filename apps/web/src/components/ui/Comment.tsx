@@ -102,22 +102,26 @@ export function Comment({
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="cursor-pointer">
-            <EllipsisVertical />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="cursor-pointer h-8 w-8 p-0"
+          >
+            <EllipsisVertical size={16} />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent side="left" align="start" sideOffset={-5}>
+        <DropdownMenuContent side="bottom" align="end">
           <DropdownMenuGroup>
             <DropdownMenuItem
               onClick={() => setIsEditing(true)}
-              className="cursor-pointer"
+              className="cursor-pointer text-xs sm:text-sm"
             >
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={handleDelete}
               variant="destructive"
-              className="cursor-pointer"
+              className="cursor-pointer text-xs sm:text-sm"
             >
               Delete
             </DropdownMenuItem>
@@ -132,10 +136,10 @@ export function Comment({
   }
 
   return (
-    <div className="flex gap-3">
+    <div className="flex gap-2 sm:gap-3">
       {/* Avatar - Left Side */}
       <Avatar
-        className="h-10 w-10 flex-shrink-0 cursor-pointer"
+        className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 cursor-pointer mt-0.5"
         onClick={() =>
           data?.creator.username &&
           router.push(`/user/${data.creator.username}`)
@@ -151,23 +155,26 @@ export function Comment({
       </Avatar>
 
       {/* Content - Right Side */}
-      <div className="flex-1 relative">
+      <div className="flex-1 min-w-0">
         {/* comment menu options - Top Right */}
-        <div className="absolute right-0 top-0">
+        <div className="flex justify-end mb-1">
           {isOwner && !isEditing ? commentMenu() : ""}
         </div>
         {/* Top: Username and Date */}
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
           <p
-            className="text-sm font-semibold cursor-pointer hover:text-foreground"
+            className="text-xs sm:text-sm font-semibold cursor-pointer hover:text-foreground truncate"
             onClick={() =>
               data?.creator.username &&
               router.push(`/user/${data.creator.username}`)
             }
+            title={data?.creator.username || "Unknown"}
           >
             {data?.creator.username || "Unknown"}
           </p>
-          <p className="text-xs text-muted-foreground">{commentDate}</p>
+          <p className="text-xs text-muted-foreground whitespace-nowrap">
+            {commentDate}
+          </p>
           {isEdited && renderEditVisual()}
         </div>
 
@@ -178,10 +185,10 @@ export function Comment({
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
               placeholder="Edit your comment..."
-              className="resize-none min-h-[60px] text-sm"
+              className="resize-none min-h-[60px] text-xs sm:text-sm"
               disabled={updateComment.isPending}
             />
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
                 variant="ghost"
@@ -191,9 +198,9 @@ export function Comment({
                   setIsEditing(false);
                 }}
                 disabled={updateComment.isPending}
-                className="h-8 cursor-pointer"
+                className="h-8 min-w-[80px] cursor-pointer text-xs sm:text-sm"
               >
-                <X size={16} className="mr-1 cursor-pointer" />
+                <X size={16} className="mr-1 cursor-pointer flex-shrink-0" />
                 Cancel
               </Button>
               <Button
@@ -203,14 +210,16 @@ export function Comment({
                 disabled={
                   updateComment.isPending || editContent === data.content
                 }
-                className="h-8 cursor-pointer"
+                className="h-8 min-w-[80px] cursor-pointer text-xs sm:text-sm"
               >
                 {updateComment.isPending ? "Saving..." : "Save"}
               </Button>
             </div>
           </div>
         ) : (
-          <p className="text-sm text-foreground mb-2">{data?.content || ""}</p>
+          <p className="text-xs sm:text-sm text-foreground mb-2 break-words">
+            {data?.content || ""}
+          </p>
         )}
 
         {/* Actions - Only show when not editing */}

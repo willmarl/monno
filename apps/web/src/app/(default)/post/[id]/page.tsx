@@ -45,7 +45,12 @@ export default function page() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <Post data={data} isOwner={isOwner} />
+      <Post
+        data={data}
+        isOwner={isOwner}
+        truncateTitle={false}
+        truncateContent={false}
+      />
       <div className="bg-card rounded-lg p-4">
         <h3 className="font-semibold mb-4">Comments</h3>
         <InlineCommentForm

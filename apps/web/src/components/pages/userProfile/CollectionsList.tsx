@@ -32,6 +32,18 @@ export function CollectionsList({ user, isOwner }: CollectionsListProps) {
 
   return (
     <div className="relative">
+      <Button
+        className="mb-4 sm:absolute sm:top-0 sm:right-0 sm:mb-0 w-full sm:w-auto"
+        onClick={() => {
+          openModal({
+            title: "Create new collection",
+            content: <NewCollection />,
+          });
+        }}
+      >
+        <Plus />
+        New Collection
+      </Button>
       <PaginatedListInline
         page={page}
         limit={DEFAULT_LIMIT}
@@ -44,21 +56,9 @@ export function CollectionsList({ user, isOwner }: CollectionsListProps) {
         )}
         title={`Collections by ${user.username}`}
         layout="custom"
-        gridClassName="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        gridClassName="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-0 sm:mt-20"
         emptyMessage="No collections yet."
       />
-      <Button
-        className="absolute top-0 right-0"
-        onClick={() => {
-          openModal({
-            title: "Create new collection",
-            content: <NewCollection />,
-          });
-        }}
-      >
-        <Plus />
-        New Collection
-      </Button>
     </div>
   );
 }

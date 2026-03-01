@@ -82,11 +82,11 @@ export function InlineCommentForm({
   return (
     <form
       onSubmit={form.handleSubmit(handleSubmit)}
-      className="mt-6 border-t pt-4"
+      className="mt-4 sm:mt-6 border-t pt-3 sm:pt-4"
     >
-      <div className="flex gap-4">
+      <div className="flex gap-2 sm:gap-4">
         {/* Avatar - Left Side */}
-        <Avatar className="h-10 w-10 flex-shrink-0 mt-1">
+        <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 mt-1">
           <AvatarImage src={user.avatarPath || undefined} alt={user.username} />
           <AvatarFallback>
             {user.username?.[0]?.toUpperCase() || "?"}
@@ -94,12 +94,12 @@ export function InlineCommentForm({
         </Avatar>
 
         {/* Comment Input - Right Side */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <Textarea
             id="inline-content"
             placeholder="Add a comment..."
             disabled={commentMutation.isPending}
-            className="resize-none min-h-[36px] p-3 text-sm"
+            className="resize-none min-h-[36px] p-2 sm:p-3 text-xs sm:text-sm"
             {...form.register("content", {
               onBlur: () => {
                 if (!contentValue) {
@@ -110,14 +110,14 @@ export function InlineCommentForm({
             onFocus={() => setIsFocused(true)}
           />
           {form.formState.errors.content && (
-            <p className="text-xs text-red-500 mt-1">
+            <p className="text-xs text-red-500 mt-1 break-words">
               {form.formState.errors.content.message}
             </p>
           )}
 
           {/* Action Buttons - Only Show When Active */}
           {showActions && (
-            <div className="flex gap-2 pt-3">
+            <div className="flex flex-wrap gap-2 pt-2 sm:pt-3">
               <Button
                 type="button"
                 variant="ghost"
@@ -128,19 +128,19 @@ export function InlineCommentForm({
                   onCancel?.();
                 }}
                 disabled={commentMutation.isPending}
-                className="h-8 cursor-pointer"
+                className="h-8 min-w-[80px] cursor-pointer text-xs sm:text-sm"
               >
-                <X size={16} className="mr-1 cursor-pointer" />
+                <X size={16} className="mr-1 cursor-pointer flex-shrink-0" />
                 Cancel
               </Button>
               <Button
                 type="submit"
                 size="sm"
                 disabled={commentMutation.isPending || !isValid}
-                className="h-8 cursor-pointer"
+                className="h-8 min-w-[80px] cursor-pointer text-xs sm:text-sm"
               >
                 {commentMutation.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin flex-shrink-0" />
                 )}
                 {commentMutation.isPending ? "Posting..." : "Comment"}
               </Button>
