@@ -44,6 +44,11 @@ export async function fetcher<T>(url: string, options?: Options): Promise<T> {
       throw err;
     }
 
+    // Handle 204 No Content - no body to parse
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
     const json = await response.json<ApiResponse<T>>();
 
     if (!json.success) {
