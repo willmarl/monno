@@ -212,16 +212,68 @@ export class UsersController {
     return this.usersService.searchAllCursor(searchDto);
   }
 
+  @ApiOperation({ summary: 'Search users (public)' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of items per page (default: 10)',
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    description: 'Number of items to skip (default: 0)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of users matching search criteria',
+  })
   @Get('search')
   search(@Query() searchDto: UserSearchDto) {
     return this.usersService.searchAll(searchDto);
   }
 
+  @ApiOperation({ summary: 'Search users with cursor pagination (public)' })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    description: 'Cursor for pagination',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    example: 10,
+    description: 'Number of items per page',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of users matching search criteria with next cursor',
+  })
   @Get('search/cursor')
   searchCursor(@Query() searchDto: UserSearchCursorDto) {
     return this.usersService.searchAllCursor(searchDto);
   }
 
+  @ApiOperation({ summary: 'Get user search suggestions (public)' })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    type: String,
+    description: 'Search query string',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    example: 5,
+    description: 'Maximum number of suggestions (default: 5)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of user search suggestions',
+  })
   @Get('search/suggest')
   findSuggest(@Query('q') q: string, @Query('limit') limit = 5) {
     return this.usersService.searchSuggest(q, Number(limit));

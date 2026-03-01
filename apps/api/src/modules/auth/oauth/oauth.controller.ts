@@ -1,4 +1,5 @@
 import { Controller, Get, Req, Res, Query } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { OauthService } from './oauth.service';
 
 /**
@@ -17,6 +18,7 @@ import { OauthService } from './oauth.service';
  * 6. Update Prisma schema to add twitterId field to User model
  * 7. Add environment variables in .env: TWITTER_CLIENT_ID, TWITTER_CLIENT_SECRET, TWITTER_REDIRECT_URL
  */
+@ApiTags('auth')
 @Controller('auth')
 export class OauthController {
   constructor(private oauth: OauthService) {}
@@ -27,6 +29,11 @@ export class OauthController {
    * Step 1: Redirect user to Google login
    * User clicks "Continue with Google" button → hits this endpoint
    */
+  @ApiOperation({ summary: 'Redirect to Google OAuth login' })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirect to Google OAuth login page',
+  })
   @Get('google')
   async googleRedirect(@Res() res: any) {
     const url = this.oauth.getGoogleAuthUrl();
@@ -37,6 +44,21 @@ export class OauthController {
    * Step 2: Handle Google's callback
    * Google redirects user back here with authorization code
    */
+  @ApiOperation({ summary: 'Google OAuth callback handler' })
+  @ApiQuery({
+    name: 'code',
+    required: true,
+    type: String,
+    description: 'Authorization code from Google',
+  })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirect to frontend with authentication success',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid or missing authorization code',
+  })
   @Get('google/callback')
   async googleCallback(
     @Req() req: any,
@@ -53,6 +75,11 @@ export class OauthController {
    * Step 1: Redirect user to GitHub login
    * User clicks "Continue with GitHub" button → hits this endpoint
    */
+  @ApiOperation({ summary: 'Redirect to GitHub OAuth login' })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirect to GitHub OAuth login page',
+  })
   @Get('github')
   async githubRedirect(@Res() res: any) {
     const url = this.oauth.getGithubAuthUrl();
@@ -63,6 +90,21 @@ export class OauthController {
    * Step 2: Handle GitHub's callback
    * GitHub redirects user back here with authorization code
    */
+  @ApiOperation({ summary: 'GitHub OAuth callback handler' })
+  @ApiQuery({
+    name: 'code',
+    required: true,
+    type: String,
+    description: 'Authorization code from GitHub',
+  })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirect to frontend with authentication success',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid or missing authorization code',
+  })
   @Get('github/callback')
   async githubCallback(
     @Req() req: any,

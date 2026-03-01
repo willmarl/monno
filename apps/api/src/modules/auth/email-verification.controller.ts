@@ -9,11 +9,19 @@ import {
   Response,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { rateLimitConfig } from 'src/config/rate-limit.config';
 import { EmailVerificationService } from './email-verification.service';
 import { JwtAccessGuard } from './guards/jwt-access.guard';
 import { AuthService } from './auth.service';
 
+@ApiTags('auth')
 @Controller('auth')
 export class EmailVerificationController {
   constructor(
@@ -24,6 +32,27 @@ export class EmailVerificationController {
   /**
    * Authenticated user clicks "Send verification email"
    */
+  @ApiOperation({ summary: 'Send verification email to authenticated user' })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'Verification email sent successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: { type: 'string', example: 'Verification email sent' },
+        data: {
+          type: 'object',
+          properties: {
+            userEmail: { type: 'string', format: 'email' },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Throttle({ default: rateLimitConfig.normal })
   @UseGuards(JwtAccessGuard)
   @Post('send-verification')
@@ -50,6 +79,31 @@ export class EmailVerificationController {
    * Auto-logs in user by verifying token, creating session, and setting cookies
    * Same flow as login/register endpoints
    */
+  @ApiOperation({ summary: 'Verify email with token and auto-login' })
+  @ApiQuery({
+    name: 'token',
+    required: true,
+    type: String,
+    description: 'Email verification token from email link',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Email verified successfully and user logged in',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: {
+          type: 'string',
+          example: 'Email verified successfully and logged in',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Token is required or token is invalid/expired',
+  })
   @Get('verify-email')
   async verify(
     @Query('token') token: string,
