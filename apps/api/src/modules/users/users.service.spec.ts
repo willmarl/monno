@@ -1,18 +1,495 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+
+jest.mock('bcrypt');
 
 describe('UsersService', () => {
   let service: UsersService;
+  let mockPrisma: any;
+  let mockFileProcessing: any;
+  let mockEmailVerification: any;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [UsersService],
-    }).compile();
+  beforeEach(() => {
+    // Mock Prisma methods
+    mockPrisma = {
+      user: {
+        findUnique: jest.fn(),
+        findFirst: jest.fn(),
+        findMany: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        updateMany: jest.fn(),
+      },
+      usernameHistory: {
+        create: jest.fn(),
+      },
+      post: {
+        updateMany: jest.fn(),
+      },
+      collection: {
+        create: jest.fn(),
+      },
+      $transaction: jest.fn(),
+    };
 
-    service = module.get<UsersService>(UsersService);
+    // Mock FileProcessingService
+    mockFileProcessing = {
+      deleteFile: jest.fn().mockResolvedValue(undefined),
+      processFile: jest.fn().mockResolvedValue('/uploads/avatars/user123.jpg'),
+    };
+
+    // Mock EmailVerificationService
+    mockEmailVerification = {
+      sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+    };
+
+    // Initialize service with mocked dependencies
+    service = new UsersService(
+      mockPrisma,
+      mockFileProcessing,
+      mockEmailVerification,
+    );
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  describe('create', () => {
+    it('should create user with hashed password and default favorites collection', async () => {
+      const createUserDto = {
+        username: 'newuser',
+        email: 'new@test.com',
+        password: 'password123',
+      };
+
+      const hashedPassword = 'hashed_password123';
+      (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
+
+      const createdUser = {
+        id: 1,
+        username: 'newuser',
+        email: 'new@test.com',
+        password: hashedPassword,
+      };
+
+      // Mock the transaction to return user creation
+      mockPrisma.$transaction.mockImplementation(async (callback) => {
+        const mockTx = {
+          user: {
+            create: jest.fn().mockResolvedValue(createdUser),
+          },
+          collection: {
+            create: jest.fn().mockResolvedValue({}),
+          },
+        };
+        return callback(mockTx);
+      });
+
+      mockPrisma.user.findFirst.mockResolvedValue(null); // No existing verified user
+
+      // Act
+      const result = await service.create(createUserDto);
+
+      // Assert
+      expect(bcrypt.hash).toHaveBeenCalledWith('password123', 10);
+      expect(result).toEqual(createdUser);
+    });
+
+    it('should throw BadRequestException if email is already verified by another user', async () => {
+      const createUserDto = {
+        username: 'newuser',
+        email: 'existing@test.com',
+        password: 'password123',
+      };
+
+      // Existing verified user with same email
+      mockPrisma.user.findFirst.mockResolvedValue({
+        id: 999,
+        email: 'existing@test.com',
+        isEmailVerified: true,
+      });
+
+      // Act & Assert
+      await expect(service.create(createUserDto)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.create(createUserDto)).rejects.toThrow(
+        'Email is already in use',
+      );
+    });
+
+    it('should throw BadRequestException on P2002 unique constraint error for email', async () => {
+      const createUserDto = {
+        username: 'newuser',
+        email: 'duplicate@test.com',
+        password: 'password123',
+      };
+
+      mockPrisma.user.findFirst.mockResolvedValue(null);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed_password');
+
+      // Mock transaction to throw P2002 error
+      mockPrisma.$transaction.mockRejectedValue({
+        code: 'P2002',
+        meta: { target: ['email'] },
+      });
+
+      // Act & Assert
+      await expect(service.create(createUserDto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
+  describe('findByUsernameAuth', () => {
+    it('should return user by username', async () => {
+      const user = { id: 1, username: 'testuser', password: 'hashedpwd' };
+      mockPrisma.user.findUnique.mockResolvedValue(user);
+
+      // Act
+      const result = await service.findByUsernameAuth('testuser');
+
+      // Assert
+      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
+        where: { username: 'testuser' },
+      });
+      expect(result).toEqual(user);
+    });
+
+    it('should return null if user not found', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      // Act
+      const result = await service.findByUsernameAuth('nonexistent');
+
+      // Assert
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('findById', () => {
+    it('should return user by id with admin selection', async () => {
+      const user = {
+        id: 1,
+        username: 'testuser',
+        email: 'test@test.com',
+        role: 'USER',
+      };
+      mockPrisma.user.findUnique.mockResolvedValue(user);
+
+      // Act
+      const result = await service.findById(1);
+
+      // Assert
+      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
+        where: { id: 1 },
+        select: expect.objectContaining({
+          id: true,
+          username: true,
+          email: true,
+          role: true,
+        }),
+      });
+      expect(result).toEqual(user);
+    });
+
+    it('should throw NotFoundException if user not found', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(service.findById(999)).rejects.toThrow(NotFoundException);
+      await expect(service.findById(999)).rejects.toThrow(
+        'User with ID 999 not found',
+      );
+    });
+  });
+
+  describe('findByUsername', () => {
+    it('should return active user with public selection', async () => {
+      const user = {
+        id: 1,
+        username: 'testuser',
+        status: 'ACTIVE',
+        deleted: false,
+      };
+      mockPrisma.user.findUnique.mockResolvedValue(user);
+
+      // Act
+      const result = await service.findByUsername('testuser');
+
+      // Assert
+      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
+        where: { username: 'testuser' },
+        select: expect.objectContaining({
+          id: true,
+          username: true,
+          status: true,
+        }),
+      });
+      expect(result).toEqual(user);
+    });
+
+    it('should return null if user is not ACTIVE', async () => {
+      const user = {
+        id: 1,
+        username: 'suspended',
+        status: 'SUSPENDED',
+        deleted: false,
+      };
+      mockPrisma.user.findUnique.mockResolvedValue(user);
+
+      // Act
+      const result = await service.findByUsername('suspended');
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('should return null if user not found', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      // Act
+      const result = await service.findByUsername('nonexistent');
+
+      // Assert
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('changePassword', () => {
+    it('should change password when current password is valid', async () => {
+      const user = {
+        id: 1,
+        username: 'testuser',
+        password: 'hashed_old_password',
+      };
+
+      mockPrisma.user.findUnique.mockResolvedValue(user);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed_new_password');
+
+      const dto = {
+        currentPassword: 'oldPassword123',
+        newPassword: 'newPassword456',
+      };
+
+      const updatedUser = { ...user, password: 'hashed_new_password' };
+      mockPrisma.user.update.mockResolvedValue(updatedUser);
+
+      // Act
+      const result = await service.changePassword(1, dto);
+
+      // Assert
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        'oldPassword123',
+        'hashed_old_password',
+      );
+      expect(bcrypt.hash).toHaveBeenCalledWith('newPassword456', 10);
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { password: 'hashed_new_password' },
+        select: expect.any(Object),
+      });
+      expect(result).toEqual(updatedUser);
+    });
+
+    it('should throw BadRequestException if current password is incorrect', async () => {
+      const user = {
+        id: 1,
+        username: 'testuser',
+        password: 'hashed_old_password',
+      };
+
+      mockPrisma.user.findUnique.mockResolvedValue(user);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+      const dto = {
+        currentPassword: 'wrongPassword',
+        newPassword: 'newPassword456',
+      };
+
+      // Act & Assert
+      await expect(service.changePassword(1, dto)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.changePassword(1, dto)).rejects.toThrow(
+        'Current password is incorrect',
+      );
+    });
+
+    it('should throw NotFoundException if user not found', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      const dto = {
+        currentPassword: 'currentPassword',
+        newPassword: 'newPassword456',
+      };
+
+      // Act & Assert
+      await expect(service.changePassword(999, dto)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('deleteAccount', () => {
+    it('should delete account and call softDeleteUserWithCascade', async () => {
+      const user = { id: 1, username: 'testuser' };
+      mockPrisma.user.findUnique.mockResolvedValue(user);
+
+      const deletedUser = {
+        id: 1,
+        username: 'd_testuser',
+        status: 'DELETED',
+        deleted: true,
+      };
+
+      mockPrisma.user.update.mockResolvedValue(deletedUser);
+      mockPrisma.post.updateMany.mockResolvedValue({});
+      mockPrisma.usernameHistory.create.mockResolvedValue({});
+
+      // Act
+      const result = await service.deleteAccount(1);
+
+      // Assert
+      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
+        where: { id: 1 },
+        select: { username: true, status: true },
+      });
+      expect(mockPrisma.post.updateMany).toHaveBeenCalled();
+      expect(mockPrisma.usernameHistory.create).toHaveBeenCalled();
+      expect(result).toEqual(deletedUser);
+    });
+
+    it('should throw NotFoundException if user not found', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(service.deleteAccount(999)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('softDeleteUserWithCascade', () => {
+    it('should soft delete user with cascade to posts', async () => {
+      const user = { username: 'testuser', status: 'ACTIVE' };
+      mockPrisma.user.findUnique.mockResolvedValueOnce(user);
+
+      const deletedUser = {
+        id: 1,
+        username: 'd_testuser',
+        status: 'DELETED',
+        deleted: true,
+        deletedAt: expect.any(Date),
+      };
+      mockPrisma.user.update.mockResolvedValue(deletedUser);
+      mockPrisma.post.updateMany.mockResolvedValue({});
+      mockPrisma.usernameHistory.create.mockResolvedValue({});
+
+      // Act
+      const result = await service.softDeleteUserWithCascade(1);
+
+      // Assert
+      expect(mockPrisma.post.updateMany).toHaveBeenCalledWith({
+        where: { creatorId: 1 },
+        data: { deleted: true, deletedAt: expect.any(Date) },
+      });
+      expect(mockPrisma.usernameHistory.create).toHaveBeenCalledWith({
+        data: {
+          userId: 1,
+          username: 'testuser',
+          reason: 'account_deletion',
+        },
+      });
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: expect.objectContaining({
+          username: 'd_testuser',
+          status: 'DELETED',
+          deleted: true,
+        }),
+        select: expect.any(Object),
+      });
+      expect(result).toEqual(deletedUser);
+    });
+
+    it('should return early if user is already deleted', async () => {
+      const user = { username: 'testuser', status: 'DELETED' };
+      mockPrisma.user.findUnique.mockResolvedValue(user);
+
+      // Act
+      const result = await service.softDeleteUserWithCascade(1);
+
+      // Assert
+      expect(result).toEqual({ message: 'User was already deleted' });
+      expect(mockPrisma.post.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException if user not found', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(service.softDeleteUserWithCascade(999)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should rename username to d_{username} and truncate if exceeds 32 chars', async () => {
+      // Create a username that results in >32 chars when prefixed with d_
+      const longUsername = 'verylongusernamethatexceedsthirtychars'; // 39 chars, d_ + 39 = 41 chars
+      const user = { username: longUsername, status: 'ACTIVE' };
+      mockPrisma.user.findUnique.mockResolvedValueOnce(user);
+
+      const truncatedUsername = `d_${longUsername.slice(0, -2)}`;
+      const deletedUser = {
+        id: 1,
+        username: truncatedUsername,
+        status: 'DELETED',
+      };
+      mockPrisma.user.update.mockResolvedValue(deletedUser);
+      mockPrisma.post.updateMany.mockResolvedValue({});
+      mockPrisma.usernameHistory.create.mockResolvedValue({});
+
+      // Act
+      const result = await service.softDeleteUserWithCascade(1);
+
+      // Assert
+      // Service removes last 2 chars when d_{username} exceeds 32
+      expect((result as any).username).toBe(truncatedUsername);
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: expect.objectContaining({
+          username: truncatedUsername,
+        }),
+        select: expect.any(Object),
+      });
+    });
+
+    it('should accept optional deletion reason', async () => {
+      const user = { username: 'testuser', status: 'ACTIVE' };
+      mockPrisma.user.findUnique.mockResolvedValueOnce(user);
+
+      const deletedUser = {
+        id: 1,
+        username: 'd_testuser',
+        status: 'DELETED',
+        statusReason: 'user_request',
+      };
+      mockPrisma.user.update.mockResolvedValue(deletedUser);
+      mockPrisma.post.updateMany.mockResolvedValue({});
+      mockPrisma.usernameHistory.create.mockResolvedValue({});
+
+      // Act
+      const result = await service.softDeleteUserWithCascade(1, 'user_request');
+
+      // Assert
+      expect(mockPrisma.usernameHistory.create).toHaveBeenCalledWith({
+        data: {
+          userId: 1,
+          username: 'testuser',
+          reason: 'user_request',
+        },
+      });
+      expect((result as any).statusReason).toBe('user_request');
+    });
   });
 });

@@ -6,7 +6,7 @@ import {
 import { PrismaService } from '../../prisma.service';
 import { randomBytes } from 'crypto';
 import { QueueService } from '../queue/queue.service';
-import { verifyEmailTemplate } from '../../common/email-templates/VerifyEmail.js';
+import { verifyEmailTemplate } from '../../common/email-templates/VerifyEmail';
 
 // Helper functions (lightweight alternative to date-fns)
 const addHours = (date: Date, hours: number): Date => {
