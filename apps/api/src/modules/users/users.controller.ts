@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   UseGuards,
   Req,
+  Res,
   NotFoundException,
   HttpCode,
 } from '@nestjs/common';
@@ -112,9 +113,23 @@ export class UsersController {
   @UseGuards(JwtAccessGuard)
   @Delete('me')
   @HttpCode(204)
-  deleteAccount(@Req() req: any) {
+  async deleteAccount(@Req() req: any, @Res({ passthrough: true }) res) {
     const userId = req.user.sub;
-    return this.usersService.deleteAccount(userId);
+    await this.usersService.deleteAccount(userId);
+
+    // Clear cookies (same as logout)
+    res.cookie('accessToken', '', {
+      httpOnly: true,
+      expires: new Date(0),
+    });
+    res.cookie('refreshToken', '', {
+      httpOnly: true,
+      expires: new Date(0),
+    });
+    res.cookie('sessionId', '', {
+      httpOnly: true,
+      expires: new Date(0),
+    });
   }
 
   //==============

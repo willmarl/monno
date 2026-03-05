@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   updateProfile,
   changePassword,
+  deleteProfile,
   fetchUserByUsername,
   fetchUsers,
   fetchAdminUsers,
@@ -53,6 +54,18 @@ export const useFetchUserByUsername = (username: string) =>
     },
   });
 
+export function useDeleteProfile() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteProfile,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["session"] });
+    },
+    throwOnError: false, // Don't throw errors, let component handle them
+  });
+}
+
 export function useUsers(
   page: number = 1,
   limit: number = 10,
@@ -81,6 +94,10 @@ export function useUsers(
       }),
   });
 }
+
+//==============
+//   Admin
+//==============
 
 export function useAdminUsers(
   page: number = 1,

@@ -49,6 +49,11 @@ export const changePassword = (data: ChangePasswordInput) =>
     json: data,
   });
 
+export const deleteProfile = () =>
+  fetcher<void>(`/users/me`, {
+    method: "DELETE",
+  });
+
 export const fetchUserByUsername = (username: string): Promise<PublicUser> =>
   fetcher(`/users/username/${username}`, {
     method: "GET",

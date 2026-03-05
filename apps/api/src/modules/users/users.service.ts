@@ -85,10 +85,31 @@ export class UsersService {
     }
 
     // Generate renamed username: d_{username}
-    // If it exceeds 32 chars, slice off the last 2 chars of the original username
-    let renamedUsername = `d_${user.username}`;
+    // Max username length is 32, so calculate how much room we have for the original username
+    const prefix = 'd_';
+    let maxUsernameLength = 32 - prefix.length; // 30 chars for username
+    let renamedUsername = prefix + user.username;
     if (renamedUsername.length > 32) {
-      renamedUsername = `d_${user.username.slice(0, -2)}`;
+      renamedUsername = prefix + user.username.slice(0, maxUsernameLength);
+    }
+
+    // Check if renamed username already exists (including normal usernames), if so prepend a counter
+    let counter = 1;
+    let existingUser = await this.prisma.user.findUnique({
+      where: { username: renamedUsername },
+    });
+    while (existingUser) {
+      const counterPrefix = `d${counter}_`;
+      maxUsernameLength = 32 - counterPrefix.length;
+      renamedUsername = counterPrefix + user.username;
+      if (renamedUsername.length > 32) {
+        renamedUsername =
+          counterPrefix + user.username.slice(0, maxUsernameLength);
+      }
+      existingUser = await this.prisma.user.findUnique({
+        where: { username: renamedUsername },
+      });
+      counter++;
     }
 
     // Soft delete all user's posts
