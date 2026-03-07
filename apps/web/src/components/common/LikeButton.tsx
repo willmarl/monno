@@ -16,11 +16,12 @@ export function LikeButton({
 }: LikeButtonProps) {
   if (!isOwner && !likedByMe) {
     return (
-      <div className="flex gap-1 items-center">
+      <div className="flex gap-1 items-center" data-testid="like-count">
         <Button
           variant="ghost"
           onClick={onLike}
           className="cursor-pointer transition-transform hover:scale-110"
+          data-testid="like-button"
         >
           <ThumbsUp />
         </Button>
@@ -31,11 +32,12 @@ export function LikeButton({
 
   if (!isOwner && likedByMe) {
     return (
-      <div className="flex gap-1 items-center">
+      <div className="flex gap-1 items-center" data-testid="like-count">
         <Button
           variant="ghost"
           onClick={onLike}
           className="cursor-pointer transition-transform hover:scale-110"
+          data-testid="like-button"
         >
           <ThumbsUp fill="currentColor" className="dark:text-white" />
         </Button>
@@ -46,11 +48,12 @@ export function LikeButton({
 
   if (likedByMe) {
     return (
-      <div className="flex gap-1 items-center">
+      <div className="flex gap-1 items-center" data-testid="like-count">
         <Button
           variant="ghost"
           onClick={onLike}
           className="cursor-pointer transition-transform hover:scale-110"
+          data-testid="like-button"
         >
           <ThumbsUp fill="currentColor" className="dark:text-white" />
         </Button>
@@ -60,11 +63,12 @@ export function LikeButton({
   }
 
   return (
-    <div className="flex gap-1 items-center">
+    <div className="flex gap-1 items-center" data-testid="like-count">
       <Button
         variant="ghost"
         onClick={onLike}
         className="cursor-pointer transition-transform hover:scale-110"
+        data-testid="like-button"
       >
         <ThumbsUp />
       </Button>
