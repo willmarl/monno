@@ -126,7 +126,7 @@ export function Post({
       <div className="flex items-center justify-between gap-2 mt-3 min-w-0">
         <div
           className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity min-w-0"
-          onClick={() => router.push(data?.creator.username)}
+          onClick={() => router.push("/user/" + data?.creator.username)}
         >
           <Avatar className="h-7 w-7 flex-shrink-0">
             <AvatarImage
