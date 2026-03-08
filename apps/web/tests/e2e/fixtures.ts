@@ -1,9 +1,22 @@
-import { test } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
 // Create a fixture that registers a user
 type UserFixture = {
   user: { username: string; password: string; email?: string };
 };
+
+export async function createPost(
+  page: any,
+  postTitle: string,
+  postContent: string,
+) {
+  await page.getByRole("button", { name: "Post" }).click();
+  await expect(page).toHaveURL("/post/create");
+  await page.getByRole("textbox", { name: "Post Title" }).fill(postTitle);
+  await page.getByRole("textbox", { name: "Post Content" }).fill(postContent);
+  await page.getByRole("button", { name: "Create Post" }).click();
+  await expect(page).toHaveURL(/\/post\/\d+/);
+}
 
 export const test_with_user = test.extend<UserFixture>({
   user: async ({ page }, use) => {
