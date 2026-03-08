@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
-import { test_with_user, createPost } from "./fixtures";
+import { test, createPost } from "./fixtures";
 
-test_with_user("user can create a post", async ({ page, user }) => {
+test("user can create a post", async ({ page }) => {
   const postTitle = "title here";
   const postContent = "post content here";
   await createPost(page, postTitle, postContent); // user on /post/123 page
@@ -10,16 +10,19 @@ test_with_user("user can create a post", async ({ page, user }) => {
   await expect(page.getByRole("main")).toContainText(postContent);
 });
 
-test_with_user("user can like post", async ({ page, user }) => {
+test("user can like post", async ({ page }) => {
   const postTitle = "title here";
   const postContent = "post content here";
 
   await createPost(page, postTitle, postContent); // user on /post/123 page
   await page.getByTestId("like-button").first().click();
-  await expect(page.getByTestId("like-count").first()).toContainText("1");
+  // Wait for the like count to update (works with optimistic updates and API responses)
+  await expect(page.getByTestId("like-count").first()).toContainText("1", {
+    timeout: 5000,
+  });
 });
 
-test_with_user("user can update post", async ({ page, user }) => {
+test("user can update post", async ({ page }) => {
   const postTitle = "title here";
   const postContent = "post content here";
 
@@ -42,7 +45,7 @@ test_with_user("user can update post", async ({ page, user }) => {
   await expect(page.getByRole("main")).toContainText(postContent + " updated");
 });
 
-test_with_user("user can delete post", async ({ page, user }) => {
+test("user can delete post", async ({ page }) => {
   const postTitle = "DELETE ME";
   const postContent = "DELETE ME 2";
 
@@ -54,6 +57,8 @@ test_with_user("user can delete post", async ({ page, user }) => {
 
   await page.getByRole("button", { name: "Delete post" }).click();
   await page.getByRole("button", { name: "Yes" }).click();
+  // Wait for redirect to complete after deletion
+  await page.waitForURL("/");
   await expect(page).toHaveURL("/"); // redirected to default page
 
   // Check if post removed from default post feed

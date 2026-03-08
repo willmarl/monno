@@ -21,3 +21,9 @@ prisma/migrations/
 
 # Docker
 volumes/
+
+# Playwright
+tests/.auth/user.json
+test-results/
+playwright-report/
+.playwright-mcp
