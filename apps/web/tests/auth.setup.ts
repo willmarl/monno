@@ -2,6 +2,9 @@ import { test as setup } from "@playwright/test";
 import { TEST_USER } from "./constants";
 
 setup("authenticate", async ({ page }) => {
+  console.log(
+    "Reminder to increase rate limiting in apps/api/.env if having inconsistent tests",
+  );
   const username = TEST_USER.username;
   const password = TEST_USER.password;
 

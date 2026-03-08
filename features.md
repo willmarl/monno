@@ -51,6 +51,12 @@
 - Unified API responses
 - Settings key-value store for app configuration
 
+[**tests**](./tests.md)
+
+- **52 Jest unit tests**: AuthService, PasswordResetService, UsersService, PostsService
+- **16 Bruno API tests**: Auth, Posts, Users, Collections, Error cases
+- **12 Playwright E2E tests**: Auth flow, Posts lifecycle, User profile, Collections
+
 # More details
 
 ## docker
