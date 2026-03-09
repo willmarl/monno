@@ -133,7 +133,7 @@ export class AdminCollectionService {
     }
 
     if (collection.deleted) {
-      return { message: 'Collection was already deleted' };
+      throw new AlreadyDeletedException('Collection was already deleted');
     }
 
     const deleted = await this.prisma.collection.update({
