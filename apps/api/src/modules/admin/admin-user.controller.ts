@@ -241,4 +241,24 @@ export class AdminUsersController {
   ) {
     return this.adminUserService.fetchUsernameHistory(id, pag);
   }
+
+  @ApiOperation({ summary: 'Restore a deleted user (admin only)' })
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'id',
+    description: 'User ID',
+    example: 1,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User restored successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @Post(':id/restore')
+  restore(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    const adminId = req.user?.sub;
+    return this.adminUserService.restore(id, adminId);
+  }
 }

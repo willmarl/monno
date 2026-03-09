@@ -396,6 +396,41 @@ export class AdminUserService {
     };
   }
 
+  async restore(userId: number, adminId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Check if user is already active
+    if (user.status !== 'DELETED' || !user.deleted) {
+      throw new BadRequestException(
+        'User is not deleted and cannot be restored',
+      );
+    }
+
+    const restored = await this.usersService.restoreUserWithCascade(userId);
+
+    // Log the restoration
+    await this.adminService.log({
+      adminId,
+      action: 'USER_RESTORE',
+      resource: 'USER',
+      resourceId: userId.toString(),
+      targetId: userId,
+      description: `Admin restored user ${user.username}`,
+      changes: {
+        status: { from: user.status, to: 'ACTIVE' },
+        username: { from: user.username, to: restored.username },
+      },
+    });
+
+    return restored;
+  }
+
   // ===== UTILITY METHODS ====
 
   /**

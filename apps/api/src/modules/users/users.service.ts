@@ -60,6 +60,76 @@ export class UsersService {
   ) {}
 
   /**
+   * Restore user and cascade restore all their deleted content
+   * - Restores all user's soft-deleted posts
+   * - Checks if original username is available (from usernameHistory)
+   * - If available, restores user to original username
+   * - If not available, keeps the current d_ prefixed username
+   * - Sets status back to ACTIVE
+   */
+  async restoreUserWithCascade(userId: number) {
+    const now = new Date();
+
+    // Get the user's current state
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { username: true, status: true, deleted: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Check if user is not deleted
+    if (!user.deleted || user.status !== 'DELETED') {
+      throw new BadRequestException(
+        'User is not deleted and cannot be restored',
+      );
+    }
+
+    // Get the original username from usernameHistory
+    const usernameHistory = await this.prisma.usernameHistory.findFirst({
+      where: { userId },
+      orderBy: { freedAt: 'desc' },
+      select: { username: true },
+    });
+
+    let restoredUsername = user.username; // Default: keep current d_ prefixed username
+
+    // Check if original username is available
+    if (usernameHistory) {
+      const originalUsername = usernameHistory.username;
+      const usernameExists = await this.prisma.user.findUnique({
+        where: { username: originalUsername },
+      });
+
+      // If original username is available, use it
+      if (!usernameExists) {
+        restoredUsername = originalUsername;
+      }
+    }
+
+    // Restore all user's posts
+    await this.prisma.post.updateMany({
+      where: { creatorId: userId },
+      data: { deleted: false, deletedAt: null },
+    });
+
+    // Restore the user and set status to ACTIVE
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        username: restoredUsername,
+        status: 'ACTIVE',
+        statusReason: null,
+        deleted: false,
+        deletedAt: null,
+      },
+      select: DEFAULT_ADMIN_USER_SELECT,
+    });
+  }
+
+  /**
    * Soft delete user and cascade to all their created content
    * - Soft deletes all user's posts
    * - Logs username to history (username becomes available for reuse)
