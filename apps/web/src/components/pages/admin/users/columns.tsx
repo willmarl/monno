@@ -20,6 +20,7 @@ import { DeleteUser } from "./modal/DeleteUser";
 import { SortableHeader } from "@/components/table/SortableHeader";
 import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 import { formatDate } from "@/lib/utils/date";
+import { UsernameHistoryList } from "@/features/admin/users/components/UsernameHistoryList";
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -142,7 +143,16 @@ export const columns: ColumnDef<User>[] = [
               Edit user
             </DropdownMenuItem>
             <DropdownMenuItem
-              // ===== Using custom component =====
+              onClick={() => {
+                openModal({
+                  title: `Username history for ${row.original.username}`,
+                  content: <UsernameHistoryList userId={row.original.id} />,
+                });
+              }}
+            >
+              View username history
+            </DropdownMenuItem>
+            <DropdownMenuItem
               variant="destructive"
               onClick={() => {
                 openModal({

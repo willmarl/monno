@@ -7,6 +7,7 @@ import {
   fetchUsers,
   fetchAdminUsers,
   fetchAdminUserById,
+  fetchAdminUsernameHistory,
   updateAdminUser,
   deleteAdminUser,
   createAdminUser,
@@ -189,5 +190,18 @@ export function useAdminDeleteUser() {
       qc.removeQueries({ queryKey: ["adminUser", id] });
     },
     throwOnError: false, // Don't throw errors, let component handle them
+  });
+}
+
+export function useAdminUsernameHistory(
+  userId: number,
+  page: number,
+  limit: number,
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: ["posts-offset", page],
+    queryFn: () => fetchAdminUsernameHistory({ userId, limit, offset }),
   });
 }

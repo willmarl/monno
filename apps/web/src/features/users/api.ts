@@ -5,6 +5,7 @@ import type {
   User,
   UsersList,
   PublicUser,
+  UsernameHistoryList,
   UpdateProfileInput,
   ChangePasswordInput,
   UpdateUserAdminInput,
@@ -159,4 +160,17 @@ export const updateAdminUser = (
 export const deleteAdminUser = (id: number) =>
   fetcher<void>(`/admin/users/${id}`, {
     method: "DELETE",
+  });
+
+export const fetchAdminUsernameHistory = ({
+  userId,
+  limit,
+  offset,
+}: {
+  userId: number;
+  limit: number;
+  offset: number;
+}) =>
+  fetcher<UsernameHistoryList>(`/admin/users/${userId}/username-history`, {
+    searchParams: { limit, offset },
   });

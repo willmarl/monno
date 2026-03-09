@@ -44,6 +44,15 @@ export interface PublicUser {
   deleted: boolean;
   deletedAt: Date | null;
 }
+export interface UsernameHistory {
+  id: number;
+  userId: number;
+  username: string;
+  freedAt: string;
+  reason: string | null;
+}
+
+export type UsernameHistoryList = PaginatedResponse<UsernameHistory>;
 
 export interface UpdateProfileInput {
   username?: string;
