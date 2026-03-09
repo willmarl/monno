@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
@@ -43,7 +44,7 @@ export class CollectionsService {
     });
 
     if (existing) {
-      throw new BadRequestException(
+      throw new ConflictException(
         `Collection "${data.name}" already exists for this user`,
       );
     }
@@ -173,7 +174,7 @@ export class CollectionsService {
       });
 
       if (existing && existing.id !== collectionId) {
-        throw new BadRequestException(
+        throw new ConflictException(
           `Collection "${data.name}" already exists for this user`,
         );
       }
@@ -239,7 +240,7 @@ export class CollectionsService {
     });
 
     if (existing) {
-      throw new BadRequestException('This item is already in the collection');
+      throw new ConflictException('This item is already in the collection');
     }
 
     // If item was previously deleted, restore it

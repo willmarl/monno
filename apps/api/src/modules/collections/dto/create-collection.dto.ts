@@ -15,13 +15,11 @@ export class CreateCollectionDto {
 
   @ApiPropertyOptional({
     description: 'A detailed description of the collection',
-    minLength: 1,
     maxLength: 2000,
     example: 'This is a detailed description of my collection',
   })
   @IsOptional()
   @IsString()
-  @MinLength(1)
   @MaxLength(2000)
   description?: string;
 }

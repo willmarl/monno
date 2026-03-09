@@ -16,13 +16,11 @@ export class UpdateCollectionDto {
 
   @ApiPropertyOptional({
     description: 'The new description for the collection',
-    minLength: 1,
     maxLength: 2000,
     example: 'Updated description',
   })
   @IsOptional()
   @IsString()
-  @MinLength(1)
   @MaxLength(2000)
   description?: string;
 }

@@ -103,8 +103,8 @@ export function ModifyCollectionItemModal({
         onSuccess={() => {
           toast.success("Collection created successfully");
         }}
-        onError={() => {
-          toast.error("Failed to create collection");
+        onError={(err) => {
+          toast.error(err.message);
         }}
         isAlwaysOpen={false}
       />

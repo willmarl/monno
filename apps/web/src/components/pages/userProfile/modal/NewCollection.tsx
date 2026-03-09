@@ -14,8 +14,8 @@ export function NewCollection() {
         closeModal();
         router.push(`/collection/${response.id}`); // assuming response has an id
       }}
-      onError={() => {
-        toast.error("New Collection failed create");
+      onError={(err) => {
+        toast.error(err.message);
       }}
       isAlwaysOpen={true}
     />
