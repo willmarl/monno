@@ -9,6 +9,10 @@ import {
   addCollectionItem,
   removeCollectionItem,
   fetchCollectionsForPost,
+  fetchAdminCollections,
+  fetchAdminCollectionById,
+  deleteAdminCollection,
+  updateAdminCollection,
 } from "./api";
 
 /**
@@ -140,6 +144,86 @@ export function useRemoveCollectionItem() {
     }) => removeCollectionItem(collectionId, data),
     onSuccess: (_, { collectionId }) => {
       qc.invalidateQueries({ queryKey: ["collection", collectionId] });
+    },
+    throwOnError: false,
+  });
+}
+
+//==============
+//   Admin
+//==============
+
+export function useAdminCollections(
+  page: number = 1,
+  limit: number = 10,
+  query?: string,
+  options?: {
+    searchFields?: string;
+    sort?: string;
+    caseSensitive?: boolean;
+    deleted?: boolean;
+  },
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: [
+      "adminCollections",
+      page,
+      query,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+      options?.deleted,
+    ],
+    queryFn: () =>
+      fetchAdminCollections({
+        query,
+        limit,
+        offset,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+        deleted: options?.deleted,
+      }),
+  });
+}
+
+export function useAdminCollectionById(id: number) {
+  return useQuery({
+    queryKey: ["adminCollection", id],
+    queryFn: () => fetchAdminCollectionById(id),
+    enabled: !!id,
+  });
+}
+
+export function useAdminUpdateCollection() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Parameters<typeof updateCollection>[1];
+    }) => updateAdminCollection(id, data),
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ["adminCollections"] });
+      qc.invalidateQueries({ queryKey: ["adminCollection", id] });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useAdminDeleteCollection() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteAdminCollection,
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ["adminCollections"] });
+      qc.removeQueries({ queryKey: ["adminCollection", id] });
     },
     throwOnError: false,
   });

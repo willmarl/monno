@@ -1,42 +1,15 @@
 "use client";
 
+import { useSessionUser } from "@/features/auth/hooks";
 import { useModal } from "@/components/providers/ModalProvider";
 import { Button } from "@/components/ui/button";
 
 export default function page() {
-  const { openModal, closeModal } = useModal();
+  const { data: user } = useSessionUser();
 
-  function handleClick(): void {
-    alert("clicked!");
-    closeModal();
+  if (user) {
+    return <div>user account</div>;
+  } else {
+    return <div>guest</div>;
   }
-
-  return (
-    <div>
-      <div>demo page</div>
-      <Button
-        onClick={() => {
-          openModal({
-            title: "Confirm Action",
-            content: (
-              <div>
-                <p className="my-40">Foo</p>
-                <p className="my-40">Foo</p>
-                <p className="my-40">Foo</p>
-                <p className="my-40">Foo</p>
-                <p className="my-40">Foo</p>
-                <p className="my-40">Foo</p>
-                <Button variant={"outline"} onClick={handleClick}>
-                  Yes
-                </Button>
-                <Button onClick={closeModal}>No</Button>
-              </div>
-            ),
-          });
-        }}
-      >
-        Click me to open modal
-      </Button>
-    </div>
-  );
 }

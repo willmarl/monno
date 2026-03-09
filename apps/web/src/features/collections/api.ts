@@ -8,6 +8,7 @@ import type {
   CollectionItemInput,
   CollectionRef,
 } from "./types/collection";
+import { UpdateCollectionInput } from "./schemas/updateCollection.schema";
 
 // get all of user's collections
 export const fetchCollectionByUserId = (
@@ -66,3 +67,54 @@ export const removeCollectionItem = (id: number, data: CollectionItemInput) =>
 // get collections containing a specific post
 export const fetchCollectionsForPost = (postId: number) =>
   fetcher<CollectionRef[]>(`/posts/${postId}/collections`);
+
+//==============
+//   Admin
+//==============
+
+export const fetchAdminCollections = ({
+  query,
+  limit = 10,
+  offset = 0,
+  searchFields,
+  sort,
+  caseSensitive,
+  deleted,
+}: {
+  query?: string;
+  limit?: number;
+  offset?: number;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+  deleted?: boolean;
+} = {}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (query) searchParams.query = query;
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+  if (deleted !== undefined) searchParams.deleted = deleted;
+
+  return fetcher<CollectionsList>("/admin/collections", { searchParams });
+};
+
+export const fetchAdminCollectionById = (id: number) =>
+  fetcher<Collection>(`/admin/collections/${id}`);
+
+export const updateAdminCollection = (
+  id: number,
+  data: UpdateCollectionInput,
+) =>
+  fetcher<Collection>(`/admin/collections/${id}`, {
+    method: "PATCH",
+    json: data,
+  });
+
+export const deleteAdminCollection = (id: number) =>
+  fetcher<void>(`/admin/collections/${id}`, {
+    method: "DELETE",
+  });

@@ -22,8 +22,10 @@ export interface AdminUserSearchParams extends SearchParams {
 export interface AdminPostSearchParams extends SearchParams {
   deleted?: string;
 }
-
 export interface AdminCommentSearchParams extends SearchParams {
+  deleted?: string;
+}
+export interface AdminCollectionSearchParams extends SearchParams {
   deleted?: string;
 }
 

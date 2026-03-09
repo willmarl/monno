@@ -15,6 +15,8 @@ export interface Collection {
   updatedAt: string;
   creator: CollectionCreator;
   items?: CollectionItem[];
+  deleted: boolean;
+  deletedAt: string;
 }
 
 export type CollectionsList = PaginatedResponse<Collection>;

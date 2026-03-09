@@ -10,6 +10,7 @@ import {
   CreditCard,
   Contact,
   Home,
+  Bookmark,
 } from "lucide-react";
 import { useSessionUser } from "@/features/auth/hooks";
 import {
@@ -51,6 +52,11 @@ export const items = [
     title: "Comments",
     url: "/admin/comments",
     icon: MessageSquare,
+  },
+  {
+    title: "Collections",
+    url: "/admin/collections",
+    icon: Bookmark,
   },
   {
     title: "Logs",
