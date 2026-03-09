@@ -466,6 +466,19 @@ export class UsersService {
       // No email change
       delete updateData.email;
     }
+
+    // Check if username is being changed and log to history
+    if (data.username && data.username !== currentUser.username) {
+      // Log old username to history (username becomes available for reuse)
+      await this.prisma.usernameHistory.create({
+        data: {
+          userId,
+          username: currentUser.username,
+          reason: 'profile_update',
+        },
+      });
+    }
+
     try {
       const updatedUser = await this.prisma.user.update({
         where: { id: userId },

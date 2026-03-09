@@ -35,6 +35,7 @@ import {
   UserSearchDto,
   UserSearchCursorDto,
 } from '../users/dto/search-user.dto';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 
 @ApiTags('admin-users')
 @Controller('admin/users')
@@ -218,5 +219,26 @@ export class AdminUsersController {
     const adminId = req.user?.sub;
     const ipAddress = req.ip;
     return this.adminUserService.resetPassword(id, adminId, ipAddress);
+  }
+
+  @ApiOperation({ summary: 'Get username history for a user (admin only)' })
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'id',
+    description: 'User ID',
+    example: 1,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Username history retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
+  @Get(':id/username-history')
+  fetchUsernameHistory(
+    @Param('id', ParseIntPipe) id: number,
+    @Query() pag: PaginationDto,
+  ) {
+    return this.adminUserService.fetchUsernameHistory(id, pag);
   }
 }

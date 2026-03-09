@@ -369,6 +369,33 @@ export class AdminUserService {
     };
   }
 
+  async fetchUsernameHistory(userId: number, pag: PaginationDto) {
+    const where = { userId: userId };
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
+      model: this.prisma.usernameHistory,
+      limit: pag.limit ?? 10,
+      offset: pag.offset ?? 0,
+      query: {
+        where,
+        orderBy: { id: 'desc' } as const,
+        select: {
+          id: true,
+          freedAt: true,
+          reason: true,
+          username: true,
+          userId: true,
+        },
+      },
+      countQuery: { where },
+    });
+
+    return {
+      items,
+      pageInfo,
+      ...(isRedirected && { isRedirected: true }),
+    };
+  }
+
   // ===== UTILITY METHODS ====
 
   /**
