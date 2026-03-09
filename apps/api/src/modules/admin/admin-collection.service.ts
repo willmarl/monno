@@ -154,4 +154,37 @@ export class AdminCollectionService {
 
     return deleted;
   }
+
+  async restore(collectionId: number, adminId: number) {
+    const collection = await this.prisma.collection.findUnique({
+      where: { id: collectionId },
+      select: {
+        name: true,
+        creator: { select: { id: true } },
+        deleted: true,
+      },
+    });
+
+    if (!collection) {
+      throw new NotFoundException('Collection not found');
+    }
+
+    const restored = await this.prisma.collection.update({
+      where: { id: collectionId },
+      data: { deleted: false, deletedAt: null },
+      select: DEFAULT_COLLECTION_SELECT,
+    });
+
+    // Log the restoration
+    await this.adminService.log({
+      adminId,
+      action: 'COLLECTION_RESTORED',
+      resource: 'COLLECTION',
+      resourceId: collectionId.toString(),
+      targetId: collection.creator.id,
+      description: `Admin restored collection "${collection.name}"`,
+    });
+
+    return restored;
+  }
 }

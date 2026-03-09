@@ -123,4 +123,24 @@ export class AdminCollectionsController {
     const adminId = req.user?.sub;
     return this.adminCollectionService.delete(id, adminId);
   }
+
+  @ApiOperation({ summary: 'Restore a deleted collection (admin only)' })
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'id',
+    description: 'Collection ID',
+    example: 1,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Collection restored successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
+  @ApiResponse({ status: 404, description: 'Collection not found' })
+  @Post(':id/restore')
+  restore(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    const adminId = req.user?.sub;
+    return this.adminCollectionService.restore(id, adminId);
+  }
 }
