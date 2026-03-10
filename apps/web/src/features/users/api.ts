@@ -174,3 +174,8 @@ export const fetchAdminUsernameHistory = ({
   fetcher<UsernameHistoryList>(`/admin/users/${userId}/username-history`, {
     searchParams: { limit, offset },
   });
+
+export const restoreAdminUser = (id: number) =>
+  fetcher<User>(`/admin/users/${id}/restore`, {
+    method: "POST",
+  });

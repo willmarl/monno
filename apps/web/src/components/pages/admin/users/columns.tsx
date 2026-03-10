@@ -15,12 +15,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useModal } from "@/components/providers/ModalProvider";
-import { EditUser } from "@/components/pages/admin/users/modal/EditUser";
+import { UpdateUser } from "@/components/pages/admin/users/modal/UpdateUser";
 import { DeleteUser } from "./modal/DeleteUser";
 import { SortableHeader } from "@/components/table/SortableHeader";
 import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 import { formatDate } from "@/lib/utils/date";
 import { UsernameHistoryList } from "@/features/admin/users/components/UsernameHistoryList";
+import { useAdminRestoreUser } from "@/features/users/hooks";
+import { toast } from "sonner";
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -117,6 +119,7 @@ export const columns: ColumnDef<User>[] = [
       const user = row.original;
       const router = useRouter();
       const { openModal } = useModal();
+      const restoreUser = useAdminRestoreUser();
 
       return (
         <DropdownMenu>
@@ -127,16 +130,20 @@ export const columns: ColumnDef<User>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => router.push("/user/" + user.username)}
-            >
-              View profile
-            </DropdownMenuItem>
+            {!user.deleted ? (
+              <DropdownMenuItem
+                onClick={() => router.push("/user/" + user.username)}
+              >
+                View profile
+              </DropdownMenuItem>
+            ) : (
+              ""
+            )}
             <DropdownMenuItem
               onClick={() => {
                 openModal({
                   title: "Edit data for " + row.original.username,
-                  content: <EditUser user={row.original} />,
+                  content: <UpdateUser user={row.original} />,
                 });
               }}
             >
@@ -152,17 +159,37 @@ export const columns: ColumnDef<User>[] = [
             >
               View username history
             </DropdownMenuItem>
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => {
-                openModal({
-                  title: "Delete user",
-                  content: <DeleteUser user={user} />,
-                });
-              }}
-            >
-              Delete user
-            </DropdownMenuItem>
+            {!user.deleted ? (
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => {
+                  openModal({
+                    title: "Delete user",
+                    content: <DeleteUser user={user} />,
+                  });
+                }}
+              >
+                Delete user
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem
+                variant="default"
+                onClick={() => {
+                  restoreUser.mutate(user.id, {
+                    onSuccess: () => {
+                      toast.success(
+                        `Successfully restored user ${user.username}`,
+                      );
+                    },
+                    onError: (err) => {
+                      toast.error(`Failed to restore user ${user.username}`);
+                    },
+                  });
+                }}
+              >
+                Restore user
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       );

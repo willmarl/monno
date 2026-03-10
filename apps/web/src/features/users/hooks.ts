@@ -11,6 +11,7 @@ import {
   updateAdminUser,
   deleteAdminUser,
   createAdminUser,
+  restoreAdminUser,
 } from "./api";
 import type { PublicUser, UpdateProfileInput } from "./types/user";
 
@@ -153,7 +154,7 @@ export function useAdminCreateUser() {
   return useMutation({
     mutationFn: createAdminUser,
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["adminUser"] });
+      qc.invalidateQueries({ queryKey: ["adminUsers"] });
     },
     throwOnError: false, // Don't throw errors, let component handle them
   });
@@ -173,8 +174,8 @@ export function useAdminUpdateUser() {
       file?: File;
     }) => updateAdminUser(id, data, file),
     onSuccess: (_, { id }) => {
-      qc.invalidateQueries({ queryKey: ["users"] });
-      qc.invalidateQueries({ queryKey: ["adminUsers", id] });
+      qc.invalidateQueries({ queryKey: ["adminUsers"] });
+      qc.invalidateQueries({ queryKey: ["adminUser", id] });
     },
     throwOnError: false, // Don't throw errors, let component handle them
   });
@@ -186,8 +187,8 @@ export function useAdminDeleteUser() {
   return useMutation({
     mutationFn: deleteAdminUser,
     onSuccess: (_, id) => {
-      qc.invalidateQueries({ queryKey: ["users"] });
       qc.removeQueries({ queryKey: ["adminUser", id] });
+      qc.invalidateQueries({ queryKey: ["adminUsers"] });
     },
     throwOnError: false, // Don't throw errors, let component handle them
   });
@@ -201,7 +202,20 @@ export function useAdminUsernameHistory(
   const offset = (page - 1) * limit;
 
   return useQuery({
-    queryKey: ["posts-offset", page],
+    queryKey: ["users", page],
     queryFn: () => fetchAdminUsernameHistory({ userId, limit, offset }),
+  });
+}
+
+export function useAdminRestoreUser() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: restoreAdminUser,
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ["adminUsers"] });
+      qc.invalidateQueries({ queryKey: ["adminUser", id] });
+    },
+    throwOnError: false,
   });
 }
