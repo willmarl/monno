@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PasswordResetService } from './password-reset.service';
@@ -10,30 +11,34 @@ describe('PasswordResetService', () => {
   beforeEach(() => {
     mockPrisma = {
       user: {
-        findFirst: jest.fn(),
-        update: jest.fn(),
+        findFirst: vi.fn(),
+        update: vi.fn(),
       },
       passwordResetToken: {
-        deleteMany: jest.fn().mockResolvedValue({}),
-        create: jest.fn().mockResolvedValue({
+        deleteMany: vi.fn().mockResolvedValue({}),
+        create: vi.fn().mockResolvedValue({
           token: 'mock-token',
           expiresAt: new Date(Date.now() + 3600000),
         }),
-        findUnique: jest.fn(),
-        update: jest.fn().mockResolvedValue({}),
+        findUnique: vi.fn(),
+        update: vi.fn().mockResolvedValue({}),
       },
       session: {
-        updateMany: jest.fn().mockResolvedValue({}),
+        updateMany: vi.fn().mockResolvedValue({}),
       },
     };
 
     mockQueueService = {
-      enqueueEmail: jest.fn().mockResolvedValue(undefined),
-      enqueuePasswordReset: jest.fn().mockResolvedValue(undefined),
+      enqueueEmail: vi.fn().mockResolvedValue(undefined),
+      enqueuePasswordReset: vi.fn().mockResolvedValue(undefined),
     };
 
     // Directly instantiate service with mocked dependencies
     service = new PasswordResetService(mockPrisma, mockQueueService);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   describe('requestPasswordReset', () => {

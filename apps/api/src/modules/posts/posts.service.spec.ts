@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { NotFoundException } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
@@ -10,22 +11,26 @@ describe('PostsService', () => {
     // Create a mock PrismaService
     mockPrisma = {
       post: {
-        findUnique: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        findMany: jest.fn(),
+        findUnique: vi.fn(),
+        create: vi.fn(),
+        update: vi.fn(),
+        findMany: vi.fn(),
       },
       like: {
-        count: jest.fn().mockResolvedValue(0),
-        findUnique: jest.fn(),
+        count: vi.fn().mockResolvedValue(0),
+        findUnique: vi.fn(),
       },
       user: {
-        findUnique: jest.fn(),
+        findUnique: vi.fn(),
       },
     };
 
     // Create PostsService with the mocked Prisma
     service = new PostsService(mockPrisma);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   describe('create', () => {

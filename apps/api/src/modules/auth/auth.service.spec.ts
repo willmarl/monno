@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
@@ -14,35 +15,35 @@ describe('AuthService', () => {
   beforeEach(() => {
     // Mock all dependencies
     mockUsersService = {
-      create: jest.fn(),
-      findByUsernameAuth: jest.fn(),
+      create: vi.fn(),
+      findByUsernameAuth: vi.fn(),
     };
 
     mockPrisma = {
       user: {
-        findUnique: jest.fn(),
-        update: jest.fn(),
+        findUnique: vi.fn(),
+        update: vi.fn(),
       },
       session: {
-        create: jest.fn(),
+        create: vi.fn(),
       },
       passwordResetToken: {
-        deleteMany: jest.fn(),
-        create: jest.fn(),
+        deleteMany: vi.fn(),
+        create: vi.fn(),
       },
     };
 
     mockJwt = {
-      sign: jest.fn().mockReturnValue('mock-jwt-token'),
+      sign: vi.fn().mockReturnValue('mock-jwt-token'),
     };
 
     mockGeolocationService = {
-      getGeolocation: jest.fn().mockResolvedValue(null),
-      formatLocation: jest.fn(),
+      getGeolocation: vi.fn().mockResolvedValue(null),
+      formatLocation: vi.fn(),
     };
 
     mockRiskScoringService = {
-      assessLoginRisk: jest.fn().mockResolvedValue({
+      assessLoginRisk: vi.fn().mockResolvedValue({
         riskScore: 0,
         isNewLocation: false,
         isNewDevice: false,
@@ -50,7 +51,7 @@ describe('AuthService', () => {
     };
 
     mockEmailVerification = {
-      sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+      sendVerificationEmail: vi.fn().mockResolvedValue(undefined),
     };
 
     // Instantiate service with mocked dependencies
@@ -62,6 +63,10 @@ describe('AuthService', () => {
       mockRiskScoringService,
       mockEmailVerification,
     );
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   describe('login', () => {
