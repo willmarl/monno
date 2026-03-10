@@ -16,7 +16,9 @@
 - Session manager with geolocation & risk scoring
 - 2 Token auth (refresh + access)
 - Roles (Admin, Mod, User)
+  - _Note: Mod role is a placeholder with no logic implemented_
 - User account status system (ACTIVE, SUSPENDED, BANNED, DELETED) with expiration
+  - _Note: Only ACTIVE and DELETED have implemented logic. SUSPENDED and BANNED are placeholders (e.g., could disable comments if `user.status === "SUSPENDED"`)_
 
 **Main resources/modules**
 
@@ -156,7 +158,7 @@ Currently just infrastructure for learning Stripe API - syncs data between Strip
 
 **Auth Philosophy:** I like old school way where username and password, no need to go to email to verify but gamble if u forget password then ur out of luck unless u optionally add email. i'd like to make websites with bare auth then add email option then add oauth option as i do think sign in with google is most convenient but i wouldnt sign up with my email for weird/sketchy site and i hate going to 10min email just to do 1 thing on website that requires login. its about skipping the liminal space but giving QoL options if u really like site.
 
-**Postman JSON available** - For API testing
+**Postman/Bruno JSON available** - For API testing
 
 **Infrastructure:**
 
