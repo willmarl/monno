@@ -21,6 +21,8 @@ import { useRouter } from "next/navigation";
 import { SortableHeader } from "@/components/table/SortableHeader";
 import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 import { formatDate } from "@/lib/utils/date";
+import { UpdatePost } from "./modal/UpdatePost";
+import { useModal } from "@/components/providers/ModalProvider";
 
 export const columns: ColumnDef<Post>[] = [
   {
@@ -107,6 +109,7 @@ export const columns: ColumnDef<Post>[] = [
       const router = useRouter();
       const restorePost = useAdminRestorePost();
       const deletePost = useAdminDeletePost();
+      const { openModal } = useModal();
 
       return (
         <DropdownMenu>
@@ -120,13 +123,25 @@ export const columns: ColumnDef<Post>[] = [
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
             {post.deleted ? (
-              <DropdownMenuItem
-                onClick={() => {
-                  restorePost.mutate(post.id);
-                }}
-              >
-                Restore post
-              </DropdownMenuItem>
+              <div>
+                <DropdownMenuItem
+                  onClick={() => {
+                    openModal({
+                      title: "Edit data for " + row.original.title,
+                      content: <UpdatePost post={row.original} />,
+                    });
+                  }}
+                >
+                  Edit post
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    restorePost.mutate(post.id);
+                  }}
+                >
+                  Restore post
+                </DropdownMenuItem>
+              </div>
             ) : (
               <div>
                 <DropdownMenuItem
@@ -135,6 +150,16 @@ export const columns: ColumnDef<Post>[] = [
                   }}
                 >
                   View post
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    openModal({
+                      title: "Edit data for " + row.original.title,
+                      content: <UpdatePost post={row.original} />,
+                    });
+                  }}
+                >
+                  Edit post
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   variant="destructive"
