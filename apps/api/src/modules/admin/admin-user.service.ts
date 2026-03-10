@@ -417,7 +417,7 @@ export class AdminUserService {
     // Log the restoration
     await this.adminService.log({
       adminId,
-      action: 'USER_RESTORE',
+      action: 'USER_RESTORED',
       resource: 'USER',
       resourceId: userId.toString(),
       targetId: userId,
