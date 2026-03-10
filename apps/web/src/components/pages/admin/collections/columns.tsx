@@ -14,13 +14,17 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Collection } from "@/features/collections/types/collection";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
+  useAdminUpdateCollection,
   useAdminDeleteCollection,
-  // useAdminRestoreCollection,
+  useAdminRestoreCollection,
 } from "@/features/collections/hooks";
 import { useRouter } from "next/navigation";
 import { SortableHeader } from "@/components/table/SortableHeader";
 import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 import { formatDate } from "@/lib/utils/date";
+import { UpdateCollection } from "./modal/UpdateCollection";
+import { useModal } from "@/components/providers/ModalProvider";
+import { toast } from "sonner";
 
 export const columns: ColumnDef<Collection>[] = [
   {
@@ -99,9 +103,11 @@ export const columns: ColumnDef<Collection>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
+      const router = useRouter();
       const collection = row.original;
-      // const restoreCollection = useAdminRestoreCollection();
+      const restoreCollection = useAdminRestoreCollection();
       const deleteCollection = useAdminDeleteCollection();
+      const { openModal } = useModal();
 
       return (
         <DropdownMenu>
@@ -113,12 +119,44 @@ export const columns: ColumnDef<Collection>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            {!collection.deleted ? (
+              <DropdownMenuItem
+                variant="default"
+                onClick={() => {
+                  router.push(`/collection/${collection.id}`);
+                }}
+              >
+                View collection
+              </DropdownMenuItem>
+            ) : (
+              ""
+            )}
+            <DropdownMenuItem
+              onClick={() => {
+                openModal({
+                  title: "Update collection " + row.original.name,
+                  content: <UpdateCollection collection={row.original} />,
+                });
+              }}
+            >
+              Update collection
+            </DropdownMenuItem>
 
             {collection.deleted ? (
               <DropdownMenuItem
                 onClick={() => {
-                  // restoreCollection.mutate(collection.id);
-                  console.log("add restore to me later");
+                  restoreCollection.mutate(collection.id, {
+                    onSuccess: () => {
+                      toast.success(
+                        `Successfully restored collection ${collection.name}`,
+                      );
+                    },
+                    onError: (err) => {
+                      toast.error(
+                        `Failed to restore collection ${collection.name}`,
+                      );
+                    },
+                  });
                 }}
               >
                 Restore collection
@@ -127,7 +165,18 @@ export const columns: ColumnDef<Collection>[] = [
               <DropdownMenuItem
                 variant="destructive"
                 onClick={() => {
-                  deleteCollection.mutate(collection.id);
+                  deleteCollection.mutate(collection.id, {
+                    onSuccess: () => {
+                      toast.success(
+                        `Successfully deleted collection ${collection.name}`,
+                      );
+                    },
+                    onError: (err) => {
+                      toast.error(
+                        `Failed to delete collection ${collection.name}`,
+                      );
+                    },
+                  });
                 }}
               >
                 Delete collection

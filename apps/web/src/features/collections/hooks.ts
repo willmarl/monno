@@ -13,6 +13,7 @@ import {
   fetchAdminCollectionById,
   deleteAdminCollection,
   updateAdminCollection,
+  restoreAdminCollection,
 } from "./api";
 
 /**
@@ -224,6 +225,19 @@ export function useAdminDeleteCollection() {
     onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ["adminCollections"] });
       qc.removeQueries({ queryKey: ["adminCollection", id] });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useAdminRestoreCollection() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: restoreAdminCollection,
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ["adminCollections"] });
+      qc.invalidateQueries({ queryKey: ["adminCollection", id] });
     },
     throwOnError: false,
   });

@@ -118,3 +118,8 @@ export const deleteAdminCollection = (id: number) =>
   fetcher<void>(`/admin/collections/${id}`, {
     method: "DELETE",
   });
+
+export const restoreAdminCollection = (id: number) =>
+  fetcher<Collection>(`/admin/collections/${id}/restore`, {
+    method: "POST",
+  });
