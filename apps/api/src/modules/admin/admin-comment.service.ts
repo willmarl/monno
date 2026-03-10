@@ -4,6 +4,7 @@ import { CommentSearchDto } from '../comments/dto/search-comment.dto';
 import { buildSearchWhere } from 'src/common/search/search.utils';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
+import { UpdateCommentDto } from '../comments/dto/update-comment.dto';
 import { AdminService } from './admin.service';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 
@@ -99,6 +100,34 @@ export class AdminCommentService {
       pageInfo,
       ...(isRedirected && { isRedirected: true }),
     };
+  }
+
+  async update(commentId: number, data: UpdateCommentDto, adminId: number) {
+    const comment = await this.prisma.comment.findUnique({
+      where: { id: commentId },
+    });
+
+    if (!comment) {
+      throw new NotFoundException('COMMENT not found');
+    }
+
+    const updated = await this.prisma.comment.update({
+      where: { id: commentId },
+      data,
+      select: DEFAULT_COMMENT_SELECT,
+    });
+
+    // Log the update
+    await this.adminService.log({
+      adminId,
+      action: 'COMMENT_UPDATED',
+      resource: 'COMMENT',
+      resourceId: commentId.toString(),
+      targetId: comment.userId,
+      description: `Admin updated comment "${comment.content}"`,
+    });
+
+    return updated;
   }
 
   /**
