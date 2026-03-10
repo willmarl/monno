@@ -7,19 +7,23 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { AuditLog } from "@/features/admin/types/audit";
 
-const actionColors: Record<string, string> = {
-  USER_CREATED: "bg-green-100 text-green-800",
-  USER_UPDATED: "bg-blue-100 text-blue-800",
-  USER_DELETED: "bg-red-100 text-red-800",
-  USER_BANNED: "bg-red-100 text-red-800",
-  USER_SUSPENDED: "bg-yellow-100 text-yellow-800",
-  POST_CREATED: "bg-green-100 text-green-800",
-  POST_DELETED: "bg-red-100 text-red-800",
-  POST_UPDATED: "bg-blue-100 text-blue-800",
-};
-
 const getActionColor = (action: string) => {
-  return actionColors[action] || "bg-gray-100 text-gray-800";
+  if (action.includes("DELETED") || action.includes("BANNED")) {
+    return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100";
+  }
+  if (action.includes("UPDATED")) {
+    return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100";
+  }
+  if (action.includes("CREATED")) {
+    return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100";
+  }
+  if (action.includes("SUSPENDED")) {
+    return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100";
+  }
+  if (action.includes("RESTORED")) {
+    return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100";
+  }
+  return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100";
 };
 
 const getActionLabel = (action: string) => {
