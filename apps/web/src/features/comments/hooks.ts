@@ -9,6 +9,7 @@ import {
   deleteComment,
   fetchAdminComments,
   fetchAdminCommentById,
+  updateAdminComment,
   deleteAdminComment,
   restoreAdminComment,
 } from "./api";
@@ -152,6 +153,25 @@ export function useAdminCommentById(id: number) {
     queryKey: ["adminComment", id],
     queryFn: () => fetchAdminCommentById(id),
     enabled: !!id,
+  });
+}
+
+export function useAdminUpdateComment() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Parameters<typeof updateComment>[1];
+    }) => updateAdminComment(id, data),
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ["adminComments"] });
+      qc.invalidateQueries({ queryKey: ["adminComment", id] });
+    },
+    throwOnError: false,
   });
 }
 

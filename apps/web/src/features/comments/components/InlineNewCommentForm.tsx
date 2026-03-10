@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { commentSchema, CommentInput } from "../schemas/comment.schema";
+import {
+  newCommentSchema,
+  NewCommentInput,
+} from "../schemas/newComment.schema";
 import { useCreateComment } from "../hooks";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +15,7 @@ import { User as UserType } from "@/features/users/types/user";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import type { ResourceType } from "@/types/resource";
 
-interface InlineCommentFormProps {
+interface InlineNewCommentFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   isAlwaysOpen?: boolean;
@@ -21,19 +24,19 @@ interface InlineCommentFormProps {
   user?: UserType;
 }
 
-export function InlineCommentForm({
+export function InlineNewCommentForm({
   onSuccess,
   onCancel,
   isAlwaysOpen = true,
   resourceType,
   resourceId,
   user,
-}: InlineCommentFormProps) {
+}: InlineNewCommentFormProps) {
   const [isOpen, setIsOpen] = useState(isAlwaysOpen);
   const [isFocused, setIsFocused] = useState(false);
 
-  const form = useForm<CommentInput>({
-    resolver: zodResolver(commentSchema),
+  const form = useForm<NewCommentInput>({
+    resolver: zodResolver(newCommentSchema),
     mode: "onChange",
     defaultValues: {
       content: "",
@@ -45,7 +48,7 @@ export function InlineCommentForm({
   const { isValid } = form.formState;
   const showActions = isFocused || (contentValue && contentValue.length > 0);
 
-  const handleSubmit = (data: CommentInput) => {
+  const handleSubmit = (data: NewCommentInput) => {
     const completeData = {
       ...data,
       resourceType: resourceType,

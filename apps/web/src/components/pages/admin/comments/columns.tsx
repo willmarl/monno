@@ -21,6 +21,8 @@ import { useRouter } from "next/navigation";
 import { SortableHeader } from "@/components/table/SortableHeader";
 import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 import { formatDate } from "@/lib/utils/date";
+import { UpdateComment } from "./modal/UpdateComment";
+import { useModal } from "@/components/providers/ModalProvider";
 
 export const columns: ColumnDef<Comment>[] = [
   {
@@ -105,6 +107,7 @@ export const columns: ColumnDef<Comment>[] = [
       const comment = row.original;
       const restoreComment = useAdminRestoreComment();
       const deleteComment = useAdminDeleteComment();
+      const { openModal } = useModal();
 
       return (
         <DropdownMenu>
@@ -116,6 +119,16 @@ export const columns: ColumnDef<Comment>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => {
+                openModal({
+                  title: "Edit comment",
+                  content: <UpdateComment comment={row.original} />,
+                });
+              }}
+            >
+              Edit comment
+            </DropdownMenuItem>
 
             {comment.deleted ? (
               <DropdownMenuItem

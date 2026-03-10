@@ -8,7 +8,7 @@ import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { PageNotFound } from "@/components/common/PageNotFound";
 import { PageLoadingState } from "@/components/common/PageLoadingState";
-import { InlineCommentForm } from "@/features/comments/components/InlineCommentForm";
+import { InlineNewCommentForm } from "@/features/comments/components/InlineNewCommentForm";
 import { CommentPagInline } from "@/components/pages/post/CommnetPagInline";
 import { toast } from "sonner";
 import { Suspense } from "react";
@@ -53,7 +53,7 @@ export default function page() {
       />
       <div className="bg-card rounded-lg p-4">
         <h3 className="font-semibold mb-4">Comments</h3>
-        <InlineCommentForm
+        <InlineNewCommentForm
           resourceType="POST"
           resourceId={data.id}
           onSuccess={() => {

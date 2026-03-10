@@ -84,6 +84,13 @@ export const fetchAdminComments = ({
 export const fetchAdminCommentById = (id: number) =>
   fetcher<Comment>(`/admin/comments/${id}`);
 
+// PATCH /admin/comments/:id
+export const updateAdminComment = (id: number, data: UpdateCommentInput) =>
+  fetcher<Comment>(`/admin/comments/${id}`, {
+    method: "PATCH",
+    json: data,
+  });
+
 // DELETE /admin/comments/:id
 export const deleteAdminComment = (id: number) =>
   fetcher<void>(`/admin/comments/${id}`, {
