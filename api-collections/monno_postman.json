@@ -1,0 +1,5845 @@
+{
+  "info": {
+    "name": "monno",
+    "description": "",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "hello world",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {
+          "type": "noauth"
+        },
+        "description": "",
+        "url": {
+          "raw": "{{base_URL}}/",
+          "protocol": "",
+          "host": [
+            "{{base_URL}}/"
+          ],
+          "path": [],
+          "query": [],
+          "variable": []
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "admin",
+      "item": [
+        {
+          "name": "get logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/admin/logs?limit=3&offset=1",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "admin",
+                "logs?limit=3&offset=1"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "3"
+                },
+                {
+                  "key": "offset",
+                  "value": "1"
+                }
+              ],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "get stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/admin/stats",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "admin",
+                "stats"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "comment",
+          "item": [
+            {
+              "name": "delete comment by id",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/comments/{{commentId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "comments",
+                    "{{commentId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get comment by id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/comments/{{commentId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "comments",
+                    "{{commentId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get comments search",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "## basic search\n**limit** : number\n- `limit=10`\n\n**offset** : number\n- `offset=1`\n\n**query** : string\n- `query=cat`\n\n___\n\n## Comment specific\n**resourceType**: string\nenum of \"POST\" or \"COMMENT\"\n- `resourceType=POST`\n- `resourceType=COMMENT`\n\n**deleted** : boolean\ntoggle on to only filter comments that are deleted\n- `deleted=true`\n\n**sort**: string\nenum of createdAt, updatedAt, likeCount\n- `sort=createdAt|desc` (or `asc`)\n- `sort=updatedAt|desc` (or `asc`)\n- `sort=likeCount|desc` (or `asc`)",
+                "url": {
+                  "raw": "{{base_URL}}/admin/comments?searchFields=content,creator.username&query=cat&limit=5&offset=1",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "comments?searchFields=content,creator.username&query=cat&limit=5&offset=1"
+                  ],
+                  "query": [
+                    {
+                      "key": "searchFields",
+                      "value": "content,creator.username"
+                    },
+                    {
+                      "key": "query",
+                      "value": "cat"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "5"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "1"
+                    },
+                    {
+                      "key": "sort",
+                      "value": "likeCount|desc"
+                    },
+                    {
+                      "key": "deleted",
+                      "value": "true"
+                    },
+                    {
+                      "key": "resourceType",
+                      "value": "COMMENT"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get comments",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/comments",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "comments"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "restore comment",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/comments/{{commentId}}/restore",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "comments",
+                    "{{commentId}}",
+                    "restore"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "update comment",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/comments/{{commentId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "comments",
+                    "{{commentId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"admin edited\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "posts",
+          "item": [
+            {
+              "name": "delete post",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/posts/{{postId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "posts",
+                    "{{postId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get all posts",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/posts",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "posts"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get post by id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/posts/{{postId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "posts",
+                    "{{postId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "post search",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "## basic search\n**limit** : number\n- `limit=10`\n\n**offset** : number\n- `offset=0`\n\n**query** : string\n- `query=john`\n\n___\n\n## Post specific\n**deleted**: boolean\ntoggle on to only filter posts that are deleted\n- `deleted=true`\n- `deleted=false`\n\n**sort**: string\nenum of createdAt, updatedAt, viewCount, likeCount\n- `sort=createdAt|desc` (or `asc`)\n- `sort=updatedAt|desc` (or `asc`)\n- `sort=viewCount|desc` (or `asc`)\n- `sort=likeCount|desc` (or `asc`)\n\n**caseSensitive**: boolean\nenable case-sensitive search (default: false)\n- `caseSensitive=true`",
+                "url": {
+                  "raw": "{{base_URL}}/admin/posts/search?limit=5&deleted=true&searchFields=cat&query=deleted&offset=1",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "posts",
+                    "search?limit=5&deleted=true&searchFields=cat&query=deleted&offset=1"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "5"
+                    },
+                    {
+                      "key": "deleted",
+                      "value": "true"
+                    },
+                    {
+                      "key": "searchFields",
+                      "value": "cat"
+                    },
+                    {
+                      "key": "query",
+                      "value": "deleted"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "1"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "restore post",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/posts/{{postId}}/restore",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "posts",
+                    "{{postId}}",
+                    "restore"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "update post",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/posts/{{postId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "posts",
+                    "{{postId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"title\":\"admin edited\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "support",
+          "item": [
+            {
+              "name": "get all tickets",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/support",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "support"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "1"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get support ticket by id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/support/{{supportId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "support",
+                    "{{supportId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get tickets search",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "## basic search\n**limit** : number\n- `limit=10`\n\n**offset** : number\n- `offset=0`\n\n**query** : string\n- `query=john`\n\n___\n\n## Ticket specific\n**status**: string\nenum of \"OPEN\", \"RESPONDED\", \"CLOSED\"\n- `status=OPEN`\n- `status=RESPONDED`\n- `status=CLOSED`\n\n**sort**: string\nenum of createdAt\n- `sort=createdAt|desc` (or `asc`)\n\n**caseSensitive**: boolean\nenable case-sensitive search (default: false)\n- `caseSensitive=true`",
+                "url": {
+                  "raw": "{{base_URL}}/admin/support?status=RESPONDED",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "support?status=RESPONDED"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "RESPONDED"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "1"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "update ticket",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/support/{{supportId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "support",
+                    "{{supportId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\":\"CLOSED\",\n  \"adminNotes\":\"lamo\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "stripe",
+          "item": [
+            {
+              "name": "get all credit purchases",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/stripe/credit-purchases",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "stripe",
+                    "credit-purchases"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get all credit transactions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/stripe/credit-transactions",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "stripe",
+                    "credit-transactions"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get all products",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/stripe/products",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "stripe",
+                    "products"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get all subscriptions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/stripe/subscription",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "stripe",
+                    "subscription"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get credit purchases search",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "## basic search\n**limit** : number\n- `limit=10`\n\n**offset** : number\n- `offset=0`\n\n**query** : string\n- `query=john`\n\n___\n\n## Credit Purchase specific\n**sort**: string\nenum of purchasedAt, amount, pricePaid\n- `sort=purchasedAt|desc` (or `asc`)\n- `sort=amount|desc` (or `asc`)\n- `sort=pricePaid|desc` (or `asc`)\n\n**caseSensitive**: boolean\nenable case-sensitive search (default: false)\n- `caseSensitive=true`",
+                "url": {
+                  "raw": "{{base_URL}}/admin/stripe/credit-purchases",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "stripe",
+                    "credit-purchases"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get credit transactions search",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "## basic search\n**limit** : number\n- `limit=10`\n\n**offset** : number\n- `offset=0`\n\n**query** : string\n- `query=john`\n\n___\n\n## Credit Purchase specific\n**sort**: string\nenum of purchasedAt, amount, pricePaid\n- `sort=purchasedAt|desc` (or `asc`)\n- `sort=amount|desc` (or `asc`)\n- `sort=pricePaid|desc` (or `asc`)\n\n**caseSensitive**: boolean\nenable case-sensitive search (default: false)\n- `caseSensitive=true`",
+                "url": {
+                  "raw": "{{base_URL}}/admin/stripe/credit-transactions?limit=1",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "stripe",
+                    "credit-transactions?limit=1"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "1"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get products search",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "## basic search\n**limit** : number\n- `limit=10`\n\n**offset** : number\n- `offset=0`\n\n**query** : string\n- `query=john`\n\n___\n\n## Product specific\n**status**: string\nenum of \"ACTIVE\", \"REFUNDED\"\n- `status=ACTIVE`\n- `status=REFUNDED`\n\n**sort**: string\nenum of purchasedAt, refundedAt\n- `sort=purchasedAt|desc` (or `asc`)\n- `sort=refundedAt|desc` (or `asc`)\n\n**caseSensitive**: boolean\nenable case-sensitive search (default: false)\n- `caseSensitive=true`",
+                "url": {
+                  "raw": "{{base_URL}}/admin/stripe/products?query=cat",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "stripe",
+                    "products?query=cat"
+                  ],
+                  "query": [
+                    {
+                      "key": "query",
+                      "value": "cat"
+                    },
+                    {
+                      "key": "searchFields",
+                      "value": "username"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "1"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "1"
+                    },
+                    {
+                      "key": "caseSensitive",
+                      "value": ""
+                    },
+                    {
+                      "key": "status",
+                      "value": "ACTIVE"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get subscriptions search",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "## basic search\n**limit** : number\n- `limit=10`\n\n**offset** : number\n- `offset=0`\n\n**query** : string\n- `query=john`\n\n___\n\n## Subscription specific\n**status**: string\nenum of \"ACTIVE\", \"CANCELED\", \"PAST_DUE\", \"TRIALING\"\n- `status=ACTIVE`\n- `status=CANCELED`\n\n**tier**: string\nenum of \"FREE\", \"BASIC\", \"PRO\"\n- `tier=PRO`\n- `tier=BASIC`\n\n**sort**: string\nenum of createdAt, updatedAt\n- `sort=createdAt|desc` (or `asc`)\n- `sort=updatedAt|desc` (or `asc`)\n\n**caseSensitive**: boolean\nenable case-sensitive search (default: false)\n- `caseSensitive=true`",
+                "url": {
+                  "raw": "{{base_URL}}/admin/stripe/subscription?limit=9999999999",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "stripe",
+                    "subscription?limit=9999999999"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "9999999999"
+                    },
+                    {
+                      "key": "status",
+                      "value": "CANCELED"
+                    },
+                    {
+                      "key": "query",
+                      "value": "cat"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "1"
+                    },
+                    {
+                      "key": "searchFields",
+                      "value": "username"
+                    },
+                    {
+                      "key": "caseSensitive",
+                      "value": "true"
+                    },
+                    {
+                      "key": "tier",
+                      "value": "PRO"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "users",
+          "item": [
+            {
+              "name": "Get all users cursor",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/users/cursor",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users",
+                    "cursor"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "1"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "Get all users",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/users?query=mo&searchFields=username",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users?query=mo&searchFields=username"
+                  ],
+                  "query": [
+                    {
+                      "key": "query",
+                      "value": "mo"
+                    },
+                    {
+                      "key": "searchFields",
+                      "value": "username"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "3"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "5"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "Get user by id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/users/{{userId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users",
+                    "{{userId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "create admin user",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/users",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"delme\",\n  \"password\": \"delme\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "create user",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/users",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"delme\",\n  \"password\": \"delme\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "delete user",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/users/{{userId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users",
+                    "{{userId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get username history",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/users/{{userId}}/username-history",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users",
+                    "{{userId}}",
+                    "username-history"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "1"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "1"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "reset user password",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/users/{{userId}}/reset-password",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users",
+                    "{{userId}}",
+                    "reset-password"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "search users",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "## basic search\n**limit** : number\n- `limit=10`\n\n**offset** : number\n- `offset=0`\n\n**query** : string\n- `query=john`\n\n___\n\n## User specific\n**roles**: string\ncomma-separated enum of \"USER\", \"ADMIN\", \"MOD\"\n- `roles=USER`\n- `roles=ADMIN,MOD`\n- `roles=USER,ADMIN`\n\n**statuses**: string\ncomma-separated enum of \"ACTIVE\", \"SUSPENDED\", \"BANNED\", \"DELETED\"\n- `statuses=ACTIVE`\n- `statuses=SUSPENDED,BANNED`\n- `statuses=ACTIVE,DELETED`\n\n**sort**: string\nenum of createdAt, updatedAt\n- `sort=createdAt|desc` (or `asc`)\n- `sort=updatedAt|desc` (or `asc`)\n\n**caseSensitive**: boolean\nenable case-sensitive search (default: false)\n- `caseSensitive=true`",
+                "url": {
+                  "raw": "{{base_URL}}/admin/users?statuses=DELETED",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users?statuses=DELETED"
+                  ],
+                  "query": [
+                    {
+                      "key": "statuses",
+                      "value": "DELETED"
+                    },
+                    {
+                      "key": "sort",
+                      "value": "createdAt|asc"
+                    },
+                    {
+                      "key": "sort",
+                      "value": "createdAt|desc"
+                    },
+                    {
+                      "key": "query",
+                      "value": "bad"
+                    },
+                    {
+                      "key": "roles",
+                      "value": "USER,MOD"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "update user",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/users/{{userId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users",
+                    "{{userId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "email",
+                      "value": "newemail@email.com",
+                      "disabled": false,
+                      "type": "default"
+                    },
+                    {
+                      "key": "avatar",
+                      "value": [
+                        "/home/cat/Downloads/200x200.jpg"
+                      ],
+                      "disabled": false,
+                      "type": "default"
+                    },
+                    {
+                      "key": "username",
+                      "value": "delmecat22",
+                      "disabled": true,
+                      "type": "default"
+                    },
+                    {
+                      "key": "status",
+                      "value": "BANNED",
+                      "disabled": true,
+                      "type": "default"
+                    },
+                    {
+                      "key": "password",
+                      "value": "newpassword",
+                      "disabled": true,
+                      "type": "default"
+                    },
+                    {
+                      "key": "role",
+                      "value": "MOD",
+                      "disabled": true,
+                      "type": "default"
+                    },
+                    {
+                      "key": "statusReason",
+                      "value": "test reason",
+                      "disabled": true,
+                      "type": "default"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "restore user",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/users/{{userId}}/restore",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users",
+                    "{{userId}}",
+                    "restore"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "collections",
+          "item": [
+            {
+              "name": "get collection by id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/collections/{{collectionId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "collections",
+                    "{{collectionId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "collection search",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "## basic search\n**limit** : number\n- `limit=10`\n\n**offset** : number\n- `offset=0`\n\n**query** : string\n- `query=john`\n\n___\n\n## Post specific\n**deleted**: boolean\ntoggle on to only filter posts that are deleted\n- `deleted=true`\n- `deleted=false`\n\n**sort**: string\nenum of createdAt, updatedAt, viewCount, likeCount\n- `sort=createdAt|desc` (or `asc`)\n- `sort=updatedAt|desc` (or `asc`)\n- `sort=viewCount|desc` (or `asc`)\n- `sort=likeCount|desc` (or `asc`)\n\n**caseSensitive**: boolean\nenable case-sensitive search (default: false)\n- `caseSensitive=true`",
+                "url": {
+                  "raw": "{{base_URL}}/admin/collections?searchFields=cat",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "collections?searchFields=cat"
+                  ],
+                  "query": [
+                    {
+                      "key": "searchFields",
+                      "value": "cat"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "5"
+                    },
+                    {
+                      "key": "deleted",
+                      "value": "true"
+                    },
+                    {
+                      "key": "query",
+                      "value": "deleted"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "1"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "restore collection",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/collections/{{collectionId}}/restore",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "collections",
+                    "{{collectionId}}",
+                    "restore"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "update collection",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/collections/{{collectionId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "collections",
+                    "{{collectionId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"admin edited\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "get all collections",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/collections",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "collections"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "delete collection",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/admin/collections/{{collectionId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "collections",
+                    "{{collectionId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/auth/login",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{username}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/auth/register",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{username}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "get sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/sessions",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "sessions"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "logout all",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/auth/logout-all",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "auth",
+                "logout-all"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/auth/logout",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "refresh",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/auth/refresh",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "revoke sessions",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/sessions/{{session_id}}",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "sessions",
+                "{{session_id}}"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "email verif",
+          "item": [
+            {
+              "name": "send verif email",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/send-verification",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "send-verification"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{username}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "verify token from email",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/verify-email?token=bd2add59e07707ec7e849bcc2d45c4259e582ab0a68fb032861d24db8bd415c8",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "verify-email?token=bd2add59e07707ec7e849bcc2d45c4259e582ab0a68fb032861d24db8bd415c8"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "bd2add59e07707ec7e849bcc2d45c4259e582ab0a68fb032861d24db8bd415c8"
+                    }
+                  ],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{username}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "oauth",
+          "item": [
+            {
+              "name": "github login",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/github",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "github"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "google login",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/google/callback",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "google",
+                    "callback"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "password reset",
+          "item": [
+            {
+              "name": "Request password reset",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/request-password-reset",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "request-password-reset"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "reset password with token",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/reset-password",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "reset-password"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"413e449ae93c64b33d4311d7d2a663e0b7a373770a663862f1673308df307427\",\n  \"newPassword\": \"password\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "collection",
+      "item": [
+        {
+          "name": "add item to collection",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/collections/{{collectionId}}/items",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "collections",
+                "{{collectionId}}",
+                "items"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"POST\",\n  \"resourceId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "collections containing this post",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/posts/35/collections",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "posts",
+                "35",
+                "collections"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "create collection",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/collections",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "collections"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"read later\",\n  \"description\": \"Posts to read later\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "delete collection",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/collections/{{collectionId}}",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "collections",
+                "{{collectionId}}"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "get collection by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/collections/{{collectionId}}?limit=1&offset=1",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "collections",
+                "{{collectionId}}?limit=1&offset=1"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "1"
+                },
+                {
+                  "key": "offset",
+                  "value": "1"
+                }
+              ],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "get some user's collection",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/users/{{userId}}/collections?limit=2&offset=1",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "collections?limit=2&offset=1"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "2"
+                },
+                {
+                  "key": "offset",
+                  "value": "1"
+                }
+              ],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "remove item from collection",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/collections/{{collectionId}}/items",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "collections",
+                "{{collectionId}}",
+                "items"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"POST\",\n  \"resourceId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "update collection",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/collections/{{collectionId}}",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "collections",
+                "{{collectionId}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated description only\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "comments",
+      "item": [
+        {
+          "name": "comment on comment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/comments",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "comments"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"COMMENT\",\n  \"resourceId\": 1,\n  \"content\": \"I agree with this comment!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "create comment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/comments",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "comments"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"POST\",\n  \"resourceId\": 1,\n  \"content\": \"New comment, unedited\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "delete comment (soft delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/comments/{{commentId}}",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "comments",
+                "{{commentId}}"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "get all comment on comment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/comments/resource/COMMENT/1?limit=10&offset=0",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "comments",
+                "resource",
+                "COMMENT",
+                "1?limit=10&offset=0"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "get all comment on post",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/comments/resource/POST/1?limit=10&offset=0",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "comments",
+                "resource",
+                "POST",
+                "1?limit=10&offset=0"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "get specific comment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/comments/{{commentId}}",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "comments",
+                "{{commentId}}"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "toggle like comment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/likes/toggle",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "likes",
+                "toggle"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"COMMENT\",\n  \"resourceId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "update comment (owner only)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/comments/{{commentId}}",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "comments",
+                "{{commentId}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Updated comment text\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "likes",
+      "item": [
+        {
+          "name": "get user's likes cursor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/posts/liked/{{userId}}/cursor?limit=1&cursor=14",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "posts",
+                "liked",
+                "{{userId}}",
+                "cursor?limit=1&cursor=14"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "1"
+                },
+                {
+                  "key": "cursor",
+                  "value": "14"
+                }
+              ],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "get user's likes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/posts/liked/{{userId}}?offset=1",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "posts",
+                "liked",
+                "{{userId}}?offset=1"
+              ],
+              "query": [
+                {
+                  "key": "offset",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "3"
+                }
+              ],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "like post",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/likes/toggle",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "likes",
+                "toggle"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\":\"POST\",\n  \"resourceId\":\"1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "posts",
+      "item": [
+        {
+          "name": "create post",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/posts",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "posts"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"hi\",\n  \"content\": \"{{username}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "cursor search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/posts/search/cursor?cursor=3&limit=3&query=cat",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "posts",
+                "search",
+                "cursor?cursor=3&limit=3&query=cat"
+              ],
+              "query": [
+                {
+                  "key": "cursor",
+                  "value": "3"
+                },
+                {
+                  "key": "limit",
+                  "value": "3"
+                },
+                {
+                  "key": "query",
+                  "value": "cat"
+                }
+              ],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "delete post",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/posts/{{postId}}",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "posts",
+                "{{postId}}"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "get all posts cursor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/posts/cursor?limit=2",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "posts",
+                "cursor?limit=2"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "2"
+                }
+              ],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "get all posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/posts",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "2"
+                },
+                {
+                  "key": "sort",
+                  "value": "likeCount|desc"
+                },
+                {
+                  "key": "sort",
+                  "value": "viewCount|desc"
+                }
+              ],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "get all user's posts (cursor)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/posts/users/{{userId}}/cursor",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "posts",
+                "users",
+                "{{userId}}",
+                "cursor"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "get all user's posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/posts/users/{{userId}}",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "posts",
+                "users",
+                "{{userId}}"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "get post by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/posts/{{postId}}",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "posts",
+                "{{postId}}"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "next cursor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/posts/cursor?cursor=3&limit=3",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "posts",
+                "cursor?cursor=3&limit=3"
+              ],
+              "query": [
+                {
+                  "key": "cursor",
+                  "value": "3"
+                },
+                {
+                  "key": "limit",
+                  "value": "3"
+                }
+              ],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "search post suggest",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/posts/search/suggest?q=cat",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "posts",
+                "search",
+                "suggest?q=cat"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "cat"
+                }
+              ],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "search post",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/posts/search?query=cat",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "posts",
+                "search?query=cat"
+              ],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "cat"
+                },
+                {
+                  "key": "caseSensitive",
+                  "value": "true"
+                },
+                {
+                  "key": "searchFields",
+                  "value": "title"
+                },
+                {
+                  "key": "sort",
+                  "value": "createdAt|desc"
+                },
+                {
+                  "key": "sort",
+                  "value": "updatedAt|desc"
+                },
+                {
+                  "key": "sort",
+                  "value": "createdAt|asc"
+                },
+                {
+                  "key": "sort",
+                  "value": "updatedAt|asc"
+                },
+                {
+                  "key": "searchFields",
+                  "value": "title,content,creator.username"
+                }
+              ],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "update post",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/posts/{{postId}}",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "posts",
+                "{{postId}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"updated post\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "simple tests",
+      "item": [
+        {
+          "name": "[POSTHOG] trigger a critical event",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/analytics/track",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "analytics",
+                "track"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventName\": \"demo_clicked\",\n  \"data\":{\"foo\":123}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[SENTRY] trigger error",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/debug-sentry",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "debug-sentry"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "admin only",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/adminOnly",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "adminOnly"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/health",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "health"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "logged in only guard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/userNeeded",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "userNeeded"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "rate limit test",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/rate",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "rate"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "worker test",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/worker",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "worker"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "stripe",
+      "item": [
+        {
+          "name": "health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/stripe/health",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "stripe",
+                "health"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "credit",
+          "item": [
+            {
+              "name": "$10 credits",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/stripe/checkout",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "stripe",
+                    "checkout"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"priceId\":\"price_1T0vCeGeB83oBgfQg2UVLerV\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "$5 credits",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/stripe/checkout",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "stripe",
+                    "checkout"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"priceId\":\"price_1T0vCBGeB83oBgfQIKZeYVAe\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "get users credit transactions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/stripe/credit-transactions?limit=1&offset=1",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "stripe",
+                    "credit-transactions?limit=1&offset=1"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "1"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "1"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "product",
+          "item": [
+            {
+              "name": "Course A",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/stripe/checkout",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "stripe",
+                    "checkout"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"priceId\":\"price_1T0CQmGeB83oBgfQ3tZ9yIDj\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Course B",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/stripe/checkout",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "stripe",
+                    "checkout"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"priceId\":\"price_1T0CRYGeB83oBgfQJ0zpRrEu\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get user's owned product",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/stripe/products/owned",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "stripe",
+                    "products",
+                    "owned"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "2"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "1"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "subscription",
+          "item": [
+            {
+              "name": "Basic plan $10",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/stripe/checkout",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "stripe",
+                    "checkout"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"priceId\":\"price_1T0CPcGeB83oBgfQrMG997SD\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get user subscription details",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/stripe/subscription/",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "stripe",
+                    "subscription",
+                    ""
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "Pro plan $30",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/stripe/checkout",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "stripe",
+                    "checkout"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"priceId\":\"price_1T0CPuGeB83oBgfQ7xeastjr\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "customer portal",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/stripe/customer-portal",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "stripe",
+                    "customer-portal"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "support",
+      "item": [
+        {
+          "name": "make support ticket",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/support",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "support"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\":\"NOW UHFASHJ\",\n  \"message\":\"ashdjasbjda\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "tests",
+      "item": [
+        {
+          "name": "posts",
+          "item": [
+            {
+              "name": "Login",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/login",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"Login returns 201\", function() {",
+                      "  expect(res.status).to.equal(201);",
+                      "});",
+                      "",
+                      "test(\"Auth cookies are set\", function() {",
+                      "  const cookies = res.headers[\"set-cookie\"];",
+                      "  expect(cookies).to.not.be.undefined;",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Register",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/register",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "const timestamp = Date.now();",
+                      "const username = `testuser_${timestamp}`;",
+                      "",
+                      "bru.setVar(\"testUsername\", username);",
+                      "bru.setVar(\"testPassword\", \"TestPassword123\");"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"Register returns 201\", function() {",
+                      "  expect(res.status).to.equal(201);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[400] create post with no content",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"This post shouldnt exist\",\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "const timestamp = Date.now();",
+                      "bru.setVar(\"testPostTitle\", `Test Post ${timestamp}`);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "bru.setVar(\"testPostId\", res.body.data.id);",
+                      "bru.setVar(\"testUserId\", res.body.data.creatorId);",
+                      "",
+                      "",
+                      "// Tests",
+                      "test(\"create post with no content returns 400\", function() {",
+                      "  expect(res.status).to.equal(400);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[400] create post with no title",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"{{testPostTitle}}\",\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "const timestamp = Date.now();",
+                      "bru.setVar(\"testPostTitle\", `Test Post ${timestamp}`);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "bru.setVar(\"testPostId\", res.body.data.id);",
+                      "bru.setVar(\"testUserId\", res.body.data.creatorId);",
+                      "",
+                      "",
+                      "// Tests",
+                      "test(\"create post with no title returns 400\", function() {",
+                      "  expect(res.status).to.equal(400);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[401] delete another user's post",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts/{{testPostId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts",
+                    "{{testPostId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"Deleting another user's post gives 401\", function() {",
+                      "  expect(res.status).to.equal(401);",
+                      "});",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[401] update another user's post",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts/{{testPostId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts",
+                    "{{testPostId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"I shouldn't be able to update this post\",\n  \"content\": \"I shouldn't be able to update this post\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "const jar = await bru.cookies.jar();",
+                      "jar.clear();"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"update another user's post returns 401\", function() {",
+                      "  expect(res.status).to.equal(401);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[404] get non existing post",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts/9999999",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts",
+                    "9999999"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"getting non existing post returns 404\", function() {",
+                      "  expect(res.status).to.equal(404);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[404] getting deleted post  should fail",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts/{{testPostId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts",
+                    "{{testPostId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"getting deleted post returns 404\", function() {",
+                      "  expect(res.status).to.equal(404);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "create post",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"{{testPostTitle}}\",\n  \"content\": \"post by {{testUsername}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "const timestamp = Date.now();",
+                      "bru.setVar(\"testPostTitle\", `Test Post ${timestamp}`);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "bru.setVar(\"testPostId\", res.body.data.id);",
+                      "bru.setVar(\"testUserId\", res.body.data.creatorId);",
+                      "",
+                      "",
+                      "// Tests",
+                      "test(\"create posts returns 201\", function() {",
+                      "  expect(res.status).to.equal(201);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "delete already deleted post",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts/{{testPostId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts",
+                    "{{testPostId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"Deleting already deleted post gives 410\", function() {",
+                      "  expect(res.status).to.equal(410);",
+                      "});",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "delete post",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts/{{testPostId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts",
+                    "{{testPostId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"Deleting post gives 204\", function() {",
+                      "  expect(res.status).to.equal(204);",
+                      "});",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "get all posts",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "2"
+                    },
+                    {
+                      "key": "sort",
+                      "value": "likeCount|desc"
+                    },
+                    {
+                      "key": "sort",
+                      "value": "viewCount|desc"
+                    }
+                  ],
+                  "variable": []
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"getting all posts returns 200\", function() {",
+                      "  expect(res.status).to.equal(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "get all user's posts",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts/users/{{testUserId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts",
+                    "users",
+                    "{{testUserId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get post by id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts/{{testPostId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts",
+                    "{{testPostId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"getting post by id returns 200\", function() {",
+                      "  expect(res.status).to.equal(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "post prepped for negative cases",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"{{testPostTitle}}\",\n  \"content\": \"post by {{testUsername}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "const timestamp = Date.now();",
+                      "bru.setVar(\"testPostTitle\", `Test Post ${timestamp}`);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "bru.setVar(\"testPostId\", res.body.data.id);",
+                      "bru.setVar(\"testUserId\", res.body.data.creatorId);",
+                      "",
+                      "// Tests",
+                      "// test(\"create posts returns 201\", function() {",
+                      "//   expect(res.status).to.equal(201);",
+                      "// });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "search post",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts/search?query={{testPostTitle}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts",
+                    "search?query={{testPostTitle}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "query",
+                      "value": "{{testPostTitle}}"
+                    },
+                    {
+                      "key": "caseSensitive",
+                      "value": "true"
+                    },
+                    {
+                      "key": "searchFields",
+                      "value": "title"
+                    },
+                    {
+                      "key": "sort",
+                      "value": "createdAt|desc"
+                    },
+                    {
+                      "key": "sort",
+                      "value": "updatedAt|desc"
+                    },
+                    {
+                      "key": "sort",
+                      "value": "createdAt|asc"
+                    },
+                    {
+                      "key": "sort",
+                      "value": "updatedAt|asc"
+                    },
+                    {
+                      "key": "searchFields",
+                      "value": "title,content,creator.username"
+                    }
+                  ],
+                  "variable": []
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"searching for posts returns 200\", function() {",
+                      "  expect(res.status).to.equal(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "update post",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts/{{testPostId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts",
+                    "{{testPostId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"{{testPostTitle}}\",\n  \"content\": \"updated post by {{testUsername}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"updating post returns 200\", function() {",
+                      "  expect(res.status).to.equal(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "users",
+          "item": [
+            {
+              "name": "Get my profile",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/users/me",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users",
+                    "me"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test('getting profile is 200', function() {",
+                      "  expect(res.getStatus()).to.equal(200);",
+                      "});",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get user by username",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/users/username/{{testUsername}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users",
+                    "username",
+                    "{{testUsername}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test('getting user by username is 200', function() {",
+                      "  expect(res.getStatus()).to.equal(200);",
+                      "});",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Login",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/login",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"login returns 201\", function() {",
+                      "  expect(res.status).to.equal(201);",
+                      "});",
+                      "",
+                      "test(\"auth cookies are set\", function() {",
+                      "  const cookies = res.headers[\"set-cookie\"];",
+                      "  expect(cookies).to.not.be.undefined;",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Register with email",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/register",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\",\n  \"email\": \"{{testEmail}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "const timestamp = Date.now();",
+                      "const username = `testuser_${timestamp}`;",
+                      "const email = `testuser_${timestamp}@test.com`;",
+                      "",
+                      "bru.setVar(\"testUsername\", username);",
+                      "bru.setVar(\"testPassword\", \"TestPassword123\");",
+                      "bru.setVar(\"testEmail\", email);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"Register returns 201\", function() {",
+                      "  expect(res.status).to.equal(201);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Register",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/register",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "const timestamp = Date.now();",
+                      "const username = `testuser_${timestamp}`;",
+                      "",
+                      "bru.setVar(\"testUsername\", username);",
+                      "bru.setVar(\"testPassword\", \"TestPassword123\");"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"Register returns 201\", function() {",
+                      "  expect(res.status).to.equal(201);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[400] Register with invalid username copy",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/register",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\",\n  \"email\": \"a@a\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"Register with invalid chars for username returns 400\", function() {",
+                      "  expect(res.status).to.equal(400);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[400] Register with invalid username",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/register",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"!@ #${{testUsername}}\",\n  \"password\": \"{{testPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"Register with invalid chars for username returns 400\", function() {",
+                      "  expect(res.status).to.equal(400);",
+                      "  expect(res.body.message).to.be.an(\"array\");",
+                      "  expect(res.body.message[0]).to.include(\"alphanumeric\");",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[400] update my profile with image size too big (>2mb)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/users/me",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users",
+                    "me"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "avatar",
+                      "value": [
+                        "/home/cat/Downloads/2mb-jpg-example-file.jpg"
+                      ],
+                      "disabled": false,
+                      "type": "default"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test('updating profile with too large (>2mb) img returns 400', function() {",
+                      "  expect(res.getStatus()).to.equal(400);",
+                      "});",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[401] Login with bad credentials",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/login",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"a_{{testUsername}}\",\n  \"password\": \"a_{{testPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"login with bad credentials returns 401\", function() {",
+                      "  expect(res.status).to.equal(401);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[401] login to deleted account fails",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/login",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"login with deleted user credentials returns 401\", function() {",
+                      "  expect(res.status).to.equal(401);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[404] Get non existing username",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/users/username/1234567890",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users",
+                    "username",
+                    "1234567890"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test('getting non existing user by username is 404', function() {",
+                      "  expect(res.getStatus()).to.equal(404);",
+                      "});",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[404] get post by deleted user fails",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts/{{testPostId}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts",
+                    "{{testPostId}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"getting post by deleted user returns 404\", function() {",
+                      "  expect(res.status).to.equal(404);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[409] Register with existing username",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/register",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"Register with existing username returns 409\", function() {",
+                      "  expect(res.status).to.equal(409);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "able to create account  with now vacant username",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/auth/register",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"Able to create account with now vacant username returns 201\", function() {",
+                      "  expect(res.status).to.equal(201);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "change password",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/users/me/password",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users",
+                    "me",
+                    "password"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"currentPassword\": \"{{testPassword}}\",\n  \"newPassword\": \"new_{{testPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "delete my profile",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/users/me",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users",
+                    "me"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test(\"Deleting profile gives 204\", function() {",
+                      "  expect(res.status).to.equal(204);",
+                      "});",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "get all users",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/users",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users"
+                  ],
+                  "query": [
+                    {
+                      "key": "query",
+                      "value": "{{testUsername}}"
+                    },
+                    {
+                      "key": "caseSensitive",
+                      "value": "true"
+                    }
+                  ],
+                  "variable": []
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test('getting all users is 200', function() {",
+                      "  expect(res.getStatus()).to.equal(200);",
+                      "});",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "post made to prep deleted user tests",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/posts",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "posts"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"This post should be deleted soon\",\n  \"content\": \"post by {{testUsername}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "const timestamp = Date.now();",
+                      "bru.setVar(\"testPostTitle\", `Test Post ${timestamp}`);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "bru.setVar(\"testPostId\", res.body.data.id);",
+                      "bru.setVar(\"testUserId\", res.body.data.creatorId);",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "search user",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "## basic search\n**limit** : number\n- `limit=10`\n\n**offset** : number\n- `offset=0`\n\n**query** : string\n- `query=john`\n\n___\n\n## User specific\n\n**caseSensitive**: boolean\nenable case-sensitive search (default: false)\n- `caseSensitive=true`",
+                "url": {
+                  "raw": "{{base_URL}}/users/search?query={{testUsername}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users",
+                    "search?query={{testUsername}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "query",
+                      "value": "{{testUsername}}"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "1"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "1"
+                    }
+                  ],
+                  "variable": []
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test('searching users is 200', function() {",
+                      "  expect(res.getStatus()).to.equal(200);",
+                      "});",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "update my profile",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/users/me",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users",
+                    "me"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "username",
+                      "value": "new_{{testUsername}}",
+                      "disabled": false,
+                      "type": "default"
+                    },
+                    {
+                      "key": "email",
+                      "value": "new_{{testEmail}}",
+                      "disabled": false,
+                      "type": "default"
+                    },
+                    {
+                      "key": "avatar",
+                      "value": [
+                        "/home/cat/Downloads/200x200.jpg"
+                      ],
+                      "disabled": false,
+                      "type": "default"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "const timestamp = Date.now();",
+                      "const username = `testuser_${timestamp}`;",
+                      "",
+                      "bru.setVar(\"testUsername\", username);",
+                      "bru.setVar(\"testPassword\", \"TestPassword123\");"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {},
+                    "exec": [
+                      "// Tests",
+                      "test('updating profile is 200', function() {",
+                      "  expect(res.getStatus()).to.equal(200);",
+                      "});",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "users",
+      "item": [
+        {
+          "name": "me",
+          "item": [
+            {
+              "name": "Get my profile",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/users/me",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users",
+                    "me"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "change password",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/users/me/password",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users",
+                    "me",
+                    "password"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"currentPassword\": \"cat\",\n  \"newPassword\": \"foo\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "delete my profile",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/users/me",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users",
+                    "me"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "update my profile",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/users/me",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users",
+                    "me"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "username",
+                      "value": "foo",
+                      "disabled": false,
+                      "type": "default"
+                    },
+                    {
+                      "key": "email",
+                      "value": "{{email}}",
+                      "disabled": false,
+                      "type": "default"
+                    },
+                    {
+                      "key": "avatar",
+                      "value": [
+                        "/home/cat/Downloads/200x200.jpg"
+                      ],
+                      "disabled": false,
+                      "type": "default"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "public",
+          "item": [
+            {
+              "name": "Get user by username",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/users/username/{{username}}",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users",
+                    "username",
+                    "{{username}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get all users (public) cursor",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/users/cursor",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users",
+                    "cursor"
+                  ],
+                  "query": [],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "get all users (public)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/users?query=cAt",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users?query=cAt"
+                  ],
+                  "query": [
+                    {
+                      "key": "query",
+                      "value": "cAt"
+                    },
+                    {
+                      "key": "caseSensitive",
+                      "value": "true"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "search user suggest",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "",
+                "url": {
+                  "raw": "{{base_URL}}/users/search/suggest?q=cat",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users",
+                    "search",
+                    "suggest?q=cat"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "cat"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            },
+            {
+              "name": "search user",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "## basic search\n**limit** : number\n- `limit=10`\n\n**offset** : number\n- `offset=0`\n\n**query** : string\n- `query=john`\n\n___\n\n## User specific\n\n**caseSensitive**: boolean\nenable case-sensitive search (default: false)\n- `caseSensitive=true`",
+                "url": {
+                  "raw": "{{base_URL}}/users/search?query=cat&limit=1&offset=1",
+                  "protocol": "",
+                  "host": [
+                    "{{base_URL}}"
+                  ],
+                  "path": [
+                    "users",
+                    "search?query=cat&limit=1&offset=1"
+                  ],
+                  "query": [
+                    {
+                      "key": "query",
+                      "value": "cat"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "1"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "1"
+                    }
+                  ],
+                  "variable": []
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "views",
+      "item": [
+        {
+          "name": "get view stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/views/POST/2",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "views",
+                "POST",
+                "2"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "record view",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/views",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "views"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"POST\",\n  \"resourceId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "worker",
+      "item": [
+        {
+          "name": "clean up session",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/queue/cleanup-sessions-now",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "queue",
+                "cleanup-sessions-now"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "demo worker",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{base_URL}}/queue/demo",
+              "protocol": "",
+              "host": [
+                "{{base_URL}}"
+              ],
+              "path": [
+                "queue",
+                "demo"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_URL",
+      "value": "http://localhost:3001",
+      "type": "default"
+    },
+    {
+      "key": "userId",
+      "value": "7",
+      "type": "default"
+    },
+    {
+      "key": "accessToken",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImlhdCI6MTc2NjYxMTk0MiwiZXhwIjoxNzY2NjEyODQyfQ.jArRmsnasam2hugPwFtRSc0_H_2-DzcxYjZq7LdzyEM",
+      "type": "default"
+    },
+    {
+      "key": "refreshToken",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImlhdCI6MTc2NjYwODM2MCwiZXhwIjoxNzY3MjEzMTYwfQ.DAfOjhjnFW74QsFjVJxWS4hQNTbslWbItyHF6nHQxQM",
+      "type": "default"
+    },
+    {
+      "key": "username",
+      "value": "cat",
+      "type": "default"
+    },
+    {
+      "key": "password",
+      "value": "cat",
+      "type": "default"
+    },
+    {
+      "key": "commentId",
+      "value": "49",
+      "type": "default"
+    },
+    {
+      "key": "postId",
+      "value": "41",
+      "type": "default"
+    },
+    {
+      "key": "supportId",
+      "value": "1",
+      "type": "default"
+    },
+    {
+      "key": "collectionId",
+      "value": "172",
+      "type": "default"
+    },
+    {
+      "key": "email",
+      "value": "a@a.com",
+      "type": "default"
+    },
+    {
+      "key": "session_id",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "testUsername",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "testPassword",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "testPostTitle",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "testPostId",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "testUserId",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "testEmail",
+      "value": "",
+      "type": "default"
+    }
+  ]
+}
