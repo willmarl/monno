@@ -14,13 +14,13 @@ export function CollectionItem({ item, isOwner }: CollectionItemProps) {
     return <Post data={post} isOwner={isOwner} />;
   }
 
-  if (item.resourceType === "VIDEO") {
-    return <div>Video #{item.resourceId} (coming soon)</div>;
-  }
+  // if (item.resourceType === "VIDEO") {
+  //   return <div>Video #{item.resourceId}</div>;
+  // }
 
-  if (item.resourceType === "ARTICLE") {
-    return <div>Article #{item.resourceId} (coming soon)</div>;
-  }
+  // if (item.resourceType === "ARTICLE") {
+  //   return <div>Article #{item.resourceId}</div>;
+  // }
 
   return <div>Unknown resource type: {item.resourceType}</div>;
 }
