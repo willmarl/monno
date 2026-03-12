@@ -43,20 +43,32 @@ export const useSessionUser = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    // Register callback so kyClient can invalidate this cache after token refresh
     setRefreshCallback(() => {
+      // Manual reset: clear the 'null' (Guest) state to force a fresh check
       queryClient.invalidateQueries({ queryKey: ["session"] });
     });
   }, [queryClient]);
 
-  return useQuery<User | undefined>({
+  return useQuery<User | null>({
     queryKey: ["session"],
-    queryFn: () => fetcher<User>("/users/me"),
-    retry: false,
-    throwOnError: false,
+    queryFn: async () => {
+      try {
+        return await fetcher<User>("/users/me");
+      } catch (error: any) {
+        if (error.statusCode === 401) {
+          return null;
+        }
+        throw error;
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    retry: 1,
   });
 };
-
 export const useLogout = () => {
   const queryClient = useQueryClient();
   return useMutation({
