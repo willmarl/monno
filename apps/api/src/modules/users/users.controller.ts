@@ -64,21 +64,6 @@ export class UsersController {
     const userId = req.user.sub;
     return this.usersService.findById(userId);
   }
-  // TESTING \/
-  // After — optional auth + manual check
-  // @UseGuards(JwtAccessOptionalGuard) // ← the one you already have
-  // @Get('me')
-  // async me(@Req() req: any) {
-  //   if (!req.user?.sub) {
-  //     // Not authenticated → return "no user" shape
-  //     return { user: null };
-  //     // or just return null;
-  //     // or { isAuthenticated: false, user: null };
-  //   }
-  //
-  //   const user = await this.usersService.findById(req.user.sub);
-  //   return { user }; // or just return user;  (your frontend already expects User | undefined)
-  // }
 
   @ApiOperation({ summary: 'Update current user profile' })
   @ApiBearerAuth()
