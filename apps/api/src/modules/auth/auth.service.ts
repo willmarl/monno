@@ -182,6 +182,10 @@ export class AuthService {
     if (!user || !user.refreshToken)
       throw new UnauthorizedException('Invalid refresh');
 
+    if (user.deleted) {
+      throw new UnauthorizedException('User account is no longer valid');
+    }
+
     const matches = await bcrypt.compare(refreshToken, user.refreshToken);
     if (!matches) throw new UnauthorizedException('Invalid refresh');
 
@@ -206,8 +210,11 @@ export class AuthService {
 
     if (!tokenMatches) throw new UnauthorizedException('Invalid refresh token');
 
-    // Generate new tokens
+    // Check if user is deleted or inactive
     const user = session.user;
+    if (!user || user.deleted || user.status !== 'ACTIVE') {
+      throw new UnauthorizedException('User account is no longer valid');
+    }
     const payload = { sub: user.id, role: user.role };
 
     const accessToken = this.jwt.sign(payload, {
