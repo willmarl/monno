@@ -5429,7 +5429,7 @@
               "type": "http",
               "name": "[400] update my profile with image size too big (>2mb)",
               "filename": "[400] update my profile with image size too big (-2mb).bru",
-              "seq": 6,
+              "seq": 8,
               "settings": {
                 "encodeUrl": true,
                 "timeout": 0
@@ -5865,7 +5865,7 @@
               "type": "http",
               "name": "update my profile",
               "filename": "update my profile.bru",
-              "seq": 5,
+              "seq": 7,
               "settings": {
                 "encodeUrl": true,
                 "timeout": 0
@@ -6516,77 +6516,77 @@
             "value": "http://localhost:3001",
             "enabled": true,
             "local": false,
-            "uid": "q84LW2KDIeFdOegWPFr8d"
+            "uid": "exNG38uAs3le7M2bzLAC0"
           },
           {
             "name": "userId",
             "value": "7",
             "enabled": true,
             "local": false,
-            "uid": "u9krrfrlIU0HgJuXK6217"
+            "uid": "hkLF8twC4qHZyrhmoRpL9"
           },
           {
             "name": "accessToken",
             "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImlhdCI6MTc2NjYxMTk0MiwiZXhwIjoxNzY2NjEyODQyfQ.jArRmsnasam2hugPwFtRSc0_H_2-DzcxYjZq7LdzyEM",
             "enabled": true,
             "local": false,
-            "uid": "uEi5OYzAfp4s9L19M0G2y"
+            "uid": "1V6bUxgwMy9Ftub6iLeuQ"
           },
           {
             "name": "refreshToken",
             "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImlhdCI6MTc2NjYwODM2MCwiZXhwIjoxNzY3MjEzMTYwfQ.DAfOjhjnFW74QsFjVJxWS4hQNTbslWbItyHF6nHQxQM",
             "enabled": true,
             "local": false,
-            "uid": "XsvKxJiKAzcJF7xWReCgA"
+            "uid": "weR2GSb50JRKlFqkzie1y"
           },
           {
             "name": "username",
-            "value": "cat",
+            "value": "hippo",
             "enabled": true,
             "local": false,
-            "uid": "IVfK8uXeTWcUb29tIgK8m"
+            "uid": "VPXHKkq7szsblQGbqu5Py"
           },
           {
             "name": "password",
             "value": "cat",
             "enabled": true,
             "local": false,
-            "uid": "6IC2NOjkZXa6uXqrWtsbe"
+            "uid": "tD0vxvdlKIQj72HSyUvlI"
           },
           {
             "name": "commentId",
             "value": "49",
             "enabled": true,
             "local": false,
-            "uid": "WPyWLVc3mA87lQKzF5F9N"
+            "uid": "LhC7SXuH2XDzEpHbnp2wz"
           },
           {
             "name": "postId",
             "value": "41",
             "enabled": true,
             "local": false,
-            "uid": "WwSXZX3rhxFWQYBJxX2OR"
+            "uid": "68cdNscMJJh8uXpe1b4DA"
           },
           {
             "name": "supportId",
             "value": "1",
             "enabled": true,
             "local": false,
-            "uid": "r6Bn1sAtEMYfNBe4vNP87"
+            "uid": "E5aUKVL0H2FJBP22x6uym"
           },
           {
             "name": "collectionId",
             "value": "172",
             "enabled": true,
             "local": false,
-            "uid": "UqrSNlZAw1LOkDcYryiuk"
+            "uid": "RJuT3NZ4pz8B39lF5DSTO"
           },
           {
             "name": "email",
             "value": "a@a.com",
             "enabled": true,
             "local": false,
-            "uid": "UY8zOVLRY3CqTHMuqrHuG"
+            "uid": "THiWkVqbEneCKMdwqoB5h"
           }
         ]
       }
@@ -6603,6 +6603,6 @@
     "size": 0.05066108703613281,
     "filesCount": 185
   },
-  "exportedAt": "2026-03-10T23:04:16.467Z",
+  "exportedAt": "2026-03-12T03:28:48.808Z",
   "exportedUsing": "Bruno/3.0.1"
 }
