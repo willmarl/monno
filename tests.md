@@ -1,3 +1,25 @@
+## how to run tests
+
+- **Unit tests** :
+  1. `cd apps/api`
+  2. `pnpm run test`
+- **API tests** : start runner (recursive) on tests folder. (i use bruno)
+- **E2E tests** :
+  - **reminders**:
+    - temporarily increase rate limiting in `api/.env`
+    - change username in `apps/web/tests/constants.ts` periodically to avoid flakiness (particularly with `collections.spec.ts`)
+    - i do have `fullyParallel: true,`. may want to switch that off `apps/web/playwright.configs.ts`
+    - also have firefox commented out. **run only one browser at a time** running chroem and firefox (espically with parallel on) causes test flakiness due to shared test user
+  1. make sure backend is running
+  2. `cd apps/web`
+  3. `pnpm run tests:e2e`
+     alternatively directly using playwright
+  4. `cd apps/web/test`
+     2a. `pnpm playwright test auth.spec.ts`
+     2b. `pnpm playwright test`
+
+## coverage table
+
 | Feature                | Unit Tests | API Tests | E2E Tests |
 | ---------------------- | :--------: | :-------: | :-------: |
 | **Auth**               |

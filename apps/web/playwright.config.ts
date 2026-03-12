@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests",
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
@@ -39,8 +39,18 @@ export default defineConfig({
       dependencies: ["chromium setup"],
     },
     // {
+    //   name: "firefox setup",
+    //   testMatch: /auth\.setup\.ts/,
+    // },
+    // {
     //   name: "firefox",
-    //   use: { ...devices["Desktop Firefox"] },
+    //   use: {
+    //     ...devices["Desktop Firefox"],
+    //     // Use the saved authentication state
+    //     storageState: "tests/.auth/user.json",
+    //   },
+    //   // Run setup first, then other tests
+    //   dependencies: ["firefox setup"],
     // },
   ],
 });

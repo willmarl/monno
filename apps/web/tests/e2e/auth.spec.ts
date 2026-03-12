@@ -16,6 +16,7 @@ test.beforeEach(async ({ page, context }) => {
   await page.getByLabel("Password").fill(TEST_USER.password);
   await page.locator("form").getByRole("button", { name: "Login" }).click();
   await page.waitForURL("/");
+  await page.waitForLoadState("networkidle");
 });
 test("user is authenticated and can see default page", async ({ page }) => {
   // User is already logged in via storageState
@@ -29,7 +30,7 @@ test("logout works", async ({ page }) => {
   await page.goto("/");
   await page
     .getByRole("button", { name: `Hello, ${TEST_USER.username}` })
-    .click();
+    .click({ timeout: 5000 });
   await page
     .getByRole("menuitem", { name: "Logout" })
     .waitFor({ state: "visible" });

@@ -11,6 +11,8 @@ test("user able to view profile", async ({ page }) => {
 
 test.describe.serial("Profile modifications", () => {
   test("user able to update profile", async ({ page }) => {
+    await page.waitForTimeout(3000); // despite being serial so should run last, still too fast and interrupts other test
+    // note this is not an issue if you dont run tests in parallel
     await page.goto("/settings");
     await page.waitForURL("/settings");
     await expect(page).toHaveURL("/settings");
