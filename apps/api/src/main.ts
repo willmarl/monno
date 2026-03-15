@@ -24,7 +24,11 @@ Print.log('Server running on port ' + process.env.PORT);
 Print.log('Database URL ' + process.env.DATABASE_URL);
 Print.log('Frontend URL ' + process.env.FRONTEND_URL);
 const corsOrigins = process.env.FRONTEND_URL
-  ? [process.env.FRONTEND_URL, `www.${process.env.FRONTEND_URL}`]
+  ? [
+      process.env.FRONTEND_URL,
+      `www.${process.env.FRONTEND_URL}`,
+      'http://localhost:3000',
+    ]
   : ['http://localhost:3000'];
 
 Print.log('CORS origins allowed: ' + JSON.stringify(corsOrigins));
