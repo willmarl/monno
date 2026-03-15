@@ -50,27 +50,40 @@ cd "$DEPLOY_PATH/apps/worker"
 pnpm prisma migrate deploy
 pnpm prisma generate
 
-# Build all apps
+# Build each app individually
 echo ""
-echo "🔨 Building all apps..."
+echo "🔨 Building API..."
+cd "$DEPLOY_PATH/apps/api"
 pnpm run build
-
-# Verify builds completed
-echo ""
-echo "⏳ Verifying build artifacts..."
-if [ ! -d "$DEPLOY_PATH/apps/api/dist" ]; then
+if [ ! -d "dist" ]; then
   echo "❌ API build failed - dist folder missing"
   exit 1
 fi
-if [ ! -d "$DEPLOY_PATH/apps/web/.next" ]; then
+echo "✓ API build completed"
+
+echo ""
+echo "🔨 Building Web..."
+cd "$DEPLOY_PATH/apps/web"
+pnpm run build
+if [ ! -d ".next" ]; then
   echo "❌ Web build failed - .next folder missing"
   exit 1
 fi
-if [ ! -d "$DEPLOY_PATH/apps/worker/dist" ]; then
+echo "✓ Web build completed"
+
+echo ""
+echo "🔨 Building Worker..."
+cd "$DEPLOY_PATH/apps/worker"
+pnpm run build
+if [ ! -d "dist" ]; then
   echo "❌ Worker build failed - dist folder missing"
   exit 1
 fi
-echo "✓ All builds verified successfully"
+echo "✓ Worker build completed"
+
+echo ""
+echo "✅ All builds completed successfully"
+cd "$DEPLOY_PATH"
 
 # Restart services with PM2
 echo ""
