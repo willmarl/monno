@@ -10,8 +10,9 @@ export async function requireAuth() {
 
 export async function getServerUser() {
   const cookieStore = await cookies();
-  let cookieHeader = cookieStore
-    .getAll()
+  const allCookies = cookieStore.getAll();
+
+  let cookieHeader = allCookies
     .map((cookie) => `${cookie.name}=${cookie.value}`)
     .join("; ");
 
@@ -30,6 +31,7 @@ export async function getServerUser() {
         method: "POST",
         headers: { Cookie: cookieHeader },
         credentials: "include",
+        cache: "no-store",
       },
     );
 
