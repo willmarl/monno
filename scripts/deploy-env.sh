@@ -50,13 +50,14 @@ else
   echo "⚠️  No apps/api/.env found (skipping)"
 fi
 
-# Deploy Web .env.local
-if [ -f apps/web/.env.local ]; then
-  echo "📄 Uploading Web .env.local..."
-  scp apps/web/.env.local $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/apps/web/
-else
-  echo "⚠️  No apps/web/.env.local found (skipping)"
-fi
+# building with nextjs will use env local over production if env local is present
+# # Deploy Web .env.local
+# if [ -f apps/web/.env.local ]; then
+#   echo "📄 Uploading Web .env.local..."
+#   scp apps/web/.env.local $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/apps/web/
+# else
+#   echo "⚠️  No apps/web/.env.local found (skipping)"
+# fi
 
 # Deploy Web .env.production
 if [ -f apps/web/.env.production ]; then

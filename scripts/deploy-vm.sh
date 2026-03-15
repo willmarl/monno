@@ -55,6 +55,23 @@ echo ""
 echo "🔨 Building all apps..."
 pnpm run build
 
+# Verify builds completed
+echo ""
+echo "⏳ Verifying build artifacts..."
+if [ ! -d "$DEPLOY_PATH/apps/api/dist" ]; then
+  echo "❌ API build failed - dist folder missing"
+  exit 1
+fi
+if [ ! -d "$DEPLOY_PATH/apps/web/.next" ]; then
+  echo "❌ Web build failed - .next folder missing"
+  exit 1
+fi
+if [ ! -d "$DEPLOY_PATH/apps/worker/dist" ]; then
+  echo "❌ Worker build failed - dist folder missing"
+  exit 1
+fi
+echo "✓ All builds verified successfully"
+
 # Restart services with PM2
 echo ""
 echo "🔄 Restarting services..."
