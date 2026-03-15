@@ -6,6 +6,12 @@
     "build": "pnpm -r run build",
     "start": "pnpm -r --parallel --stream run start",
     "db:up": "docker compose up -d",
-    "db:down": "docker compose down"
+    "db:down": "docker compose down",
+    "deploy:env": "bash ./scripts/deploy-env.sh",
+    "deploy:vm": "bash ./scripts/deploy-vm.sh"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "dotenv-cli": "^11.0.0"
   }
 }
