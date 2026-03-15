@@ -7,6 +7,7 @@ import { JwtAccessGuard } from './guards/jwt-access.guard';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { Throttle } from '@nestjs/throttler';
 import { rateLimitConfig } from 'src/config/rate-limit.config';
+import { cookieConfig } from 'src/config/cookie.config';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -30,24 +31,11 @@ export class AuthController {
   ) {
     const tokens = await this.authService.register(body, req);
 
-    res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      path: '/',
-    });
-
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      path: '/',
-    });
+    res.cookie('accessToken', tokens.accessToken, cookieConfig.accessToken);
+    res.cookie('refreshToken', tokens.refreshToken, cookieConfig.refreshToken);
 
     if (tokens.sessionId) {
-      res.cookie('sessionId', tokens.sessionId, {
-        httpOnly: true,
-        sameSite: 'strict',
-        path: '/',
-      });
+      res.cookie('sessionId', tokens.sessionId, cookieConfig.sessionId);
     }
 
     return { success: true };
@@ -70,24 +58,11 @@ export class AuthController {
   ) {
     const tokens = await this.authService.login(body, req);
 
-    res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      path: '/',
-    });
-
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      path: '/',
-    });
+    res.cookie('accessToken', tokens.accessToken, cookieConfig.accessToken);
+    res.cookie('refreshToken', tokens.refreshToken, cookieConfig.refreshToken);
 
     if (tokens.sessionId) {
-      res.cookie('sessionId', tokens.sessionId, {
-        httpOnly: true,
-        sameSite: 'strict',
-        path: '/',
-      });
+      res.cookie('sessionId', tokens.sessionId, cookieConfig.sessionId);
     }
 
     return { success: true };
@@ -111,18 +86,9 @@ export class AuthController {
     }
 
     // Clear cookies
-    res.cookie('accessToken', '', {
-      httpOnly: true,
-      expires: new Date(0),
-    });
-    res.cookie('refreshToken', '', {
-      httpOnly: true,
-      expires: new Date(0),
-    });
-    res.cookie('sessionId', '', {
-      httpOnly: true,
-      expires: new Date(0),
-    });
+    res.cookie('accessToken', '', cookieConfig.clear);
+    res.cookie('refreshToken', '', cookieConfig.clear);
+    res.cookie('sessionId', '', cookieConfig.clear);
 
     return { success: true };
   }
@@ -136,18 +102,9 @@ export class AuthController {
     await this.authService.invalidateAllSessions(userId);
 
     // Clear cookies
-    res.cookie('accessToken', '', {
-      httpOnly: true,
-      expires: new Date(0),
-    });
-    res.cookie('refreshToken', '', {
-      httpOnly: true,
-      expires: new Date(0),
-    });
-    res.cookie('sessionId', '', {
-      httpOnly: true,
-      expires: new Date(0),
-    });
+    res.cookie('accessToken', '', cookieConfig.clear);
+    res.cookie('refreshToken', '', cookieConfig.clear);
+    res.cookie('sessionId', '', cookieConfig.clear);
 
     return { success: true };
   }
@@ -178,24 +135,11 @@ export class AuthController {
       result = await this.authService.refreshTokens(userId, refreshToken);
     }
 
-    res.cookie('accessToken', result.accessToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      path: '/',
-    });
-
-    res.cookie('refreshToken', result.refreshToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      path: '/',
-    });
+    res.cookie('accessToken', result.accessToken, cookieConfig.accessToken);
+    res.cookie('refreshToken', result.refreshToken, cookieConfig.refreshToken);
 
     if (result.sessionId) {
-      res.cookie('sessionId', result.sessionId, {
-        httpOnly: true,
-        sameSite: 'strict',
-        path: '/',
-      });
+      res.cookie('sessionId', result.sessionId, cookieConfig.sessionId);
     }
 
     return { success: true };

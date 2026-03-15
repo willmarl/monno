@@ -39,6 +39,7 @@ import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { UserSearchDto, UserSearchCursorDto } from './dto/search-user.dto';
+import { cookieConfig } from 'src/config/cookie.config';
 
 @ApiTags('users')
 @Controller('users')
@@ -118,18 +119,9 @@ export class UsersController {
     await this.usersService.deleteAccount(userId);
 
     // Clear cookies (same as logout)
-    res.cookie('accessToken', '', {
-      httpOnly: true,
-      expires: new Date(0),
-    });
-    res.cookie('refreshToken', '', {
-      httpOnly: true,
-      expires: new Date(0),
-    });
-    res.cookie('sessionId', '', {
-      httpOnly: true,
-      expires: new Date(0),
-    });
+    res.cookie('accessToken', '', cookieConfig.clear);
+    res.cookie('refreshToken', '', cookieConfig.clear);
+    res.cookie('sessionId', '', cookieConfig.clear);
   }
 
   //==============

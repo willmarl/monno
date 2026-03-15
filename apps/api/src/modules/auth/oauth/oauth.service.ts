@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { GeolocationService } from '../../../common/geolocation/geolocation.service';
 import { RiskScoringService } from '../../../common/risk-scoring/risk-scoring.service';
 import { suspiciousLoginTemplate } from '../../../common/email-templates';
+import { cookieConfig } from '../../../config/cookie.config';
 import type { User } from '../../../generated/prisma/client';
 /**
  * OAuth Service - Multi-provider authentication
@@ -424,23 +425,9 @@ export class OauthService {
     });
 
     // Set cookies (same pattern as your auth controller)
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      path: '/',
-    });
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      path: '/',
-    });
-
-    res.cookie('sessionId', session.id, {
-      httpOnly: true,
-      sameSite: 'strict',
-      path: '/',
-    });
+    res.cookie('accessToken', accessToken, cookieConfig.accessToken);
+    res.cookie('refreshToken', refreshToken, cookieConfig.refreshToken);
+    res.cookie('sessionId', session.id, cookieConfig.sessionId);
 
     // Send suspicious login email if risk score is high
     if (riskAssessment.riskScore >= 50 && user.email) {

@@ -17,6 +17,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { rateLimitConfig } from 'src/config/rate-limit.config';
+import { cookieConfig } from 'src/config/cookie.config';
 import { EmailVerificationService } from './email-verification.service';
 import { JwtAccessGuard } from './guards/jwt-access.guard';
 import { AuthService } from './auth.service';
@@ -132,24 +133,15 @@ export class EmailVerificationController {
       });
 
       // Set cookies (same pattern as login endpoint)
-      res.cookie('accessToken', tokens.accessToken, {
-        httpOnly: true,
-        sameSite: 'strict',
-        path: '/',
-      });
-
-      res.cookie('refreshToken', tokens.refreshToken, {
-        httpOnly: true,
-        sameSite: 'strict',
-        path: '/',
-      });
+      res.cookie('accessToken', tokens.accessToken, cookieConfig.accessToken);
+      res.cookie(
+        'refreshToken',
+        tokens.refreshToken,
+        cookieConfig.refreshToken,
+      );
 
       if (tokens.sessionId) {
-        res.cookie('sessionId', tokens.sessionId, {
-          httpOnly: true,
-          sameSite: 'strict',
-          path: '/',
-        });
+        res.cookie('sessionId', tokens.sessionId, cookieConfig.sessionId);
       }
 
       // Return JSON response so frontend knows it was successful
