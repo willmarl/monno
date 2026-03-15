@@ -22,6 +22,9 @@ prisma/migrations/
 # Docker
 volumes/
 
+# Logs (PM2 & server logs)
+logs/
+
 # Playwright
 tests/.auth/user.json
 test-results/
