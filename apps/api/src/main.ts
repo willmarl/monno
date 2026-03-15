@@ -68,11 +68,12 @@ async function bootstrap() {
     new AllExceptionsFilter(),
     new RateLimitExceptionFilter(),
   );
+  const corsOrigins = process.env.FRONTEND_URL
+    ? [process.env.FRONTEND_URL, `www.${process.env.FRONTEND_URL}`]
+    : ['http://localhost:3000'];
+
   app.enableCors({
-    origin: [
-      'http://localhost:3001', // example: your Next.js dev server
-      'http://localhost:3000', // if using same port for FE
-    ],
+    origin: corsOrigins,
     credentials: true,
   });
   /* Swagger docs */
