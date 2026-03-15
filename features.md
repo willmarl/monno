@@ -55,7 +55,7 @@
 
 [**tests**](./tests.md)
 
-- **52 Jest unit tests**: AuthService, PasswordResetService, UsersService, PostsService
+- **52 Vitest unit tests**: AuthService, PasswordResetService, UsersService, PostsService
 - **16 Bruno API tests**: Auth, Posts, Users, Collections, Error cases
 - **12 Playwright E2E tests**: Auth flow, Posts lifecycle, User profile, Collections
 
@@ -79,8 +79,7 @@ Uses NestJS and contains
 - Guards: roles, ownership, only logged in users, Stripe configured
 - Soft delete for users, posts, comments, collections
 - Admin seeding (creates default admin on startup)
-- PostHog analytics tracking
-- Sentry error tracking
+- PostHog analytics tracking for core events only
 - Geolocation tracking on sessions (IP, country, lat/lng)
 - Risk scoring system (detects new location & device logins)
 - Audit logging (admin action tracking with before/after changes)
@@ -91,19 +90,9 @@ Uses NestJS and contains
 
 ## frontend
 
+Uses Nextjs and contains
+
 - Ky for API calls
-- React Tanstack Query for data fetching & caching
-- React Tanstack Table for advanced table features
-- PostHog analytics
-- Sentry error tracking
-- Recharts for data visualization
-- React Hook Form + Zod for form validation
-- Avatar editor for profile pictures
-- File upload with dropzone
-- React Icons for UI
-
-## front + backend
-
 - Shadcn/UI components
   - Skeletons
   - Modals
@@ -114,10 +103,21 @@ Uses NestJS and contains
   - Dropdowns
   - etc.
 - Toast notifications (Sonner)
-- Sentry
+- React Tanstack Query for data fetching & caching
+- React Tanstack Table for advanced table features
+- PostHog analytics
+- Recharts for data visualization
+- React Hook Form + Zod for form validation
+- Avatar editor for profile pictures
+- File upload with dropzone
+- React Icons for UI
+- Settings page with tabs (Account, Security, Payment - Stripe minimal)
+
+## front + backend
+
+- Sentry error tracking
 - Pagination (reusable)
 - Search with filters & sorting (reusable)
-- Settings page with tabs (Account, Security, Payment - Stripe minimal)
 - CRUD features:
   - Comments (create, edit, delete, like)
   - Likes (toggle like/unlike)
@@ -156,7 +156,8 @@ Currently just infrastructure for learning Stripe API - syncs data between Strip
 
 ## Misc
 
-**Auth Philosophy:** I like old school way where username and password, no need to go to email to verify but gamble if u forget password then ur out of luck unless u optionally add email. i'd like to make websites with bare auth then add email option then add oauth option as i do think sign in with google is most convenient but i wouldnt sign up with my email for weird/sketchy site and i hate going to 10min email just to do 1 thing on website that requires login. its about skipping the liminal space but giving QoL options if u really like site.
+**Auth Philosophy:** I like old school way where its just username and password. No need to go to email and verify to access site. The gambit is if you forget password then ur out of luck unless u **optionally** add email. I'd like to make websites with bare auth then add email option then add oauth option as i do think sign in with google is most convenient but i wouldn't sign up with my email for weird/sketchy sites (I hate going to 10min email just to do 1 thing on website that requires login). Its about skipping the liminal space but giving QoL options if you really like the site.
+This is the reason why the auth system is made from scratch and not using better-auth or other alternative libaries. Its because email is a core required field.
 
 **Postman/Bruno JSON available** - For API testing
 
