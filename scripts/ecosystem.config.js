@@ -18,8 +18,8 @@ module.exports = {
     {
       name: "api",
       cwd: `${deployPath}/apps/api`,
-      script: "pnpm",
-      args: "run start",
+      script: "bash",
+      args: "-c 'pnpm run start'",
       env: {
         NODE_ENV: "production",
       },
@@ -33,8 +33,8 @@ module.exports = {
     {
       name: "web",
       cwd: `${deployPath}/apps/web`,
-      script: "pnpm",
-      args: "run start",
+      script: "bash",
+      args: "-c 'pnpm run start'",
       env: {
         NODE_ENV: "production",
         PORT: 3000,
@@ -49,8 +49,8 @@ module.exports = {
     {
       name: "worker",
       cwd: `${deployPath}/apps/worker`,
-      script: "pnpm",
-      args: "run start",
+      script: "bash",
+      args: "-c 'pnpm run start'",
       env: {
         NODE_ENV: "production",
       },

@@ -37,16 +37,16 @@ git pull origin main
 
 # Update dependencies
 echo ""
-echo "📦 Installing production dependencies..."
-pnpm install --prod
+echo "📦 Installing dependencies..."
+pnpm install
 
 # Run database migrations if needed
 echo ""
 echo "🗄️  Running database migrations..."
-cd apps/api
+cd "$DEPLOY_PATH/apps/api"
 pnpm prisma migrate deploy
 pnpm prisma generate
-cd ../worker
+cd "$DEPLOY_PATH/apps/worker"
 pnpm prisma migrate deploy
 pnpm prisma generate
 
@@ -58,13 +58,19 @@ pnpm run build
 # Restart services with PM2
 echo ""
 echo "🔄 Restarting services..."
-pm2 restart ecosystem.config.js
+pm2 restart api --update-env
+pm2 restart worker --update-env
+pm2 restart web --update-env
 
 # Show status
 echo ""
 echo "✅ Deployment complete!"
 echo ""
+sleep 3
 pm2 status
+echo ""
+echo "⚠️  If web shows offline, check logs:"
+echo "   pm2 logs web --lines 50"
 echo ""
 echo "📊 Check logs with:"
 echo "   pm2 logs api --follow"
