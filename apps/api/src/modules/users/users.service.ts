@@ -73,7 +73,13 @@ export class UsersService {
     // Get the user's current state
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { username: true, status: true, deleted: true },
+      select: {
+        username: true,
+        status: true,
+        deleted: true,
+        email: true,
+        tempEmail: true,
+      },
     });
 
     if (!user) {
@@ -115,6 +121,16 @@ export class UsersService {
       data: { deleted: false, deletedAt: null },
     });
 
+    // Restore original email if it was mangled on deletion.
+    // tempEmail holds the original; check it's not taken by another user first.
+    let restoredEmail: string | null | undefined;
+    if (user.tempEmail && user.email?.startsWith(`deleted_${userId}_`)) {
+      const emailTaken = await this.prisma.user.findUnique({
+        where: { email: user.tempEmail },
+      });
+      restoredEmail = emailTaken ? null : user.tempEmail;
+    }
+
     // Restore the user and set status to ACTIVE
     return this.prisma.user.update({
       where: { id: userId },
@@ -124,6 +140,10 @@ export class UsersService {
         statusReason: null,
         deleted: false,
         deletedAt: null,
+        ...(restoredEmail !== undefined && {
+          email: restoredEmail, // restored original, or null if claimed by someone else
+          tempEmail: null,
+        }),
       },
       select: DEFAULT_ADMIN_USER_SELECT,
     });
@@ -139,10 +159,10 @@ export class UsersService {
   async softDeleteUserWithCascade(userId: number, reason?: string) {
     const now = new Date();
 
-    // Get the user's current username and status
+    // Get the user's current username, status, and email
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { username: true, status: true },
+      select: { username: true, status: true, email: true },
     });
 
     if (!user) {
@@ -197,6 +217,16 @@ export class UsersService {
       },
     });
 
+    // Mangle email so the original address is freed for reuse (e.g. by a new sign-up).
+    // Original email is preserved in tempEmail for audit / restore purposes.
+    let mangledEmail: string | undefined;
+    if (user.email) {
+      // Format: "deleted_<userId>_<original_email>" — unique, auditable, clearly invalid
+      const prefix = `deleted_${userId}_`;
+      const maxLen = 256; // stay within typical email column limits
+      mangledEmail = (prefix + user.email).slice(0, maxLen);
+    }
+
     // Soft delete the user and rename to d_{username}
     return this.prisma.user.update({
       where: { id: userId },
@@ -206,6 +236,10 @@ export class UsersService {
         statusReason: reason,
         deleted: true,
         deletedAt: now,
+        ...(mangledEmail !== undefined && {
+          email: mangledEmail, // freed original; mangled value stays for audit
+          tempEmail: user.email, // original preserved here for restore
+        }),
       },
       select: DEFAULT_ADMIN_USER_SELECT,
     });

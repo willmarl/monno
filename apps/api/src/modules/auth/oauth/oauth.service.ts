@@ -142,7 +142,10 @@ export class OauthService {
       provider: 'google',
       providerId: googleId,
       email,
-      name: profile.name ?? profile.given_name ?? 'user',
+      name:
+        profile.name ??
+        ([profile.given_name, profile.family_name].filter(Boolean).join(' ') ||
+          'user'),
     });
 
     // Step 4: Create session and set cookies
@@ -314,27 +317,40 @@ export class OauthService {
     });
 
     if (user) {
-      // If OAuth email has changed (e.g., user changed email in Google account),
-      // auto-sync the email since OAuth is a trusted source
-      if (email && email !== user.email) {
-        return await this.prisma.user.update({
+      // If the linked account is deleted, unlink this OAuth provider from it so the
+      // deleted account stays deleted and this OAuth login can create a fresh account
+      // (mirrors the behaviour of plain username/password: deleted != banned)
+      if (user.deleted || user.status === 'DELETED') {
+        await this.prisma.user.update({
           where: { id: user.id },
-          data: {
-            email, // Update to current OAuth email
-            isEmailVerified: true, // Re-verify (from trusted provider)
-            emailVerifiedAt: new Date(),
-          },
+          data: { [providerField]: null },
         });
+        user = null; // Fall through to Strategy 3
+      } else {
+        // If OAuth email has changed (e.g., user changed email in Google account),
+        // auto-sync the email since OAuth is a trusted source
+        if (email && email !== user.email) {
+          return await this.prisma.user.update({
+            where: { id: user.id },
+            data: {
+              email, // Update to current OAuth email
+              isEmailVerified: true, // Re-verify (from trusted provider)
+              emailVerifiedAt: new Date(),
+            },
+          });
+        }
+        return user;
       }
-      return user;
     }
 
     // Strategy 2: Email exists (account merging)
-    // User previously created account with password/email, now logging in via OAuth
+    // User previously created account with password/email, now logging in via OAuth.
+    // Deleted accounts have their email mangled (deleted_{id}_...) so findUnique by
+    // the real email will never match them — no extra deleted check needed here.
     if (email) {
       user = await this.prisma.user.findUnique({ where: { email } });
       if (user) {
-        // Link this OAuth provider to existing account
+        // Link this OAuth provider to existing active account
         return this.prisma.user.update({
           where: { id: user.id },
           data: {
@@ -460,16 +476,36 @@ export class OauthService {
   }
 
   /**
-   * Sanitize username by removing/replacing illegal characters
+   * Sanitize username by removing/replacing illegal characters.
+   * Ensures the result is at least 2 characters to match the username schema.
+   * If the sanitized name is only 1 char (e.g. first name "J"), it appends
+   * the first character of the next word/last name (e.g. "J Doe" → "jd").
    */
   private sanitizeUsername(name: string): string {
-    // Replace spaces and special characters with underscores
-    return name
+    const cleaned = name
       .toLowerCase()
       .replace(/[^a-z0-9_-]/g, '_') // Replace illegal chars with underscore
       .replace(/_+/g, '_') // Replace multiple underscores with single
       .replace(/^_+|_+$/g, '') // Remove leading/trailing underscores
       .slice(0, 20); // Limit length
+
+    if (cleaned.length >= 2) return cleaned;
+
+    // Fallback: try to build a longer base from the original name parts
+    // e.g. "J Doe" → first="j", last="doe" → "jd"
+    const parts = name
+      .toLowerCase()
+      .split(/\s+/)
+      .map((p) => p.replace(/[^a-z0-9]/g, ''))
+      .filter((p) => p.length > 0);
+
+    if (parts.length >= 2) {
+      const combined = (parts[0] + parts[1][0]).slice(0, 20);
+      if (combined.length >= 2) return combined;
+    }
+
+    // Last resort: pad with a suffix to reach 2 chars
+    return (cleaned || parts[0] || 'u').padEnd(2, 'u').slice(0, 20);
   }
 
   /**
