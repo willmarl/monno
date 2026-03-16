@@ -17,9 +17,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FcGoogle } from "react-icons/fc";
-import { FaGithub } from "react-icons/fa";
 import { toast } from "sonner";
+import OAuthButtons from "./OAuthButtons";
 
 export default function RegisterForm() {
   const form = useForm<RegisterInput>({
@@ -32,8 +31,6 @@ export default function RegisterForm() {
       confirmPassword: "",
     },
   });
-
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
   const {
     formState: { isValid },
@@ -194,35 +191,16 @@ export default function RegisterForm() {
       </Form>
 
       {/* Divider */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border"></div>
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-background text-muted-foreground">
+      <div role="separator" aria-label="Or continue with" className="relative">
+        <hr className="border-border" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="px-2 bg-background text-sm text-muted-foreground">
             Or continue with
           </span>
         </div>
       </div>
 
-      {/* OAuth Buttons */}
-      <div className="space-y-3">
-        <a
-          href={`${apiUrl}/auth/google`}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-input rounded-lg hover:bg-accent transition-colors font-medium"
-        >
-          <FcGoogle className="w-5 h-5" />
-          Google
-        </a>
-
-        <a
-          href={`${apiUrl}/auth/github`}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-input rounded-lg hover:bg-accent transition-colors font-medium"
-        >
-          <FaGithub className="w-5 h-5" />
-          GitHub
-        </a>
-      </div>
+      <OAuthButtons />
 
       {/* Login link */}
       <div className="text-center text-sm text-muted-foreground">
