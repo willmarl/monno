@@ -5,9 +5,10 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider     = "prisma-client"
-  moduleFormat = "cjs"
-  output       = "../src/generated/prisma"
+  provider            = "prisma-client"
+  moduleFormat        = "cjs"
+  output              = "../src/generated/prisma"
+  importFileExtension = ""
 }
 
 datasource db {
@@ -25,16 +26,94 @@ enum Role {
   MOD
 }
 
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+  DELETED
+}
+
+enum ResourceType {
+  POST
+  // VIDEO
+  // ARTICLE
+  COMMENT
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+}
+
+enum SubscriptionTier {
+  FREE
+  BASIC
+  PRO
+}
+
+enum ProductStatus {
+  ACTIVE
+  REFUNDED
+}
+
+enum CreditTransactionType {
+  PURCHASE
+  SPEND
+  REFUND
+  ADMIN_ADJUST
+}
+
+enum SupportTicketStatus {
+  OPEN
+  RESPONDED
+  CLOSED
+}
+
 model User {
-  id           Int       @id @default(autoincrement())
-  username     String    @unique
-  email        String?   @unique
-  password     String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  refreshToken String?
-  role         Role      @default(USER)
-  sessions     Session[]
+  id                      Int                      @id @default(autoincrement())
+  username                String                   @unique
+  avatarPath              String?
+  email                   String?                  @unique
+  password                String? // auto-generated for OAuth users, user-set for email/password auth
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  refreshToken            String?
+  role                    Role                     @default(USER)
+  sessions                Session[]
+  passwordResetTokens     PasswordResetToken[]
+  posts                   Post[]
+  likes                   Like[]
+  comments                Comment[]
+  usernameHistory         UsernameHistory[]
+  collections             Collection[]
+  supportTicket           SupportTicket[]
+  // OAuth identity fields
+  googleId                String?                  @unique
+  githubId                String?                  @unique
+  // Email section
+  tempEmail               String? // Temporary email awaiting verification
+  emailVerifiedAt         DateTime?
+  isEmailVerified         Boolean                  @default(false)
+  emailVerificationTokens EmailVerificationToken[]
+  // Account status
+  status                  UserStatus               @default(ACTIVE)
+  statusExpireAt          DateTime? // When suspension/ban expires
+  statusReason            String? // Why they were suspended/banned/deleted
+  // Legacy soft delete (kept for backward compatibility)
+  deleted                 Boolean                  @default(false)
+  deletedAt               DateTime?
+  auditLogs               AuditLog[]               @relation("AdminActor")
+  targetedAuditLogs       AuditLog[]               @relation("AuditTarget")
+  // Stripe integration
+  stripeCustomerId        String?                  @unique
+  subscription            Subscription?
+  purchases               ProductPurchase[]
+  creditPurchases         CreditPurchase[]
+  creditTransactions      CreditTransaction[]
+  // Credits balance
+  credits                 Int                      @default(0)
 }
 
 model Session {
@@ -64,4 +143,248 @@ model Session {
 
   @@index([userId])
   @@index([expiresAt]) // Index for cleanup queries
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(uuid())
+  userId    Int
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    Int
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model UsernameHistory {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  username String // The username that was freed up
+  freedAt  DateTime @default(now()) // When the username became available
+  reason   String? // Why (e.g., "account_deletion", "username_change")
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([username])
+}
+
+model AuditLog {
+  id          Int     @id @default(autoincrement())
+  adminId     Int
+  action      String // "USER_CREATED", "USER_BANNED", "POST_DELETED", etc
+  resource    String // "USER", "POST", "CONTENT", "ADMIN", "SETTINGS"
+  resourceId  String? // ID of affected resource
+  targetId    Int? // ID of target user (if different from resourceId)
+  description String? // Human-readable action description
+  changes     Json? // Before/after values for updates
+  ipAddress   String? // Admin's IP when action performed
+
+  createdAt DateTime @default(now())
+
+  admin  User  @relation("AdminActor", fields: [adminId], references: [id], onDelete: Cascade)
+  target User? @relation("AuditTarget", fields: [targetId], references: [id], onDelete: SetNull)
+
+  @@index([adminId])
+  @@index([targetId])
+  @@index([resource])
+  @@index([createdAt])
+}
+
+model Post {
+  id        Int       @id @default(autoincrement())
+  title     String
+  content   String
+  creatorId Int
+  creator   User      @relation(fields: [creatorId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deleted   Boolean   @default(false)
+  deletedAt DateTime?
+  viewCount Int       @default(0)
+  likeCount Int       @default(0)
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Like {
+  id           Int          @id @default(autoincrement())
+  userId       Int
+  resourceType ResourceType
+  resourceId   Int
+  createdAt    DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, resourceType, resourceId])
+  @@index([resourceType])
+  @@index([userId])
+  @@index([resourceId])
+}
+
+model Collection {
+  id          Int              @id @default(autoincrement())
+  creatorId   Int
+  name        String // e.g., "favorites", "read later", "to review"
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  deleted     Boolean          @default(false)
+  deletedAt   DateTime?
+  items       CollectionItem[]
+  creator     User             @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@unique([creatorId, name]) // Each user can't have duplicate collection names
+  @@index([creatorId])
+  @@index([deleted])
+}
+
+model CollectionItem {
+  id           Int          @id @default(autoincrement())
+  collectionId Int
+  resourceType ResourceType
+  resourceId   Int
+  addedAt      DateTime     @default(now())
+  deleted      Boolean      @default(false)
+  deletedAt    DateTime?
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, resourceType, resourceId]) // Prevent duplicate items in same collection
+  @@index([collectionId])
+  @@index([resourceType])
+  @@index([resourceId])
+  @@index([deleted])
+}
+
+model Comment {
+  id               Int          @id @default(autoincrement())
+  userId           Int
+  resourceType     ResourceType
+  resourceId       Int
+  content          String
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  contentUpdatedAt DateTime     @default(now()) // Only updated when content is edited
+  deleted          Boolean      @default(false)
+  deletedAt        DateTime?
+  likeCount        Int          @default(0)
+
+  creator User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([resourceType])
+  @@index([resourceId])
+  @@index([deleted])
+}
+
+// Subscription model
+model Subscription {
+  id       Int    @id @default(autoincrement())
+  userId   Int    @unique // One subscription per user
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeId String @unique
+
+  // Status
+  status   SubscriptionStatus // active, canceled, past_due, trialing
+  tier     SubscriptionTier // basic, pro (derived from stripePriceId)
+  nextTier SubscriptionTier?
+
+  // Billing period
+  periodStart DateTime
+  periodEnd   DateTime
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+// One-time product purchases (courses, ebooks, videos, etc.)
+model ProductPurchase {
+  id        Int    @id @default(autoincrement())
+  userId    Int
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeId  String @unique
+  productId String
+
+  status      ProductStatus @default(ACTIVE)
+  refundedAt  DateTime?
+  purchasedAt DateTime      @default(now())
+
+  @@unique([userId, productId]) // Can't buy same product twice
+  @@index([userId])
+  @@index([productId])
+}
+
+// Credit/gem purchases
+model CreditPurchase {
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeId String @unique
+
+  amount    Int // How many credits bought
+  pricePaid Int // Amount paid in cents
+  currency  String @default("usd")
+
+  purchasedAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// Credit transaction audit trail
+model CreditTransaction {
+  id       Int     @id @default(autoincrement())
+  userId   Int
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeId String?
+
+  type          CreditTransactionType // PURCHASE, SPEND, REFUND, ADMIN_ADJUST
+  amount        Int // Amount changed
+  reason        String? // e.g., "article_unlock", "course_purchase"
+  balanceBefore Int // Balance before transaction
+  balanceAfter  Int // Balance after transaction
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model SupportTicket {
+  id         Int                 @id @default(autoincrement())
+  userId     Int? // Optional - null for guests
+  email      String? // may want to make email required 
+  title      String
+  message    String
+  status     SupportTicketStatus @default(OPEN) // OPEN, RESPONDED, CLOSED
+  adminNotes String?
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
 }
