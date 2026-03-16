@@ -22,6 +22,9 @@ prisma/migrations/
 # Docker
 volumes/
 
+# Backups
+backups/
+
 # Logs (PM2 & server logs)
 logs/
 
