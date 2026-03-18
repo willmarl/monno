@@ -14,7 +14,8 @@
 
   mkdir -p /home/devuser/.ssh
   cat >> /home/devuser/.ssh/authorized_keys << 'EOF'
-  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL5Y1c2xKTXZZmrenAFtR14kyF8Fip7QGDIBD9uYA2IR catOnDebian
+  ssh-ed25519 AAABBB111... johndoe
+  ... more keys here if need be
   EOF
   chmod 700 /home/devuser/.ssh
   chmod 600 /home/devuser/.ssh/authorized_keys
