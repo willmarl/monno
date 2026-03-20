@@ -89,6 +89,7 @@ model User {
   usernameHistory         UsernameHistory[]
   collections             Collection[]
   supportTicket           SupportTicket[]
+  articles                Article[]
   // OAuth identity fields
   googleId                String?                  @unique
   githubId                String?                  @unique
@@ -387,4 +388,17 @@ model SupportTicket {
 
   @@index([userId])
   @@index([status])
+}
+
+model Article {
+  id        Int       @id @default(autoincrement())
+  title     String
+  content   String
+  imagePath String?
+  creatorId Int
+  creator   User      @relation(fields: [creatorId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deleted   Boolean   @default(false)
+  deletedAt DateTime?
 }
