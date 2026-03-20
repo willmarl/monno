@@ -3,6 +3,9 @@ import { PrismaService } from '../../prisma.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import { BadRequestException } from '@nestjs/common';
+import { FileProcessingService } from '../../common/file-processing/file-processing.service';
+import { uploadLocation } from '../../common/file-processing/upload-location';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
@@ -12,7 +15,7 @@ const DEFAULT_ARTICLE_SELECT = {
   id: true,
   title: true,
   content: true,
-  image: true,
+  imagePath: true,
   createdAt: true,
   updatedAt: true,
   creator: {
@@ -24,20 +27,47 @@ const DEFAULT_ARTICLE_SELECT = {
 
 @Injectable()
 export class ArticlesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private fileProcessing: FileProcessingService,
+  ) {}
 
-  create(data: CreateArticleDto, userId: number) {
+  async create(data: CreateArticleDto, userId: number, file?: any) {
+    // If file is provided, process it using FileProcessingService
+    if (file) {
+      try {
+        // Get the current user to retrieve old avatar path
+        const currentUser = await this.prisma.article.findUnique({
+          where: { id: userId },
+          select: { imagePath: true },
+        });
+
+        // Delete old avatar if it exists
+        if (currentUser?.imagePath) {
+          await this.fileProcessing.deleteFile(currentUser.imagePath);
+        }
+
+        const fileType = uploadLocation('/avatars');
+        const imagePath = await this.fileProcessing.processFile(
+          file,
+          fileType,
+          userId,
+        );
+        data.imagePath = imagePath;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Failed to process avatar file';
+        throw new BadRequestException(errorMessage);
+      }
+    }
+
     return this.prisma.article.create({
       data: {
         ...data,
         creatorId: userId,
       },
-    });
-  }
-
-  findOne(id: number) {
-    return this.prisma.article.findUnique({
-      where: { id },
     });
   }
 

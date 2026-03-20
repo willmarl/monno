@@ -31,8 +31,8 @@ export class ArticlesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.articlesService.findOne(id);
+  findById(@Param('id') id: number) {
+    return this.articlesService.findById(id);
   }
 
   @Get()
@@ -65,6 +65,7 @@ export class ArticlesController {
     return this.articlesService.update(id, dto);
   }
 
+  @UseGuards(JwtAccessGuard, CreatorGuard)
   @Delete(':id')
   @HttpCode(204)
   remove(@Param('id') id: number) {

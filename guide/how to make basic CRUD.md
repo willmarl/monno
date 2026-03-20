@@ -21,6 +21,8 @@ model Article {
 }
 ```
 
+If human has not provided you context of the schema model. stop, dont proceed to do any steps. ask for model context.
+
 > also note anytime im using example, im referencing Article. Adapt appropriately for example instead of `createdAt` it may be `purchasedAt` but concept is the same. there could be more or less properties to have. if unsure check with human to make sure you can accurately see their vision. for instance most schemas will not have image/imagePath. I am providing image to cover what to do if schema has some sort of media upload.
 
 # Part 1 | adding files
@@ -86,7 +88,7 @@ One final thing, validation for media like images is special as that usually imp
 `create-{{resource}}.dto.ts`
 
 ```ts
-import { IsString, MaxLength, MinLength } from 'class-validator';
+import { IsString, MaxLength, MinLength, IsOptional } from 'class-validator';
 
 export class Create{{resource}}Dto {
   @IsString()
@@ -98,6 +100,10 @@ export class Create{{resource}}Dto {
   @MinLength(1)
   @MaxLength(1000)
   content!: string;
+
+  @IsOptional()
+  @IsString()
+  imagePath?: string;
 }
 ```
 
@@ -116,6 +122,10 @@ export class CreateArticleDto {
   @MinLength(1)
   @MaxLength(1000)
   content!: string;
+
+  @IsOptional()
+  @IsString()
+  imagePath?: string;
 }
 ```
 
@@ -136,6 +146,10 @@ export class Create{{resource}}Dto {
   @MinLength(1)
   @MaxLength(1000)
   content?: string;
+
+  @IsOptional()
+  @IsString()
+  imagePath?: string;
 }
 ```
 
@@ -156,6 +170,10 @@ export class UpdateArticleDto {
   @MinLength(1)
   @MaxLength(1000)
   content?: string;
+
+  @IsOptional()
+  @IsString()
+  imagePath?: string;
 }
 ```
 
@@ -205,10 +223,20 @@ import { PrismaService } from '../../prisma.service';
 import { Create{{resource}}Dto } from './dto/create-{{resource}}.dto';
 import { Update{{resource}}Dto } from './dto/update-{{resource}}.dto';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import { BadRequestException } from '@nestjs/common';
+import { FileProcessingService } from '../../common/file-processing/file-processing.service';
+import { uploadLocation } from '../../common/file-processing/upload-location';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+import { offsetPaginate } from 'src/common/pagination/offset-pagination';
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
+import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 
 @Injectable()
 export class {{resource}}Service {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private fileProcessing: FileProcessingService,
+  ) {}
 
   ...
   // insert CRUD here
@@ -223,10 +251,20 @@ import { PrismaService } from '../../prisma.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import { BadRequestException } from '@nestjs/common';
+import { FileProcessingService } from '../../common/file-processing/file-processing.service';
+import { uploadLocation } from '../../common/file-processing/upload-location';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+import { offsetPaginate } from 'src/common/pagination/offset-pagination';
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
+import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 
 @Injectable()
 export class ArticlesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private fileProcessing: FileProcessingService,
+  ) {}
 
   ...
   // insert CRUD here. future steps will instruct how. please wait.
@@ -242,7 +280,7 @@ const DEFAULT_{{resource}}_SELECT = {
   id: true,
   title: true,
   content: true,
-  image: true,
+  imagePath: true,
   createdAt: true,
   updatedAt: true,
   creator: {
@@ -260,7 +298,7 @@ const DEFAULT_ARTICLE_SELECT = {
   id: true,
   title: true,
   content: true,
-  image: true,
+  imagePath: true,
   createdAt: true,
   updatedAt: true,
   creator: {
@@ -344,7 +382,9 @@ export class ArticlesController {
 
 # part 3 | Create of CRUD
 
-## step 1 'create' logic for service.ts
+## Basic create
+
+### step 1 'create' logic for service.ts
 
 ```ts
 create(data: Create{{resource}}Dto, userId: number) {
@@ -370,7 +410,7 @@ create(data: CreateArticleDto, userId: number) {
   }
 ```
 
-## step 2 'create' endpoint for controller.ts
+### step 2 'create' endpoint for controller.ts
 
 ```ts
 @Post()
@@ -391,6 +431,10 @@ example:
     return this.articlesService.create(body, userId);
   }
 ```
+
+## Adding file upload to create
+
+### step 1
 
 # part 4 | Read of CRUD
 
@@ -434,8 +478,8 @@ async findById(id: number) {
 
 ```ts
 @Get(':id')
-findOne(@Param('id') id: number) {
-  return this.{{resource}}Service.findOne(id);
+findById(@Param('id') id: number) {
+  return this.{{resource}}Service.findById(id);
 }
 ```
 
@@ -443,8 +487,8 @@ example :
 
 ```ts
 @Get(':id')
-findOne(@Param('id') id: number) {
-  return this.articlesService.findOne(id);
+findById(@Param('id') id: number) {
+  return this.articlesService.findById(id);
 }
 ```
 
@@ -927,6 +971,7 @@ async remove(id: number) {
 ## step 2 soft delete endpoint for controller.ts
 
 ```ts
+@UseGuards(JwtAccessGuard, CreatorGuard)
 @Delete(':id')
 @HttpCode(204)
 remove(@Param('id') id: number) {
@@ -937,6 +982,7 @@ remove(@Param('id') id: number) {
 example:
 
 ```ts
+@UseGuards(JwtAccessGuard, CreatorGuard)
 @Delete(':id')
 @HttpCode(204)
 remove(@Param('id') id: number) {

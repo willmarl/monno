@@ -1,4 +1,4 @@
-import { IsString, MaxLength, MinLength } from 'class-validator';
+import { IsString, MaxLength, MinLength, IsOptional } from 'class-validator';
 
 export class CreateArticleDto {
   @IsString()
@@ -10,4 +10,8 @@ export class CreateArticleDto {
   @MinLength(1)
   @MaxLength(1000)
   content!: string;
+
+  @IsOptional()
+  @IsString()
+  imagePath?: string;
 }
