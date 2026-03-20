@@ -1,16 +1,35 @@
 import { FileProcessor } from '../file-processor.interface';
 import { StorageBackend } from '../storage-backend.interface';
+import { ProcessingOptions } from '../file-upload-config.type';
 import sharp from 'sharp';
 
-export class ImageProcessor implements FileProcessor {
-  private readonly supportedMimeTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-  ];
+/** Default processing options when none are provided */
+const DEFAULT_OPTIONS: Required<
+  Pick<ProcessingOptions, 'resize' | 'format' | 'quality'>
+> = {
+  resize: { width: 512, height: 512, fit: 'cover' },
+  format: 'jpeg',
+  quality: 80,
+};
 
+/** All MIME types the image processor can handle */
+const SUPPORTED_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+];
+
+/** Map format name → file extension */
+const FORMAT_EXTENSIONS: Record<string, string> = {
+  jpeg: 'jpg',
+  png: 'png',
+  webp: 'webp',
+};
+
+export class ImageProcessor implements FileProcessor {
   canHandle(mimeType: string): Promise<boolean> {
-    return Promise.resolve(this.supportedMimeTypes.includes(mimeType));
+    return Promise.resolve(SUPPORTED_MIME_TYPES.includes(mimeType));
   }
 
   async process(
@@ -18,17 +37,40 @@ export class ImageProcessor implements FileProcessor {
     fileType: string,
     userId: number,
     storageBackend: StorageBackend,
+    options?: ProcessingOptions,
   ): Promise<string> {
-    const filename = `${userId}-${Date.now()}.jpg`; // Convert to JPG for consistency
+    const format = options?.format ?? DEFAULT_OPTIONS.format;
+    const quality = options?.quality ?? DEFAULT_OPTIONS.quality;
+    const resize = options?.resize ?? DEFAULT_OPTIONS.resize;
 
-    // Process image: resize to 512x512 and compress
-    const processedBuffer = await sharp(file.buffer)
-      .resize(512, 512, {
-        fit: 'cover', // Crop to fill 512x512
+    const ext = FORMAT_EXTENSIONS[format] ?? 'jpg';
+    const filename = `${userId}-${Date.now()}.${ext}`;
+
+    // Build sharp pipeline
+    let pipeline = sharp(file.buffer);
+
+    if (resize) {
+      pipeline = pipeline.resize(resize.width, resize.height, {
+        fit: resize.fit ?? 'cover',
         position: 'center',
-      })
-      .jpeg({ quality: 80 }) // Compress to 80% quality
-      .toBuffer();
+      });
+    }
+
+    // Apply output format
+    switch (format) {
+      case 'png':
+        pipeline = pipeline.png({ quality });
+        break;
+      case 'webp':
+        pipeline = pipeline.webp({ quality });
+        break;
+      case 'jpeg':
+      default:
+        pipeline = pipeline.jpeg({ quality });
+        break;
+    }
+
+    const processedBuffer = await pipeline.toBuffer();
 
     // Save to storage backend (local or S3)
     return await storageBackend.saveFile(processedBuffer, fileType, filename);

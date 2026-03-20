@@ -19,7 +19,6 @@ import {
 } from '../users/dto/search-user.dto';
 import { buildSearchWhere } from 'src/common/search/search.utils';
 import { FileProcessingService } from '../../common/file-processing/file-processing.service';
-import { uploadLocation } from '../../common/file-processing/upload-location';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 
 /**
@@ -229,10 +228,9 @@ export class AdminUserService {
           await this.fileProcessing.deleteFile(user.avatarPath);
         }
 
-        const fileType = uploadLocation('/avatars');
         const avatarPath = await this.fileProcessing.processFile(
           file,
-          fileType,
+          'avatar',
           userId,
         );
         data.avatarPath = avatarPath;

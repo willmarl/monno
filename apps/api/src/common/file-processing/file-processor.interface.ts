@@ -1,4 +1,5 @@
 import { StorageBackend } from './storage-backend.interface';
+import { ProcessingOptions } from './file-upload-config.type';
 
 /**
  * Strategy interface for processing different file types
@@ -11,6 +12,7 @@ export interface FileProcessor {
    * @param fileType - Subdirectory name (avatars, images, videos, etc)
    * @param userId - User ID for naming/organization
    * @param storageBackend - Storage backend to use for saving
+   * @param options - Optional processing options (resize, format, quality, etc.)
    * @returns Path to the processed file
    */
   process(
@@ -18,6 +20,7 @@ export interface FileProcessor {
     fileType: string,
     userId: number,
     storageBackend: StorageBackend,
+    options?: ProcessingOptions,
   ): Promise<string>;
 
   /**

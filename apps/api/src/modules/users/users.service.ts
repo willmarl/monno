@@ -11,7 +11,6 @@ import * as bcrypt from 'bcrypt';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { FileProcessingService } from '../../common/file-processing/file-processing.service';
-import { uploadLocation } from '../../common/file-processing/upload-location';
 import { EmailVerificationService } from '../auth/email-verification.service';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
@@ -489,10 +488,9 @@ export class UsersService {
           await this.fileProcessing.deleteFile(currentUser.avatarPath);
         }
 
-        const fileType = uploadLocation('/avatars');
         const avatarPath = await this.fileProcessing.processFile(
           file,
-          fileType,
+          'avatar',
           userId,
         );
         data.avatarPath = avatarPath;
