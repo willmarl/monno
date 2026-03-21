@@ -5,7 +5,6 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 import { BadRequestException } from '@nestjs/common';
 import { FileProcessingService } from '../../common/file-processing/file-processing.service';
-import { uploadLocation } from '../../common/file-processing/upload-location';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
@@ -36,21 +35,9 @@ export class ArticlesService {
     // If file is provided, process it using FileProcessingService
     if (file) {
       try {
-        // Get the current user to retrieve old avatar path
-        const currentUser = await this.prisma.article.findUnique({
-          where: { id: userId },
-          select: { imagePath: true },
-        });
-
-        // Delete old avatar if it exists
-        if (currentUser?.imagePath) {
-          await this.fileProcessing.deleteFile(currentUser.imagePath);
-        }
-
-        const fileType = uploadLocation('/avatars');
         const imagePath = await this.fileProcessing.processFile(
           file,
-          fileType,
+          'postImage',
           userId,
         );
         data.imagePath = imagePath;
@@ -58,7 +45,7 @@ export class ArticlesService {
         const errorMessage =
           error instanceof Error
             ? error.message
-            : 'Failed to process avatar file';
+            : 'Failed to process image file';
         throw new BadRequestException(errorMessage);
       }
     }
@@ -173,7 +160,45 @@ export class ArticlesService {
     };
   }
 
-  update(id: number, data: UpdateArticleDto) {
+  async update(id: number, userId: number, data: UpdateArticleDto, file?: any) {
+    // Get current article to check if email is being changed and if it's verified
+    const currentArticle = await this.prisma.article.findUnique({
+      where: { id: id },
+    });
+
+    if (!currentArticle) {
+      throw new NotFoundException('Article not found');
+    }
+
+    // If file is provided, process it using FileProcessingService
+    if (file) {
+      try {
+        // Get the current article to retrieve old image path
+        const currentArticle = await this.prisma.article.findUnique({
+          where: { id: id },
+          select: { imagePath: true },
+        });
+
+        // Delete old image if it exists
+        if (currentArticle?.imagePath) {
+          await this.fileProcessing.deleteFile(currentArticle.imagePath);
+        }
+
+        const avatarPath = await this.fileProcessing.processFile(
+          file,
+          'postImage',
+          userId,
+        );
+        data.imagePath = avatarPath;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Failed to process image file';
+        throw new BadRequestException(errorMessage);
+      }
+    }
+
     return this.prisma.article.update({
       where: { id },
       data,

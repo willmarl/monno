@@ -23,7 +23,9 @@ model Article {
 
 If human has not provided you context of the schema model. stop, dont proceed to do any steps. ask for model context.
 
-> also note anytime im using example, im referencing Article. Adapt appropriately for example instead of `createdAt` it may be `purchasedAt` but concept is the same. there could be more or less properties to have. if unsure check with human to make sure you can accurately see their vision. for instance most schemas will not have image/imagePath. I am providing image to cover what to do if schema has some sort of media upload.
+also note anytime im using example, im referencing Article. Adapt appropriately for example instead of `createdAt` it may be `purchasedAt` but concept is the same. there could be more or less properties to have. if unsure check with human to make sure you can accurately see their vision. for instance most schemas will not have image/imagePath. I am providing image to cover what to do if schema has some sort of media upload.
+
+if media upload is not simple like image refer to how-to-do-file-upload.md
 
 # Part 1 | adding files
 
@@ -52,8 +54,10 @@ import { Module } from '@nestjs/common';
 import { {{resource}}Service } from './{{resource}}.service';
 import { {{resource}}Controller } from './{{resource}}.controller';
 import { PrismaService } from '../../prisma.service';
+import { FileProcessingModule } from '../../common/file-processing/file-processing.module';
 
 @Module({
+  imports: [FileProcessingModule],
   controllers: [{{resource}}Controller],
   providers: [{{resource}}Service, PrismaService],
 })
@@ -67,8 +71,10 @@ import { Module } from "@nestjs/common";
 import { ArticlesService } from "./articles.service";
 import { ArticlesController } from "./articles.controller";
 import { PrismaService } from "../../prisma.service";
+import { FileProcessingModule } from "../../common/file-processing/file-processing.module";
 
 @Module({
+  imports: [FileProcessingModule],
   controllers: [ArticlesController],
   providers: [ArticlesService, PrismaService],
 })
@@ -139,13 +145,13 @@ export class Create{{resource}}Dto {
   @IsString()
   @MinLength(1)
   @MaxLength(100)
-  title?: string;
+  title!: string;
 
   @IsOptional()
   @IsString()
   @MinLength(1)
   @MaxLength(1000)
-  content?: string;
+  content!: string;
 
   @IsOptional()
   @IsString()
@@ -163,13 +169,13 @@ export class UpdateArticleDto {
   @IsString()
   @MinLength(1)
   @MaxLength(100)
-  title?: string;
+  title!: string;
 
   @IsOptional()
   @IsString()
   @MinLength(1)
   @MaxLength(1000)
-  content?: string;
+  content!: string;
 
   @IsOptional()
   @IsString()
@@ -225,7 +231,6 @@ import { Update{{resource}}Dto } from './dto/update-{{resource}}.dto';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 import { BadRequestException } from '@nestjs/common';
 import { FileProcessingService } from '../../common/file-processing/file-processing.service';
-import { uploadLocation } from '../../common/file-processing/upload-location';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
@@ -253,7 +258,6 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 import { BadRequestException } from '@nestjs/common';
 import { FileProcessingService } from '../../common/file-processing/file-processing.service';
-import { uploadLocation } from '../../common/file-processing/upload-location';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
@@ -309,9 +313,7 @@ const DEFAULT_ARTICLE_SELECT = {
 };
 ```
 
-## controller.ts
-
-### step 1 prepare service.ts using template
+### step 3 prepare controller.ts using template
 
 here is the general template you'd want to use whenever init creating service.ts, even if you don't think you'll be using all the imported data, leave import lines in anyways.
 
@@ -335,8 +337,11 @@ import { Update{{resource}}Dto } from './dto/update-{{resource}}.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { Query } from '@nestjs/common';
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { CreatorGuard } from 'src/common/guards/creator.guard';
 import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
+import { UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('{{resource}}')
 export class {{resource}}Controller {
@@ -371,6 +376,8 @@ import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { CreatorGuard } from 'src/common/guards/creator.guard';
 import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
+import { UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('articles')
 export class ArticlesController {
@@ -434,7 +441,101 @@ example:
 
 ## Adding file upload to create
 
-### step 1
+### step 1 add file logic service.ts
+
+for basic image im going to reuse the `postImage` preset thats in `file-upload-presets.ts`. if appropriate may need to make new preset how-to-do-file-upload.md
+
+```ts
+async create(data: Create{{resource}}Dto, userId: number, file?: any) {
+    // If file is provided, process it using FileProcessingService
+    if (file) {
+      try {
+        const imagePath = await this.fileProcessing.processFile(
+          file,
+          'postImage',
+          userId,
+        );
+        data.imagePath = imagePath;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Failed to process image file';
+        throw new BadRequestException(errorMessage);
+      }
+    }
+
+    return this.prisma.{{resource}}.create({
+      data: {
+        ...data,
+        creatorId: userId,
+      },
+    });
+  }
+```
+
+example:
+
+```ts
+async create(data: CreateArticleDto, userId: number, file?: any) {
+    // If file is provided, process it using FileProcessingService
+    if (file) {
+      try {
+        const imagePath = await this.fileProcessing.processFile(
+          file,
+          'postImage',
+          userId,
+        );
+        data.imagePath = imagePath;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Failed to process image file';
+        throw new BadRequestException(errorMessage);
+      }
+    }
+
+    return this.prisma.article.create({
+      data: {
+        ...data,
+        creatorId: userId,
+      },
+    });
+  }
+```
+
+### step 2 add file argument and interceptor controller.ts
+
+```ts
+@Post()
+@UseInterceptors(FileInterceptor({{appropriate media type}}))
+@UseGuards(JwtAccessGuard)
+create(
+  @Req() req,
+  @Body() body: Create{{resource}}Dto,
+  @UploadedFile() file?: any,
+) {
+  const userId = req.user.sub;
+  return this.{{resource}}Service.create(body, userId, file);
+}
+```
+
+example:
+
+```ts
+@Post()
+@UseInterceptors(FileInterceptor('image'))
+@UseGuards(JwtAccessGuard)
+create(
+  @Req() req,
+  @Body() body: CreateArticleDto,
+  @UploadedFile() file?: any,
+) {
+  const userId = req.user.sub;
+  return this.articlesService.create(body, userId, file);
+}
+```
 
 # part 4 | Read of CRUD
 
@@ -870,7 +971,9 @@ findByUserIdCursor(
 
 # part 5| update of CRUD
 
-## step 1 'update' logic for service.ts
+## Basic update
+
+### step 1 'update' logic for service.ts
 
 ```ts
 update(id: number, data: Update{{resource}}Dto) {
@@ -892,7 +995,7 @@ update(id: number, data: UpdateArticleDto) {
   }
 ```
 
-## step 2 'update' endpoint for controller.ts
+### step 2 'update' endpoint for controller.ts
 
 ```ts
 @UseGuards(JwtAccessGuard, CreatorGuard)
@@ -912,6 +1015,142 @@ example :
   update(@Param('id') id: number, @Body() dto: UpdateArticleDto) {
     return this.articlesService.update(id, dto);
   }
+```
+
+## Adding file upload to update
+
+### step 1 add file logic service.ts
+
+```ts
+async update(id: number, userId: number, data: Update{{resource}}Dto, file?: any) {
+    // Get current {{resource}} to check if email is being changed and if it's verified
+    const current{{resource}} = await this.prisma.{{resource}}.findUnique({
+      where: { id: id },
+    });
+
+    if (!current{{resource}}) {
+      throw new NotFoundException('{{resource}} not found');
+    }
+
+    // If file is provided, process it using FileProcessingService
+    if (file) {
+      try {
+        // Get the current {{resource}} to retrieve old image path
+        const current{{resource}} = await this.prisma.{{resource}}.findUnique({
+          where: { id: id },
+          select: { imagePath: true },
+        });
+
+        // Delete old image if it exists
+        if (current{{resource}}?.imagePath) {
+          await this.fileProcessing.deleteFile(current{{resource}}.imagePath);
+        }
+
+        const avatarPath = await this.fileProcessing.processFile(
+          file,
+          'postImage',
+          userId,
+        );
+        data.imagePath = avatarPath;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Failed to process image file';
+        throw new BadRequestException(errorMessage);
+      }
+    }
+
+    return this.prisma.{{resource}}.update({
+      where: { id },
+      data,
+    });
+  }
+```
+
+example:
+
+```ts
+async update(id: number, userId: number, data: UpdateArticleDto, file?: any) {
+    // Get current article to check if email is being changed and if it's verified
+    const currentArticle = await this.prisma.article.findUnique({
+      where: { id: id },
+    });
+
+    if (!currentArticle) {
+      throw new NotFoundException('Article not found');
+    }
+
+    // If file is provided, process it using FileProcessingService
+    if (file) {
+      try {
+        // Get the current article to retrieve old image path
+        const currentArticle = await this.prisma.article.findUnique({
+          where: { id: id },
+          select: { imagePath: true },
+        });
+
+        // Delete old image if it exists
+        if (currentArticle?.imagePath) {
+          await this.fileProcessing.deleteFile(currentArticle.imagePath);
+        }
+
+        const avatarPath = await this.fileProcessing.processFile(
+          file,
+          'postImage',
+          userId,
+        );
+        data.imagePath = avatarPath;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Failed to process image file';
+        throw new BadRequestException(errorMessage);
+      }
+    }
+
+    return this.prisma.article.update({
+      where: { id },
+      data,
+    });
+  }
+```
+
+### step 2 add file argument and interceptor controller.ts
+
+```ts
+@UseGuards(JwtAccessGuard, CreatorGuard)
+@ProtectedResource('{{resource}}')
+@UseInterceptors(FileInterceptor({{appropriate media type}})))
+@Patch(':id')
+update(
+  @Param('id') id: number,
+  @Req() req: any,
+  @Body() dto: Update{{resource}}Dto,
+  @UploadedFile() file?: any,
+) {
+  const userId = req.user.sub;
+  return this.{{resource}}sService.update(id, userId, dto, file);
+}
+```
+
+example:
+
+```ts
+@UseGuards(JwtAccessGuard, CreatorGuard)
+@ProtectedResource('article')
+@UseInterceptors(FileInterceptor('image'))
+@Patch(':id')
+update(
+  @Param('id') id: number,
+  @Req() req: any,
+  @Body() dto: UpdateArticleDto,
+  @UploadedFile() file?: any,
+) {
+  const userId = req.user.sub;
+  return this.articlesService.update(id, userId, dto, file);
+}
 ```
 
 # part 6 | delete of CRUD
@@ -1021,10 +1260,11 @@ Tell human to tests these endpoints and wait for human's confirmation to continu
 **Create**
 POST `http://localhost:3000/{{resource}}`
 
-```json
+```multipart/form-data
 {
   "title": "First Post",
   "content": "Hello world!"
+  "image": "exampleImage.png"
 }
 ```
 
@@ -1042,7 +1282,7 @@ GET `http://localhost:3000/{{resource}}/<id>`
 **Update**
 PATCH `http://localhost:3000/{{resource}}/<id>`
 
-```json
+```multipart/form-data
 {
   "title": "Updated title"
 }

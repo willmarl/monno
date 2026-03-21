@@ -20,14 +20,22 @@ import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { CreatorGuard } from 'src/common/guards/creator.guard';
 import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
+import { UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+
 @Controller('articles')
 export class ArticlesController {
   constructor(private readonly articlesService: ArticlesService) {}
   @Post()
+  @UseInterceptors(FileInterceptor('image'))
   @UseGuards(JwtAccessGuard)
-  create(@Req() req, @Body() body: CreateArticleDto) {
+  create(
+    @Req() req,
+    @Body() body: CreateArticleDto,
+    @UploadedFile() file?: any,
+  ) {
     const userId = req.user.sub;
-    return this.articlesService.create(body, userId);
+    return this.articlesService.create(body, userId, file);
   }
 
   @Get(':id')
@@ -60,9 +68,16 @@ export class ArticlesController {
 
   @UseGuards(JwtAccessGuard, CreatorGuard)
   @ProtectedResource('article')
+  @UseInterceptors(FileInterceptor('image'))
   @Patch(':id')
-  update(@Param('id') id: number, @Body() dto: UpdateArticleDto) {
-    return this.articlesService.update(id, dto);
+  update(
+    @Param('id') id: number,
+    @Req() req: any,
+    @Body() dto: UpdateArticleDto,
+    @UploadedFile() file?: any,
+  ) {
+    const userId = req.user.sub;
+    return this.articlesService.update(id, userId, dto, file);
   }
 
   @UseGuards(JwtAccessGuard, CreatorGuard)
