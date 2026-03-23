@@ -9,12 +9,18 @@ import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
+import {
+  ArticleSearchDto,
+  ArticleSearchCursorDto,
+} from './dto/search-article.dto';
+import { buildSearchWhere } from 'src/common/search/search.utils';
 
 const DEFAULT_ARTICLE_SELECT = {
   id: true,
   title: true,
   content: true,
   imagePath: true,
+  status: true,
   createdAt: true,
   updatedAt: true,
   creator: {
@@ -225,5 +231,70 @@ export class ArticlesService {
       where: { id },
       data: { deleted: true, deletedAt: new Date() },
     });
+  }
+
+  async searchAll(searchDto: ArticleSearchDto) {
+    const searchFields = searchDto.getSearchFields();
+    const searchOptions = searchDto.getSearchOptions();
+    const orderBy = searchDto.getOrderBy();
+
+    const where = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    });
+
+    const whereWithStatus = {
+      ...where,
+      deleted: false,
+      creator: { status: 'ACTIVE' },
+    };
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
+      model: this.prisma.article,
+      limit: searchDto.limit ?? 10,
+      offset: searchDto.offset ?? 0,
+      query: {
+        where: whereWithStatus,
+        orderBy,
+        select: DEFAULT_ARTICLE_SELECT,
+      },
+      countQuery: { where: whereWithStatus },
+    });
+
+    return {
+      items,
+      pageInfo,
+      ...(isRedirected && { isRedirected: true }),
+    };
+  }
+
+  async searchAllCursor(searchDto: ArticleSearchCursorDto) {
+    const searchFields = searchDto.getSearchFields();
+    const searchOptions = searchDto.getSearchOptions();
+    const orderBy = searchDto.getOrderBy();
+
+    const where = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    });
+
+    const { cursor, limit } = searchDto;
+
+    const { items, nextCursor } = await cursorPaginate({
+      model: this.prisma.article,
+      limit: limit ?? 10,
+      cursor,
+      query: {
+        where: { ...where, deleted: false, creator: { status: 'ACTIVE' } },
+        orderBy,
+        select: DEFAULT_ARTICLE_SELECT,
+      },
+    });
+
+    return {
+      items,
+      nextCursor,
+    };
   }
 }

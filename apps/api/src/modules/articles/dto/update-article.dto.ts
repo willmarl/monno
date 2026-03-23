@@ -1,4 +1,11 @@
-import { IsString, MaxLength, MinLength, IsOptional } from 'class-validator';
+import {
+  IsString,
+  MaxLength,
+  MinLength,
+  IsOptional,
+  IsEnum,
+} from 'class-validator';
+import { ArticleStatus } from '../../../generated/prisma/client';
 
 export class UpdateArticleDto {
   @IsOptional()
@@ -16,4 +23,8 @@ export class UpdateArticleDto {
   @IsOptional()
   @IsString()
   imagePath?: string;
+
+  @IsOptional()
+  @IsEnum(ArticleStatus)
+  role?: ArticleStatus;
 }

@@ -390,15 +390,23 @@ model SupportTicket {
   @@index([status])
 }
 
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  SCHEDULED
+}
+
 model Article {
-  id        Int       @id @default(autoincrement())
+  id        Int           @id @default(autoincrement())
   title     String
   content   String
   imagePath String?
+  status    ArticleStatus @default(DRAFT)
   creatorId Int
-  creator   User      @relation(fields: [creatorId], references: [id])
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deleted   Boolean   @default(false)
+  creator   User          @relation(fields: [creatorId], references: [id])
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deleted   Boolean       @default(false)
   deletedAt DateTime?
 }

@@ -1,3 +1,5 @@
+future me : make checklist of things human to clarify to ai
+
 # preamble
 
 note everything here assumes the human or AI has prisma schema model ready (resource is in schema.prisma and the migrations has been set), for example:
@@ -7,11 +9,20 @@ model User {
   {{resource}} Article[]
 ...
 }
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  SCHEDULED
+}
+
 model Article {
   id        Int      @id @default(autoincrement())
   title     String
   content   String
   imagePath     String?
+  status    ArticleStatus @default(DRAFT)
   creatorId Int
   creator User @relation(fields: [creatorId], references: [id])
   createdAt DateTime @default(now())
@@ -23,9 +34,28 @@ model Article {
 
 If human has not provided you context of the schema model. stop, dont proceed to do any steps. ask for model context.
 
-also note anytime im using example, im referencing Article. Adapt appropriately for example instead of `createdAt` it may be `purchasedAt` but concept is the same. there could be more or less properties to have. if unsure check with human to make sure you can accurately see their vision. for instance most schemas will not have image/imagePath. I am providing image to cover what to do if schema has some sort of media upload.
+Note anytime im using example, im referencing Article. Adapt appropriately for example instead of `createdAt` it may be `purchasedAt` but concept is the same. there could be more or less properties to have. if unsure check with human to make sure you can accurately see their vision. for instance most schemas will not have image/imagePath. I am providing image to cover what to do if schema has some sort of media upload.
+
+The example 'Article' I use is suppose to cover a good amount of scenarios. I dont expect most new resource to have media or enum of status so in examples if new source doesnt have need for enum or media upload can ignore that part of code.
 
 if media upload is not simple like image refer to how-to-do-file-upload.md
+
+## example of what human should ask you
+
+```
+Here is my blog schema model in schema.prisma can you make CRUD for it?
+I want it to have:
+
+- offset pagination
+- search
+- file upload for picture
+```
+
+**clarify on human's requests**:
+
+- if they ask for offset and cursor pagination or dont mention what pagination to use then ask for clarification. it may be simple CRUD with no pagination needed.
+- if they dont mention search, clarify if they dont want any search as it may just be simple CRUD.
+- ask if they want any image processing done like convert uploaded file to format, resolution, file size restriction ,etc
 
 # Part 1 | adding files
 
@@ -94,7 +124,8 @@ One final thing, validation for media like images is special as that usually imp
 `create-{{resource}}.dto.ts`
 
 ```ts
-import { IsString, MaxLength, MinLength, IsOptional } from 'class-validator';
+import { IsString, MaxLength, MinLength, IsOptional, IsEnum } from 'class-validator';
+import { {{resource}}Status } from '../../../generated/prisma/client';
 
 export class Create{{resource}}Dto {
   @IsString()
@@ -110,13 +141,23 @@ export class Create{{resource}}Dto {
   @IsOptional()
   @IsString()
   imagePath?: string;
+
+  @IsEnum({{resource}}Status)
+  status!: {{resource}}Status;
 }
 ```
 
 example:
 
 ```ts
-import { IsString, MaxLength, MinLength } from "class-validator";
+import {
+  IsString,
+  MaxLength,
+  MinLength,
+  IsOptional,
+  IsEnum,
+} from "class-validator";
+import { ArticleStatus } from "../../../generated/prisma/client";
 
 export class CreateArticleDto {
   @IsString()
@@ -132,13 +173,17 @@ export class CreateArticleDto {
   @IsOptional()
   @IsString()
   imagePath?: string;
+
+  @IsEnum(ArticleStatus)
+  status!: ArticleStatus;
 }
 ```
 
 `update-{{resource}}.dto.ts`
 
 ```ts
-import { IsString, MaxLength, MinLength, IsOptional } from 'class-validator';
+import { IsString, MaxLength, MinLength, IsOptional, IsEnum } from 'class-validator';
+import { {{resource}}Status } from '../../../generated/prisma/client';
 
 export class Create{{resource}}Dto {
   @IsOptional()
@@ -156,13 +201,24 @@ export class Create{{resource}}Dto {
   @IsOptional()
   @IsString()
   imagePath?: string;
+
+  @IsOptional()
+  @IsEnum({{resource}}Status)
+  role?: {{resource}}Status;
 }
 ```
 
 example:
 
 ```ts
-import { IsString, MaxLength, MinLength, IsOptional } from "class-validator";
+import {
+  IsString,
+  MaxLength,
+  MinLength,
+  IsOptional,
+  IsEnum,
+} from "class-validator";
+import { ArticleStatus } from "../../../generated/prisma/client";
 
 export class UpdateArticleDto {
   @IsOptional()
@@ -180,6 +236,10 @@ export class UpdateArticleDto {
   @IsOptional()
   @IsString()
   imagePath?: string;
+
+  @IsOptional()
+  @IsEnum(ArticleStatus)
+  role?: ArticleStatus;
 }
 ```
 
@@ -285,6 +345,7 @@ const DEFAULT_{{resource}}_SELECT = {
   title: true,
   content: true,
   imagePath: true,
+  status: true,
   createdAt: true,
   updatedAt: true,
   creator: {
@@ -303,6 +364,7 @@ const DEFAULT_ARTICLE_SELECT = {
   title: true,
   content: true,
   imagePath: true,
+  status: true,
   createdAt: true,
   updatedAt: true,
   creator: {
@@ -329,6 +391,7 @@ import {
   Req,
   UseGuards,
   HttpCode,
+  ParseIntPipe,
 } from '@nestjs/common';
 
 import { {{resource}}Service } from './{{resource}}.service';
@@ -365,6 +428,7 @@ import {
   Req,
   UseGuards,
   HttpCode,
+  ParseIntPipe,
 } from '@nestjs/common';
 
 import { ArticlesService } from './articles.service';
@@ -579,7 +643,7 @@ async findById(id: number) {
 
 ```ts
 @Get(':id')
-findById(@Param('id') id: number) {
+findById(@Param('id', ParseIntPipe) id: number) {
   return this.{{resource}}Service.findById(id);
 }
 ```
@@ -588,7 +652,7 @@ example :
 
 ```ts
 @Get(':id')
-findById(@Param('id') id: number) {
+findById(@Param('id', ParseIntPipe) id: number) {
   return this.articlesService.findById(id);
 }
 ```
@@ -795,7 +859,7 @@ async findByUserIdRaw(userId: number) {
 
 ```ts
 @Get('users/:userId')
-findByUserIdRaw(@Param('userId') userId: number) {
+findByUserIdRaw(@Param('userId', ParseIntPipe) userId: number) {
   return this.{{resource}}Service.findByUserIdRaw(userId);
 }
 ```
@@ -804,7 +868,7 @@ example :
 
 ```ts
 @Get('users/:userId')
-findByUserIdRaw(@Param('userId') userId: number) {
+findByUserIdRaw(@Param('userId', ParseIntPipe) userId: number) {
   return this.articlesService.findByUserIdRaw(userId);
 }
 ```
@@ -873,7 +937,7 @@ async findByUserId(userId: number, pag: PaginationDto) {
 
 ```ts
 @Get('users/:userId')
-findByUserId(@Param('userId') userId: number, @Query() pag: PaginationDto) {
+findByUserId(@Param('userId', ParseIntPipe) userId: number, @Query() pag: PaginationDto) {
   return this.{{resource}}Service.findByUserId(userId, pag);
 }
 ```
@@ -882,7 +946,7 @@ example:
 
 ```ts
 @Get('users/:userId')
-findByUserId(@Param('userId') userId: number, @Query() pag: PaginationDto) {
+findByUserId(@Param('userId', ParseIntPipe) userId: number, @Query() pag: PaginationDto) {
   return this.articlesService.findByUserId(userId, pag);
 }
 ```
@@ -950,7 +1014,7 @@ async findByUserIdCursor(userId: number, pag: CursorPaginationDto) {
 ```ts
 @Get('users/:userId/cursor')
 findByUserIdCursor(
-  @Param('userId') userId: number,
+  @Param('userId', ParseIntPipe) userId: number,
   @Query() pag: CursorPaginationDto,
 ) {
   return this.{{resource}}Service.findByUserIdCursor(userId, pag);
@@ -962,7 +1026,7 @@ example:
 ```ts
 @Get('users/:userId/cursor')
 findByUserIdCursor(
-  @Param('userId') userId: number,
+  @Param('userId', ParseIntPipe) userId: number,
   @Query() pag: CursorPaginationDto,
 ) {
   return this.articlesService.findByUserIdCursor(userId, pag);
@@ -1001,7 +1065,7 @@ update(id: number, data: UpdateArticleDto) {
 @UseGuards(JwtAccessGuard, CreatorGuard)
   @ProtectedResource('{{resource}}')
   @Patch(':id')
-  update(@Param('id') id: number, @Body() dto: Update{{resource}}Dto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: Update{{resource}}Dto) {
     return this.{{resource}}Service.update(id, dto);
   }
 ```
@@ -1012,7 +1076,7 @@ example :
 @UseGuards(JwtAccessGuard, CreatorGuard)
   @ProtectedResource('article')
   @Patch(':id')
-  update(@Param('id') id: number, @Body() dto: UpdateArticleDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateArticleDto) {
     return this.articlesService.update(id, dto);
   }
 ```
@@ -1125,7 +1189,7 @@ async update(id: number, userId: number, data: UpdateArticleDto, file?: any) {
 @UseInterceptors(FileInterceptor({{appropriate media type}})))
 @Patch(':id')
 update(
-  @Param('id') id: number,
+  @Param('id', ParseIntPipe) id: number,
   @Req() req: any,
   @Body() dto: Update{{resource}}Dto,
   @UploadedFile() file?: any,
@@ -1143,7 +1207,7 @@ example:
 @UseInterceptors(FileInterceptor('image'))
 @Patch(':id')
 update(
-  @Param('id') id: number,
+  @Param('id', ParseIntPipe) id: number,
   @Req() req: any,
   @Body() dto: UpdateArticleDto,
   @UploadedFile() file?: any,
@@ -1213,7 +1277,7 @@ async remove(id: number) {
 @UseGuards(JwtAccessGuard, CreatorGuard)
 @Delete(':id')
 @HttpCode(204)
-remove(@Param('id') id: number) {
+remove(@Param('id', ParseIntPipe) id: number) {
   return this.{{resource}}Service.remove(id);
 }
 ```
@@ -1224,7 +1288,7 @@ example:
 @UseGuards(JwtAccessGuard, CreatorGuard)
 @Delete(':id')
 @HttpCode(204)
-remove(@Param('id') id: number) {
+remove(@Param('id', ParseIntPipe) id: number) {
   return this.articlesService.remove(id);
 }
 ```
@@ -1265,12 +1329,14 @@ POST `http://localhost:3000/{{resource}}`
   "title": "First Post",
   "content": "Hello world!"
   "image": "exampleImage.png"
+  "status": "DRAFT"
 }
 ```
 
 **Read all**
 GET `http://localhost:3000/{{resource}}`
 cursor: `http://localhost:3000/{{resource}}/cursor`
+queries: `offset/cursor`, `limit`
 
 **Get all user's {{resource}}**
 GET `http://localhost:3000/{{resource}}/users/<userId>`
@@ -1291,10 +1357,667 @@ PATCH `http://localhost:3000/{{resource}}/<id>`
 **Delete**
 DELETE `http://localhost:3000/{{resource}}/<id>`
 
-# part 8 | add swagger docs to DTO and controller.ts
+# part 8 | basic search engine (Prolly want to make this its own md file)
 
-To clarify, you should not do part 8 nor beyond until human has given you permission to continue.
+## step 1 search dto beginning
+
+Add to dto folder `search-{{resource}}.dto.ts`. The code at beginning of file applies regardless if using offset or cursor pagination. Should adjust `{{resource}}SearchFields` object to match fields that you want to query in.
+
+```ts
+import { IsOptional, IsString, IsBoolean, IsIn } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
+import { {{resource}}Status } from '../../../generated/prisma/client';
+
+/**
+ * Transform string booleans from query params to actual booleans
+ * Query strings always come as strings, so "false" is truthy
+ */
+const TransformBoolean = () =>
+  Transform(({ value }) => {
+    if (value === undefined || value === null) return undefined;
+    if (typeof value === 'boolean') return value;
+    return value === 'true' || value === '1' || value === 1;
+  });
+
+export enum {{resource}}SearchFields {
+  TITLE = 'title',
+  CONTENT = 'content',
+  CREATOR_USERNAME = 'creator.username',
+}
+
+const VALID_{{resource}}_SEARCH_FIELDS = Object.values({{resource}}SearchFields);
+
+function {{resource}}SearchMixin<TBase extends new (...args: any[]) => {}>(
+  Base: TBase,
+) {
+  class Mixed extends Base {
+    ... // wait for step 2
+  }
+  return Mixed;
+}
+
+export class {{resource}}SearchDto extends {{resource}}SearchMixin(PaginationDto) {}
+export class {{resource}}SearchCursorDto extends {{resource}}SearchMixin(
+  CursorPaginationDto,
+) {}
+```
+
+example:
+
+```ts
+import { IsOptional, IsString, IsBoolean, IsIn } from "class-validator";
+import { Transform } from "class-transformer";
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { PaginationDto } from "src/common/pagination/dto/pagination.dto";
+import { CursorPaginationDto } from "src/common/pagination/dto/cursor-pagination.dto";
+import { ArticleStatus } from "../../../generated/prisma/client";
+
+/**
+ * Transform string booleans from query params to actual booleans
+ * Query strings always come as strings, so "false" is truthy
+ */
+const TransformBoolean = () =>
+  Transform(({ value }) => {
+    if (value === undefined || value === null) return undefined;
+    if (typeof value === "boolean") return value;
+    return value === "true" || value === "1" || value === 1;
+  });
+
+export enum ArticleSearchFields {
+  TITLE = "title",
+  CONTENT = "content",
+  CREATOR_USERNAME = "creator.username",
+}
+
+const VALID_ARTICLE_SEARCH_FIELDS = Object.values(ArticleSearchFields);
+
+function ArticleSearchMixin<TBase extends new (...args: any[]) => {}>(
+  Base: TBase,
+) {
+  class Mixed extends Base {
+    ... // wait for step 2
+  }
+  return Mixed;
+}
+
+export class ArticleSearchDto extends ArticleSearchMixin(PaginationDto) {}
+export class ArticleSearchCursorDto extends ArticleSearchMixin(
+  CursorPaginationDto,
+) {}
+```
+
+## step 2 making filter options
+
+lots of things to go over.
+
+1. the case sensitive toggle search is something you most definitely would always have
+2. the "deleted?" toggle search is something you may not have in case the prisma schema doesn't have delete fields
+3. if you want to add another toggle search, say for example prisma schema has "verified" boolean then just the "deleted?" validator as template. so instead of
+
+```ts
+@IsOptional()
+@TransformBoolean()
+@IsBoolean()
+deleted?: boolean;
+```
+
+you have
+
+```ts
+@IsOptional()
+@TransformBoolean()
+@IsBoolean()
+verified?: boolean;
+```
+
+4. adjust sort/order accordingly based off prisma schema. you may not even have a `createdAt` or may have something new like `purchasedAt` or `viewCount`. to add this sort, go to `getOrderBy()` function and find adjust `validFields` array to something like `const validFields = ['createdAt', 'updatedAt', 'purchasedAt', 'viewCount'];`
+
+5. for enum fields like "status", "role", "type"
+
+you should ideally import the enum from prisma but there might be scenario in which you cant or human has specific reason, if thats the case then just do this
+
+```ts
+getStatuses(): string[] {
+if (!this.statuses) return [];
+
+const validStatuses = ['DRAFT', 'PUBLISHED', 'ARCHIVED', 'SCHEDULED'];
+return this.statuses
+  .split(',')
+  .map((status) => status.trim().toUpperCase())
+  .filter((status) => validStatuses.includes(status as ArticleStatus));
+}
+```
+
+Okay thats all for now, here is template/example :
+
+```ts
+class Mixed extends Base {
+  @ApiPropertyOptional({
+    description: 'Search query string',
+    example: 'hello world',
+  })
+  @IsOptional()
+  @IsString()
+  query?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Comma-separated list of fields to search in (title, content, creator.username). Defaults to all.',
+    example: 'title,content',
+  })
+  @IsOptional()
+  @IsString()
+  searchFields?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    description:
+      'Comma-separated list of statuses to filter by (e.g., DRAFT,PUBLISHED,ARCHIVED,SCHEDULED)',
+  })
+  statuses?: string;
+
+  @ApiPropertyOptional({
+    description: 'Enable case-sensitive search (default: false)',
+    example: false,
+  })
+  @IsOptional()
+  @TransformBoolean()
+  @IsBoolean()
+  caseSensitive?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      'Filter by deleted status. If not provided, shows both deleted and active posts.',
+    example: false,
+  })
+  @IsOptional()
+  @TransformBoolean()
+  @IsBoolean()
+  deleted?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      'Sort by field and direction (field|direction). E.g., createdAt|desc, updatedAt|asc',
+    example: 'createdAt|desc',
+  })
+  @IsOptional()
+  @IsString()
+  sort?: string;
+
+  /**
+   * Parse and validate searchFields into an array of valid fields
+   * Invalid fields are silently ignored
+   */
+  getSearchFields(): string[] {
+    if (!this.searchFields) {
+      // Default to all fields
+      return VALID_{{resource}}_SEARCH_FIELDS;
+    }
+
+    return this.searchFields
+      .split(',')
+      .map((field) => field.trim())
+      .filter((field) => VALID_{{resource}}_SEARCH_FIELDS.includes(field as any));
+  }
+
+  /**
+   * Parse and validate statuses filter into an array
+   * Invalid statuses are silently ignored
+   */
+  getStatuses(): string[] {
+    if (!this.statuses) return [];
+
+    const validStatuses = Object.values({{resource}}Status);
+    // const validStatuses = ['DRAFT', 'PUBLISHED', 'ARCHIVED', 'SCHEDULED'];
+    return this.statuses
+      .split(',')
+      .map((status) => status.trim().toUpperCase())
+      .filter((status) => validStatuses.includes(status as {{resource}}Status));
+  }
+
+  /**
+   * Get search options (caseSensitive flag)
+   */
+  getSearchOptions() {
+    return {
+      caseSensitive: this.caseSensitive ?? false,
+    };
+  }
+
+  /**
+   * Parse sort parameter into Prisma orderBy clause
+   * Format: "field|direction" e.g., "createdAt|desc"
+   * Defaults to createdAt|desc
+   */
+  getOrderBy(): Record<string, 'asc' | 'desc'> {
+    if (!this.sort) {
+      return { createdAt: 'desc' };
+    }
+
+    const [field, direction] = this.sort.split('|');
+    const validFields = ['createdAt', 'updatedAt'];
+    const validDirection = ['asc', 'desc'].includes(direction?.toLowerCase())
+      ? (direction?.toLowerCase() as 'asc' | 'desc')
+      : 'desc';
+
+    if (!validFields.includes(field)) {
+      return { createdAt: 'desc' };
+    }
+
+    return { [field]: validDirection };
+  }
+}
+```
+
+example:
+
+```ts
+class Mixed extends Base {
+  @ApiPropertyOptional({
+    description: "Search query string",
+    example: "hello world",
+  })
+  @IsOptional()
+  @IsString()
+  query?: string;
+
+  @ApiPropertyOptional({
+    description:
+      "Comma-separated list of fields to search in (title, content, creator.username). Defaults to all.",
+    example: "title,content",
+  })
+  @IsOptional()
+  @IsString()
+  searchFields?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    description:
+      "Comma-separated list of statuses to filter by (e.g., DRAFT,PUBLISHED,ARCHIVED,SCHEDULED)",
+  })
+  statuses?: string;
+
+  @ApiPropertyOptional({
+    description: "Enable case-sensitive search (default: false)",
+    example: false,
+  })
+  @IsOptional()
+  @TransformBoolean()
+  @IsBoolean()
+  caseSensitive?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      "Filter by deleted status. If not provided, shows both deleted and active posts.",
+    example: false,
+  })
+  @IsOptional()
+  @TransformBoolean()
+  @IsBoolean()
+  deleted?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      "Sort by field and direction (field|direction). E.g., createdAt|desc, updatedAt|asc",
+    example: "createdAt|desc",
+  })
+  @IsOptional()
+  @IsString()
+  sort?: string;
+
+  /**
+   * Parse and validate searchFields into an array of valid fields
+   * Invalid fields are silently ignored
+   */
+  getSearchFields(): string[] {
+    if (!this.searchFields) {
+      // Default to all fields
+      return VALID_ARTICLE_SEARCH_FIELDS;
+    }
+
+    return this.searchFields
+      .split(",")
+      .map((field) => field.trim())
+      .filter((field) => VALID_ARTICLE_SEARCH_FIELDS.includes(field as any));
+  }
+
+  /**
+   * Parse and validate statuses filter into an array
+   * Invalid statuses are silently ignored
+   */
+  getStatuses(): string[] {
+    if (!this.statuses) return [];
+
+    const validStatuses = Object.values(ArticleStatus);
+    // const validStatuses = ['DRAFT', 'PUBLISHED', 'ARCHIVED', 'SCHEDULED'];
+    return this.statuses
+      .split(",")
+      .map((status) => status.trim().toUpperCase())
+      .filter((status) => validStatuses.includes(status as ArticleStatus));
+  }
+
+  /**
+   * Get search options (caseSensitive flag)
+   */
+  getSearchOptions() {
+    return {
+      caseSensitive: this.caseSensitive ?? false,
+    };
+  }
+
+  /**
+   * Parse sort parameter into Prisma orderBy clause
+   * Format: "field|direction" e.g., "createdAt|desc"
+   * Defaults to createdAt|desc
+   */
+  getOrderBy(): Record<string, "asc" | "desc"> {
+    if (!this.sort) {
+      return { createdAt: "desc" };
+    }
+
+    const [field, direction] = this.sort.split("|");
+    const validFields = ["createdAt", "updatedAt"];
+    const validDirection = ["asc", "desc"].includes(direction?.toLowerCase())
+      ? (direction?.toLowerCase() as "asc" | "desc")
+      : "desc";
+
+    if (!validFields.includes(field)) {
+      return { createdAt: "desc" };
+    }
+
+    return { [field]: validDirection };
+  }
+}
+```
+
+## step 3 add search to service file (offset)
+
+```ts
+import { {{resource}}SearchDto } from './dto/search-{{resource}}.dto';
+import { buildSearchWhere } from 'src/common/search/search.utils';
+
+
+async searchAll(searchDto: {{resource}}SearchDto) {
+  const searchFields = searchDto.getSearchFields();
+  const searchOptions = searchDto.getSearchOptions();
+  const orderBy = searchDto.getOrderBy();
+
+  const where = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  const whereWithStatus = {
+    ...where,
+    deleted: false,
+    creator: { status: 'ACTIVE' },
+  };
+  const { items, pageInfo, isRedirected } = await offsetPaginate({
+    model: this.prisma.{{resource}},
+    limit: searchDto.limit ?? 10,
+    offset: searchDto.offset ?? 0,
+    query: {
+      where: whereWithStatus,
+      orderBy,
+      select: DEFAULT_{{resource}}_SELECT,
+    },
+    countQuery: { where: whereWithStatus },
+  });
+
+  return {
+    items,
+    pageInfo,
+    ...(isRedirected && { isRedirected: true }),
+  };
+}
+```
+
+example:
+
+```ts
+import { ArticleSearchDto } from './dto/search-article.dto';
+import { buildSearchWhere } from 'src/common/search/search.utils';
+
+
+async searchAll(searchDto: ArticleSearchDto) {
+  const searchFields = searchDto.getSearchFields();
+  const searchOptions = searchDto.getSearchOptions();
+  const orderBy = searchDto.getOrderBy();
+
+  const where = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  const whereWithStatus = {
+    ...where,
+    deleted: false,
+    creator: { status: 'ACTIVE' },
+  };
+  const { items, pageInfo, isRedirected } = await offsetPaginate({
+    model: this.prisma.article,
+    limit: searchDto.limit ?? 10,
+    offset: searchDto.offset ?? 0,
+    query: {
+      where: whereWithStatus,
+      orderBy,
+      select: DEFAULT_ARTICLE_SELECT,
+    },
+    countQuery: { where: whereWithStatus },
+  });
+
+  return {
+    items,
+    pageInfo,
+    ...(isRedirected && { isRedirected: true }),
+  };
+}
+```
+
+## step 4 (optional) add search to service file (cursor)
+
+```ts
+import { {{resource}}SearchCursorDto } from './dto/search-{{resource}}.dto';
+import { buildSearchWhere } from 'src/common/search/search.utils';
+
+async searchAllCursor(searchDto: {{resource}}SearchCursorDto) {
+  const searchFields = searchDto.getSearchFields();
+  const searchOptions = searchDto.getSearchOptions();
+  const orderBy = searchDto.getOrderBy();
+
+  const where = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  const { cursor, limit } = searchDto;
+
+  const { items, nextCursor } = await cursorPaginate({
+    model: this.prisma.{{resource}},
+    limit: limit ?? 10,
+    cursor,
+    query: {
+      where: { ...where, deleted: false, creator: { status: 'ACTIVE' } },
+      orderBy,
+      select: DEFAULT_{{resource}}_SELECT,
+    },
+  });
+
+  return {
+    items,
+    nextCursor,
+  };
+}
+```
+
+example :
+
+```ts
+import { ArticleSearchCursorDto } from './dto/search-article.dto';
+import { buildSearchWhere } from 'src/common/search/search.utils';
+
+async searchAllCursor(searchDto: ArticleSearchCursorDto) {
+  const searchFields = searchDto.getSearchFields();
+  const searchOptions = searchDto.getSearchOptions();
+  const orderBy = searchDto.getOrderBy();
+
+  const where = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  const { cursor, limit } = searchDto;
+
+  const { items, nextCursor } = await cursorPaginate({
+    model: this.prisma.article,
+    limit: limit ?? 10,
+    cursor,
+    query: {
+      where: { ...where, deleted: false, creator: { status: 'ACTIVE' } },
+      orderBy,
+      select: DEFAULT_ARTICLE_SELECT,
+    },
+  });
+
+  return {
+    items,
+    nextCursor,
+  };
+}
+```
+
+## step 5 update controller.ts to have search (offset)
+
+Typically suppose to replace your findAll with search since empty search query gives same result as normal findAll.
+
+Reminder that the search endpoint needs to be **before** any dynamic endpoint that does something like `:id` needs to be last
+
+```ts
+import { {{resource}}SearchDto} from './dto/search-{{resource}}.dto';
+
+// commented out as its redundant now
+// @Get()
+// findAll(@Query() pag: PaginationDto) {
+//   return this.{{resource}}sService.findAll(pag);
+// }
+@Get()
+search(@Query() searchDto: {{resource}}SearchDto) {
+  return this.{{resource}}Service.searchAll(searchDto);
+}
+```
+
+example :
+
+```ts
+import { ArticleSearchDto } from './dto/search-article.dto';
+
+// commented out as its redundant now
+// @Get()
+// findAll(@Query() pag: PaginationDto) {
+//   return this.articlesService.findAll(pag);
+// }
+@Get()
+search(@Query() searchDto: ArticleSearchDto) {
+  return this.articlesService.searchAll(searchDto);
+}
+```
+
+## step 6 (optional) update controller.ts to have search (cursor)
+
+Typically suppose to replace your findAll with search since empty search query gives same result as normal findAll.
+
+Reminder that the search endpoint needs to be **before** any dynamic endpoint that does something like `:id` needs to be last
+
+```ts
+import { {{resource}}SearchCursorDto} from './dto/search-{{resource}}.dto';
+
+// commented out as its redundant now
+// @Get('cursor')
+// findAllCursor(@Query() pag: CursorPaginationDto) {
+//   return this.{{resource}}sService.findAllCursor(pag);
+// }
+
+@Get('cursor')
+searchCursor(@Query() searchDto: {{resource}}SearchCursorDto) {
+  return this.{{resource}}Service.searchAllCursor(searchDto);
+}
+```
+
+example :
+
+```ts
+import { ArticleSearchCursorDto } from './dto/search-article.dto';
+
+// commented out as its redundant now
+// @Get('cursor')
+// findAllCursor(@Query() pag: CursorPaginationDto) {
+//   return this.articlesService.findAllCursor(pag);
+// }
+
+@Get('cursor')
+searchCursor(@Query() searchDto: ArticleSearchCursorDto) {
+  return this.articlesService.searchAllCursor(searchDto);
+}
+```
+
+## step 7 new queries for updated endpoint to for human to test
+
+**limit** : number
+
+- `limit=10`
+
+**offset** : number
+
+- `offset=1`
+
+**cursor** : number
+
+- `cursor=1`
+
+**query** : string
+
+- `query=cat`
+
+**search fields** : string
+only search in these included fields (can be single or many at once)
+
+- `searchFields:title,content,creator.username`
+- `searchFields:title`
+
+**statuses** : string
+filter based of status. enum of: "DRAFT","PUBLISHED","ARCHIVED","SCHEDULED"
+
+- `statuses:DRAFT`
+
+**deleted** : boolean
+toggle on to only filter comments that are deleted
+
+- `deleted=true`
+
+**sort**: string
+enum of createdAt, updatedAt
+
+- `sort=createdAt|desc` (or `asc`)
+- `sort=updatedAt|desc` (or `asc`)
+
+# part 9 | adding likes, views, comments, collection (THIS NEEDS TO BE SEPARATE MD FILE | "Resource actions" / CRUD extensions)
+
+by the time i am writing this, there is only likes, views, comments, and collection. there might be more or less when you currently read this. prompt human the available resource actions found (likes, views, comments, collections, etc), ask which ones to apply/add.
+
+# part 10 | admin CRUD
+
+WIP
+
+# part 11 | add swagger docs to DTO and controller.ts
+
 I won't add examples as you should know how to add swagger docs.
 Just go to the .dto files and controller.ts file and add swagger docs inferencing whats already in those files.
-
-# part 9 |

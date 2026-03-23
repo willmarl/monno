@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
   HttpCode,
+  ParseIntPipe,
 } from '@nestjs/common';
 
 import { ArticlesService } from './articles.service';
@@ -22,6 +23,10 @@ import { CreatorGuard } from 'src/common/guards/creator.guard';
 import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
 import { UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ArticleSearchDto,
+  ArticleSearchCursorDto,
+} from './dto/search-article.dto';
 
 @Controller('articles')
 export class ArticlesController {
@@ -38,32 +43,47 @@ export class ArticlesController {
     return this.articlesService.create(body, userId, file);
   }
 
-  @Get(':id')
-  findById(@Param('id') id: number) {
-    return this.articlesService.findById(id);
-  }
+  // commented out as its redundant now
+  // @Get()
+  // findAll(@Query() pag: PaginationDto) {
+  //   return this.articlesService.findAll(pag);
+  // }
 
   @Get()
-  findAll(@Query() pag: PaginationDto) {
-    return this.articlesService.findAll(pag);
+  search(@Query() searchDto: ArticleSearchDto) {
+    return this.articlesService.searchAll(searchDto);
   }
 
+  // commented out as its redundant now
+  // @Get('cursor')
+  // findAllCursor(@Query() pag: CursorPaginationDto) {
+  //   return this.articlesService.findAllCursor(pag);
+  // }
+
   @Get('cursor')
-  findAllCursor(@Query() pag: CursorPaginationDto) {
-    return this.articlesService.findAllCursor(pag);
+  searchCursor(@Query() searchDto: ArticleSearchCursorDto) {
+    return this.articlesService.searchAllCursor(searchDto);
   }
 
   @Get('users/:userId')
-  findByUserId(@Param('userId') userId: number, @Query() pag: PaginationDto) {
+  findByUserId(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query() pag: PaginationDto,
+  ) {
     return this.articlesService.findByUserId(userId, pag);
   }
 
   @Get('users/:userId/cursor')
   findByUserIdCursor(
-    @Param('userId') userId: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @Query() pag: CursorPaginationDto,
   ) {
     return this.articlesService.findByUserIdCursor(userId, pag);
+  }
+
+  @Get(':id')
+  findById(@Param('id', ParseIntPipe) id: number) {
+    return this.articlesService.findById(id);
   }
 
   @UseGuards(JwtAccessGuard, CreatorGuard)
@@ -71,7 +91,7 @@ export class ArticlesController {
   @UseInterceptors(FileInterceptor('image'))
   @Patch(':id')
   update(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Req() req: any,
     @Body() dto: UpdateArticleDto,
     @UploadedFile() file?: any,
@@ -83,7 +103,7 @@ export class ArticlesController {
   @UseGuards(JwtAccessGuard, CreatorGuard)
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id') id: number) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.articlesService.remove(id);
   }
 }
