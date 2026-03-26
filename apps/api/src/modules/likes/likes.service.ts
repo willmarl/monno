@@ -6,6 +6,19 @@ import {
 import { PrismaService } from '../../prisma.service';
 import type { LikeableResourceType } from 'src/common/types/resource.types';
 
+type ResourceConfig = {
+  /** Prisma delegate key, e.g. 'post' → this.prisma.post */
+  model: keyof PrismaService;
+  /** Human-readable label used in error messages */
+  label: string;
+};
+
+const LIKEABLE_RESOURCE_CONFIG: Record<LikeableResourceType, ResourceConfig> = {
+  POST: { model: 'post', label: 'Post' },
+  COMMENT: { model: 'comment', label: 'Comment' },
+  ARTICLE: { model: 'article', label: 'Article' },
+};
+
 @Injectable()
 export class LikesService {
   constructor(private prisma: PrismaService) {}
@@ -33,6 +46,10 @@ export class LikesService {
       },
     });
 
+    const delegate = this.prisma[
+      LIKEABLE_RESOURCE_CONFIG[resourceType].model
+    ] as any;
+
     if (existing) {
       // Unlike (delete) and decrement likeCount
       await this.prisma.like.delete({
@@ -40,60 +57,30 @@ export class LikesService {
           userId_resourceType_resourceId: { userId, resourceType, resourceId },
         },
       });
-      // Decrement likeCount
-      if (resourceType === 'POST') {
-        await this.prisma.post.update({
-          where: { id: resourceId },
-          data: { likeCount: { decrement: 1 } },
-        });
-      } else if (resourceType === 'COMMENT') {
-        await this.prisma.comment.update({
-          where: { id: resourceId },
-          data: { likeCount: { decrement: 1 } },
-        });
-      }
+      await delegate.update({
+        where: { id: resourceId },
+        data: { likeCount: { decrement: 1 } },
+      });
     } else {
       // Like (create) and increment likeCount
       await this.prisma.like.create({
-        data: {
-          userId,
-          resourceType,
-          resourceId,
-        },
+        data: { userId, resourceType, resourceId },
       });
-      // Increment likeCount
-      if (resourceType === 'POST') {
-        await this.prisma.post.update({
-          where: { id: resourceId },
-          data: { likeCount: { increment: 1 } },
-        });
-      } else if (resourceType === 'COMMENT') {
-        await this.prisma.comment.update({
-          where: { id: resourceId },
-          data: { likeCount: { increment: 1 } },
-        });
-      }
+      await delegate.update({
+        where: { id: resourceId },
+        data: { likeCount: { increment: 1 } },
+      });
     }
 
     // Get denormalized likeCount (much faster than COUNT query)
-    let likeCount = 0;
-    if (resourceType === 'POST') {
-      const post = await this.prisma.post.findUnique({
-        where: { id: resourceId },
-        select: { likeCount: true },
-      });
-      likeCount = post?.likeCount ?? 0;
-    } else if (resourceType === 'COMMENT') {
-      const comment = await this.prisma.comment.findUnique({
-        where: { id: resourceId },
-        select: { likeCount: true },
-      });
-      likeCount = comment?.likeCount ?? 0;
-    }
+    const record = await delegate.findUnique({
+      where: { id: resourceId },
+      select: { likeCount: true },
+    });
 
     return {
       liked: !existing,
-      likeCount,
+      likeCount: record?.likeCount ?? 0,
     };
   }
 
@@ -102,23 +89,14 @@ export class LikesService {
    * O(1) read instead of O(n) COUNT aggregation
    */
   async getLikeCount(resourceType: LikeableResourceType, resourceId: number) {
-    if (resourceType === 'POST') {
-      const post = await this.prisma.post.findUnique({
-        where: { id: resourceId },
-        select: { likeCount: true },
-      });
-      return post?.likeCount ?? 0;
-    } else if (resourceType === 'COMMENT') {
-      const comment = await this.prisma.comment.findUnique({
-        where: { id: resourceId },
-        select: { likeCount: true },
-      });
-      return comment?.likeCount ?? 0;
-    }
-    // For future resource types (VIDEO, ARTICLE) when denormalization is added
-    throw new BadRequestException(
-      'Like count not yet supported for this resource type',
-    );
+    const delegate = this.prisma[
+      LIKEABLE_RESOURCE_CONFIG[resourceType].model
+    ] as any;
+    const record = await delegate.findUnique({
+      where: { id: resourceId },
+      select: { likeCount: true },
+    });
+    return record?.likeCount ?? 0;
   }
 
   /**
@@ -143,41 +121,23 @@ export class LikesService {
   }
 
   /**
-   * Validate that the resource exists (post, video, article, etc.)
+   * Validate that the resource exists (post, article, comment, etc.)
+   * Driven by LIKEABLE_RESOURCE_CONFIG — add a new entry there to support a new type.
    */
   private async validateResourceExists(
     resourceType: LikeableResourceType,
     resourceId: number,
   ) {
-    switch (resourceType) {
-      case 'POST': {
-        const post = await this.prisma.post.findUnique({
-          where: { id: resourceId },
-        });
-        if (!post || post.deleted) {
-          throw new NotFoundException('Post not found');
-        }
-        break;
-      }
-      case 'COMMENT': {
-        const comment = await this.prisma.comment.findUnique({
-          where: { id: resourceId },
-        });
-        if (!comment || comment.deleted) {
-          throw new NotFoundException('Comment not found');
-        }
-        break;
-      }
-      // case 'VIDEO': {
-      //   // TODO: Implement when video model is added
-      //   throw new BadRequestException('Video likes not yet implemented');
-      // }
-      // case 'ARTICLE': {
-      //   // TODO: Implement when article model is added
-      //   throw new BadRequestException('Article likes not yet implemented');
-      // }
-      default:
-        throw new BadRequestException('Invalid resource type');
+    const config = LIKEABLE_RESOURCE_CONFIG[resourceType];
+    if (!config) {
+      throw new BadRequestException('Invalid resource type');
+    }
+
+    const delegate = this.prisma[config.model] as any;
+    const record = await delegate.findUnique({ where: { id: resourceId } });
+
+    if (!record || record.deleted) {
+      throw new NotFoundException(`${config.label} not found`);
     }
   }
 }
