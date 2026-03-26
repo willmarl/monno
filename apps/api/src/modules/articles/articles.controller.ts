@@ -10,18 +10,19 @@ import {
   UseGuards,
   HttpCode,
   ParseIntPipe,
+  Query,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 
 import { ArticlesService } from './articles.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
-import { Query } from '@nestjs/common';
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { CreatorGuard } from 'src/common/guards/creator.guard';
 import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
-import { UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ArticleSearchDto,
@@ -96,11 +97,11 @@ export class ArticlesController {
     @Body() dto: UpdateArticleDto,
     @UploadedFile() file?: any,
   ) {
-    const userId = req.user.sub;
-    return this.articlesService.update(id, userId, dto, file);
+    return this.articlesService.update(id, dto, file);
   }
 
   @UseGuards(JwtAccessGuard, CreatorGuard)
+  @ProtectedResource('article')
   @Delete(':id')
   @HttpCode(204)
   remove(@Param('id', ParseIntPipe) id: number) {

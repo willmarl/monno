@@ -4,19 +4,21 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
-import { CreateArticleDto } from './dto/create-article.dto';
-import { UpdateArticleDto } from './dto/update-article.dto';
-import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import { AdminService } from './admin.service';
+import { UpdateArticleDto } from '../articles/dto/update-article.dto';
 import { FileProcessingService } from '../../common/file-processing/file-processing.service';
+import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import { buildSearchWhere } from 'src/common/search/search.utils';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
-import {
-  ArticleSearchDto,
-  ArticleSearchCursorDto,
-} from './dto/search-article.dto';
-import { buildSearchWhere } from 'src/common/search/search.utils';
+// import {
+//   ArticleSearchDto,
+//   ArticleSearchCursorDto,
+// } from '../articles/dto/search-article.dto';
+import { ArticleSearchDto } from '../articles/dto/search-article.dto';
+import { ArticleSearchCursorDto } from '../articles/dto/search-article.dto';
 
 const DEFAULT_ARTICLE_SELECT = {
   id: true,
@@ -34,47 +36,20 @@ const DEFAULT_ARTICLE_SELECT = {
 };
 
 @Injectable()
-export class ArticlesService {
+export class AdminArticleService {
   constructor(
     private prisma: PrismaService,
+    private adminService: AdminService,
     private fileProcessing: FileProcessingService,
   ) {}
 
-  async create(data: CreateArticleDto, userId: number, file?: any) {
-    // If file is provided, process it using FileProcessingService
-    if (file) {
-      try {
-        const imagePath = await this.fileProcessing.processFile(
-          file,
-          'postImage',
-          userId,
-        );
-        data.imagePath = imagePath;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Failed to process image file';
-        throw new BadRequestException(errorMessage);
-      }
-    }
-
-    return this.prisma.article.create({
-      data: {
-        ...data,
-        creatorId: userId,
-      },
-      select: DEFAULT_ARTICLE_SELECT,
-    });
-  }
-
   async findById(id: number) {
     const article = await this.prisma.article.findUnique({
-      where: { id },
+      where: { id: id },
       select: DEFAULT_ARTICLE_SELECT,
     });
 
-    if (!article || article.deleted) {
+    if (!article) {
       throw new NotFoundException('Article not found');
     }
 
@@ -82,7 +57,7 @@ export class ArticlesService {
   }
 
   async findAll(pag: PaginationDto) {
-    const where = { deleted: false, creator: { status: 'ACTIVE' } };
+    const where = {};
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.article,
       limit: pag.limit ?? 10,
@@ -110,7 +85,7 @@ export class ArticlesService {
       limit: limit ?? 10,
       cursor,
       query: {
-        where: { deleted: false, creator: { status: 'ACTIVE' } },
+        where: {},
         orderBy: { createdAt: 'desc' } as const,
         select: DEFAULT_ARTICLE_SELECT,
       },
@@ -121,56 +96,12 @@ export class ArticlesService {
     };
   }
 
-  async findByUserId(userId: number, pag: PaginationDto) {
-    const where = {
-      creatorId: userId,
-      deleted: false,
-      creator: { status: 'ACTIVE' },
-    };
-    const { items, pageInfo, isRedirected } = await offsetPaginate({
-      model: this.prisma.article,
-      limit: pag.limit ?? 10,
-      offset: pag.offset ?? 0,
-      query: {
-        where,
-        orderBy: { createdAt: 'desc' } as const,
-        select: DEFAULT_ARTICLE_SELECT,
-      },
-      countQuery: { where },
-    });
-
-    return {
-      items,
-      pageInfo,
-      ...(isRedirected && { isRedirected: true }),
-    };
-  }
-
-  async findByUserIdCursor(userId: number, pag: CursorPaginationDto) {
-    const { cursor, limit } = pag;
-
-    const { items, nextCursor } = await cursorPaginate({
-      model: this.prisma.article,
-      limit: limit ?? 10,
-      cursor,
-      query: {
-        where: {
-          creatorId: userId,
-          deleted: false,
-          creator: { status: 'ACTIVE' },
-        },
-        orderBy: { createdAt: 'desc' } as const,
-        select: DEFAULT_ARTICLE_SELECT,
-      },
-    });
-
-    return {
-      items,
-      nextCursor,
-    };
-  }
-
-  async update(id: number, data: UpdateArticleDto, file?: any) {
+  async update(
+    adminId: number,
+    id: number,
+    data: UpdateArticleDto,
+    file?: any,
+  ) {
     const article = await this.prisma.article.findUnique({
       where: { id: id },
     });
@@ -210,6 +141,16 @@ export class ArticlesService {
       }
     }
 
+    // Log the update
+    await this.adminService.log({
+      adminId,
+      action: 'ARTICLE_UPDATED',
+      resource: 'ARTICLE',
+      resourceId: id.toString(),
+      targetId: article.creatorId,
+      description: `Admin updated article "${article.title}"`,
+    });
+
     return this.prisma.article.update({
       where: { id },
       data,
@@ -217,11 +158,10 @@ export class ArticlesService {
     });
   }
 
-  async remove(id: number) {
-    // Check if article exists
+  async remove(adminId: number, id: number, reason?: string) {
     const article = await this.prisma.article.findUnique({
-      where: { id },
-      select: { id: true, deleted: true },
+      where: { id: id },
+      select: { title: true, creatorId: true, deleted: true },
     });
 
     if (!article) {
@@ -232,11 +172,53 @@ export class ArticlesService {
       throw new AlreadyDeletedException('Article was already deleted');
     }
 
-    // Soft delete the article
     await this.prisma.article.update({
-      where: { id },
+      where: { id: id },
       data: { deleted: true, deletedAt: new Date() },
+      select: DEFAULT_ARTICLE_SELECT,
     });
+
+    // Log the deletion
+    await this.adminService.log({
+      adminId,
+      action: 'ARTICLE_DELETED',
+      resource: 'ARTICLE',
+      resourceId: id.toString(),
+      targetId: article.creatorId,
+      description: `Admin deleted article "${article.title}"`,
+    });
+  }
+
+  async restore(adminId: number, id: number) {
+    const article = await this.prisma.article.findUnique({
+      where: { id: id },
+    });
+
+    if (!article) {
+      throw new NotFoundException('Article not found');
+    }
+
+    if (!article.deleted) {
+      throw new BadRequestException('Article is not deleted');
+    }
+
+    const restored = await this.prisma.article.update({
+      where: { id: id },
+      data: { deleted: false, deletedAt: null },
+      select: DEFAULT_ARTICLE_SELECT,
+    });
+
+    // Log the restoration
+    await this.adminService.log({
+      adminId,
+      action: 'ARTICLE_RESTORED',
+      resource: 'ARTICLE',
+      resourceId: id.toString(),
+      targetId: article.creatorId,
+      description: `Admin restored article "${article.title}"`,
+    });
+
+    return restored;
   }
 
   async searchAll(searchDto: ArticleSearchDto) {
@@ -252,8 +234,6 @@ export class ArticlesService {
 
     const whereWithStatus = {
       ...where,
-      deleted: false,
-      creator: { status: 'ACTIVE' },
     };
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.article,
@@ -292,7 +272,7 @@ export class ArticlesService {
       limit: limit ?? 10,
       cursor,
       query: {
-        where: { ...where, deleted: false, creator: { status: 'ACTIVE' } },
+        where: { ...where },
         orderBy,
         select: DEFAULT_ARTICLE_SELECT,
       },

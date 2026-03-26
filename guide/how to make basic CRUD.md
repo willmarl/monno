@@ -32,13 +32,36 @@ model Article {
 }
 ```
 
+This guide is meant for making new CRUD resource type/module using the current infrastructure that has auth, users, and guards already made. This guide is not meant for sophisticated measures such as cascading business logic, subscription/billing, microservices, and other super advance stuff.
 If human has not provided you context of the schema model. stop, dont proceed to do any steps. ask for model context.
 
 Note anytime im using example, im referencing Article. Adapt appropriately for example instead of `createdAt` it may be `purchasedAt` but concept is the same. there could be more or less properties to have. if unsure check with human to make sure you can accurately see their vision. for instance most schemas will not have image/imagePath. I am providing image to cover what to do if schema has some sort of media upload.
 
 The example 'Article' I use is suppose to cover a good amount of scenarios. I dont expect most new resource to have media or enum of status so in examples if new source doesnt have need for enum or media upload can ignore that part of code.
 
-if media upload is not simple like image refer to how-to-do-file-upload.md
+if media upload is not simple like image refer to [how-to-do-file-upload.md](./how-to-do-file-upload.md)
+
+## checklist of features
+
+> Before implementing anything, confirm this checklist with the human. Mark each item as included or excluded. Steps marked **optional** throughout this guide should **only be implemented if the human explicitly requested it**.
+
+**backend**
+
+- basic CRUD
+  - offset pagination (optional — clarify if not mentioned)
+  - cursor pagination (optional — only add if human explicitly requests it)
+  - could be both offset and cursor but clarify since unusual request (optional)
+- file/media upload (optional — only add if human explicitly requests it)
+- search (optional — clarify if not mentioned)
+- admin (optional — only add if human explicitly requests it)
+- able to like (optional — only add if human explicitly requests it)
+- has view count (optional — only add if human explicitly requests it)
+- able to comment on (optional — only add if human explicitly requests it)
+- able to add to collection (optional — only add if human explicitly requests it)
+
+**frontend**
+
+- WIP
 
 ## example of what human should ask you
 
@@ -49,15 +72,26 @@ I want it to have:
 - offset pagination
 - search
 - file upload for picture
+- admin
 ```
 
-**clarify on human's requests**:
+## pre-implementation clarification checklist
 
-- if they ask for offset and cursor pagination or dont mention what pagination to use then ask for clarification. it may be simple CRUD with no pagination needed.
-- if they dont mention search, clarify if they dont want any search as it may just be simple CRUD.
-- ask if they want any image processing done like convert uploaded file to format, resolution, file size restriction ,etc
+Go through this checklist with the human **before writing any code**. Do not proceed until all items are confirmed.
 
-# Part 1 | adding files
+- [ ] Is the Prisma schema model provided?
+- [ ] Should there be an **admin** variant? (admin service + controller)
+- [ ] Is there **file/media upload**?
+  - [ ] If yes: what kind? Generic image? Video? Something more complex? Any processing (resize, format conversion, file size limit)?
+- [ ] **Pagination** — primitive `findAll` (no pagination), offset, cursor, or both offset + cursor?
+  - [ ] Same question for `findByUserId` endpoint
+- [ ] Should there be a **search** endpoint?
+- [ ] Any **resource actions**? (likes, views, comments, collections, etc.)
+  - [ ] If yes: which ones?
+
+Once confirmed, summarise back to the human what you will implement before starting.
+
+# Part 1 | adding basic backend files
 
 ## step 1 make files
 
@@ -65,8 +99,11 @@ in `apps/api/src` make these files if not already
 `modules/{{resource}}/{{resource}}.service.ts`
 `modules/{{resource}}/{{resource}}.controller.ts`
 `modules/{{resource}}/{{resource}}.module.ts`
-`modules/{{resource}}/dto/create-article.dto.ts`
-`modules/{{resource}}/dto/update-article.dto.ts`
+`modules/{{resource}}/dto/create-{{resource}}.dto.ts`
+`modules/{{resource}}/dto/update-{{resource}}.dto.ts`
+`modules/{{resource}}/dto/search-{{resource}}.dto.ts` — ⚠️ SKIP unless human requested search
+`modules/admin/admin-{{resource}}.service.ts` — ⚠️ SKIP unless human requested admin
+`modules/admin/admin-{{resource}}.controller.ts` — ⚠️ SKIP unless human requested admin
 
 for example:
 `modules/articles/articles.service.ts`
@@ -74,20 +111,25 @@ for example:
 `modules/articles/articles.module.ts`
 `modules/articles/dto/create-article.dto.ts`
 `modules/articles/dto/update-article.dto.ts`
+`modules/articles/dto/search-article.dto.ts` — ⚠️ SKIP unless human requested search
+`modules/admin/admin-article.service.ts` — ⚠️ SKIP unless human requested admin
+`modules/admin/admin-article.controller.ts` — ⚠️ SKIP unless human requested admin
 
 > Note most of the time its plural, they're might be edge cases like "support" as in "support tickets" so having "supports" wouldn't make sense.
 
-## Step 2 Add PrismaService to the {{resource}}Module
+## Step 2 Add PrismaService to the {{resource}}.module.ts
+
+> ⚠️ Only include `FileProcessingModule` in imports if human requested file/media upload. Otherwise remove it.
 
 ```ts
 import { Module } from '@nestjs/common';
 import { {{resource}}Service } from './{{resource}}.service';
 import { {{resource}}Controller } from './{{resource}}.controller';
 import { PrismaService } from '../../prisma.service';
-import { FileProcessingModule } from '../../common/file-processing/file-processing.module';
+import { FileProcessingModule } from '../../common/file-processing/file-processing.module'; // remove if no file upload
 
 @Module({
-  imports: [FileProcessingModule],
+  imports: [FileProcessingModule], // remove if no file upload
   controllers: [{{resource}}Controller],
   providers: [{{resource}}Service, PrismaService],
 })
@@ -101,10 +143,10 @@ import { Module } from "@nestjs/common";
 import { ArticlesService } from "./articles.service";
 import { ArticlesController } from "./articles.controller";
 import { PrismaService } from "../../prisma.service";
-import { FileProcessingModule } from "../../common/file-processing/file-processing.module";
+import { FileProcessingModule } from "../../common/file-processing/file-processing.module"; // remove if no file upload
 
 @Module({
-  imports: [FileProcessingModule],
+  imports: [FileProcessingModule], // remove if no file upload
   controllers: [ArticlesController],
   providers: [ArticlesService, PrismaService],
 })
@@ -275,6 +317,58 @@ imports: [
 ],
 ```
 
+## step 4 add to admin files to admin module
+
+> ⚠️ SKIP THIS ENTIRE STEP unless human explicitly requested admin.
+
+in the file `modules/admin/admin.module.ts` add imports and add on to array of controllers, providers, and exports inside the `@Module` decorator
+
+it is normal for import lines of new resource to give error as service and controller file is not set up yet.
+
+```ts
+import { Admin{{resource}}sController } from './admin-{{resource}}.controller';
+import { Admin{{resource}}Service } from './admin-{{resource}}.service';
+
+@Module({
+  imports: [UsersModule],
+  controllers: [
+    ...
+    Admin{{resource}}sController,
+  ],
+  providers: [
+    ...
+    Admin{{resource}}Service,
+  ],
+  exports: [
+    ...
+    Admin{{resource}}Service,
+  ],
+})
+```
+
+example:
+
+```ts
+import { AdminArticlesController } from './admin-article.controller';
+import { AdminArticleService } from './admin-article.service';
+
+@Module({
+  imports: [UsersModule],
+  controllers: [
+    ...
+    AdminArticlesController,
+  ],
+  providers: [
+    ...
+    AdminArticleService,
+  ],
+  exports: [
+    ...
+    AdminArticleService,
+  ],
+})
+```
+
 # part 2 templates for service and controller
 
 ## service.ts
@@ -283,24 +377,26 @@ imports: [
 
 here is the general template you'd want to use whenever init creating service.ts, even if you don't think you'll be using all the imported data, leave import lines in anyways.
 
+> ⚠️ Remove `FileProcessingService` import and constructor injection if human did NOT request file upload. Remove `buildSearchWhere` import if human did NOT request search. Remove cursor imports if human did NOT request cursor pagination.
+
 ```ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { Create{{resource}}Dto } from './dto/create-{{resource}}.dto';
 import { Update{{resource}}Dto } from './dto/update-{{resource}}.dto';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
-import { BadRequestException } from '@nestjs/common';
-import { FileProcessingService } from '../../common/file-processing/file-processing.service';
+import { FileProcessingService } from '../../common/file-processing/file-processing.service'; // remove if no file upload
+import { buildSearchWhere } from 'src/common/search/search.utils'; // remove if no search
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
-import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
-import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination
+import { cursorPaginate } from 'src/common/pagination/cursor-pagination'; // remove if no cursor pagination
 
 @Injectable()
 export class {{resource}}Service {
   constructor(
     private prisma: PrismaService,
-    private fileProcessing: FileProcessingService,
+    private fileProcessing: FileProcessingService, // remove if no file upload
   ) {}
 
   ...
@@ -311,23 +407,23 @@ export class {{resource}}Service {
 example:
 
 ```ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
-import { BadRequestException } from '@nestjs/common';
-import { FileProcessingService } from '../../common/file-processing/file-processing.service';
+import { FileProcessingService } from '../../common/file-processing/file-processing.service'; // remove if no file upload
+import { buildSearchWhere } from 'src/common/search/search.utils'; // remove if no search
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
-import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
-import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination
+import { cursorPaginate } from 'src/common/pagination/cursor-pagination'; // remove if no cursor pagination
 
 @Injectable()
 export class ArticlesService {
   constructor(
     private prisma: PrismaService,
-    private fileProcessing: FileProcessingService,
+    private fileProcessing: FileProcessingService, // remove if no file upload
   ) {}
 
   ...
@@ -379,6 +475,8 @@ const DEFAULT_ARTICLE_SELECT = {
 
 here is the general template you'd want to use whenever init creating service.ts, even if you don't think you'll be using all the imported data, leave import lines in anyways.
 
+> ⚠️ Remove `UseInterceptors`, `UploadedFile`, and `FileInterceptor` imports if human did NOT request file upload. Remove `CursorPaginationDto` import if human did NOT request cursor pagination.
+
 ```ts
 import {
   Controller,
@@ -392,19 +490,20 @@ import {
   UseGuards,
   HttpCode,
   ParseIntPipe,
+  Query,
+  UseInterceptors, // remove if no file upload
+  UploadedFile // remove if no file upload
 } from '@nestjs/common';
 
 import { {{resource}}Service } from './{{resource}}.service';
 import { Create{{resource}}Dto } from './dto/create-{{resource}}.dto';
 import { Update{{resource}}Dto } from './dto/update-{{resource}}.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
-import { Query } from '@nestjs/common';
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { CreatorGuard } from 'src/common/guards/creator.guard';
 import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
-import { UseInterceptors, UploadedFile } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express'; // remove if no file upload
 
 @Controller('{{resource}}')
 export class {{resource}}Controller {
@@ -429,19 +528,20 @@ import {
   UseGuards,
   HttpCode,
   ParseIntPipe,
+  Query,
+  UseInterceptors,
+  UploadedFile
 } from '@nestjs/common';
 
 import { ArticlesService } from './articles.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
-import { Query } from '@nestjs/common';
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { CreatorGuard } from 'src/common/guards/creator.guard';
 import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
-import { UseInterceptors, UploadedFile } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express'; // remove if no file upload
 
 @Controller('articles')
 export class ArticlesController {
@@ -451,7 +551,188 @@ export class ArticlesController {
 }
 ```
 
+### step 4 prepare admin-{{resource}}.service.ts using template
+
+> ⚠️ SKIP THIS ENTIRE STEP (and all admin steps) unless human explicitly requested admin.
+
+here is the general template you'd want to use whenever init creating admin service, even if you don't think you'll be using all the imported data, leave import lines in anyways.
+
+> ⚠️ Within this file: remove `FileProcessingService` import and injection if human did NOT request file upload. Remove `buildSearchWhere` if human did NOT request search. Remove cursor imports if human did NOT request cursor pagination.
+
+```ts
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '../../prisma.service';
+import { AdminService } from './admin.service';
+import { Update{{resource}}Dto } from '../{{resource}}/dto/update-{{resource}}.dto';
+import { FileProcessingService } from '../../common/file-processing/file-processing.service'; // remove if no file upload
+import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import { buildSearchWhere } from 'src/common/search/search.utils'; // remove if no search
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+import { offsetPaginate } from 'src/common/pagination/offset-pagination';
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination
+import { cursorPaginate } from 'src/common/pagination/cursor-pagination'; // remove if no cursor pagination
+
+@Injectable()
+export class Admin{{resource}}Service {
+  constructor(
+    private prisma: PrismaService,
+    private adminService: AdminService,
+    private fileProcessing: FileProcessingService, // remove if no file upload
+  ) {}
+
+  // insert CRUD here. future steps will instruct how. please wait.
+}
+```
+
+example :
+
+```ts
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import { PrismaService } from "../../prisma.service";
+import { AdminService } from "./admin.service";
+import { UpdateArticleDto } from "../articles/dto/update-article.dto";
+import { FileProcessingService } from "../../common/file-processing/file-processing.service";
+import { AlreadyDeletedException } from "src/common/exceptions/already-deleted.exception";
+import { buildSearchWhere } from "src/common/search/search.utils";
+import { PaginationDto } from "src/common/pagination/dto/pagination.dto";
+import { offsetPaginate } from "src/common/pagination/offset-pagination";
+import { CursorPaginationDto } from "src/common/pagination/dto/cursor-pagination.dto";
+import { cursorPaginate } from "src/common/pagination/cursor-pagination";
+
+@Injectable()
+export class AdminArticleService {
+  constructor(
+    private prisma: PrismaService,
+    private adminService: AdminService,
+    private fileProcessing: FileProcessingService,
+  ) {}
+
+  // insert CRUD here. future steps will instruct how. please wait.
+}
+```
+
+### step 5 make shared return
+
+add this variable just before `@Injectable()`. will be reused a lot.
+the reason why there is different select const variable for admin and normal service.ts is incase you want normal to show minimal/non-sensitive data and admin to show all data.
+
+```ts
+const DEFAULT_{{resource}}_SELECT = {
+  id: true,
+  title: true,
+  content: true,
+  imagePath: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true,
+  creator: {
+    select: { id: true, username: true, avatarPath: true },
+  },
+  deleted: true,
+  deletedAt: true,
+};
+```
+
+example:
+
+```ts
+const DEFAULT_ARTICLE_SELECT = {
+  id: true,
+  title: true,
+  content: true,
+  imagePath: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true,
+  creator: {
+    select: { id: true, username: true, avatarPath: true },
+  },
+  deleted: true,
+  deletedAt: true,
+};
+```
+
+### step 6 prepare admin-{{resource}}.controller.ts using template
+
+> ⚠️ SKIP THIS ENTIRE STEP (and all admin steps) unless human explicitly requested admin.
+
+here is the general template you'd want to use whenever init creating service.ts, even if you don't think you'll be using all the imported data, leave import lines in anyways.
+
+```ts
+import {
+  Controller,
+  Get,
+  Body,
+  Param,
+  Patch,
+  Delete,
+  ParseIntPipe,
+  UseGuards,
+  Query,
+  Req,
+  Post,
+  HttpCode,
+} from '@nestjs/common';
+import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
+import { Roles } from '../../decorators/roles.decorator';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Admin{{resource}}Service } from './admin-{{resource}}.service';
+import { Update{{resource}}Dto } from '../{{resource}}/dto/update-{{resource}}.dto';
+import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
+
+@Controller('admin/{{resource}}')
+@UseGuards(JwtAccessGuard, RolesGuard)
+@Roles('ADMIN')
+export class Admin{{resource}}Controller {
+  constructor(private readonly admin{{resource}}Service: Admin{{resource}}Service) {}
+
+  // insert CRUD here. future steps will instruct how. please wait.
+}
+```
+
+example :
+
+```ts
+import {
+  Controller,
+  Get,
+  Body,
+  Param,
+  Patch,
+  Delete,
+  ParseIntPipe,
+  UseGuards,
+  Query,
+  Req,
+  Post,
+  HttpCode,
+} from "@nestjs/common";
+import { JwtAccessGuard } from "../auth/guards/jwt-access.guard";
+import { Roles } from "../../decorators/roles.decorator";
+import { RolesGuard } from "../../common/guards/roles.guard";
+import { AdminArticleService } from "./admin-article.service";
+import { UpdateArticleDto } from "../articles/dto/update-article.dto";
+import { PaginationDto } from "../../common/pagination/dto/pagination.dto";
+import { CursorPaginationDto } from "src/common/pagination/dto/cursor-pagination.dto";
+
+@Controller("admin/articles")
+@UseGuards(JwtAccessGuard, RolesGuard)
+@Roles("ADMIN")
+export class AdminArticlesController {
+  constructor(private readonly adminArticleService: AdminArticleService) {}
+
+  // insert CRUD here. future steps will instruct how. please wait.
+}
+```
+
 # part 3 | Create of CRUD
+
+> ⚠️ Throughout this part: any step labelled **"admin"** should be SKIPPED unless human explicitly requested admin. Any section labelled **"file upload"** should be SKIPPED unless human explicitly requested file/media upload.
 
 ## Basic create
 
@@ -464,6 +745,7 @@ create(data: Create{{resource}}Dto, userId: number) {
         ...data,
         creatorId: userId,
       },
+      select: DEFAULT_{{resource}}_SELECT,
     });
   }
 ```
@@ -477,6 +759,7 @@ create(data: CreateArticleDto, userId: number) {
         ...data,
         creatorId: userId,
       },
+      select: DEFAULT_ARTICLE_SELECT,
     });
   }
 ```
@@ -504,6 +787,8 @@ example:
 ```
 
 ## Adding file upload to create
+
+> ⚠️ SKIP THIS ENTIRE SECTION unless human explicitly requested file/media upload.
 
 ### step 1 add file logic service.ts
 
@@ -603,6 +888,8 @@ create(
 
 # part 4 | Read of CRUD
 
+> ⚠️ Throughout this part: any step labelled **"admin"** should be SKIPPED unless human explicitly requested admin. Sections labelled **"cursor pagination"** should be SKIPPED unless human explicitly requested cursor pagination.
+
 ## find one/by Id
 
 ### step 1 'findOne' logic for service.ts
@@ -657,6 +944,58 @@ findById(@Param('id', ParseIntPipe) id: number) {
 }
 ```
 
+### step 3 admin 'findOne' logic for admin-{{resource}}.service.ts
+
+```ts
+async findById({{resource}}Id: number) {
+  const {{resource}} = await this.prisma.{{resource}}.findUnique({
+    where: { id: {{resource}}Id },
+    select: DEFAULT_{{resource}}_SELECT,
+  });
+
+  if (!{{resource}}) {
+    throw new NotFoundException('{{resource}} not found');
+  }
+
+  return {{resource}};
+}
+```
+
+example :
+
+```ts
+async findById(articleId: number) {
+  const article = await this.prisma.article.findUnique({
+    where: { id: articleId },
+    select: DEFAULT_ARTICLE_SELECT,
+  });
+
+  if (!article) {
+    throw new NotFoundException('Article not found');
+  }
+
+  return article;
+}
+```
+
+### step 4 admin 'findOne' endpoint for admin-{{resource}}.controller.ts
+
+```ts
+@Get(':id')
+findById(@Param('id', ParseIntPipe) id: number) {
+  return this.admin{{resource}}Service.findById(id);
+}
+```
+
+example :
+
+```ts
+@Get(':id')
+findById(@Param('id', ParseIntPipe) id: number) {
+  return this.adminArticleService.findById(id);
+}
+```
+
 ## (rare/optional) primitive find all (no pagination)
 
 There might be rare scenario in which you want to fetch all, maybe for something you know will have low amount, but i'd say most of the time don't do this and skip this. Most of time should have at least simple offset pagination.
@@ -667,6 +1006,18 @@ There might be rare scenario in which you want to fetch all, maybe for something
 findAll() {
     return this.prisma.{{resource}}.findMany({
       orderBy: { createdAt: 'desc' },
+      select: DEFAULT_{{resource}}_SELECT
+    });
+  }
+```
+
+example :
+
+```ts
+findAll() {
+    return this.prisma.article.findMany({
+      orderBy: { createdAt: 'desc' },
+      select: DEFAULT_ARTICLE_SELECT
     });
   }
 ```
@@ -688,6 +1039,46 @@ example:
 @Get()
 findAll() {
   return this.articlesService.findAll();
+}
+```
+
+### step 3 admin 'findAll' logic for admin-{{resource}}.service.ts
+
+```ts
+findAll() {
+    return this.prisma.{{resource}}.findMany({
+      orderBy: { createdAt: 'desc' },
+      select: DEFAULT_{{resource}}_SELECT
+    });
+  }
+```
+
+example :
+
+```ts
+findAll() {
+    return this.prisma.article.findMany({
+      orderBy: { createdAt: 'desc' },
+      select: DEFAULT_ARTICLE_SELECT
+    });
+  }
+```
+
+### step 4 admin 'findAll' endpoint for admin-{{resource}}.controller.ts
+
+```ts
+@Get()
+findAll() {
+  return this.admin{{resource}}Service.findAll();
+}
+```
+
+example:
+
+```ts
+@Get()
+findAll() {
+  return this.adminArticlesService.findAll();
 }
 ```
 
@@ -761,7 +1152,77 @@ findAll(@Query() pag: PaginationDto) {
 }
 ```
 
-## cursor pagination find all (optional, only add if human requests it)
+### step 3 admin offset pagination logic for admin-{{Resource}}.service.ts
+
+```ts
+async findAll(pag: PaginationDto) {
+    const where = {};
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
+      model: this.prisma.{{resource}},
+      limit: pag.limit ?? 10,
+      offset: pag.offset ?? 0,
+      query: {
+        where,
+        orderBy: { createdAt: 'desc' } as const,
+        select: DEFAULT_{{resource}}_SELECT,
+      },
+      countQuery: { where: where },
+    });
+
+    return {
+      items,
+      pageInfo,
+      ...(isRedirected && { isRedirected: true }),
+    };
+  }
+```
+
+example:
+
+```ts
+async findAll(pag: PaginationDto) {
+    const where = {};
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
+      model: this.prisma.article,
+      limit: pag.limit ?? 10,
+      offset: pag.offset ?? 0,
+      query: {
+        where,
+        orderBy: { createdAt: 'desc' } as const,
+        select: DEFAULT_ARTICLE_SELECT,
+      },
+      countQuery: { where: where },
+    });
+
+    return {
+      items,
+      pageInfo,
+      ...(isRedirected && { isRedirected: true }),
+    };
+  }
+```
+
+### step 4 admin offset pagination endpoint for admin-{{Resource}}.controller.ts
+
+```ts
+@Get()
+findAll(@Query() pag: PaginationDto) {
+  return this.admin{{resource}}Service.findAll(pag);
+}
+```
+
+example:
+
+```ts
+@Get()
+findAll(@Query() pag: PaginationDto) {
+  return this.adminArticlesService.findAll(pag);
+}
+```
+
+## cursor pagination find all
+
+> ⚠️ SKIP THIS ENTIRE SECTION unless human explicitly requested cursor pagination.
 
 ### step 1 cursor pagination logic for service.ts
 
@@ -824,6 +1285,70 @@ example:
 @Get('cursor')
 findAllCursor(@Query() pag: CursorPaginationDto) {
   return this.articlesService.findAllCursor(pag);
+}
+```
+
+### step 3 admin cursor pagination logic for admin-{{resource}}.service.ts
+
+```ts
+async findAllCursor(pag: CursorPaginationDto) {
+    const { cursor, limit } = pag;
+
+    const { items, nextCursor } = await cursorPaginate({
+      model: this.prisma.{{resource}},
+      limit: limit ?? 10,
+      cursor,
+      query: {
+        where: {},
+        orderBy: { createdAt: 'desc' } as const,
+        select: DEFAULT_{{resource}}_SELECT,
+      },
+    });
+    return {
+      items,
+      nextCursor: nextCursor,
+    };
+  }
+```
+
+example:
+
+```ts
+async findAllCursor(pag: CursorPaginationDto) {
+    const { cursor, limit } = pag;
+
+    const { items, nextCursor } = await cursorPaginate({
+      model: this.prisma.article,
+      limit: limit ?? 10,
+      cursor,
+      query: {
+        where: {},
+        orderBy: { createdAt: 'desc' } as const,
+        select: DEFAULT_ARTICLE_SELECT,
+      },
+    });
+    return {
+      items,
+      nextCursor: nextCursor,
+    };
+  }
+```
+
+### step 4 admin cursor pagination endpoint for admin-{{resource}}.controller.ts
+
+```ts
+@Get('cursor')
+findAllCursor(@Query() pag: CursorPaginationDto) {
+  return this.admin{{articles}}Service.findAllCursor(pag);
+}
+```
+
+example:
+
+```ts
+@Get('cursor')
+findAllCursor(@Query() pag: CursorPaginationDto) {
+  return this.adminArticlesService.findAllCursor(pag);
 }
 ```
 
@@ -951,7 +1476,9 @@ findByUserId(@Param('userId', ParseIntPipe) userId: number, @Query() pag: Pagina
 }
 ```
 
-## find all created/owner by user cursor pagination (optional, only add if human requests it)
+## find all created/owner by user cursor pagination
+
+> ⚠️ SKIP THIS ENTIRE SECTION unless human explicitly requested cursor pagination.
 
 ### step 1 cursor pagination find all by user logic for service.ts
 
@@ -1033,30 +1560,54 @@ findByUserIdCursor(
 }
 ```
 
-# part 5| update of CRUD
+# part 5 | update of CRUD
+
+> ⚠️ Throughout this part: any step labelled **"admin"** should be SKIPPED unless human explicitly requested admin. Any section labelled **"file upload"** should be SKIPPED unless human explicitly requested file/media upload.
 
 ## Basic update
 
 ### step 1 'update' logic for service.ts
 
 ```ts
-update(id: number, data: Update{{resource}}Dto) {
-    return this.prisma.{{resource}}.update({
-      where: { id },
-      data,
-    });
+async update(id: number, data: Update{{resource}}Dto) {
+  const {{resource}} = await this.prisma.{{resource}}.findUnique({
+    where: { id: id },
+  });
+
+  if (!{{resource}}) {
+    throw new NotFoundException('{{resource}} not found');
   }
+
+  const updated = await this.prisma.{{resource}}.update({
+    where: { id: id },
+    data,
+    select: DEFAULT_{{resource}}_SELECT,
+  });
+
+  return updated;
+}
 ```
 
 example:
 
 ```ts
-update(id: number, data: UpdateArticleDto) {
-    return this.prisma.article.update({
-      where: { id },
-      data,
-    });
+async update(id: number, data: UpdateArticleDto) {
+  const article = await this.prisma.article.findUnique({
+    where: { id: id },
+  });
+
+  if (!article) {
+    throw new NotFoundException('Article not found');
   }
+
+  const updated = await this.prisma.article.update({
+    where: { id: id },
+    data,
+    select: DEFAULT_ARTICLE_SELECT,
+  });
+
+  return updated;
+}
 ```
 
 ### step 2 'update' endpoint for controller.ts
@@ -1081,33 +1632,128 @@ example :
   }
 ```
 
+### step 3 admin 'update' logic for admin-{{resource}}.service.ts
+
+```ts
+async update(adminId: number, id: number, data: Update{{resource}}Dto) {
+  const {{resource}} = await this.prisma.{{resource}}.findUnique({
+    where: { id: id },
+  });
+
+  if (!{{resource}}) {
+    throw new NotFoundException('{{resource}} not found');
+  }
+
+  const updated = await this.prisma.{{resource}}.update({
+    where: { id: id },
+    data,
+    select: DEFAULT_{{resource}}_SELECT,
+  });
+
+  // Log the update
+  await this.adminService.log({
+    adminId,
+    action: '{{resource}}_UPDATED',
+    resource: '{{resource}}',
+    resourceId: id.toString(),
+    targetId: {{resource}}.creatorId,
+    description: `Admin updated {{resource}} "${{{resource}}.title}"`,
+  });
+
+  return updated;
+}
+```
+
+example :
+
+```ts
+async update(adminId: number, id: number, data: UpdateArticleDto) {
+  const article = await this.prisma.article.findUnique({
+    where: { id: id },
+  });
+
+  if (!article) {
+    throw new NotFoundException('Article not found');
+  }
+
+  const updated = await this.prisma.article.update({
+    where: { id: id },
+    data,
+    select: DEFAULT_ARTICLE_SELECT,
+  });
+
+  // Log the update
+  await this.adminService.log({
+    adminId,
+    action: 'ARTICLE_UPDATED',
+    resource: 'ARTICLE',
+    resourceId: id.toString(),
+    targetId: article.creatorId,
+    description: `Admin updated article "${article.title}"`,
+  });
+
+  return updated;
+}
+```
+
+### step 4 admin 'update' endpoint for admin-{{resource}}.controller.ts
+
+```ts
+@Patch(':id')
+update(
+  @Param('id', ParseIntPipe) id: number,
+  @Body() body: Update{{resource}}Dto,
+  @Req() req: any,
+) {
+  const adminId = req.user?.sub;
+  return this.admin{{resource}}Service.update(adminId, id, body);
+}
+```
+
+example :
+
+```ts
+@Patch(':id')
+update(
+  @Param('id', ParseIntPipe) id: number,
+  @Body() body: UpdateArticleDto,
+  @Req() req: any,
+) {
+  const adminId = req.user?.sub;
+  return this.adminArticleService.update(adminId, id, body);
+}
+```
+
 ## Adding file upload to update
+
+> ⚠️ SKIP THIS ENTIRE SECTION unless human explicitly requested file/media upload.
 
 ### step 1 add file logic service.ts
 
 ```ts
-async update(id: number, userId: number, data: Update{{resource}}Dto, file?: any) {
-    // Get current {{resource}} to check if email is being changed and if it's verified
-    const current{{resource}} = await this.prisma.{{resource}}.findUnique({
+async update(id: number, data: Update{{resource}}Dto, file?: any) {
+    const {{resource}} = await this.prisma.{{resource}}.findUnique({
       where: { id: id },
     });
 
-    if (!current{{resource}}) {
+    if (!{{resource}}) {
       throw new NotFoundException('{{resource}} not found');
     }
+
+    const userId = {{resource}}.creatorId;
 
     // If file is provided, process it using FileProcessingService
     if (file) {
       try {
         // Get the current {{resource}} to retrieve old image path
-        const current{{resource}} = await this.prisma.{{resource}}.findUnique({
+        const {{resource}} = await this.prisma.{{resource}}.findUnique({
           where: { id: id },
           select: { imagePath: true },
         });
 
         // Delete old image if it exists
-        if (current{{resource}}?.imagePath) {
-          await this.fileProcessing.deleteFile(current{{resource}}.imagePath);
+        if ({{resource}}?.imagePath) {
+          await this.fileProcessing.deleteFile({{resource}}.imagePath);
         }
 
         const avatarPath = await this.fileProcessing.processFile(
@@ -1128,6 +1774,7 @@ async update(id: number, userId: number, data: Update{{resource}}Dto, file?: any
     return this.prisma.{{resource}}.update({
       where: { id },
       data,
+      select: DEFAULT_{{resource}}_SELECT,
     });
   }
 ```
@@ -1135,28 +1782,29 @@ async update(id: number, userId: number, data: Update{{resource}}Dto, file?: any
 example:
 
 ```ts
-async update(id: number, userId: number, data: UpdateArticleDto, file?: any) {
-    // Get current article to check if email is being changed and if it's verified
-    const currentArticle = await this.prisma.article.findUnique({
+async update(id: number, data: UpdateArticleDto, file?: any) {
+    const article = await this.prisma.article.findUnique({
       where: { id: id },
     });
 
-    if (!currentArticle) {
+    if (!article) {
       throw new NotFoundException('Article not found');
     }
+
+    const userId = article.creatorId;
 
     // If file is provided, process it using FileProcessingService
     if (file) {
       try {
         // Get the current article to retrieve old image path
-        const currentArticle = await this.prisma.article.findUnique({
+        const article = await this.prisma.article.findUnique({
           where: { id: id },
           select: { imagePath: true },
         });
 
         // Delete old image if it exists
-        if (currentArticle?.imagePath) {
-          await this.fileProcessing.deleteFile(currentArticle.imagePath);
+        if (article?.imagePath) {
+          await this.fileProcessing.deleteFile(article.imagePath);
         }
 
         const avatarPath = await this.fileProcessing.processFile(
@@ -1177,6 +1825,7 @@ async update(id: number, userId: number, data: UpdateArticleDto, file?: any) {
     return this.prisma.article.update({
       where: { id },
       data,
+      select: DEFAULT_ARTICLE_SELECT,
     });
   }
 ```
@@ -1194,8 +1843,7 @@ update(
   @Body() dto: Update{{resource}}Dto,
   @UploadedFile() file?: any,
 ) {
-  const userId = req.user.sub;
-  return this.{{resource}}sService.update(id, userId, dto, file);
+  return this.{{resource}}sService.update(id, dto, file);
 }
 ```
 
@@ -1212,12 +1860,175 @@ update(
   @Body() dto: UpdateArticleDto,
   @UploadedFile() file?: any,
 ) {
-  const userId = req.user.sub;
-  return this.articlesService.update(id, userId, dto, file);
+  return this.articlesService.update(id, dto, file);
+}
+```
+
+### step 3 add admin file logic admin-{{resource}}.service.ts
+
+```ts
+async update(
+  adminId: number,
+  id: number,
+  data: Update{{resource}}Dto,
+  file?: any,
+) {
+  const {{resource}} = await this.prisma.{{resource}}.findUnique({
+    where: { id: id },
+  });
+
+  if (!{{resource}}) {
+    throw new NotFoundException('{{resource}} not found');
+  }
+
+  const userId = {{resource}}.creatorId;
+
+  // If file is provided, process it using FileProcessingService
+  if (file) {
+    try {
+      // Get the current {{resource}} to retrieve old image path
+      const {{resource}} = await this.prisma.{{resource}}.findUnique({
+        where: { id: id },
+        select: { imagePath: true },
+      });
+
+      // Delete old image if it exists
+      if ({{resource}}?.imagePath) {
+        await this.fileProcessing.deleteFile({{resource}}.imagePath);
+      }
+
+      const avatarPath = await this.fileProcessing.processFile(
+        file,
+        'postImage',
+        userId,
+      );
+      data.imagePath = avatarPath;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to process image file';
+      throw new BadRequestException(errorMessage);
+    }
+  }
+
+  // Log the update
+  await this.adminService.log({
+    adminId,
+    action: '{{resource}}_UPDATED',
+    resource: '{{resource}}',
+    resourceId: id.toString(),
+    targetId: {{resource}}.creatorId,
+    description: `Admin updated {{resource}} "${{{resource}}.title}"`,
+  });
+
+  return this.prisma.{{resource}}.update({
+    where: { id },
+    data,
+    select: DEFAULT_{{resource}}_SELECT,
+  });
+}
+```
+
+example :
+
+```ts
+async update(
+  adminId: number,
+  id: number,
+  data: UpdateArticleDto,
+  file?: any,
+) {
+  const article = await this.prisma.article.findUnique({
+    where: { id: id },
+  });
+
+  if (!article) {
+    throw new NotFoundException('Article not found');
+  }
+
+  const userId = article.creatorId;
+
+  // If file is provided, process it using FileProcessingService
+  if (file) {
+    try {
+      // Get the current article to retrieve old image path
+      const article = await this.prisma.article.findUnique({
+        where: { id: id },
+        select: { imagePath: true },
+      });
+
+      // Delete old image if it exists
+      if (article?.imagePath) {
+        await this.fileProcessing.deleteFile(article.imagePath);
+      }
+
+      const avatarPath = await this.fileProcessing.processFile(
+        file,
+        'postImage',
+        userId,
+      );
+      data.imagePath = avatarPath;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to process image file';
+      throw new BadRequestException(errorMessage);
+    }
+  }
+
+  // Log the update
+  await this.adminService.log({
+    adminId,
+    action: 'ARTICLE_UPDATED',
+    resource: 'ARTICLE',
+    resourceId: id.toString(),
+    targetId: article.creatorId,
+    description: `Admin updated article "${article.title}"`,
+  });
+
+  return this.prisma.article.update({
+    where: { id },
+    data,
+    select: DEFAULT_ARTICLE_SELECT,
+  });
+}
+```
+
+### step 4 add admin file argument and interceptor admin-{{resource}}.controller.ts
+
+```ts
+@Patch(':id')
+update(
+  @Param('id', ParseIntPipe) id: number,
+  @Body() body: Update{{resource}}Dto,
+  @Req() req: any,
+  @UploadedFile() file?: any,
+) {
+  const adminId = req.user?.sub;
+  return this.admin{{resource}}Service.update(adminId, id, body, file);
+}
+```
+
+example :
+
+```ts
+@Patch(':id')
+update(
+  @Param('id', ParseIntPipe) id: number,
+  @Body() body: UpdateArticleDto,
+  @Req() req: any,
+  @UploadedFile() file?: any,
+) {
+  const adminId = req.user?.sub;
+  return this.adminArticleService.update(adminId, id, body, file);
 }
 ```
 
 # part 6 | delete of CRUD
+
+> ⚠️ Throughout this part: any step labelled **"admin"** should be SKIPPED unless human explicitly requested admin.
 
 ## step 1 soft delete logic for service.ts
 
@@ -1234,7 +2045,7 @@ async remove(id: number) {
     }
 
     if ({{resource}}.deleted) {
-      return { message: '{{resource}} was already deleted' };
+      throw new AlreadyDeletedException('{{resource}} was already deleted');
     }
 
     // Soft delete the {{resource}}
@@ -1260,7 +2071,7 @@ async remove(id: number) {
     }
 
     if (article.deleted) {
-      return { message: 'Article was already deleted' };
+      throw new AlreadyDeletedException('Article was already deleted');
     }
 
     // Soft delete the article
@@ -1275,6 +2086,7 @@ async remove(id: number) {
 
 ```ts
 @UseGuards(JwtAccessGuard, CreatorGuard)
+@ProtectedResource('{{resource}}')
 @Delete(':id')
 @HttpCode(204)
 remove(@Param('id', ParseIntPipe) id: number) {
@@ -1286,6 +2098,7 @@ example:
 
 ```ts
 @UseGuards(JwtAccessGuard, CreatorGuard)
+@ProtectedResource('article')
 @Delete(':id')
 @HttpCode(204)
 remove(@Param('id', ParseIntPipe) id: number) {
@@ -1317,6 +2130,190 @@ await this.prisma.article.updateMany({
 });
 ```
 
+## step 4 admin soft delete logic for admin-{{resource}}.service.ts
+
+```ts
+async remove(adminId: number, id: number, reason?: string) {
+  const {{resource}} = await this.prisma.{{resource}}.findUnique({
+    where: { id: id },
+    select: { title: true, creatorId: true, deleted: true },
+  });
+
+  if (!{{resource}}) {
+    throw new NotFoundException('{{resource}} not found');
+  }
+
+  if ({{resource}}.deleted) {
+    throw new AlreadyDeletedException('{{resource}} was already deleted');
+  }
+
+  await this.prisma.{{resource}}.update({
+    where: { id: id },
+    data: { deleted: true, deletedAt: new Date() },
+    select: DEFAULT_{{resource}}_SELECT,
+  });
+
+  // Log the deletion
+  await this.adminService.log({
+    adminId,
+    action: '{{resource}}_DELETED',
+    resource: '{{resource}}',
+    resourceId: id.toString(),
+    targetId: {{resource}}.creatorId,
+    description: `Admin deleted {{resource}} "${{{resource}}.title}"`,
+  });
+}
+```
+
+example:
+
+```ts
+async remove(adminId: number, id: number, reason?: string) {
+  const article = await this.prisma.article.findUnique({
+    where: { id: id },
+    select: { title: true, creatorId: true, deleted: true },
+  });
+
+  if (!article) {
+    throw new NotFoundException('Article not found');
+  }
+
+  if (article.deleted) {
+    throw new AlreadyDeletedException('Article was already deleted');
+  }
+
+  await this.prisma.article.update({
+    where: { id: id },
+    data: { deleted: true, deletedAt: new Date() },
+    select: DEFAULT_ARTICLE_SELECT,
+  });
+
+  // Log the deletion
+  await this.adminService.log({
+    adminId,
+    action: 'ARTICLE_DELETED',
+    resource: 'ARTICLE',
+    resourceId: id.toString(),
+    targetId: article.creatorId,
+    description: `Admin deleted article "${article.title}"`,
+  });
+}
+```
+
+## step 5 admin soft delete endpoint for admin-{{resource}}.controller.ts
+
+```ts
+@Delete(':id')
+@HttpCode(204)
+remove(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+  const adminId = req.user?.sub;
+  return this.admin{{resource}}Service.remove(adminId, id);
+}
+```
+
+example:
+
+```ts
+@Delete(':id')
+@HttpCode(204)
+remove(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+  const adminId = req.user?.sub;
+  return this.adminArticleService.remove(adminId, id);
+}
+```
+
+## step 6 admin restore logic for admin-{{resource}}.service.ts
+
+```ts
+async restore(adminId: number, id: number) {
+  const {{resource}} = await this.prisma.{{resource}}.findUnique({
+    where: { id: id },
+  });
+
+  if (!{{resource}}) {
+    throw new NotFoundException('{{resource}} not found');
+  }
+
+  if (!{{resource}}.deleted) {
+    throw new BadRequestException('{{resource}} is not deleted');
+  }
+
+  const restored = await this.prisma.{{resource}}.update({
+    where: { id: id },
+    data: { deleted: false, deletedAt: null },
+    select: DEFAULT_{{resource}}_SELECT,
+  });
+
+  // Log the restoration
+  await this.adminService.log({
+    adminId,
+    action: '{{resource}}_RESTORED',
+    resource: '{{resource}}',
+    resourceId: id.toString(),
+    targetId: {{resource}}.creatorId,
+    description: `Admin restored {{resource}} "${{{resource}}.title}"`,
+  });
+
+  return restored;
+}
+```
+
+example:
+
+```ts
+async restore(adminId: number, id: number) {
+  const article = await this.prisma.article.findUnique({
+    where: { id: id },
+  });
+
+  if (!article) {
+    throw new NotFoundException('Article not found');
+  }
+
+  if (!article.deleted) {
+    throw new BadRequestException('Article is not deleted');
+  }
+
+  const restored = await this.prisma.article.update({
+    where: { id: id },
+    data: { deleted: false, deletedAt: null },
+    select: DEFAULT_ARTICLE_SELECT,
+  });
+
+  // Log the restoration
+  await this.adminService.log({
+    adminId,
+    action: 'ARTICLE_RESTORED',
+    resource: 'ARTICLE',
+    resourceId: id.toString(),
+    targetId: article.creatorId,
+    description: `Admin restored article "${article.title}"`,
+  });
+
+  return restored;
+}
+```
+
+## step 7 admin restore endpoint for admin-{{resource}}.controller.ts
+
+```ts
+@Post(':id/restore')
+restore(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+  const adminId = req.user?.sub;
+  return this.admin{{resource}}Service.restore(adminId, id);
+}
+```
+
+example:
+
+```ts
+@Post(':id/restore')
+restore(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+  const adminId = req.user?.sub;
+  return this.adminArticleService.restore(adminId, id);
+}
+```
+
 # part 7 | Test CRUD endpoints/summary
 
 Tell human to tests these endpoints and wait for human's confirmation to continue on to next parts.
@@ -1326,7 +2323,7 @@ POST `http://localhost:3000/{{resource}}`
 
 ```multipart/form-data
 {
-  "title": "First Post",
+  "title": "First Article",
   "content": "Hello world!"
   "image": "exampleImage.png"
   "status": "DRAFT"
@@ -1357,7 +2354,41 @@ PATCH `http://localhost:3000/{{resource}}/<id>`
 **Delete**
 DELETE `http://localhost:3000/{{resource}}/<id>`
 
-# part 8 | basic search engine (Prolly want to make this its own md file)
+## admin endpoints/summary
+
+**Read all**
+GET `http://localhost:3000/admin/{{resource}}`
+cursor: `http://localhost:3000/admin/{{resource}}/cursor`
+queries: `offset/cursor`, `limit`
+
+**Get all user's {{resource}}**
+GET `http://localhost:3000/admin/{{resource}}/users/<userId>`
+cursor: `http://localhost:3000/admin/{{resource}}/users/<userId>/cursor`
+
+**Read single**
+GET `http://localhost:3000/admin/{{resource}}/<id>`
+
+**Update**
+PATCH `http://localhost:3000/admin/{{resource}}/<id>`
+
+```multipart/form-data
+{
+  "title": "Edited article",
+  "content": "Admin edited this"
+  "image": "exampleImage.png"
+  "status": "DRAFT"
+}
+```
+
+**Delete**
+DELETE `http://localhost:3000/admin/{{resource}}/<id>`
+
+**Restore**
+POST `http://localhost:3000/admin/{{resource}}/<id>/restore`
+
+# part 8 | basic search engine
+
+> ⚠️ SKIP THIS ENTIRE PART unless human explicitly requested search.
 
 ## step 1 search dto beginning
 
@@ -1739,8 +2770,6 @@ class Mixed extends Base {
 
 ```ts
 import { {{resource}}SearchDto } from './dto/search-{{resource}}.dto';
-import { buildSearchWhere } from 'src/common/search/search.utils';
-
 
 async searchAll(searchDto: {{resource}}SearchDto) {
   const searchFields = searchDto.getSearchFields();
@@ -1782,8 +2811,6 @@ example:
 
 ```ts
 import { ArticleSearchDto } from './dto/search-article.dto';
-import { buildSearchWhere } from 'src/common/search/search.utils';
-
 
 async searchAll(searchDto: ArticleSearchDto) {
   const searchFields = searchDto.getSearchFields();
@@ -1821,11 +2848,166 @@ async searchAll(searchDto: ArticleSearchDto) {
 }
 ```
 
-## step 4 (optional) add search to service file (cursor)
+## step 4 update controller.ts to have search (offset)
+
+Typically suppose to replace your findAll with search since empty search query gives same result as normal findAll.
+
+Reminder that the search endpoint needs to be **before** any dynamic endpoint that does something like `:id` needs to be last
+
+```ts
+import { {{resource}}SearchDto} from './dto/search-{{resource}}.dto';
+
+// commented out as its redundant now
+// @Get()
+// findAll(@Query() pag: PaginationDto) {
+//   return this.{{resource}}sService.findAll(pag);
+// }
+@Get()
+search(@Query() searchDto: {{resource}}SearchDto) {
+  return this.{{resource}}Service.searchAll(searchDto);
+}
+```
+
+example :
+
+```ts
+import { ArticleSearchDto } from './dto/search-article.dto';
+
+// commented out as its redundant now
+// @Get()
+// findAll(@Query() pag: PaginationDto) {
+//   return this.articlesService.findAll(pag);
+// }
+@Get()
+search(@Query() searchDto: ArticleSearchDto) {
+  return this.articlesService.searchAll(searchDto);
+}
+```
+
+## step 5 add admin search to service file to admin-{{resource}}.service.ts (offset)
+
+> ⚠️ SKIP THIS STEP unless human explicitly requested admin.
+
+```ts
+import { {{resource}}SearchDto } from '../{{resource}}/dto/search-{{resource}}.dto';
+
+async searchAll(searchDto: {{resource}}SearchDto) {
+  const searchFields = searchDto.getSearchFields();
+  const searchOptions = searchDto.getSearchOptions();
+  const orderBy = searchDto.getOrderBy();
+
+  const where = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  const whereWithStatus = {
+    ...where,
+  };
+  const { items, pageInfo, isRedirected } = await offsetPaginate({
+    model: this.prisma.{{resource}},
+    limit: searchDto.limit ?? 10,
+    offset: searchDto.offset ?? 0,
+    query: {
+      where: whereWithStatus,
+      orderBy,
+      select: DEFAULT_{{resource}}_SELECT,
+    },
+    countQuery: { where: whereWithStatus },
+  });
+
+  return {
+    items,
+    pageInfo,
+    ...(isRedirected && { isRedirected: true }),
+  };
+}
+```
+
+example:
+
+```ts
+import { ArticleSearchDto } from '../articles/dto/search-article.dto';
+
+async searchAll(searchDto: ArticleSearchDto) {
+  const searchFields = searchDto.getSearchFields();
+  const searchOptions = searchDto.getSearchOptions();
+  const orderBy = searchDto.getOrderBy();
+
+  const where = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  const whereWithStatus = {
+    ...where,
+  };
+  const { items, pageInfo, isRedirected } = await offsetPaginate({
+    model: this.prisma.article,
+    limit: searchDto.limit ?? 10,
+    offset: searchDto.offset ?? 0,
+    query: {
+      where: whereWithStatus,
+      orderBy,
+      select: DEFAULT_ARTICLE_SELECT,
+    },
+    countQuery: { where: whereWithStatus },
+  });
+
+  return {
+    items,
+    pageInfo,
+    ...(isRedirected && { isRedirected: true }),
+  };
+}
+```
+
+## step 6 update admin-{{resource}}.controller.ts to have admin search (offset)
+
+> ⚠️ SKIP THIS STEP unless human explicitly requested admin.
+
+Typically suppose to replace your findAll with search since empty search query gives same result as normal findAll.
+
+Reminder that the search endpoint needs to be **before** any dynamic endpoint that does something like `:id` needs to be last
+
+```ts
+import { {{resource}}SearchDto } from '../{{resource}}/dto/search-{{resource}}.dto';
+
+// commented out as its redundant now
+// @Get()
+// findAll(@Query() pag: PaginationDto) {
+//   return this.admin{{resource}}Service.findAll(pag);
+// }
+@Get()
+search(@Query() searchDto: {{resource}}SearchDto) {
+  return this.admin{{resource}}Service.searchAll(searchDto);
+}
+```
+
+example :
+
+```ts
+import { ArticleSearchDto } from '../articles/dto/search-article.dto';
+
+// commented out as its redundant now
+// @Get()
+// findAll(@Query() pag: PaginationDto) {
+//   return this.adminArticleService.findAll(pag);
+// }
+@Get()
+search(@Query() searchDto: ArticleSearchDto) {
+  return this.adminArticleService.searchAll(searchDto);
+}
+```
+
+## step 7 add search to service file (cursor)
+
+> ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
 
 ```ts
 import { {{resource}}SearchCursorDto } from './dto/search-{{resource}}.dto';
-import { buildSearchWhere } from 'src/common/search/search.utils';
 
 async searchAllCursor(searchDto: {{resource}}SearchCursorDto) {
   const searchFields = searchDto.getSearchFields();
@@ -1862,7 +3044,6 @@ example :
 
 ```ts
 import { ArticleSearchCursorDto } from './dto/search-article.dto';
-import { buildSearchWhere } from 'src/common/search/search.utils';
 
 async searchAllCursor(searchDto: ArticleSearchCursorDto) {
   const searchFields = searchDto.getSearchFields();
@@ -1895,43 +3076,9 @@ async searchAllCursor(searchDto: ArticleSearchCursorDto) {
 }
 ```
 
-## step 5 update controller.ts to have search (offset)
+## step 8 update controller.ts to have search (cursor)
 
-Typically suppose to replace your findAll with search since empty search query gives same result as normal findAll.
-
-Reminder that the search endpoint needs to be **before** any dynamic endpoint that does something like `:id` needs to be last
-
-```ts
-import { {{resource}}SearchDto} from './dto/search-{{resource}}.dto';
-
-// commented out as its redundant now
-// @Get()
-// findAll(@Query() pag: PaginationDto) {
-//   return this.{{resource}}sService.findAll(pag);
-// }
-@Get()
-search(@Query() searchDto: {{resource}}SearchDto) {
-  return this.{{resource}}Service.searchAll(searchDto);
-}
-```
-
-example :
-
-```ts
-import { ArticleSearchDto } from './dto/search-article.dto';
-
-// commented out as its redundant now
-// @Get()
-// findAll(@Query() pag: PaginationDto) {
-//   return this.articlesService.findAll(pag);
-// }
-@Get()
-search(@Query() searchDto: ArticleSearchDto) {
-  return this.articlesService.searchAll(searchDto);
-}
-```
-
-## step 6 (optional) update controller.ts to have search (cursor)
+> ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
 
 Typically suppose to replace your findAll with search since empty search query gives same result as normal findAll.
 
@@ -1969,7 +3116,119 @@ searchCursor(@Query() searchDto: ArticleSearchCursorDto) {
 }
 ```
 
-## step 7 new queries for updated endpoint to for human to test
+## step 9 add admin search to service file to admin-{{resource}}.service.ts (cursor)
+
+> ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination AND admin.
+
+```ts
+import { {{resource}}SearchCursorDto } from '../{{resource}}/dto/search-{{resource}}.dto';
+
+async searchAllCursor(searchDto: {{resource}}SearchCursorDto) {
+  const searchFields = searchDto.getSearchFields();
+  const searchOptions = searchDto.getSearchOptions();
+  const orderBy = searchDto.getOrderBy();
+
+  const where = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  const { cursor, limit } = searchDto;
+
+  const { items, nextCursor } = await cursorPaginate({
+    model: this.prisma.{{resource}},
+    limit: limit ?? 10,
+    cursor,
+    query: {
+      where: { ...where },
+      orderBy,
+      select: DEFAULT_{{resource}}_SELECT,
+    },
+  });
+
+  return {
+    items,
+    nextCursor,
+  };
+}
+```
+
+example :
+
+```ts
+import { ArticleSearchCursorDto } from '../articles/dto/search-article.dto';
+
+async searchAllCursor(searchDto: ArticleSearchCursorDto) {
+  const searchFields = searchDto.getSearchFields();
+  const searchOptions = searchDto.getSearchOptions();
+  const orderBy = searchDto.getOrderBy();
+
+  const where = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  const { cursor, limit } = searchDto;
+
+  const { items, nextCursor } = await cursorPaginate({
+    model: this.prisma.article,
+    limit: limit ?? 10,
+    cursor,
+    query: {
+      where: { ...where },
+      orderBy,
+      select: DEFAULT_ARTICLE_SELECT,
+    },
+  });
+
+  return {
+    items,
+    nextCursor,
+  };
+}
+```
+
+## step 10 update admin-{{resource}}.controller.ts to have admin search (cursor)
+
+> ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination AND admin.
+
+Typically suppose to replace your findAll with search since empty search query gives same result as normal findAll.
+
+Reminder that the search endpoint needs to be **before** any dynamic endpoint that does something like `:id` needs to be last
+
+```ts
+import { {{resource}}SearchCursorDto } from '../{{resource}}/dto/search-{{resource}}.dto';
+
+// commented out as its redundant now
+// @Get('cursor')
+// findAllCursor(@Query() pag: CursorPaginationDto) {
+//   return this.admin{{resource}}Service.findAllCursor(pag);
+// }
+@Get('cursor')
+searchCursor(@Query() searchDto: {{resource}}SearchCursorDto) {
+  return this.admin{{resource}}Service.searchAllCursor(searchDto);
+}
+```
+
+example:
+
+```ts
+import { ArticleSearchCursorDto } from '../articles/dto/search-article.dto';
+
+// commented out as its redundant now
+// @Get('cursor')
+// findAllCursor(@Query() pag: CursorPaginationDto) {
+//   return this.adminArticleService.findAllCursor(pag);
+// }
+@Get('cursor')
+searchCursor(@Query() searchDto: ArticleSearchCursorDto) {
+  return this.adminArticleService.searchAllCursor(searchDto);
+}
+```
+
+## step 11 new queries for updated endpoint to for human to test
 
 **limit** : number
 
@@ -2009,15 +3268,37 @@ enum of createdAt, updatedAt
 - `sort=createdAt|desc` (or `asc`)
 - `sort=updatedAt|desc` (or `asc`)
 
-# part 9 | adding likes, views, comments, collection (THIS NEEDS TO BE SEPARATE MD FILE | "Resource actions" / CRUD extensions)
+"Resource actions" / CRUD extensions
+
+# part 9 | resource actions
 
 by the time i am writing this, there is only likes, views, comments, and collection. there might be more or less when you currently read this. prompt human the available resource actions found (likes, views, comments, collections, etc), ask which ones to apply/add.
 
-# part 10 | admin CRUD
+# part 10 | adding likes
+
+> ⚠️ SKIP THIS PART unless human explicitly requested likes.
 
 WIP
 
-# part 11 | add swagger docs to DTO and controller.ts
+# part 11 | adding views
+
+> ⚠️ SKIP THIS PART unless human explicitly requested view count.
+
+WIP
+
+# part 12 | adding comments
+
+> ⚠️ SKIP THIS PART unless human explicitly requested comments.
+
+WIP
+
+# part 13 | adding collection
+
+> ⚠️ SKIP THIS PART unless human explicitly requested collections.
+
+WIP
+
+# part 14 | add swagger docs to DTO and controller.ts
 
 I won't add examples as you should know how to add swagger docs.
 Just go to the .dto files and controller.ts file and add swagger docs inferencing whats already in those files.
