@@ -2381,6 +2381,7 @@ Tell human to tests these endpoints and wait for human's confirmation to continu
 
 **Create**
 POST `http://localhost:3000/{{resource}}`
+ex: POST `http://localhost:3000/articles`
 
 ```multipart/form-data
 {
@@ -2393,18 +2394,24 @@ POST `http://localhost:3000/{{resource}}`
 
 **Read all**
 GET `http://localhost:3000/{{resource}}`
+ex: GET `http://localhost:3000/articles`
 cursor: `http://localhost:3000/{{resource}}/cursor`
+ex:cursor: `http://localhost:3000/articles/cursor`
 queries: `offset/cursor`, `limit`
 
 **Get all user's {{resource}}**
 GET `http://localhost:3000/{{resource}}/users/<userId>`
+ex: GET `http://localhost:3000/articles/users/<userId>`
 cursor: `http://localhost:3000/{{resource}}/users/<userId>/cursor`
+ex: cursor: `http://localhost:3000/articles/users/<userId>/cursor`
 
 **Read single**
 GET `http://localhost:3000/{{resource}}/<id>`
+ex: GET `http://localhost:3000/articles/<id>`
 
 **Update**
 PATCH `http://localhost:3000/{{resource}}/<id>`
+ex: PATCH `http://localhost:3000/articles/<id>`
 
 ```multipart/form-data
 {
@@ -2414,23 +2421,30 @@ PATCH `http://localhost:3000/{{resource}}/<id>`
 
 **Delete**
 DELETE `http://localhost:3000/{{resource}}/<id>`
+ex: DELETE `http://localhost:3000/articles/<id>`
 
 ## admin endpoints/summary
 
 **Read all**
 GET `http://localhost:3000/admin/{{resource}}`
+ex: GET `http://localhost:3000/admin/articles`
 cursor: `http://localhost:3000/admin/{{resource}}/cursor`
+ex: cursor: `http://localhost:3000/admin/articles/cursor`
 queries: `offset/cursor`, `limit`
 
 **Get all user's {{resource}}**
 GET `http://localhost:3000/admin/{{resource}}/users/<userId>`
+ex: GET `http://localhost:3000/admin/article/users/<userId>`
 cursor: `http://localhost:3000/admin/{{resource}}/users/<userId>/cursor`
+ex: cursor: `http://localhost:3000/admin/articles/users/<userId>/cursor`
 
 **Read single**
 GET `http://localhost:3000/admin/{{resource}}/<id>`
+ex: GET `http://localhost:3000/admin/articles/<id>`
 
 **Update**
 PATCH `http://localhost:3000/admin/{{resource}}/<id>`
+ex: PATCH `http://localhost:3000/admin/articles/<id>`
 
 ```multipart/form-data
 {
@@ -2443,9 +2457,11 @@ PATCH `http://localhost:3000/admin/{{resource}}/<id>`
 
 **Delete**
 DELETE `http://localhost:3000/admin/{{resource}}/<id>`
+ex: DELETE `http://localhost:3000/admin/articles/<id>`
 
 **Restore**
 POST `http://localhost:3000/admin/{{resource}}/<id>/restore`
+ex: POST `http://localhost:3000/admin/articles/<id>/restore`
 
 # part 8 | basic search engine
 
@@ -3517,18 +3533,18 @@ findById(@Param('id', ParseIntPipe) id: number, @Req() req) {
 async findAll(pag: PaginationDto, currentUserId?: number) {
   const where = { deleted: false, creator: { status: 'ACTIVE' } };
   const { items, pageInfo, isRedirected } = await offsetPaginate({
-    model: this.prisma.article,
+    model: this.prisma.{{resource}},
     limit: pag.limit ?? 10,
     offset: pag.offset ?? 0,
     query: {
       where,
       orderBy: { createdAt: 'desc' } as const,
-      select: DEFAULT_ARTICLE_SELECT,
+      select: DEFAULT_{{resource}}_SELECT,
     },
     countQuery: { where: where },
   });
 
-  const enhancedItems = await enhanceWithLikes(this.prisma, 'ARTICLE', items, currentUserId);
+  const enhancedItems = await enhanceWithLikes(this.prisma, '{{resource}}', items, currentUserId);
 
   return {
     items: enhancedItems,
@@ -3572,7 +3588,7 @@ async findAll(pag: PaginationDto, currentUserId?: number) {
   @Get()
   findAll(@Query() pag: PaginationDto, @Req() req) {
     const userId = req.user?.sub ? req.user.sub : undefined;
-    return this.articlesService.findAll(pag, userId);
+    return this.{{resource}}Service.findAll(pag, userId);
   }
 ```
 
@@ -3596,19 +3612,19 @@ async findAllCursor(pag: CursorPaginationDto, currentUserId?: number) {
   const { cursor, limit } = pag;
 
   const { items, nextCursor } = await cursorPaginate({
-    model: this.prisma.article,
+    model: this.prisma.{{resource}},
     limit: limit ?? 10,
     cursor,
     query: {
       where: { deleted: false, creator: { status: 'ACTIVE' } },
       orderBy: { createdAt: 'desc' } as const,
-      select: DEFAULT_ARTICLE_SELECT,
+      select: DEFAULT_{{resource}}_SELECT,
     },
   });
 
   const enhancedItems = await enhanceWithLikes(
     this.prisma,
-    'ARTICLE',
+    '{{resource}}',
     items,
     currentUserId,
   );
@@ -3660,7 +3676,7 @@ async findAllCursor(pag: CursorPaginationDto, currentUserId?: number) {
 @Get('cursor')
 findAllCursor(@Query() pag: CursorPaginationDto, @Req() req) {
   const userId = req.user?.sub ? req.user.sub : undefined;
-  return this.articlesService.findAllCursor(pag, userId);
+  return this.{{resource}}Service.findAllCursor(pag, userId);
 }
 ```
 
@@ -3689,20 +3705,20 @@ async findByUserId(
     creator: { status: 'ACTIVE' },
   };
   const { items, pageInfo, isRedirected } = await offsetPaginate({
-    model: this.prisma.article,
+    model: this.prisma.{{resource}},
     limit: pag.limit ?? 10,
     offset: pag.offset ?? 0,
     query: {
       where,
       orderBy: { createdAt: 'desc' } as const,
-      select: DEFAULT_ARTICLE_SELECT,
+      select: DEFAULT_{{resource}}_SELECT,
     },
     countQuery: { where },
   });
 
   const enhancedItems = await enhanceWithLikes(
     this.prisma,
-    'ARTICLE',
+    '{{resource}}',
     items,
     currentUserId,
   );
@@ -3766,7 +3782,7 @@ findByUserId(
   @Req() req,
 ) {
   const currentUserId = req.user?.sub;
-  return this.articlesService.findByUserId(userId, pag, currentUserId);
+  return this.{{resource}}Service.findByUserId(userId, pag, currentUserId);
 }
 ```
 
@@ -3798,7 +3814,7 @@ async findByUserIdCursor(
   const { cursor, limit } = pag;
 
   const { items, nextCursor } = await cursorPaginate({
-    model: this.prisma.article,
+    model: this.prisma.{{resource}},
     limit: limit ?? 10,
     cursor,
     query: {
@@ -3808,13 +3824,13 @@ async findByUserIdCursor(
         creator: { status: 'ACTIVE' },
       },
       orderBy: { createdAt: 'desc' } as const,
-      select: DEFAULT_ARTICLE_SELECT,
+      select: DEFAULT_{{resource}}_SELECT,
     },
   });
 
   const enhancedItems = await enhanceWithLikes(
     this.prisma,
-    'ARTICLE',
+    '{{resource}}',
     items,
     currentUserId,
   );
@@ -3878,7 +3894,7 @@ findByUserIdCursor(
   @Req() req,
 ) {
   const currentUserId = req.user?.sub;
-  return this.articlesService.findByUserIdCursor(userId, pag, currentUserId);
+  return this.{{resource}}Service.findByUserIdCursor(userId, pag, currentUserId);
 }
 ```
 
@@ -3900,7 +3916,7 @@ findByUserIdCursor(
 ## step 17 add like and its count to searchAll (offset pagination)
 
 ```ts
-async searchAll(searchDto: ArticleSearchDto, currentUserId?: number) {
+async searchAll(searchDto: {{resource}}SearchDto, currentUserId?: number) {
   const searchFields = searchDto.getSearchFields();
   const searchOptions = searchDto.getSearchOptions();
   const orderBy = searchDto.getOrderBy();
@@ -3917,20 +3933,20 @@ async searchAll(searchDto: ArticleSearchDto, currentUserId?: number) {
     creator: { status: 'ACTIVE' },
   };
   const { items, pageInfo, isRedirected } = await offsetPaginate({
-    model: this.prisma.article,
+    model: this.prisma.{{resource}},
     limit: searchDto.limit ?? 10,
     offset: searchDto.offset ?? 0,
     query: {
       where: whereWithStatus,
       orderBy,
-      select: DEFAULT_ARTICLE_SELECT,
+      select: DEFAULT_{{resource}}_SELECT,
     },
     countQuery: { where: whereWithStatus },
   });
 
   const enhancedItems = await enhanceWithLikes(
     this.prisma,
-    'ARTICLE',
+    '{{resource}}',
     items,
     currentUserId,
   );
@@ -3994,9 +4010,9 @@ async searchAll(searchDto: ArticleSearchDto, currentUserId?: number) {
 ```ts
 @UseGuards(JwtAccessOptionalGuard)
 @Get()
-search(@Query() searchDto: ArticleSearchDto, @Req() req) {
+search(@Query() searchDto: {{resource}}SearchDto, @Req() req) {
   const currentUserId = req.user?.sub;
-  return this.articlesService.searchAll(searchDto, currentUserId);
+  return this.{{resource}}Service.searchAll(searchDto, currentUserId);
 }
 ```
 
@@ -4017,7 +4033,7 @@ search(@Query() searchDto: ArticleSearchDto, @Req() req) {
 
 ```ts
 async searchAllCursor(
-  searchDto: ArticleSearchCursorDto,
+  searchDto: {{resource}}SearchCursorDto,
   currentUserId?: number,
 ) {
   const searchFields = searchDto.getSearchFields();
@@ -4033,19 +4049,19 @@ async searchAllCursor(
   const { cursor, limit } = searchDto;
 
   const { items, nextCursor } = await cursorPaginate({
-    model: this.prisma.article,
+    model: this.prisma.{{resource}},
     limit: limit ?? 10,
     cursor,
     query: {
       where: { ...where, deleted: false, creator: { status: 'ACTIVE' } },
       orderBy,
-      select: DEFAULT_ARTICLE_SELECT,
+      select: DEFAULT_{{resource}}_SELECT,
     },
   });
 
   const enhancedItems = await enhanceWithLikes(
     this.prisma,
-    'ARTICLE',
+    '{{resource}}',
     items,
     currentUserId,
   );
@@ -4108,9 +4124,9 @@ async searchAllCursor(
 ```ts
 @UseGuards(JwtAccessOptionalGuard)
 @Get('cursor')
-searchCursor(@Query() searchDto: ArticleSearchCursorDto, @Req() req) {
+searchCursor(@Query() searchDto: {{resource}}SearchCursorDto, @Req() req) {
   const currentUserId = req.user?.sub;
-  return this.articlesService.searchAllCursor(searchDto, currentUserId);
+  return this.{{resource}}Service.searchAllCursor(searchDto, currentUserId);
 }
 ```
 
@@ -4137,20 +4153,20 @@ async findLikedByUser(
   if (!user) throw new NotFoundException('User not found');
 
   const totalCount = await this.prisma.like.count({
-    where: { userId, resourceType: 'ARTICLE' },
+    where: { userId, resourceType: '{{resource}}' },
   });
 
   const likes = await this.prisma.like.findMany({
-    where: { userId, resourceType: 'ARTICLE' },
+    where: { userId, resourceType: '{{resource}}' },
     orderBy: { createdAt: 'desc' },
     skip: pag.offset ?? 0,
     take: pag.limit ?? 10,
     select: { resourceId: true },
   });
 
-  const articleIds = likes.map((like) => like.resourceId);
+  const {{resource}}Ids = likes.map((like) => like.resourceId);
 
-  if (articleIds.length === 0) {
+  if ({{resource}}Ids.length === 0) {
     return {
       items: [],
       pageInfo: {
@@ -4162,15 +4178,15 @@ async findLikedByUser(
     };
   }
 
-  const articles = await this.prisma.article.findMany({
-    where: { id: { in: articleIds }, deleted: false },
-    select: DEFAULT_ARTICLE_SELECT,
+  const {{resource}} = await this.prisma.{{resource}}.findMany({
+    where: { id: { in: {{resource}}Ids }, deleted: false },
+    select: DEFAULT_{{resource}}_SELECT,
   });
 
   const enhancedItems = await enhanceWithLikes(
     this.prisma,
-    'ARTICLE',
-    articles,
+    '{{resource}}',
+    {{resource}},
     currentUserId,
   );
 
@@ -4264,7 +4280,7 @@ findLikedByUser(
   @Req() req,
 ) {
   const currentUserId = req.user?.sub;
-  return this.articlesService.findLikedByUser(userId, pag, currentUserId);
+  return this.{{resource}}Service.findLikedByUser(userId, pag, currentUserId);
 }
 ```
 
@@ -4299,7 +4315,7 @@ async findLikedByUserCursor(
   const { cursor, limit } = pag;
 
   const likes = await this.prisma.like.findMany({
-    where: { userId, resourceType: 'ARTICLE' },
+    where: { userId, resourceType: '{{resource}}' },
     orderBy: { createdAt: 'desc' },
     cursor: cursor ? { id: cursor } : undefined,
     skip: cursor ? 1 : 0,
@@ -4311,21 +4327,21 @@ async findLikedByUserCursor(
   const items = hasMore ? likes.slice(0, -1) : likes;
   const nextCursor = hasMore ? items[items.length - 1]?.id : null;
 
-  const articleIds = items.map((like) => like.resourceId);
+  const {{resource}}Ids = items.map((like) => like.resourceId);
 
-  if (articleIds.length === 0) {
+  if ({{resource}}Ids.length === 0) {
     return { items: [], nextCursor: null };
   }
 
-  const articles = await this.prisma.article.findMany({
-    where: { id: { in: articleIds }, deleted: false },
-    select: DEFAULT_ARTICLE_SELECT,
+  const {{resource}} = await this.prisma.{{resource}}.findMany({
+    where: { id: { in: {{resource}}Ids }, deleted: false },
+    select: DEFAULT_{{resource}}_SELECT,
   });
 
   const enhancedItems = await enhanceWithLikes(
     this.prisma,
-    'ARTICLE',
-    articles,
+    '{{resource}}',
+    {{resource}},
     currentUserId,
   );
 
@@ -4394,7 +4410,7 @@ findLikedByUserCursor(
   @Req() req,
 ) {
   const currentUserId = req.user?.sub;
-  return this.articlesService.findLikedByUserCursor(
+  return this.{{resource}}Service.findLikedByUserCursor(
     userId,
     pag,
     currentUserId,
@@ -4443,13 +4459,16 @@ Response:
 ```
 
 **get users liked {{resource}} (offset)**
-GET `http://localhost:3000/articles/users/{{userId}}/liked`
+GET `http://localhost:3000/{{resource}}/users/{{userId}}/liked`
+ex: GET `http://localhost:3000/articles/users/{{userId}}/liked`
 
 **get users liked {{resource}} (cursor)**
-GET `http://localhost:3000/articles/users/{{userId}}/liked/cursor`
+GET `http://localhost:3000/{{resource}}/users/{{userId}}/liked/cursor`
+ex: GET `http://localhost:3000/articles/users/{{userId}}/liked/cursor`
 
 **check views is present when getting article by ID, findall, search, etc**
-GET `http://localhost:3000/articles/{{articleId}}`
+GET `http://localhost:3000/{{resource}}/{{articleId}}`
+ex: GET `http://localhost:3000/articles/{{articleId}}`
 
 # part 11 | adding views
 
@@ -4564,25 +4583,27 @@ POST `http://localhost:3000/views`
 
 ```json
 {
+  "resourceType": "{{resource}}",
+  "resourceId": "1"
+}
+```
+
+example:
+
+```json
+{
   "resourceType": "ARTICLE",
   "resourceId": "1"
 }
 ```
 
-Response:
-
-```json
-{
-  "recorded": true,
-  "viewCount": 1
-}
-```
-
 **get view stats**
-GET `http://localhost:3000/views/ARTICLES/{{articleId}}`
+GET `http://localhost:3000/views/{{resource}}/{{resourceId}}`
+ex: GET `http://localhost:3000/views/ARTICLES/{{articleId}}`
 
 **check views is present when getting article by ID, findall, search, etc**
-GET `http://localhost:3000/articles/{{articleId}}`
+GET `http://localhost:3000/{{resource}}/{{resourceId}}`
+ex: GET `http://localhost:3000/articles/{{articleId}}`
 
 # part 12 | adding comments
 
@@ -4661,6 +4682,16 @@ POST `http://localhost:3000/comments`
 
 ```json
 {
+  "resourceType": "{{resource}}",
+  "resourceId": 1,
+  "content": "New comment"
+}
+```
+
+example:
+
+```json
+{
   "resourceType": "ARTICLE",
   "resourceId": 1,
   "content": "New comment"
@@ -4668,7 +4699,8 @@ POST `http://localhost:3000/comments`
 ```
 
 **get comment on {{resource}}**
-GET `http://localhost:3000/comments/resource/ARTICLE/1`
+GET `http://localhost:3000/comments/resource/{{resource}}/{{resourceId}}`
+ex: GET `http://localhost:3000/comments/resource/ARTICLE/{{articleId}}`
 
 # part 13 | adding collection
 
