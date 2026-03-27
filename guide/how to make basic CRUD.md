@@ -4439,6 +4439,8 @@ findLikedByUserCursor(
 
 ## step 25 Test like endpoints/summary
 
+Tell human to tests these endpoints and wait for human's confirmation to continue on to next parts.
+
 **toggle like**
 POST `http://localhost:3000/likes/toggle`
 
@@ -4502,16 +4504,16 @@ export enum ResourceTypeEnum {
 export type ResourceType = "POST" | "COMMENT" | "ARTICLE";
 ```
 
-## step 2 add {{resource}} to VIEWABLE_RESOURCE_CONFIG in resource.types.ts
+## step 2 add {{resource}} to VIEWABLE_RESOURCES in resource.types.ts
 
 ```ts
-export const VIEWABLE_RESOURCE_CONFIG = ["POST", "{{resource}}"] as const;
+export const VIEWABLE_RESOURCES = ["POST", "{{resource}}"] as const;
 ```
 
 example :
 
 ```ts
-export const VIEWABLE_RESOURCE_CONFIG = ["POST", "ARTICLE"] as const;
+export const VIEWABLE_RESOURCES = ["POST", "ARTICLE"] as const;
 ```
 
 ## step 3 add {{resource}} VIEWABLE_RESOURCE_CONFIG in view-handler.service.ts
@@ -4576,7 +4578,9 @@ const DEFAULT_ARTICLE_SELECT = {
 };
 ```
 
-## step 6 Test like view endpoint for {{resource}}
+## step 6 Test view endpoint for {{resource}}
+
+Tell human to tests these endpoints and wait for human's confirmation to continue on to next parts.
 
 **record view**
 POST `http://localhost:3000/views`
@@ -4635,7 +4639,7 @@ export enum ResourceTypeEnum {
 export type ResourceType = "POST" | "COMMENT" | "ARTICLE";
 ```
 
-## step 2 add {{resource}} to VIEWABLE_RESOURCE_CONFIG in resource.types.ts
+## step 2 add {{resource}} to COMMENTABLE_RESOURCES in resource.types.ts
 
 ```ts
 export const COMMENTABLE_RESOURCES = [
@@ -4651,14 +4655,15 @@ example :
 export const COMMENTABLE_RESOURCES = ["POST", "COMMENT", "ARTICLE"] as const;
 ```
 
-## step 3 add {{resource}} COMMENTABLE_RESOURCES in comments.service.service.ts
+## step 3 add {{resource}} COMMENTABLE_RESOURCE_CONFIG in comments.service.ts
 
 ```ts
-const COMMENTABLE_RESOURCES: Record<
-  ViewableResourceType,
-  ViewableResourceConfig
+const COMMENTABLE_RESOURCE_CONFIG: Record<
+  CommentableResourceType,
+  CommentableResourceConfig
 > = {
   POST: { model: 'post', label: 'Post' },
+  COMMENT: { model: 'comment', label: 'Comment' },
   {{resource}}: { model: '{{resource}}', label: '{{resource}}' },
 };
 ```
@@ -4666,16 +4671,19 @@ const COMMENTABLE_RESOURCES: Record<
 example :
 
 ```ts
-const COMMENTABLE_RESOURCES: Record<
-  ViewableResourceType,
-  ViewableResourceConfig
+const COMMENTABLE_RESOURCE_CONFIG: Record<
+  CommentableResourceType,
+  CommentableResourceConfig
 > = {
   POST: { model: "post", label: "Post" },
+  COMMENT: { model: "comment", label: "Comment" },
   ARTICLE: { model: "article", label: "Article" },
 };
 ```
 
-## step 6 Test like view endpoint for {{resource}}
+## step 4 Test comment endpoint for {{resource}}
+
+Tell human to tests these endpoints and wait for human's confirmation to continue on to next parts.
 
 **create comment**
 POST `http://localhost:3000/comments`
@@ -4706,7 +4714,96 @@ ex: GET `http://localhost:3000/comments/resource/ARTICLE/{{articleId}}`
 
 > ⚠️ SKIP THIS PART unless human explicitly requested collections.
 
-WIP
+## step 1 add/check {{Resource}} in resource.types.ts
+
+```ts
+export enum ResourceTypeEnum {
+  POST = 'POST',
+  COMMENT = 'COMMENT',
+  {{resource}} = '{{resource}}',
+}
+
+// export type ResourceType = 'POST' | 'VIDEO' | 'ARTICLE' | 'COMMENT';
+export type ResourceType = 'POST' | 'COMMENT' | '{{resource}}';
+```
+
+example :
+
+```ts
+export enum ResourceTypeEnum {
+  POST = "POST",
+  COMMENT = "COMMENT",
+  ARTICLE = "ARTICLE",
+}
+
+// export type ResourceType = 'POST' | 'VIDEO' | 'ARTICLE' | 'COMMENT';
+export type ResourceType = "POST" | "COMMENT" | "ARTICLE";
+```
+
+## step 2 add {{resource}} to COLLECTABLE_RESOURCES in resource.types.ts
+
+```ts
+export const COLLECTABLE_RESOURCES = ["POST", "{{resource}}"] as const;
+```
+
+example :
+
+```ts
+export const COLLECTABLE_RESOURCES = ["POST", "ARTICLE"] as const;
+```
+
+## step 3 add {{resource}} COLLECTABLE_RESOURCE_CONFIG in collections.service.ts
+
+```ts
+const COLLECTABLE_RESOURCE_CONFIG: Record<
+  CollectableResourceType,
+  CollectableResourceConfig
+> = {
+  POST: { model: 'post', label: 'Post' },
+  {{resource}}: { model: '{{resource}}', label: '{{resource}}' },
+};
+```
+
+example :
+
+```ts
+const COLLECTABLE_RESOURCE_CONFIG: Record<
+  CollectableResourceType,
+  CollectableResourceConfig
+> = {
+  POST: { model: "post", label: "Post" },
+  ARTICLE: { model: "article", label: "Article" },
+};
+```
+
+## step 4 Test collection endpoint for {{resource}}
+
+Tell human to tests these endpoints and wait for human's confirmation to continue on to next parts.
+
+first make collection if you haven't already
+**add to collection**
+
+POST `http://localhost:3000/collections/{{collectionId}}/items`
+
+```json
+{
+  "resourceType": "{{resource}}",
+  "resourceId": 1
+}
+```
+
+example:
+
+```json
+{
+  "resourceType": "ARTICLE",
+  "resourceId": 1
+}
+```
+
+**get collection by ID**
+check its in collection
+GET `http://localhost:3000/collections/{{collectionId}}`
 
 # part 14 | add swagger docs to DTO and controller.ts
 

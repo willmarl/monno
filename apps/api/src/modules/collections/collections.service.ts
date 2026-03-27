@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
   ConflictException,
   ForbiddenException,
 } from '@nestjs/common';
@@ -14,6 +13,16 @@ import type { CollectableResourceType } from 'src/common/types/resource.types';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+
+type CollectableResourceConfig = { model: keyof PrismaService; label: string };
+
+const COLLECTABLE_RESOURCE_CONFIG: Record<
+  CollectableResourceType,
+  CollectableResourceConfig
+> = {
+  POST: { model: 'post', label: 'Post' },
+  ARTICLE: { model: 'article', label: 'Article' },
+};
 
 const DEFAULT_COLLECTION_SELECT = {
   id: true,
@@ -328,34 +337,13 @@ export class CollectionsService {
     resourceType: CollectableResourceType,
     resourceId: number,
   ): Promise<void> {
-    switch (resourceType) {
-      case 'POST':
-        const post = await this.prisma.post.findUnique({
-          where: { id: resourceId },
-        });
-        if (!post || post.deleted) {
-          throw new NotFoundException('Post not found or has been deleted');
-        }
-        break;
-
-      // case 'COMMENT':
-      //   const comment = await this.prisma.comment.findUnique({
-      //     where: { id: resourceId },
-      //   });
-      //   if (!comment || comment.deleted) {
-      //     throw new NotFoundException('Comment not found or has been deleted');
-      //   }
-      //   break;
-
-      // case 'VIDEO':
-      //   // TODO: Implement video validation when Video model is added
-      //   // For now, we'll assume video exists
-      //   break;
-
-      // case 'ARTICLE':
-      //   // TODO: Implement article validation when Article model is added
-      //   // For now, we'll assume article exists
-      //   break;
+    const config = COLLECTABLE_RESOURCE_CONFIG[resourceType];
+    const delegate = this.prisma[config.model] as any;
+    const record = await delegate.findUnique({ where: { id: resourceId } });
+    if (!record || record.deleted) {
+      throw new NotFoundException(
+        `${config.label} not found or has been deleted`,
+      );
     }
   }
 

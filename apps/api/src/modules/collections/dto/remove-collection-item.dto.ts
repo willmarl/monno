@@ -1,15 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsInt, Min } from 'class-validator';
-import type { CollectableResourceType } from 'src/common/types/resource.types';
-import { ResourceTypeEnum } from 'src/common/types/resource.types';
+import {
+  COLLECTABLE_RESOURCES,
+  type CollectableResourceType,
+} from 'src/common/types/resource.types';
 
 export class RemoveCollectionItemDto {
   @ApiProperty({
     description: 'The type of resource to remove from the collection',
-    enum: ResourceTypeEnum,
-    example: 'post',
+    enum: COLLECTABLE_RESOURCES,
+    example: 'POST',
   })
-  @IsEnum(ResourceTypeEnum)
+  @IsEnum(COLLECTABLE_RESOURCES)
   resourceType!: CollectableResourceType;
 
   @ApiProperty({
