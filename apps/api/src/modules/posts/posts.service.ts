@@ -9,6 +9,7 @@ import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 import { PostSearchDto, PostSearchCursorDto } from './dto/search-post.dto';
 import { buildSearchWhere } from 'src/common/search/search.utils';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import { enhanceWithLikes } from 'src/common/likes/enhance-with-likes';
 
 const DEFAULT_POST_SELECT = {
   id: true,
@@ -21,44 +22,12 @@ const DEFAULT_POST_SELECT = {
   deleted: true,
   deletedAt: true,
   viewCount: true,
+  likeCount: true,
 };
 
 @Injectable()
 export class PostsService {
   constructor(private prisma: PrismaService) {}
-
-  /**
-   * Enhance posts with like information
-   */
-  private async enhancePostsWithLikes(posts: any[], currentUserId?: number) {
-    return Promise.all(
-      posts.map(async (post) => {
-        const likeCount = await this.prisma.like.count({
-          where: { resourceType: 'POST', resourceId: post.id },
-        });
-
-        let likedByMe = false;
-        if (currentUserId) {
-          const userLike = await this.prisma.like.findUnique({
-            where: {
-              userId_resourceType_resourceId: {
-                userId: currentUserId,
-                resourceType: 'POST',
-                resourceId: post.id,
-              },
-            },
-          });
-          likedByMe = !!userLike;
-        }
-
-        return {
-          ...post,
-          likeCount,
-          likedByMe,
-        };
-      }),
-    );
-  }
 
   create(data: CreatePostDto, userId: number) {
     return this.prisma.post.create({
@@ -133,7 +102,9 @@ export class PostsService {
       countQuery: { where },
     });
 
-    const enhancedItems = await this.enhancePostsWithLikes(
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'POST',
       items,
       currentUserId,
     );
@@ -167,7 +138,9 @@ export class PostsService {
       },
     });
 
-    const enhancedItems = await this.enhancePostsWithLikes(
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'POST',
       items,
       currentUserId,
     );
@@ -236,7 +209,9 @@ export class PostsService {
     });
 
     // Enhance with likes
-    const enhancedItems = await this.enhancePostsWithLikes(
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'POST',
       posts,
       currentUserId,
     );
@@ -309,7 +284,9 @@ export class PostsService {
     });
 
     // Enhance with likes
-    const enhancedItems = await this.enhancePostsWithLikes(
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'POST',
       posts,
       currentUserId,
     );
@@ -330,7 +307,9 @@ export class PostsService {
       throw new NotFoundException('Post not found');
     }
 
-    const [enhanced] = await this.enhancePostsWithLikes(
+    const [enhanced] = await enhanceWithLikes(
+      this.prisma,
+      'POST',
       [post],
       userId ?? undefined,
     );
@@ -398,7 +377,9 @@ export class PostsService {
       countQuery: { where: whereWithStatus },
     });
 
-    const enhancedItems = await this.enhancePostsWithLikes(
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'POST',
       items,
       currentUserId,
     );
@@ -437,7 +418,9 @@ export class PostsService {
       },
     });
 
-    const enhancedItems = await this.enhancePostsWithLikes(
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'POST',
       items,
       currentUserId,
     );
@@ -464,7 +447,7 @@ export class PostsService {
       take: limit,
     });
 
-    return this.enhancePostsWithLikes(posts, currentUserId);
+    return enhanceWithLikes(this.prisma, 'POST', posts, currentUserId);
   }
 
   /**

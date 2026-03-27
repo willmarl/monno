@@ -84,7 +84,7 @@ export class PostsController {
   }
 
   @UseGuards(JwtAccessOptionalGuard)
-  @Get('liked/:userId')
+  @Get('users/:userId/liked')
   findLikedByUser(
     @Param('userId', ParseIntPipe) userId: number,
     @Query() pag: PaginationDto,
@@ -95,7 +95,7 @@ export class PostsController {
   }
 
   @UseGuards(JwtAccessOptionalGuard)
-  @Get('liked/:userId/cursor')
+  @Get('users/:userId/liked/cursor')
   findLikedByUserCursor(
     @Param('userId', ParseIntPipe) userId: number,
     @Query() pag: CursorPaginationDto,
