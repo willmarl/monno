@@ -1,10 +1,19 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import type { ViewableResourceType } from '../types/resource.types';
+
+type ViewableResourceConfig = {
+  model: keyof PrismaService;
+  label: string;
+};
+
+const VIEWABLE_RESOURCE_CONFIG: Record<
+  ViewableResourceType,
+  ViewableResourceConfig
+> = {
+  POST: { model: 'post', label: 'Post' },
+  ARTICLE: { model: 'article', label: 'Article' },
+};
 
 @Injectable()
 export class ViewHandlerService {
@@ -59,33 +68,14 @@ export class ViewHandlerService {
     resourceType: ViewableResourceType,
     resourceId: number,
   ): Promise<number> {
-    switch (resourceType) {
-      case 'POST': {
-        const post = await this.prisma.post.findUnique({
-          where: { id: resourceId },
-          select: { viewCount: true },
-        });
-        return post?.viewCount ?? 0;
-      }
-      // case 'VIDEO': {
-      //   // TODO: Implement when video model is added
-      //   const video = await this.prisma.video.findUnique({
-      //     where: { id: resourceId },
-      //     select: { viewCount: true },
-      //   });
-      //   return video?.viewCount ?? 0;
-      // }
-      // case 'ARTICLE': {
-      //   // TODO: Implement when article model is added
-      //   const article = await this.prisma.article.findUnique({
-      //     where: { id: resourceId },
-      //     select: { viewCount: true },
-      //   });
-      //   return article?.viewCount ?? 0;
-      // }
-      default:
-        throw new BadRequestException('Invalid resource type');
-    }
+    const delegate = this.prisma[
+      VIEWABLE_RESOURCE_CONFIG[resourceType].model
+    ] as any;
+    const record = await delegate.findUnique({
+      where: { id: resourceId },
+      select: { viewCount: true },
+    });
+    return record?.viewCount ?? 0;
   }
 
   /**
@@ -95,28 +85,13 @@ export class ViewHandlerService {
     resourceType: ViewableResourceType,
     resourceId: number,
   ): Promise<void> {
-    switch (resourceType) {
-      case 'POST':
-        await this.prisma.post.update({
-          where: { id: resourceId },
-          data: { viewCount: { increment: 1 } },
-        });
-        break;
-      // case 'VIDEO':
-      //   await this.prisma.video.update({
-      //     where: { id: resourceId },
-      //     data: { viewCount: { increment: 1 } },
-      //   });
-      //   break;
-      // case 'ARTICLE':
-      //   await this.prisma.article.update({
-      //     where: { id: resourceId },
-      //     data: { viewCount: { increment: 1 } },
-      //   });
-      //   break;
-      default:
-        throw new BadRequestException('Invalid resource type');
-    }
+    const delegate = this.prisma[
+      VIEWABLE_RESOURCE_CONFIG[resourceType].model
+    ] as any;
+    await delegate.update({
+      where: { id: resourceId },
+      data: { viewCount: { increment: 1 } },
+    });
   }
 
   /**
@@ -126,38 +101,11 @@ export class ViewHandlerService {
     resourceType: ViewableResourceType,
     resourceId: number,
   ): Promise<void> {
-    switch (resourceType) {
-      case 'POST': {
-        const post = await this.prisma.post.findUnique({
-          where: { id: resourceId },
-        });
-        if (!post || post.deleted) {
-          throw new NotFoundException('Post not found');
-        }
-        break;
-      }
-      // case 'VIDEO': {
-      //   // TODO: Implement when video model is added
-      //   const video = await this.prisma.video.findUnique({
-      //     where: { id: resourceId },
-      //   });
-      //   if (!video || video.deleted) {
-      //     throw new NotFoundException('Video not found');
-      //   }
-      //   break;
-      // }
-      // case 'ARTICLE': {
-      //   // TODO: Implement when article model is added
-      //   const article = await this.prisma.article.findUnique({
-      //     where: { id: resourceId },
-      //   });
-      //   if (!article || article.deleted) {
-      //     throw new NotFoundException('Article not found');
-      //   }
-      //   break;
-      // }
-      default:
-        throw new BadRequestException('Invalid resource type');
+    const config = VIEWABLE_RESOURCE_CONFIG[resourceType];
+    const delegate = this.prisma[config.model] as any;
+    const record = await delegate.findUnique({ where: { id: resourceId } });
+    if (!record || record.deleted) {
+      throw new NotFoundException(`${config.label} not found`);
     }
   }
 }
