@@ -34,6 +34,7 @@ const DEFAULT_ARTICLE_SELECT = {
   deleted: true,
   deletedAt: true,
   likeCount: true,
+  viewCount: true,
 };
 
 @Injectable()

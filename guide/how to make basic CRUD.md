@@ -4421,7 +4421,7 @@ findLikedByUserCursor(
 }
 ```
 
-## step 25 Test CRUD endpoints/summary
+## step 25 Test like endpoints/summary
 
 **toggle like**
 POST `http://localhost:3000/likes/toggle`
@@ -4438,7 +4438,7 @@ Response:
 ```json
 {
   "liked": true,
-  "likeCount": 5
+  "likeCount": 1
 }
 ```
 
@@ -4448,13 +4448,141 @@ GET `http://localhost:3000/articles/users/{{userId}}/liked`
 **get users liked {{resource}} (cursor)**
 GET `http://localhost:3000/articles/users/{{userId}}/liked/cursor`
 
+**check views is present when getting article by ID, findall, search, etc**
+GET `http://localhost:3000/articles/{{articleId}}`
+
 # part 11 | adding views
 
 > ⚠️ SKIP THIS PART unless human explicitly requested view count.
 
 > ⚠️ Before proceeding: verify the schema model has `viewCount Int @default(0)`. If it is missing, **stop** — tell the human to add it to the schema and run a migration, then wait for confirmation before continuing.
 
-WIP
+## step 1 add/check {{Resource}} in resource.types.ts
+
+```ts
+export enum ResourceTypeEnum {
+  POST = 'POST',
+  COMMENT = 'COMMENT',
+  {{resource}} = '{{resource}}',
+}
+
+// export type ResourceType = 'POST' | 'VIDEO' | 'ARTICLE' | 'COMMENT';
+export type ResourceType = 'POST' | 'COMMENT' | '{{resource}}';
+```
+
+example :
+
+```ts
+export enum ResourceTypeEnum {
+  POST = "POST",
+  COMMENT = "COMMENT",
+  ARTICLE = "ARTICLE",
+}
+
+// export type ResourceType = 'POST' | 'VIDEO' | 'ARTICLE' | 'COMMENT';
+export type ResourceType = "POST" | "COMMENT" | "ARTICLE";
+```
+
+## step 2 add {{resource}} to VIEWABLE_RESOURCE_CONFIG in resource.types.ts
+
+```ts
+export const VIEWABLE_RESOURCE_CONFIG = ["POST", "{{resource}}"] as const;
+```
+
+example :
+
+```ts
+export const VIEWABLE_RESOURCE_CONFIG = ["POST", "ARTICLE"] as const;
+```
+
+## step 3 add {{resource}} VIEWABLE_RESOURCE_CONFIG in view-handler.service.ts
+
+```ts
+const VIEWABLE_RESOURCE_CONFIG: Record<
+  ViewableResourceType,
+  ViewableResourceConfig
+> = {
+  POST: { model: 'post', label: 'Post' },
+  {{resource}}: { model: '{{resource}}', label: '{{resource}}' },
+};
+```
+
+example :
+
+```ts
+const VIEWABLE_RESOURCE_CONFIG: Record<
+  ViewableResourceType,
+  ViewableResourceConfig
+> = {
+  POST: { model: "post", label: "Post" },
+  ARTICLE: { model: "article", label: "Article" },
+};
+```
+
+## step 4 add to `viewCount` to shared return in {{resource}}.service.ts
+
+```ts
+const DEFAULT_{{resource}}_SELECT = {
+  ...
+  viewCount: true
+};
+```
+
+example :
+
+```ts
+const DEFAULT_ARTICLE_SELECT = {
+  ...
+  viewCount: true
+};
+```
+
+## step 5 add to `viewCount` to shared return in admin-{{resource}}.service.ts
+
+> ⚠️ SKIP THIS STEP unless human explicitly requested admin.
+
+```ts
+const DEFAULT_{{resource}}_SELECT = {
+  ...
+  viewCount: true
+};
+```
+
+example :
+
+```ts
+const DEFAULT_ARTICLE_SELECT = {
+  ...
+  viewCount: true
+};
+```
+
+## step 6 Test like view endpoint for {{resource}}
+
+**record view**
+POST `http://localhost:3000/views`
+
+```json
+{
+  "resourceType": "ARTICLE",
+  "resourceId": "1"
+}
+```
+
+Response:
+
+```json
+{
+  "recorded": true,
+  "viewCount": 1
+}
+```
+
+**get view stats**
+GET `http://localhost:3000/views/ARTICLES/{{articleId}}`
+
+**check views is present when getting article by ID, findall, search, etc**
+GET `http://localhost:3000/articles/{{articleId}}`
 
 # part 12 | adding comments
 
