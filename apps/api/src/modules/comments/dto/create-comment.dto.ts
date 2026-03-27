@@ -1,15 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsEnum, IsInt, MinLength, MaxLength } from 'class-validator';
-import type { ResourceType } from 'src/common/types/resource.types';
+import {
+  COMMENTABLE_RESOURCES,
+  type CommentableResourceType,
+} from 'src/common/types/resource.types';
 
 export class CreateCommentDto {
   @ApiProperty({
     description: 'The type of resource being commented on',
-    enum: ['POST', 'COMMENT'],
+    enum: COMMENTABLE_RESOURCES,
     example: 'POST',
   })
-  @IsEnum(['POST', 'COMMENT'])
-  resourceType!: ResourceType;
+  @IsEnum(COMMENTABLE_RESOURCES)
+  resourceType!: CommentableResourceType;
 
   @ApiProperty({
     description: 'The ID of the resource being commented on',

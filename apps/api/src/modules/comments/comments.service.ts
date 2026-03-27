@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
@@ -9,8 +8,20 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
-import type { ResourceType } from 'src/common/types/resource.types';
+import type { CommentableResourceType } from 'src/common/types/resource.types';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import { enhanceWithLikes } from 'src/common/likes/enhance-with-likes';
+
+type CommentableResourceConfig = { model: keyof PrismaService; label: string };
+
+const COMMENTABLE_RESOURCE_CONFIG: Record<
+  CommentableResourceType,
+  CommentableResourceConfig
+> = {
+  POST: { model: 'post', label: 'Post' },
+  COMMENT: { model: 'comment', label: 'Comment' },
+  ARTICLE: { model: 'article', label: 'Article' },
+};
 
 const DEFAULT_COMMENT_SELECT = {
   id: true,
@@ -31,37 +42,6 @@ export class CommentsService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Enhance comments with like information
-   */
-  private async enhanceCommentsWithLikes(
-    comments: any[],
-    currentUserId?: number,
-  ) {
-    return Promise.all(
-      comments.map(async (comment) => {
-        let likedByMe = false;
-        if (currentUserId) {
-          const userLike = await this.prisma.like.findUnique({
-            where: {
-              userId_resourceType_resourceId: {
-                userId: currentUserId,
-                resourceType: 'COMMENT',
-                resourceId: comment.id,
-              },
-            },
-          });
-          likedByMe = !!userLike;
-        }
-
-        return {
-          ...comment,
-          likedByMe,
-        };
-      }),
-    );
-  }
-
-  /**
    * Create a comment on a resource (post, video, article, or another comment)
    */
   async create(userId: number, data: CreateCommentDto) {
@@ -76,7 +56,12 @@ export class CommentsService {
       select: DEFAULT_COMMENT_SELECT,
     });
 
-    const [enhanced] = await this.enhanceCommentsWithLikes([comment], userId);
+    const [enhanced] = await enhanceWithLikes(
+      this.prisma,
+      'COMMENT',
+      [comment],
+      userId,
+    );
     return enhanced;
   }
 
@@ -84,7 +69,7 @@ export class CommentsService {
    * Get all comments for a resource (excluding soft-deleted)
    */
   async findByResource(
-    resourceType: ResourceType,
+    resourceType: CommentableResourceType,
     resourceId: number,
     pag: PaginationDto,
     currentUserId?: number,
@@ -102,7 +87,9 @@ export class CommentsService {
       countQuery: { where },
     });
 
-    const enhancedItems = await this.enhanceCommentsWithLikes(
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'COMMENT',
       items,
       currentUserId,
     );
@@ -132,7 +119,9 @@ export class CommentsService {
 
     // Remove the deleted flag from response
     const { deleted, ...result } = comment;
-    const [enhanced] = await this.enhanceCommentsWithLikes(
+    const [enhanced] = await enhanceWithLikes(
+      this.prisma,
+      'COMMENT',
       [result],
       currentUserId,
     );
@@ -169,7 +158,12 @@ export class CommentsService {
       select: DEFAULT_COMMENT_SELECT,
     });
 
-    const [enhanced] = await this.enhanceCommentsWithLikes([updated], userId);
+    const [enhanced] = await enhanceWithLikes(
+      this.prisma,
+      'COMMENT',
+      [updated],
+      userId,
+    );
     return enhanced;
   }
 
@@ -201,7 +195,12 @@ export class CommentsService {
       select: DEFAULT_COMMENT_SELECT,
     });
 
-    const [enhanced] = await this.enhanceCommentsWithLikes([deleted], userId);
+    const [enhanced] = await enhanceWithLikes(
+      this.prisma,
+      'COMMENT',
+      [deleted],
+      userId,
+    );
     return enhanced;
   }
 
@@ -209,40 +208,16 @@ export class CommentsService {
    * Validate that a resource exists based on type
    */
   private async validateResourceExists(
-    resourceType: ResourceType,
+    resourceType: CommentableResourceType,
     resourceId: number,
   ): Promise<void> {
-    switch (resourceType) {
-      case 'POST': {
-        const post = await this.prisma.post.findUnique({
-          where: { id: resourceId },
-        });
-        if (!post || post.deleted) {
-          throw new NotFoundException('Post not found or has been deleted');
-        }
-        break;
-      }
-
-      case 'COMMENT': {
-        const comment = await this.prisma.comment.findUnique({
-          where: { id: resourceId },
-        });
-        if (!comment || comment.deleted) {
-          throw new NotFoundException('Comment not found or has been deleted');
-        }
-        break;
-      }
-
-      // case 'VIDEO':
-      //   // TODO: Implement video validation when Video model is added
-      //   break;
-
-      // case 'ARTICLE':
-      //   // TODO: Implement article validation when Article model is added
-      //   break;
-
-      default:
-        throw new BadRequestException('Invalid resource type');
+    const config = COMMENTABLE_RESOURCE_CONFIG[resourceType];
+    const delegate = this.prisma[config.model] as any;
+    const record = await delegate.findUnique({ where: { id: resourceId } });
+    if (!record || record.deleted) {
+      throw new NotFoundException(
+        `${config.label} not found or has been deleted`,
+      );
     }
   }
 }

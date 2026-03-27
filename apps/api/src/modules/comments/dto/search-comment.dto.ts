@@ -1,8 +1,9 @@
-import { IsOptional, IsString, IsBoolean, IsIn } from 'class-validator';
+import { IsOptional, IsString, IsBoolean, IsEnum } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
+import { COMMENTABLE_RESOURCES } from 'src/common/types/resource.types';
 
 /**
  * Transform string booleans from query params to actual booleans
@@ -126,10 +127,11 @@ export class CommentSearchDto extends PaginationDto {
 
   @ApiPropertyOptional({
     description:
-      'Filter by resource type (POST, COMMENT, VIDEO, ARTICLE). If not provided, shows all resource types.',
+      'Filter by resource type. If not provided, shows all resource types.',
+    enum: COMMENTABLE_RESOURCES,
     example: 'POST',
   })
   @IsOptional()
-  @IsString()
-  resourceType?: string;
+  @IsEnum(COMMENTABLE_RESOURCES)
+  resourceType?: (typeof COMMENTABLE_RESOURCES)[number];
 }

@@ -4588,7 +4588,87 @@ GET `http://localhost:3000/articles/{{articleId}}`
 
 > ⚠️ SKIP THIS PART unless human explicitly requested comments.
 
-WIP
+## step 1 add/check {{Resource}} in resource.types.ts
+
+```ts
+export enum ResourceTypeEnum {
+  POST = 'POST',
+  COMMENT = 'COMMENT',
+  {{resource}} = '{{resource}}',
+}
+
+// export type ResourceType = 'POST' | 'VIDEO' | 'ARTICLE' | 'COMMENT';
+export type ResourceType = 'POST' | 'COMMENT' | '{{resource}}';
+```
+
+example :
+
+```ts
+export enum ResourceTypeEnum {
+  POST = "POST",
+  COMMENT = "COMMENT",
+  ARTICLE = "ARTICLE",
+}
+
+// export type ResourceType = 'POST' | 'VIDEO' | 'ARTICLE' | 'COMMENT';
+export type ResourceType = "POST" | "COMMENT" | "ARTICLE";
+```
+
+## step 2 add {{resource}} to VIEWABLE_RESOURCE_CONFIG in resource.types.ts
+
+```ts
+export const COMMENTABLE_RESOURCES = [
+  "POST",
+  "COMMENT",
+  "{{resource}}",
+] as const;
+```
+
+example :
+
+```ts
+export const COMMENTABLE_RESOURCES = ["POST", "COMMENT", "ARTICLE"] as const;
+```
+
+## step 3 add {{resource}} COMMENTABLE_RESOURCES in comments.service.service.ts
+
+```ts
+const COMMENTABLE_RESOURCES: Record<
+  ViewableResourceType,
+  ViewableResourceConfig
+> = {
+  POST: { model: 'post', label: 'Post' },
+  {{resource}}: { model: '{{resource}}', label: '{{resource}}' },
+};
+```
+
+example :
+
+```ts
+const COMMENTABLE_RESOURCES: Record<
+  ViewableResourceType,
+  ViewableResourceConfig
+> = {
+  POST: { model: "post", label: "Post" },
+  ARTICLE: { model: "article", label: "Article" },
+};
+```
+
+## step 6 Test like view endpoint for {{resource}}
+
+**create comment**
+POST `http://localhost:3000/comments`
+
+```json
+{
+  "resourceType": "ARTICLE",
+  "resourceId": 1,
+  "content": "New comment"
+}
+```
+
+**get comment on {{resource}}**
+GET `http://localhost:3000/comments/resource/ARTICLE/1`
 
 # part 13 | adding collection
 
