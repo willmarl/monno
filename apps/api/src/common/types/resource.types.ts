@@ -1,13 +1,14 @@
 export enum ResourceTypeEnum {
   POST = 'POST',
   COMMENT = 'COMMENT',
+  ARTICLE = 'ARTICLE',
 }
 
 // export type ResourceType = 'POST' | 'VIDEO' | 'ARTICLE' | 'COMMENT';
-export type ResourceType = 'POST' | 'COMMENT';
+export type ResourceType = 'POST' | 'COMMENT' | 'ARTICLE';
 
 // Module-specific subsets
-export const LIKEABLE_RESOURCES = ['POST', 'COMMENT'] as const;
+export const LIKEABLE_RESOURCES = ['POST', 'COMMENT', 'ARTICLE'] as const;
 export const VIEWABLE_RESOURCES = ['POST'] as const;
 export const COLLECTABLE_RESOURCES = ['POST', 'COMMENT'] as const;
 

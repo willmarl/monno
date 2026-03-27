@@ -5,8 +5,52 @@ future me : make checklist of things human to clarify to ai
 note everything here assumes the human or AI has prisma schema model ready (resource is in schema.prisma and the migrations has been set), for example:
 
 ```prisma
+enum ResourceType {
+  POST
+  COMMENT
+  {{resource}}
+}
+
 model User {
-  {{resource}} Article[]
+  ...
+  {{resource}} {{resource}}[]
+}
+
+enum {{resource}}Status {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  SCHEDULED
+}
+
+model {{resource}} {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  imagePath     String?
+  status    {{resource}}Status @default(DRAFT)
+  creatorId Int
+  creator User @relation(fields: [creatorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deleted   Boolean   @default(false)
+  deletedAt DateTime?
+  likeCount Int       @default(0) // optional
+  viewCount Int       @default(0) // optional
+}
+```
+
+example :
+
+```prisma
+enum ResourceType {
+  POST
+  COMMENT
+  ARTICLE
+}
+
+model User {
+  articles Article[]
 ...
 }
 
@@ -29,6 +73,8 @@ model Article {
   updatedAt DateTime @updatedAt
   deleted   Boolean   @default(false)
   deletedAt DateTime?
+  likeCount Int       @default(0) // optional
+  viewCount Int       @default(0) // optional
 }
 ```
 
@@ -40,6 +86,19 @@ Note anytime im using example, im referencing Article. Adapt appropriately for e
 The example 'Article' I use is suppose to cover a good amount of scenarios. I dont expect most new resource to have media or enum of status so in examples if new source doesnt have need for enum or media upload can ignore that part of code.
 
 if media upload is not simple like image refer to [how-to-do-file-upload.md](./how-to-do-file-upload.md)
+
+**Adapting from the human's schema**: When the human provides their actual schema, use it as the source of truth for field names, types, and structure. The Article example in this guide is just a template — replace fields accordingly:
+
+- Regular scalar fields (`String`, `Int`, `Boolean`, `DateTime`) → include in DTOs with appropriate validators
+- Array fields (`String[]`, `Int[]`) → use `@IsArray()` + `@IsString({ each: true })` / `@IsInt({ each: true })` in DTOs
+- Optional fields (`String?`) → wrap with `@IsOptional()` in DTOs
+- Enum fields → import the enum from `generated/prisma/client` and use `@IsEnum()`
+- Relation fields (`inventory Inventory[]`, `creator User`) → **do NOT include in create/update DTOs**. Relations are managed separately through their own endpoints or handled automatically by the service logic (e.g. `creatorId` comes from the authenticated user, not the request body)
+- Auto-managed fields (`id`, `createdAt`, `updatedAt`, `deletedAt`) → **do NOT include in DTOs**, these are set by Prisma/Postgres automatically
+
+Similarly, if schema has `viewCount Int @default(0)`, that signals the resource has a view count feature. Do not automatically add view count logic unless human explicitly requested it — the field may just be there for future use or added by habit.
+
+> **Default rule**: if the human did not explicitly mention a feature, **assume it is NOT wanted**. Do not include it speculatively. When in doubt, ask.
 
 ## checklist of features
 
@@ -499,6 +558,7 @@ import { {{resource}}Service } from './{{resource}}.service';
 import { Create{{resource}}Dto } from './dto/create-{{resource}}.dto';
 import { Update{{resource}}Dto } from './dto/update-{{resource}}.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
+import { JwtAccessOptionalGuard } from '../auth/guards/jwt-access-optional.guard';
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { CreatorGuard } from 'src/common/guards/creator.guard';
@@ -537,6 +597,7 @@ import { ArticlesService } from './articles.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
+import { JwtAccessOptionalGuard } from '../auth/guards/jwt-access-optional.guard';
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { CreatorGuard } from 'src/common/guards/creator.guard';
@@ -3278,11 +3339,1120 @@ by the time i am writing this, there is only likes, views, comments, and collect
 
 > ⚠️ SKIP THIS PART unless human explicitly requested likes.
 
-WIP
+> ⚠️ Before proceeding: verify the schema model has `likeCount Int @default(0)`. If it is missing, **stop** — tell the human to add it to the schema and run a migration, then wait for confirmation before continuing.
+
+## step 1 add/check {{Resource}} in resource.types.ts
+
+```ts
+export enum ResourceTypeEnum {
+  POST = 'POST',
+  COMMENT = 'COMMENT',
+  {{resource}} = '{{resource}}',
+}
+
+// export type ResourceType = 'POST' | 'VIDEO' | 'ARTICLE' | 'COMMENT';
+export type ResourceType = 'POST' | 'COMMENT' | '{{resource}}';
+```
+
+example :
+
+```ts
+export enum ResourceTypeEnum {
+  POST = "POST",
+  COMMENT = "COMMENT",
+  ARTICLE = "ARTICLE",
+}
+
+// export type ResourceType = 'POST' | 'VIDEO' | 'ARTICLE' | 'COMMENT';
+export type ResourceType = "POST" | "COMMENT" | "ARTICLE";
+```
+
+## step 2 add {{resource}} to LIKEABLE_RESOURCES in resource.types.ts
+
+```ts
+export const LIKEABLE_RESOURCES = ["POST", "COMMENT", "{{resource}}"] as const;
+```
+
+example :
+
+```ts
+export const LIKEABLE_RESOURCES = ["POST", "COMMENT", "ARTICLE"] as const;
+```
+
+## step 3 add {{resource}} LIKEABLE_RESOURCE_CONFIG in likes.service.ts
+
+```ts
+const LIKEABLE_RESOURCE_CONFIG: Record<LikeableResourceType, ResourceConfig> = {
+  POST: { model: 'post', label: 'Post' },
+  COMMENT: { model: 'comment', label: 'Comment' },
+  {{resource}}: { model: '{{resource}}', label: '{{resource}}' },
+};
+```
+
+example :
+
+```ts
+const LIKEABLE_RESOURCE_CONFIG: Record<LikeableResourceType, ResourceConfig> = {
+  POST: { model: "post", label: "Post" },
+  COMMENT: { model: "comment", label: "Comment" },
+  ARTICLE: { model: "article", label: "Article" },
+};
+```
+
+## step 4 add to `likeCount` to shared return in {{resource}}.service.ts
+
+```ts
+const DEFAULT_{{resource}}_SELECT = {
+  ...
+  likeCount: true
+};
+```
+
+example :
+
+```ts
+const DEFAULT_ARTICLE_SELECT = {
+  ...
+  likeCount: true
+};
+```
+
+## step 5 add to `likeCount` to shared return in admin-{{resource}}.service.ts
+
+> ⚠️ SKIP THIS STEP unless human explicitly requested admin.
+
+```ts
+const DEFAULT_{{resource}}_SELECT = {
+  ...
+  likeCount: true
+};
+```
+
+example :
+
+```ts
+const DEFAULT_ARTICLE_SELECT = {
+  ...
+  likeCount: true
+};
+```
+
+## step 6 import `enhanceWithLikes` to {{resource}}.service.ts
+
+```ts
+import { enhanceWithLikes } from "src/common/likes/enhance-with-likes";
+```
+
+## step 7 add like and its count to findById
+
+```ts
+async findById(id: number, userId: number | undefined) {
+  const {{resource}} = await this.prisma.{{resource}}.findUnique({
+    where: { id },
+    select: DEFAULT_{{resource}}_SELECT,
+  });
+
+  if (!{{resource}} || {{resource}}.deleted) {
+    throw new NotFoundException('{{resource}} not found');
+  }
+
+  const [enhanced] = await enhanceWithLikes(
+    this.prisma,
+    '{{resource}}',
+    [{{resource}}],
+    userId ?? undefined,
+  );
+  return enhanced;
+}
+```
+
+example:
+
+```ts
+async findById(id: number, userId: number | undefined) {
+  const article = await this.prisma.article.findUnique({
+    where: { id },
+    select: DEFAULT_ARTICLE_SELECT,
+  });
+
+  if (!article || article.deleted) {
+    throw new NotFoundException('Article not found');
+  }
+
+  const [enhanced] = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
+    [article],
+    userId ?? undefined,
+  );
+  return enhanced;
+}
+```
+
+## step 8 update findById endpoint to have Jwt optional guard
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+@Get(':id')
+findById(@Param('id', ParseIntPipe) id: number, @Req() req) {
+  const userId = req.user?.sub ? req.user.sub : undefined;
+  return this.{{resource}}sService.findById(id, userId);
+}
+```
+
+example:
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+@Get(':id')
+findById(@Param('id', ParseIntPipe) id: number, @Req() req) {
+  const userId = req.user?.sub ? req.user.sub : undefined;
+  return this.articlesService.findById(id, userId);
+}
+```
+
+## step 9 add like and its count to findAll (offset pagination)
+
+```ts
+async findAll(pag: PaginationDto, currentUserId?: number) {
+  const where = { deleted: false, creator: { status: 'ACTIVE' } };
+  const { items, pageInfo, isRedirected } = await offsetPaginate({
+    model: this.prisma.article,
+    limit: pag.limit ?? 10,
+    offset: pag.offset ?? 0,
+    query: {
+      where,
+      orderBy: { createdAt: 'desc' } as const,
+      select: DEFAULT_ARTICLE_SELECT,
+    },
+    countQuery: { where: where },
+  });
+
+  const enhancedItems = await enhanceWithLikes(this.prisma, 'ARTICLE', items, currentUserId);
+
+  return {
+    items: enhancedItems,
+    pageInfo,
+    ...(isRedirected && { isRedirected: true }),
+  };
+}
+```
+
+example:
+
+```ts
+async findAll(pag: PaginationDto, currentUserId?: number) {
+  const where = { deleted: false, creator: { status: 'ACTIVE' } };
+  const { items, pageInfo, isRedirected } = await offsetPaginate({
+    model: this.prisma.article,
+    limit: pag.limit ?? 10,
+    offset: pag.offset ?? 0,
+    query: {
+      where,
+      orderBy: { createdAt: 'desc' } as const,
+      select: DEFAULT_ARTICLE_SELECT,
+    },
+    countQuery: { where: where },
+  });
+
+  const enhancedItems = await enhanceWithLikes(this.prisma, 'ARTICLE', items, currentUserId);
+
+  return {
+    items: enhancedItems,
+    pageInfo,
+    ...(isRedirected && { isRedirected: true }),
+  };
+}
+```
+
+## step 10 update findAll (offset pagination) endpoint to have Jwt optional guard
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+  @Get()
+  findAll(@Query() pag: PaginationDto, @Req() req) {
+    const userId = req.user?.sub ? req.user.sub : undefined;
+    return this.articlesService.findAll(pag, userId);
+  }
+```
+
+example:
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+  @Get()
+  findAll(@Query() pag: PaginationDto, @Req() req) {
+    const userId = req.user?.sub ? req.user.sub : undefined;
+    return this.articlesService.findAll(pag, userId);
+  }
+```
+
+## step 11 add like and its count to find All (cursor)
+
+> ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
+
+```ts
+async findAllCursor(pag: CursorPaginationDto, currentUserId?: number) {
+  const { cursor, limit } = pag;
+
+  const { items, nextCursor } = await cursorPaginate({
+    model: this.prisma.article,
+    limit: limit ?? 10,
+    cursor,
+    query: {
+      where: { deleted: false, creator: { status: 'ACTIVE' } },
+      orderBy: { createdAt: 'desc' } as const,
+      select: DEFAULT_ARTICLE_SELECT,
+    },
+  });
+
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
+    items,
+    currentUserId,
+  );
+
+  return {
+    items: enhancedItems,
+    nextCursor,
+  };
+}
+```
+
+example:
+
+```ts
+async findAllCursor(pag: CursorPaginationDto, currentUserId?: number) {
+  const { cursor, limit } = pag;
+
+  const { items, nextCursor } = await cursorPaginate({
+    model: this.prisma.article,
+    limit: limit ?? 10,
+    cursor,
+    query: {
+      where: { deleted: false, creator: { status: 'ACTIVE' } },
+      orderBy: { createdAt: 'desc' } as const,
+      select: DEFAULT_ARTICLE_SELECT,
+    },
+  });
+
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
+    items,
+    currentUserId,
+  );
+
+  return {
+    items: enhancedItems,
+    nextCursor,
+  };
+}
+```
+
+## step 12 update findAll (cursor pagination) endpoint to have Jwt optional guard
+
+> ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+@Get('cursor')
+findAllCursor(@Query() pag: CursorPaginationDto, @Req() req) {
+  const userId = req.user?.sub ? req.user.sub : undefined;
+  return this.articlesService.findAllCursor(pag, userId);
+}
+```
+
+example:
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+@Get('cursor')
+findAllCursor(@Query() pag: CursorPaginationDto, @Req() req) {
+  const userId = req.user?.sub ? req.user.sub : undefined;
+  return this.articlesService.findAllCursor(pag, userId);
+}
+```
+
+## step 13 add like and its count to findByUserId (offset pagination)
+
+```ts
+async findByUserId(
+  userId: number,
+  pag: PaginationDto,
+  currentUserId?: number,
+) {
+  const where = {
+    creatorId: userId,
+    deleted: false,
+    creator: { status: 'ACTIVE' },
+  };
+  const { items, pageInfo, isRedirected } = await offsetPaginate({
+    model: this.prisma.article,
+    limit: pag.limit ?? 10,
+    offset: pag.offset ?? 0,
+    query: {
+      where,
+      orderBy: { createdAt: 'desc' } as const,
+      select: DEFAULT_ARTICLE_SELECT,
+    },
+    countQuery: { where },
+  });
+
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
+    items,
+    currentUserId,
+  );
+
+  return {
+    items: enhancedItems,
+    pageInfo,
+    ...(isRedirected && { isRedirected: true }),
+  };
+}
+```
+
+example:
+
+```ts
+async findByUserId(
+  userId: number,
+  pag: PaginationDto,
+  currentUserId?: number,
+) {
+  const where = {
+    creatorId: userId,
+    deleted: false,
+    creator: { status: 'ACTIVE' },
+  };
+  const { items, pageInfo, isRedirected } = await offsetPaginate({
+    model: this.prisma.article,
+    limit: pag.limit ?? 10,
+    offset: pag.offset ?? 0,
+    query: {
+      where,
+      orderBy: { createdAt: 'desc' } as const,
+      select: DEFAULT_ARTICLE_SELECT,
+    },
+    countQuery: { where },
+  });
+
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
+    items,
+    currentUserId,
+  );
+
+  return {
+    items: enhancedItems,
+    pageInfo,
+    ...(isRedirected && { isRedirected: true }),
+  };
+}
+```
+
+## step 14 update findByUserId (offset pagination) endpoint to have Jwt optional guard
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+@Get('users/:userId')
+findByUserId(
+  @Param('userId', ParseIntPipe) userId: number,
+  @Query() pag: PaginationDto,
+  @Req() req,
+) {
+  const currentUserId = req.user?.sub;
+  return this.articlesService.findByUserId(userId, pag, currentUserId);
+}
+```
+
+example:
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+@Get('users/:userId')
+findByUserId(
+  @Param('userId', ParseIntPipe) userId: number,
+  @Query() pag: PaginationDto,
+  @Req() req,
+) {
+  const currentUserId = req.user?.sub;
+  return this.articlesService.findByUserId(userId, pag, currentUserId);
+}
+```
+
+## step 15 add like and its count to findByUserId (cursor pagination)
+
+> ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
+
+```ts
+async findByUserIdCursor(
+  userId: number,
+  pag: CursorPaginationDto,
+  currentUserId?: number,
+) {
+  const { cursor, limit } = pag;
+
+  const { items, nextCursor } = await cursorPaginate({
+    model: this.prisma.article,
+    limit: limit ?? 10,
+    cursor,
+    query: {
+      where: {
+        creatorId: userId,
+        deleted: false,
+        creator: { status: 'ACTIVE' },
+      },
+      orderBy: { createdAt: 'desc' } as const,
+      select: DEFAULT_ARTICLE_SELECT,
+    },
+  });
+
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
+    items,
+    currentUserId,
+  );
+
+  return {
+    items: enhancedItems,
+    nextCursor,
+  };
+}
+```
+
+example:
+
+```ts
+async findByUserIdCursor(
+  userId: number,
+  pag: CursorPaginationDto,
+  currentUserId?: number,
+) {
+  const { cursor, limit } = pag;
+
+  const { items, nextCursor } = await cursorPaginate({
+    model: this.prisma.article,
+    limit: limit ?? 10,
+    cursor,
+    query: {
+      where: {
+        creatorId: userId,
+        deleted: false,
+        creator: { status: 'ACTIVE' },
+      },
+      orderBy: { createdAt: 'desc' } as const,
+      select: DEFAULT_ARTICLE_SELECT,
+    },
+  });
+
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
+    items,
+    currentUserId,
+  );
+
+  return {
+    items: enhancedItems,
+    nextCursor,
+  };
+}
+```
+
+## step 16 update findByUserId (cursor pagination) endpoint to have Jwt optional guard
+
+> ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+@Get('users/:userId/cursor')
+findByUserIdCursor(
+  @Param('userId', ParseIntPipe) userId: number,
+  @Query() pag: CursorPaginationDto,
+  @Req() req,
+) {
+  const currentUserId = req.user?.sub;
+  return this.articlesService.findByUserIdCursor(userId, pag, currentUserId);
+}
+```
+
+example:
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+@Get('users/:userId/cursor')
+findByUserIdCursor(
+  @Param('userId', ParseIntPipe) userId: number,
+  @Query() pag: CursorPaginationDto,
+  @Req() req,
+) {
+  const currentUserId = req.user?.sub;
+  return this.articlesService.findByUserIdCursor(userId, pag, currentUserId);
+}
+```
+
+## step 17 add like and its count to searchAll (offset pagination)
+
+```ts
+async searchAll(searchDto: ArticleSearchDto, currentUserId?: number) {
+  const searchFields = searchDto.getSearchFields();
+  const searchOptions = searchDto.getSearchOptions();
+  const orderBy = searchDto.getOrderBy();
+
+  const where = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  const whereWithStatus = {
+    ...where,
+    deleted: false,
+    creator: { status: 'ACTIVE' },
+  };
+  const { items, pageInfo, isRedirected } = await offsetPaginate({
+    model: this.prisma.article,
+    limit: searchDto.limit ?? 10,
+    offset: searchDto.offset ?? 0,
+    query: {
+      where: whereWithStatus,
+      orderBy,
+      select: DEFAULT_ARTICLE_SELECT,
+    },
+    countQuery: { where: whereWithStatus },
+  });
+
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
+    items,
+    currentUserId,
+  );
+
+  return {
+    items: enhancedItems,
+    pageInfo,
+    ...(isRedirected && { isRedirected: true }),
+  };
+}
+```
+
+example:
+
+```ts
+async searchAll(searchDto: ArticleSearchDto, currentUserId?: number) {
+  const searchFields = searchDto.getSearchFields();
+  const searchOptions = searchDto.getSearchOptions();
+  const orderBy = searchDto.getOrderBy();
+
+  const where = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  const whereWithStatus = {
+    ...where,
+    deleted: false,
+    creator: { status: 'ACTIVE' },
+  };
+  const { items, pageInfo, isRedirected } = await offsetPaginate({
+    model: this.prisma.article,
+    limit: searchDto.limit ?? 10,
+    offset: searchDto.offset ?? 0,
+    query: {
+      where: whereWithStatus,
+      orderBy,
+      select: DEFAULT_ARTICLE_SELECT,
+    },
+    countQuery: { where: whereWithStatus },
+  });
+
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
+    items,
+    currentUserId,
+  );
+
+  return {
+    items: enhancedItems,
+    pageInfo,
+    ...(isRedirected && { isRedirected: true }),
+  };
+}
+```
+
+## step 18 update searchAll (offset pagination) endpoint to have Jwt optional guard
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+@Get()
+search(@Query() searchDto: ArticleSearchDto, @Req() req) {
+  const currentUserId = req.user?.sub;
+  return this.articlesService.searchAll(searchDto, currentUserId);
+}
+```
+
+example:
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+@Get()
+search(@Query() searchDto: ArticleSearchDto, @Req() req) {
+  const currentUserId = req.user?.sub;
+  return this.articlesService.searchAll(searchDto, currentUserId);
+}
+```
+
+## step 19 add like and its count to searchAll (cursor pagination)
+
+> ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
+
+```ts
+async searchAllCursor(
+  searchDto: ArticleSearchCursorDto,
+  currentUserId?: number,
+) {
+  const searchFields = searchDto.getSearchFields();
+  const searchOptions = searchDto.getSearchOptions();
+  const orderBy = searchDto.getOrderBy();
+
+  const where = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  const { cursor, limit } = searchDto;
+
+  const { items, nextCursor } = await cursorPaginate({
+    model: this.prisma.article,
+    limit: limit ?? 10,
+    cursor,
+    query: {
+      where: { ...where, deleted: false, creator: { status: 'ACTIVE' } },
+      orderBy,
+      select: DEFAULT_ARTICLE_SELECT,
+    },
+  });
+
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
+    items,
+    currentUserId,
+  );
+
+  return {
+    items: enhancedItems,
+    nextCursor,
+  };
+}
+```
+
+example:
+
+```ts
+async searchAllCursor(
+  searchDto: ArticleSearchCursorDto,
+  currentUserId?: number,
+) {
+  const searchFields = searchDto.getSearchFields();
+  const searchOptions = searchDto.getSearchOptions();
+  const orderBy = searchDto.getOrderBy();
+
+  const where = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  const { cursor, limit } = searchDto;
+
+  const { items, nextCursor } = await cursorPaginate({
+    model: this.prisma.article,
+    limit: limit ?? 10,
+    cursor,
+    query: {
+      where: { ...where, deleted: false, creator: { status: 'ACTIVE' } },
+      orderBy,
+      select: DEFAULT_ARTICLE_SELECT,
+    },
+  });
+
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
+    items,
+    currentUserId,
+  );
+
+  return {
+    items: enhancedItems,
+    nextCursor,
+  };
+}
+```
+
+## step 20 update searchAll (cursor pagination) endpoint to have Jwt optional guard
+
+> ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+@Get('cursor')
+searchCursor(@Query() searchDto: ArticleSearchCursorDto, @Req() req) {
+  const currentUserId = req.user?.sub;
+  return this.articlesService.searchAllCursor(searchDto, currentUserId);
+}
+```
+
+example:
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+@Get('cursor')
+searchCursor(@Query() searchDto: ArticleSearchCursorDto, @Req() req) {
+  const currentUserId = req.user?.sub;
+  return this.articlesService.searchAllCursor(searchDto, currentUserId);
+}
+```
+
+## step 21 new function findLikedByUser to get all of user's liked {{resource}} (offset pagination)
+
+```ts
+async findLikedByUser(
+  userId: number,
+  pag: PaginationDto,
+  currentUserId?: number,
+) {
+  const user = await this.prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new NotFoundException('User not found');
+
+  const totalCount = await this.prisma.like.count({
+    where: { userId, resourceType: 'ARTICLE' },
+  });
+
+  const likes = await this.prisma.like.findMany({
+    where: { userId, resourceType: 'ARTICLE' },
+    orderBy: { createdAt: 'desc' },
+    skip: pag.offset ?? 0,
+    take: pag.limit ?? 10,
+    select: { resourceId: true },
+  });
+
+  const articleIds = likes.map((like) => like.resourceId);
+
+  if (articleIds.length === 0) {
+    return {
+      items: [],
+      pageInfo: {
+        total: 0,
+        limit: pag.limit ?? 10,
+        offset: pag.offset ?? 0,
+        hasMore: false,
+      },
+    };
+  }
+
+  const articles = await this.prisma.article.findMany({
+    where: { id: { in: articleIds }, deleted: false },
+    select: DEFAULT_ARTICLE_SELECT,
+  });
+
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
+    articles,
+    currentUserId,
+  );
+
+  const limit = pag.limit ?? 10;
+  const offset = pag.offset ?? 0;
+
+  return {
+    items: enhancedItems,
+    pageInfo: {
+      total: totalCount,
+      limit,
+      offset,
+      hasMore: offset + limit < totalCount,
+    },
+  };
+}
+```
+
+example:
+
+```ts
+async findLikedByUser(
+  userId: number,
+  pag: PaginationDto,
+  currentUserId?: number,
+) {
+  const user = await this.prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new NotFoundException('User not found');
+
+  const totalCount = await this.prisma.like.count({
+    where: { userId, resourceType: 'ARTICLE' },
+  });
+
+  const likes = await this.prisma.like.findMany({
+    where: { userId, resourceType: 'ARTICLE' },
+    orderBy: { createdAt: 'desc' },
+    skip: pag.offset ?? 0,
+    take: pag.limit ?? 10,
+    select: { resourceId: true },
+  });
+
+  const articleIds = likes.map((like) => like.resourceId);
+
+  if (articleIds.length === 0) {
+    return {
+      items: [],
+      pageInfo: {
+        total: 0,
+        limit: pag.limit ?? 10,
+        offset: pag.offset ?? 0,
+        hasMore: false,
+      },
+    };
+  }
+
+  const articles = await this.prisma.article.findMany({
+    where: { id: { in: articleIds }, deleted: false },
+    select: DEFAULT_ARTICLE_SELECT,
+  });
+
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
+    articles,
+    currentUserId,
+  );
+
+  const limit = pag.limit ?? 10;
+  const offset = pag.offset ?? 0;
+
+  return {
+    items: enhancedItems,
+    pageInfo: {
+      total: totalCount,
+      limit,
+      offset,
+      hasMore: offset + limit < totalCount,
+    },
+  };
+}
+```
+
+## step 22 endpoint for findLikedByUser (offset pagination)
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+@Get('users/:userId/liked')
+findLikedByUser(
+  @Param('userId', ParseIntPipe) userId: number,
+  @Query() pag: PaginationDto,
+  @Req() req,
+) {
+  const currentUserId = req.user?.sub;
+  return this.articlesService.findLikedByUser(userId, pag, currentUserId);
+}
+```
+
+example:
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+@Get('users/:userId/liked')
+findLikedByUser(
+  @Param('userId', ParseIntPipe) userId: number,
+  @Query() pag: PaginationDto,
+  @Req() req,
+) {
+  const currentUserId = req.user?.sub;
+  return this.articlesService.findLikedByUser(userId, pag, currentUserId);
+}
+```
+
+## step 23 new function findLikedByUser to get all of user's liked {{resource}} (cursor pagination)
+
+> ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
+
+```ts
+async findLikedByUserCursor(
+  userId: number,
+  pag: CursorPaginationDto,
+  currentUserId?: number,
+) {
+  const user = await this.prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new NotFoundException('User not found');
+
+  const { cursor, limit } = pag;
+
+  const likes = await this.prisma.like.findMany({
+    where: { userId, resourceType: 'ARTICLE' },
+    orderBy: { createdAt: 'desc' },
+    cursor: cursor ? { id: cursor } : undefined,
+    skip: cursor ? 1 : 0,
+    take: (limit ?? 10) + 1,
+    select: { id: true, resourceId: true },
+  });
+
+  const hasMore = likes.length > (limit ?? 10);
+  const items = hasMore ? likes.slice(0, -1) : likes;
+  const nextCursor = hasMore ? items[items.length - 1]?.id : null;
+
+  const articleIds = items.map((like) => like.resourceId);
+
+  if (articleIds.length === 0) {
+    return { items: [], nextCursor: null };
+  }
+
+  const articles = await this.prisma.article.findMany({
+    where: { id: { in: articleIds }, deleted: false },
+    select: DEFAULT_ARTICLE_SELECT,
+  });
+
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
+    articles,
+    currentUserId,
+  );
+
+  return { items: enhancedItems, nextCursor };
+}
+```
+
+example:
+
+```ts
+async findLikedByUserCursor(
+  userId: number,
+  pag: CursorPaginationDto,
+  currentUserId?: number,
+) {
+  const user = await this.prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new NotFoundException('User not found');
+
+  const { cursor, limit } = pag;
+
+  const likes = await this.prisma.like.findMany({
+    where: { userId, resourceType: 'ARTICLE' },
+    orderBy: { createdAt: 'desc' },
+    cursor: cursor ? { id: cursor } : undefined,
+    skip: cursor ? 1 : 0,
+    take: (limit ?? 10) + 1,
+    select: { id: true, resourceId: true },
+  });
+
+  const hasMore = likes.length > (limit ?? 10);
+  const items = hasMore ? likes.slice(0, -1) : likes;
+  const nextCursor = hasMore ? items[items.length - 1]?.id : null;
+
+  const articleIds = items.map((like) => like.resourceId);
+
+  if (articleIds.length === 0) {
+    return { items: [], nextCursor: null };
+  }
+
+  const articles = await this.prisma.article.findMany({
+    where: { id: { in: articleIds }, deleted: false },
+    select: DEFAULT_ARTICLE_SELECT,
+  });
+
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
+    articles,
+    currentUserId,
+  );
+
+  return { items: enhancedItems, nextCursor };
+}
+```
+
+## step 24 endpoint for findLikedByUser (cursor pagination)
+
+> ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+@Get('users/:userId/liked/cursor')
+findLikedByUserCursor(
+  @Param('userId', ParseIntPipe) userId: number,
+  @Query() pag: CursorPaginationDto,
+  @Req() req,
+) {
+  const currentUserId = req.user?.sub;
+  return this.articlesService.findLikedByUserCursor(
+    userId,
+    pag,
+    currentUserId,
+  );
+}
+```
+
+example:
+
+```ts
+@UseGuards(JwtAccessOptionalGuard)
+@Get('users/:userId/liked/cursor')
+findLikedByUserCursor(
+  @Param('userId', ParseIntPipe) userId: number,
+  @Query() pag: CursorPaginationDto,
+  @Req() req,
+) {
+  const currentUserId = req.user?.sub;
+  return this.articlesService.findLikedByUserCursor(
+    userId,
+    pag,
+    currentUserId,
+  );
+}
+```
+
+## step 25 Test CRUD endpoints/summary
+
+**toggle like**
+POST `http://localhost:3000/likes/toggle`
+
+```json
+{
+  "resourceType": "ARTICLE",
+  "resourceId": "1"
+}
+```
+
+Response:
+
+```json
+{
+  "liked": true,
+  "likeCount": 5
+}
+```
+
+**get users liked {{resource}} (offset)**
+GET `http://localhost:3000/articles/users/{{userId}}/liked`
+
+**get users liked {{resource}} (cursor)**
+GET `http://localhost:3000/articles/users/{{userId}}/liked/cursor`
 
 # part 11 | adding views
 
 > ⚠️ SKIP THIS PART unless human explicitly requested view count.
+
+> ⚠️ Before proceeding: verify the schema model has `viewCount Int @default(0)`. If it is missing, **stop** — tell the human to add it to the schema and run a migration, then wait for confirmation before continuing.
 
 WIP
 

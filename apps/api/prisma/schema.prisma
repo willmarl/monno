@@ -35,9 +35,9 @@ enum UserStatus {
 
 enum ResourceType {
   POST
-  // VIDEO
-  // ARTICLE
   COMMENT
+  ARTICLE
+  // VIDEO
 }
 
 enum SubscriptionStatus {
@@ -409,4 +409,6 @@ model Article {
   updatedAt DateTime      @updatedAt
   deleted   Boolean       @default(false)
   deletedAt DateTime?
+  viewCount Int           @default(0)
+  likeCount Int           @default(0)
 }

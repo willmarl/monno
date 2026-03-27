@@ -19,6 +19,7 @@ import { ArticlesService } from './articles.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
+import { JwtAccessOptionalGuard } from '../auth/guards/jwt-access-optional.guard';
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { CreatorGuard } from 'src/common/guards/creator.guard';
@@ -45,46 +46,88 @@ export class ArticlesController {
   }
 
   // commented out as its redundant now
+  // @UseGuards(JwtAccessOptionalGuard)
   // @Get()
-  // findAll(@Query() pag: PaginationDto) {
-  //   return this.articlesService.findAll(pag);
+  // findAll(@Query() pag: PaginationDto, @Req() req) {
+  //   const userId = req.user?.sub ? req.user.sub : undefined;
+  //   return this.articlesService.findAll(pag, userId);
   // }
 
+  @UseGuards(JwtAccessOptionalGuard)
   @Get()
-  search(@Query() searchDto: ArticleSearchDto) {
-    return this.articlesService.searchAll(searchDto);
+  search(@Query() searchDto: ArticleSearchDto, @Req() req) {
+    const currentUserId = req.user?.sub;
+    return this.articlesService.searchAll(searchDto, currentUserId);
   }
 
   // commented out as its redundant now
+  // @UseGuards(JwtAccessOptionalGuard)
   // @Get('cursor')
-  // findAllCursor(@Query() pag: CursorPaginationDto) {
-  //   return this.articlesService.findAllCursor(pag);
+  // findAllCursor(@Query() pag: CursorPaginationDto, @Req() req) {
+  //   const userId = req.user?.sub ? req.user.sub : undefined;
+  //   return this.articlesService.findAllCursor(pag, userId);
   // }
 
+  @UseGuards(JwtAccessOptionalGuard)
   @Get('cursor')
-  searchCursor(@Query() searchDto: ArticleSearchCursorDto) {
-    return this.articlesService.searchAllCursor(searchDto);
+  searchCursor(@Query() searchDto: ArticleSearchCursorDto, @Req() req) {
+    const currentUserId = req.user?.sub;
+    return this.articlesService.searchAllCursor(searchDto, currentUserId);
   }
 
+  @UseGuards(JwtAccessOptionalGuard)
   @Get('users/:userId')
   findByUserId(
     @Param('userId', ParseIntPipe) userId: number,
     @Query() pag: PaginationDto,
+    @Req() req,
   ) {
-    return this.articlesService.findByUserId(userId, pag);
+    const currentUserId = req.user?.sub;
+    return this.articlesService.findByUserId(userId, pag, currentUserId);
   }
 
+  @UseGuards(JwtAccessOptionalGuard)
   @Get('users/:userId/cursor')
   findByUserIdCursor(
     @Param('userId', ParseIntPipe) userId: number,
     @Query() pag: CursorPaginationDto,
+    @Req() req,
   ) {
-    return this.articlesService.findByUserIdCursor(userId, pag);
+    const currentUserId = req.user?.sub;
+    return this.articlesService.findByUserIdCursor(userId, pag, currentUserId);
   }
 
+  @UseGuards(JwtAccessOptionalGuard)
+  @Get('users/:userId/liked')
+  findLikedByUser(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query() pag: PaginationDto,
+    @Req() req,
+  ) {
+    const currentUserId = req.user?.sub;
+    return this.articlesService.findLikedByUser(userId, pag, currentUserId);
+  }
+
+  @UseGuards(JwtAccessOptionalGuard)
+  @Get('users/:userId/liked/cursor')
+  findLikedByUserCursor(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query() pag: CursorPaginationDto,
+    @Req() req,
+  ) {
+    const currentUserId = req.user?.sub;
+    return this.articlesService.findLikedByUserCursor(
+      userId,
+      pag,
+      currentUserId,
+    );
+  }
+
+  @UseGuards(JwtAccessOptionalGuard)
   @Get(':id')
-  findById(@Param('id', ParseIntPipe) id: number) {
-    return this.articlesService.findById(id);
+  findById(@Param('id', ParseIntPipe) id: number, @Req() req) {
+    const userId = req.user?.sub ? req.user.sub : undefined;
+    return this.articlesService.findById(id, userId);
   }
 
   @UseGuards(JwtAccessGuard, CreatorGuard)

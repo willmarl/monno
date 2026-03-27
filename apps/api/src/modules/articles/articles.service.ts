@@ -17,6 +17,7 @@ import {
   ArticleSearchCursorDto,
 } from './dto/search-article.dto';
 import { buildSearchWhere } from 'src/common/search/search.utils';
+import { enhanceWithLikes } from 'src/common/likes/enhance-with-likes';
 
 const DEFAULT_ARTICLE_SELECT = {
   id: true,
@@ -31,6 +32,7 @@ const DEFAULT_ARTICLE_SELECT = {
   },
   deleted: true,
   deletedAt: true,
+  likeCount: true,
 };
 
 @Injectable()
@@ -68,7 +70,7 @@ export class ArticlesService {
     });
   }
 
-  async findById(id: number) {
+  async findById(id: number, userId: number | undefined) {
     const article = await this.prisma.article.findUnique({
       where: { id },
       select: DEFAULT_ARTICLE_SELECT,
@@ -78,10 +80,16 @@ export class ArticlesService {
       throw new NotFoundException('Article not found');
     }
 
-    return article;
+    const [enhanced] = await enhanceWithLikes(
+      this.prisma,
+      'ARTICLE',
+      [article],
+      userId ?? undefined,
+    );
+    return enhanced;
   }
 
-  async findAll(pag: PaginationDto) {
+  async findAll(pag: PaginationDto, currentUserId?: number) {
     const where = { deleted: false, creator: { status: 'ACTIVE' } };
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.article,
@@ -95,14 +103,21 @@ export class ArticlesService {
       countQuery: { where: where },
     });
 
-    return {
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'ARTICLE',
       items,
+      currentUserId,
+    );
+
+    return {
+      items: enhancedItems,
       pageInfo,
       ...(isRedirected && { isRedirected: true }),
     };
   }
 
-  async findAllCursor(pag: CursorPaginationDto) {
+  async findAllCursor(pag: CursorPaginationDto, currentUserId?: number) {
     const { cursor, limit } = pag;
 
     const { items, nextCursor } = await cursorPaginate({
@@ -115,13 +130,25 @@ export class ArticlesService {
         select: DEFAULT_ARTICLE_SELECT,
       },
     });
-    return {
+
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'ARTICLE',
       items,
-      nextCursor: nextCursor,
+      currentUserId,
+    );
+
+    return {
+      items: enhancedItems,
+      nextCursor,
     };
   }
 
-  async findByUserId(userId: number, pag: PaginationDto) {
+  async findByUserId(
+    userId: number,
+    pag: PaginationDto,
+    currentUserId?: number,
+  ) {
     const where = {
       creatorId: userId,
       deleted: false,
@@ -139,14 +166,25 @@ export class ArticlesService {
       countQuery: { where },
     });
 
-    return {
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'ARTICLE',
       items,
+      currentUserId,
+    );
+
+    return {
+      items: enhancedItems,
       pageInfo,
       ...(isRedirected && { isRedirected: true }),
     };
   }
 
-  async findByUserIdCursor(userId: number, pag: CursorPaginationDto) {
+  async findByUserIdCursor(
+    userId: number,
+    pag: CursorPaginationDto,
+    currentUserId?: number,
+  ) {
     const { cursor, limit } = pag;
 
     const { items, nextCursor } = await cursorPaginate({
@@ -164,10 +202,121 @@ export class ArticlesService {
       },
     });
 
-    return {
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'ARTICLE',
       items,
+      currentUserId,
+    );
+
+    return {
+      items: enhancedItems,
       nextCursor,
     };
+  }
+
+  async findLikedByUser(
+    userId: number,
+    pag: PaginationDto,
+    currentUserId?: number,
+  ) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const totalCount = await this.prisma.like.count({
+      where: { userId, resourceType: 'ARTICLE' },
+    });
+
+    const likes = await this.prisma.like.findMany({
+      where: { userId, resourceType: 'ARTICLE' },
+      orderBy: { createdAt: 'desc' },
+      skip: pag.offset ?? 0,
+      take: pag.limit ?? 10,
+      select: { resourceId: true },
+    });
+
+    const articleIds = likes.map((like) => like.resourceId);
+
+    if (articleIds.length === 0) {
+      return {
+        items: [],
+        pageInfo: {
+          total: 0,
+          limit: pag.limit ?? 10,
+          offset: pag.offset ?? 0,
+          hasMore: false,
+        },
+      };
+    }
+
+    const articles = await this.prisma.article.findMany({
+      where: { id: { in: articleIds }, deleted: false },
+      select: DEFAULT_ARTICLE_SELECT,
+    });
+
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'ARTICLE',
+      articles,
+      currentUserId,
+    );
+
+    const limit = pag.limit ?? 10;
+    const offset = pag.offset ?? 0;
+
+    return {
+      items: enhancedItems,
+      pageInfo: {
+        total: totalCount,
+        limit,
+        offset,
+        hasMore: offset + limit < totalCount,
+      },
+    };
+  }
+
+  async findLikedByUserCursor(
+    userId: number,
+    pag: CursorPaginationDto,
+    currentUserId?: number,
+  ) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const { cursor, limit } = pag;
+
+    const likes = await this.prisma.like.findMany({
+      where: { userId, resourceType: 'ARTICLE' },
+      orderBy: { createdAt: 'desc' },
+      cursor: cursor ? { id: cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      take: (limit ?? 10) + 1,
+      select: { id: true, resourceId: true },
+    });
+
+    const hasMore = likes.length > (limit ?? 10);
+    const items = hasMore ? likes.slice(0, -1) : likes;
+    const nextCursor = hasMore ? items[items.length - 1]?.id : null;
+
+    const articleIds = items.map((like) => like.resourceId);
+
+    if (articleIds.length === 0) {
+      return { items: [], nextCursor: null };
+    }
+
+    const articles = await this.prisma.article.findMany({
+      where: { id: { in: articleIds }, deleted: false },
+      select: DEFAULT_ARTICLE_SELECT,
+    });
+
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'ARTICLE',
+      articles,
+      currentUserId,
+    );
+
+    return { items: enhancedItems, nextCursor };
   }
 
   async update(id: number, data: UpdateArticleDto, file?: any) {
@@ -239,7 +388,7 @@ export class ArticlesService {
     });
   }
 
-  async searchAll(searchDto: ArticleSearchDto) {
+  async searchAll(searchDto: ArticleSearchDto, currentUserId?: number) {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
     const orderBy = searchDto.getOrderBy();
@@ -267,14 +416,24 @@ export class ArticlesService {
       countQuery: { where: whereWithStatus },
     });
 
-    return {
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'ARTICLE',
       items,
+      currentUserId,
+    );
+
+    return {
+      items: enhancedItems,
       pageInfo,
       ...(isRedirected && { isRedirected: true }),
     };
   }
 
-  async searchAllCursor(searchDto: ArticleSearchCursorDto) {
+  async searchAllCursor(
+    searchDto: ArticleSearchCursorDto,
+    currentUserId?: number,
+  ) {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
     const orderBy = searchDto.getOrderBy();
@@ -298,8 +457,15 @@ export class ArticlesService {
       },
     });
 
-    return {
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'ARTICLE',
       items,
+      currentUserId,
+    );
+
+    return {
+      items: enhancedItems,
       nextCursor,
     };
   }
