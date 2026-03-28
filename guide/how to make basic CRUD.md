@@ -851,9 +851,49 @@ example:
 
 > ⚠️ SKIP THIS ENTIRE SECTION unless human explicitly requested file/media upload.
 
-### step 1 add file logic service.ts
+### step 1 add preset for what type of file to accept for upload inside file-upload-presets.ts
 
-for basic image im going to reuse the `postImage` preset thats in `file-upload-presets.ts`. if appropriate may need to make new preset how-to-do-file-upload.md
+human will most likely need to come in here and tailor towards their vision especially if its something complex like video processing. Should prompt human to look at [how-to-do-file-upload.md](./how-to-do-file-upload.md). Nevertheless just broadly complete this step for MVP.
+
+if human asks for complex media upload, put a pin on it and just have simple image upload for placeholder. Remind human to work on their complex media upload vision until CRUD guide is acceptable.
+
+```ts
+export const FILE_PRESETS = {
+// ...existing presets...
+
+{{resource}}Image: {
+  maxSize: 5 * 1024 * 1024, // 5 MB
+  allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+  uploadPath: '{{resource}}/images',
+  processingOptions: {
+    resize: { width: 1000, height: 1000, fit: 'inside' as const },
+    format: 'webp' as const,
+    quality: 85,
+  },
+},
+} as const satisfies Record<string, FileUploadConfig>;
+```
+
+example:
+
+```ts
+export const FILE_PRESETS = {
+  // ...existing presets...
+
+  articleImage: {
+    maxSize: 5 * 1024 * 1024, // 5 MB
+    allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+    uploadPath: "articles/images",
+    processingOptions: {
+      resize: { width: 1000, height: 1000, fit: "inside" as const },
+      format: "webp" as const,
+      quality: 85,
+    },
+  },
+} as const satisfies Record<string, FileUploadConfig>;
+```
+
+### step 2 add file logic service.ts
 
 ```ts
 async create(data: Create{{resource}}Dto, userId: number, file?: any) {
@@ -862,7 +902,7 @@ async create(data: Create{{resource}}Dto, userId: number, file?: any) {
       try {
         const imagePath = await this.fileProcessing.processFile(
           file,
-          'postImage',
+          '{{resource}}Image',
           userId,
         );
         data.imagePath = imagePath;
@@ -893,7 +933,7 @@ async create(data: CreateArticleDto, userId: number, file?: any) {
       try {
         const imagePath = await this.fileProcessing.processFile(
           file,
-          'postImage',
+          'articleImage',
           userId,
         );
         data.imagePath = imagePath;
@@ -915,7 +955,7 @@ async create(data: CreateArticleDto, userId: number, file?: any) {
   }
 ```
 
-### step 2 add file argument and interceptor controller.ts
+### step 3 add file argument and interceptor controller.ts
 
 ```ts
 @Post()
@@ -4808,4 +4848,4 @@ GET `http://localhost:3000/collections/{{collectionId}}`
 # part 14 | add swagger docs to DTO and controller.ts
 
 I won't add examples as you should know how to add swagger docs.
-Just go to the .dto files and controller.ts file and add swagger docs inferencing whats already in those files.
+Just go to the .dto files and controller.ts file and add swagger docs inferencing based off current code.

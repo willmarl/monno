@@ -49,7 +49,7 @@ export class ArticlesService {
       try {
         const imagePath = await this.fileProcessing.processFile(
           file,
-          'postImage',
+          'articleImage',
           userId,
         );
         data.imagePath = imagePath;

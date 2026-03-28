@@ -34,6 +34,17 @@ export const FILE_PRESETS = {
     },
   },
 
+  articleImage: {
+    maxSize: 5 * 1024 * 1024, // 5 MB
+    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+    uploadPath: 'articles/images',
+    processingOptions: {
+      resize: { width: 1000, height: 1000, fit: 'inside' as const },
+      format: 'webp' as const,
+      quality: 85,
+    },
+  },
+
   video: {
     maxSize: 50 * 1024 * 1024, // 50 MB
     allowedMimeTypes: ['video/mp4', 'video/webm'],
