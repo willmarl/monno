@@ -26,5 +26,5 @@ export class UpdateArticleDto {
 
   @IsOptional()
   @IsEnum(ArticleStatus)
-  role?: ArticleStatus;
+  status?: ArticleStatus;
 }
