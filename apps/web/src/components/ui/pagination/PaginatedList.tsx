@@ -42,6 +42,11 @@ export function PaginatedList<T extends { id: string | number }>({
   const containerClassName =
     gridClassName || LAYOUT_CLASSES[layout === "custom" ? "grid" : layout];
 
+  if (isLoading)
+    return (
+      <p className="text-center text-muted-foreground py-12">Loading...</p>
+    );
+
   // Show skeletons while loading
   if (isLoading && items.length === 0 && renderSkeleton) {
     return (

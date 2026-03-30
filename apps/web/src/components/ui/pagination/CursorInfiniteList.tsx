@@ -10,9 +10,12 @@ interface Props<T> {
   hasNextPage?: boolean;
   onLoadMore: () => void;
   renderItem: (item: T) => ReactNode;
+  renderSkeleton?: () => ReactNode;
+  skeletonCount?: number;
   title?: string;
   layout?: "grid" | "flex" | "custom";
   gridClassName?: string;
+  emptyMessage?: string;
 }
 
 const LAYOUT_CLASSES = {
@@ -27,9 +30,12 @@ export function CursorInfiniteList<T extends { id: string | number }>({
   hasNextPage = false,
   onLoadMore,
   renderItem,
+  renderSkeleton,
+  skeletonCount = 3,
   title,
   layout = "grid",
   gridClassName,
+  emptyMessage = "No results found.",
 }: Props<T>) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const containerClassName =
@@ -48,7 +54,7 @@ export function CursorInfiniteList<T extends { id: string | number }>({
       {
         rootMargin: "200px",
         threshold: 0.1,
-      }
+      },
     );
 
     const sentinel = sentinelRef.current;
@@ -59,7 +65,23 @@ export function CursorInfiniteList<T extends { id: string | number }>({
     };
   }, [hasNextPage, onLoadMore]);
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading && items.length === 0 && renderSkeleton) {
+    return (
+      <div className="space-y-8">
+        {title && <h1 className="text-3xl font-bold">{title}</h1>}
+        <div className={containerClassName}>
+          {Array.from({ length: skeletonCount }).map((_, i) => (
+            <div key={`skeleton-${i}`}>{renderSkeleton()}</div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading)
+    return (
+      <p className="text-center text-muted-foreground py-12">Loading...</p>
+    );
 
   return (
     <div className="space-y-8">
@@ -70,6 +92,12 @@ export function CursorInfiniteList<T extends { id: string | number }>({
           <div key={item.id}>{renderItem(item)}</div>
         ))}
       </div>
+
+      {items.length === 0 && !isLoading && (
+        <div className="text-center text-muted-foreground py-12">
+          <p>{emptyMessage}</p>
+        </div>
+      )}
 
       {/* Sentinel for infinite scroll */}
       {hasNextPage && <div ref={sentinelRef} className="h-10" />}
