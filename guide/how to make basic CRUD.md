@@ -305,7 +305,7 @@ export class Create{{resource}}Dto {
 
   @IsOptional()
   @IsEnum({{resource}}Status)
-  role?: {{resource}}Status;
+  status?: {{resource}}Status;
 }
 ```
 
@@ -340,7 +340,7 @@ export class UpdateArticleDto {
 
   @IsOptional()
   @IsEnum(ArticleStatus)
-  role?: ArticleStatus;
+  status?: ArticleStatus;
 }
 ```
 
@@ -2623,7 +2623,7 @@ verified?: boolean;
 
 4. adjust sort/order accordingly based off prisma schema. you may not even have a `createdAt` or may have something new like `purchasedAt` or `viewCount`. to add this sort, go to `getOrderBy()` function and find adjust `validFields` array to something like `const validFields = ['createdAt', 'updatedAt', 'purchasedAt', 'viewCount'];`
 
-5. for enum fields like "status", "role", "type"
+5. for enum fields like "status", "role", "type", etc
 
 you should ideally import the enum from prisma but there might be scenario in which you cant or human has specific reason, if thats the case then just do this
 
@@ -4849,3 +4849,1646 @@ GET `http://localhost:3000/collections/{{collectionId}}`
 
 I won't add examples as you should know how to add swagger docs.
 Just go to the .dto files and controller.ts file and add swagger docs inferencing based off current code.
+
+# part 15 | adding basic frontend files
+
+## step 1 make files
+
+in `apps/web/src` make these files if not already
+
+`features/{{resource}}/types/article.ts`
+`features/{{resource}}/api.ts`
+`features/{{resource}}/hooks.ts`
+`features/{{resource}}/schemas/create{{resource}}.schema.ts`
+`features/{{resource}}/schemas/update{{resource}}.schema.ts`
+`features/{{resource}}/components/Create{{resource}}Form.ts`
+`features/{{resource}}/components/InlineCreate{{resource}}Form.ts`
+`features/{{resource}}/components/Edit{{resource}}Form.ts`
+`features/{{resource}}/components/InlineEdit{{resource}}Form.ts`
+
+> Note most of the time its plural, they're might be edge cases like "support" as in "support tickets" so having "supports" wouldn't make sense.
+
+- admin variant
+
+# part 16 | frontend api
+
+## step 1 fill in /types/{{resource}}.ts
+
+from part 2, step 2 of making shared return, use that to help inference on how to make interface type
+_here is reminder of shared return from backend_
+
+```ts
+const DEFAULT_{{resource}}_SELECT = {
+  id: true,
+  title: true,
+  content: true,
+  imagePath: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true,
+  creator: {
+    select: { id: true, username: true, avatarPath: true },
+  },
+  deleted: true,
+  deletedAt: true,
+};
+```
+
+with reminder in mind here is how to make `types/{{resource}}.ts`
+
+```ts
+import { PaginatedResponse } from "@/types/pagination";
+
+export const ARTICLE_STATUSES = [
+  "DRAFT",
+  "PUBLISHED",
+  "ARCHIVED",
+  "SCHEDULED",
+] as const;
+export type ArticleStatus = (typeof ARTICLE_STATUSES)[number];
+
+interface Creator {
+  id: number;
+  username: string;
+  avatarPath: string;
+}
+export interface Article {
+  id: number;
+  title: string;
+  content: string;
+  creator: Creator;
+  createdAt: string;
+  updatedAt: string;
+  status: ArticleStatus;
+}
+
+export type ArticlesList = PaginatedResponse<Article>;
+
+export interface ArticleListCursor {
+  items: Article[];
+  nextCursor: string;
+}
+
+export interface CreateArticleInput {
+  title: string;
+  content: string;
+  status: ArticleStatus;
+}
+
+export interface UpdateArticleInput {
+  title?: string;
+  content?: string;
+  status?: ArticleStatus;
+}
+```
+
+- img upload variant
+
+## step 2 converting endpoints to api.ts
+
+if not using cursor pagination, omit cursor code
+
+- img upload variant
+
+```ts
+import { fetcher } from "@/lib/fetcher";
+import type {
+  Article,
+  ArticlesList,
+  ArticleListCursor,
+  CreateArticleInput,
+  UpdateArticleInput,
+} from "./types/article";
+
+// GET /articles?limit=10&offset=123
+export const fetchArticlesOffset = ({
+  limit,
+  offset,
+}: {
+  limit: number;
+  offset: number;
+}) =>
+  fetcher<ArticlesList>("/articles", {
+    searchParams: { limit, offset },
+  });
+
+// GET /articles/cursor
+export const fetchArticlesCursor = ({
+  limit,
+  cursor,
+}: {
+  limit: number;
+  cursor?: string | null;
+}) =>
+  fetcher<ArticleListCursor>("/articles/cursor", {
+    searchParams: { limit, cursor: cursor ?? undefined },
+  });
+
+// GET /articles/:id
+export const fetchArticleById = (id: number) =>
+  fetcher<Article>(`/articles/${id}`);
+
+// GET /articles/users/:userId
+export const fetchArticlesByUserId = (userId: number) =>
+  fetcher<Article[]>(`/articles/users/${userId}`);
+
+// ARTICLE /articles
+export const createArticle = (data: CreateArticleInput) =>
+  fetcher<Article>("/articles", {
+    method: "POST",
+    json: data,
+  });
+
+// PATCH /articles/:id
+export const updateArticle = (id: number, data: UpdateArticleInput) =>
+  fetcher<Article>(`/articles/${id}`, {
+    method: "PATCH",
+    json: data,
+  });
+
+// DELETE /articles/:id
+export const deleteArticle = (id: number) =>
+  fetcher<void>(`/articles/${id}`, {
+    method: "DELETE",
+  });
+```
+
+# step 3 hooks.ts file
+
+if not using cursor pagination, omit cursor code
+
+- img upload variant
+
+```ts
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query"; // only if using cursor
+import {
+  createArticle,
+  fetchArticleById,
+  fetchArticlesOffset,
+  fetchArticlesCursor,
+  fetchArticlesByUserId,
+  updateArticle,
+  deleteArticle,
+} from "./api";
+
+export function useArticlesOffset(page: number, limit: number) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: ["articles-offset", page],
+    queryFn: () => fetchArticlesOffset({ limit, offset }),
+  });
+}
+
+export function useArticlesCursor(limit: number = 10) {
+  return useInfiniteQuery({
+    queryKey: ["articles-cursor"],
+    queryFn: ({ pageParam }) =>
+      fetchArticlesCursor({
+        limit,
+        cursor: pageParam ?? null,
+      }),
+
+    // pageParam = nextCursor from backend
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialPageParam: null as string | null,
+  });
+}
+
+export function useArticleById(id: number) {
+  return useQuery({
+    queryKey: ["article", id],
+    queryFn: () => fetchArticleById(id),
+    enabled: !!id,
+  });
+}
+
+export function useArticlesByUserId(userId: number) {
+  return useQuery({
+    queryKey: ["articles-by-user", userId],
+    queryFn: () => fetchArticlesByUserId(userId),
+    enabled: !!userId,
+  });
+}
+
+export function useCreateArticle() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: createArticle,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["articles"] });
+    },
+    throwOnError: false, // Don't throw errors, let component handle them
+  });
+}
+
+export function useUpdateArticle() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Parameters<typeof updateArticle>[1];
+    }) => updateArticle(id, data),
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ["articles"] });
+      qc.invalidateQueries({ queryKey: ["article", id] });
+    },
+    throwOnError: false, // Don't throw errors, let component handle them
+  });
+}
+
+export function useDeleteArticle() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteArticle,
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ["articles"] });
+      qc.removeQueries({ queryKey: ["article", id] });
+    },
+    throwOnError: false, // Don't throw errors, let component handle them
+  });
+}
+```
+
+# part 17 create {{resource}} pipeline
+
+## step 1 make zod schema for create
+
+look at the DTO files from backend to use guide on what zod validation should be
+edit `features/articles/schemas/createArticle.schema.ts`
+
+```ts
+import { z } from "zod";
+import { ARTICLE_STATUSES } from "../types/article";
+
+export const createArticleSchema = z.object({
+  title: z.string().min(1).max(100),
+  content: z.string().min(1).max(1000),
+  status: z.enum(ARTICLE_STATUSES),
+});
+
+export type CreateArticleInput = z.infer<typeof createArticleSchema>;
+```
+
+- img upload variant
+- admin variant
+
+## step 2 create form component
+
+`features/articles/components/CreateArticleForm.tsx`
+
+```tsx
+"use client";
+
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  createArticleSchema,
+  CreateArticleInput,
+} from "../schemas/createArticle.schema";
+import { useCreateArticle } from "../hooks";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { ARTICLE_STATUSES } from "../types/article";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+
+export function CreateArticleForm() {
+  const form = useForm<CreateArticleInput>({
+    resolver: zodResolver(createArticleSchema),
+    mode: "onChange",
+    defaultValues: {
+      title: "",
+      content: "",
+      status: "DRAFT",
+    },
+  });
+
+  const {
+    formState: { isValid },
+  } = form;
+  const router = useRouter();
+  const createArticleMutation = useCreateArticle();
+
+  function onSubmit(data: CreateArticleInput) {
+    const payload = {
+      ...data,
+    };
+    createArticleMutation.mutate(payload, {
+      onSuccess: (response) => {
+        toast.success("Article created");
+        router.push(`/article/${response.id}`);
+      },
+      onError: (error) => {
+        toast.error(`Error creating article. ${error.message}`);
+      },
+    });
+  }
+
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6 w-full max-w-sm"
+      >
+        {/* title */}
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+
+              <FormControl>
+                <Input placeholder="title" {...field} />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* content */}
+        <FormField
+          control={form.control}
+          name="content"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Content</FormLabel>
+
+              <FormControl>
+                <Input placeholder="content" {...field} />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* status */}
+        <div className="space-y-2">
+          <Label htmlFor="inline-status" className="text-sm">
+            Status
+          </Label>
+          <Controller
+            name="status"
+            control={form.control}
+            render={({ field }) => (
+              <Select value={field.value || ""} onValueChange={field.onChange}>
+                <SelectTrigger
+                  id="inline-status"
+                  disabled={createArticleMutation.isPending}
+                >
+                  <SelectValue placeholder="Select a status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ARTICLE_STATUSES.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status.charAt(0).toUpperCase() +
+                        status.slice(1).toLowerCase()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {form.formState.errors.status && (
+            <p className="text-xs text-red-500">
+              {form.formState.errors.status.message}
+            </p>
+          )}
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full cursor-pointer"
+          disabled={createArticleMutation.isPending || !isValid}
+        >
+          {createArticleMutation.isPending ? "Creating..." : "Create article"}
+        </Button>
+      </form>
+    </Form>
+  );
+}
+```
+
+## step 3 inline create form
+
+`features/articles/components/InlineCreateArticleForm.tsx`
+
+```tsx
+"use client";
+
+import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  createArticleSchema,
+  CreateArticleInput,
+} from "../schemas/createArticle.schema";
+import { useCreateArticle } from "../hooks";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ARTICLE_STATUSES } from "../types/article";
+
+interface InlineCreateArticleFormProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+  onError?: (error: any) => void;
+  isAlwaysOpen?: boolean;
+}
+
+export function InlineCreateArticleForm({
+  onSuccess,
+  onCancel,
+  onError,
+  isAlwaysOpen = false,
+}: InlineCreateArticleFormProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const form = useForm<CreateArticleInput>({
+    resolver: zodResolver(createArticleSchema),
+    mode: "onChange",
+    defaultValues: {
+      title: "",
+      content: "",
+      status: "DRAFT",
+    },
+  });
+
+  const createArticleMutation = useCreateArticle();
+
+  const { isValid } = form.formState;
+
+  const handleSubmit = (data: CreateArticleInput) => {
+    createArticleMutation.mutate(data, {
+      onSuccess: () => {
+        form.reset();
+        if (!isAlwaysOpen) {
+          setIsOpen(false);
+        }
+        onSuccess?.();
+      },
+      onError: (err) => {
+        onError?.(err);
+      },
+    });
+  };
+
+  if (!isAlwaysOpen && !isOpen) {
+    return (
+      <Button onClick={() => setIsOpen(true)} variant="outline">
+        Change CreateArticle
+      </Button>
+    );
+  }
+
+  return (
+    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      {/* title */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-title" className="text-sm">
+          Title
+        </Label>
+        <Input
+          id="inline-title"
+          type="text"
+          placeholder="title"
+          disabled={createArticleMutation.isPending}
+          {...form.register("title")}
+        />
+        {form.formState.errors.title && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.title.message}
+          </p>
+        )}
+      </div>
+
+      {/* content */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-content" className="text-sm">
+          Content
+        </Label>
+        <Input
+          id="inline-content"
+          type="text"
+          placeholder="content"
+          disabled={createArticleMutation.isPending}
+          {...form.register("content")}
+        />
+        {form.formState.errors.content && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.content.message}
+          </p>
+        )}
+      </div>
+
+      {/* status */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-status" className="text-sm">
+          Status
+        </Label>
+        <Controller
+          name="status"
+          control={form.control}
+          render={({ field }) => (
+            <Select value={field.value || ""} onValueChange={field.onChange}>
+              <SelectTrigger
+                id="inline-status"
+                disabled={createArticleMutation.isPending}
+              >
+                <SelectValue placeholder="Select a status" />
+              </SelectTrigger>
+              <SelectContent>
+                {ARTICLE_STATUSES.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status.charAt(0).toUpperCase() +
+                      status.slice(1).toLowerCase()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+        {form.formState.errors.status && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.status.message}
+          </p>
+        )}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-3 pt-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="cursor-pointer"
+          onClick={() => {
+            if (!isAlwaysOpen) {
+              setIsOpen(false);
+            }
+            form.reset();
+            onCancel?.();
+          }}
+          disabled={createArticleMutation.isPending}
+        >
+          {isAlwaysOpen ? "Reset" : "Cancel"}
+        </Button>
+        <Button
+          type="submit"
+          size="sm"
+          className="cursor-pointer"
+          disabled={createArticleMutation.isPending || !isValid}
+        >
+          {createArticleMutation.isPending && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          {createArticleMutation.isPending ? "Creating..." : "Create article"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+```
+
+## step 4 modal for create
+
+`features/articles/components/modal/CreateArticleModal.tsx`
+
+```tsx
+import { InlineCreateArticleForm } from "../InlineCreateArticleForm";
+import { useModal } from "@/components/providers/ModalProvider";
+import { toast } from "sonner";
+
+export function CreateArticleModal() {
+  const { closeModal } = useModal();
+
+  return (
+    <InlineCreateArticleForm
+      onSuccess={() => {
+        toast.success("Successfully made article");
+        closeModal();
+      }}
+      onCancel={() => {
+        toast.error("Error trying to make article");
+      }}
+      isAlwaysOpen={true}
+    />
+  );
+}
+```
+
+# part 18 update {{resource}} pipeline
+
+## step 1 make zod schema for update
+
+look at the DTO files from backend to use guide on what zod validation should be
+edit `features/articles/schemas/updateArticle.schema.ts`
+
+```ts
+import { z } from "zod";
+import { ARTICLE_STATUSES } from "../types/article";
+
+export const updateArticleSchema = z.object({
+  title: z.string().min(1).max(100).optional(),
+  content: z.string().min(1).max(1000).optional(),
+  status: z.enum(ARTICLE_STATUSES).optional(),
+});
+
+export type UpdateArticleInput = z.infer<typeof updateArticleSchema>;
+```
+
+- img upload variant
+- admin variant
+
+## step 2 edit form component
+
+`features/articles/components/EditArticleForm.tsx`
+
+```tsx
+"use client";
+
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  updateArticleSchema,
+  UpdateArticleInput,
+} from "../schemas/updateArticle.schema";
+import { useUpdateArticle } from "../hooks";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Article, ARTICLE_STATUSES } from "../types/article";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+
+export function EditArticleForm({ articleData }: { articleData: Article }) {
+  const form = useForm<UpdateArticleInput>({
+    resolver: zodResolver(updateArticleSchema),
+    mode: "onChange",
+    defaultValues: {
+      title: articleData.title,
+      content: articleData.content,
+      status: articleData.status,
+    },
+  });
+
+  const {
+    formState: { isValid },
+  } = form;
+  const router = useRouter();
+  const updateArticleMutation = useUpdateArticle();
+
+  function onSubmit(data: UpdateArticleInput) {
+    updateArticleMutation.mutate(
+      {
+        id: articleData.id,
+        data: data,
+      },
+      {
+        onSuccess: (response) => {
+          toast.success("Article updated");
+          router.push(`/article/${response.id}`);
+        },
+        onError: (error) => {
+          toast.error(`Error updating article. ${error.message}`);
+        },
+      },
+    );
+  }
+
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6 w-full max-w-sm"
+      >
+        {/* title */}
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+
+              <FormControl>
+                <Input placeholder="title" {...field} />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* content */}
+        <FormField
+          control={form.control}
+          name="content"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Content</FormLabel>
+
+              <FormControl>
+                <Input placeholder="content" {...field} />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* status */}
+        <div className="space-y-2">
+          <Label htmlFor="inline-status" className="text-sm">
+            Status
+          </Label>
+          <Controller
+            name="status"
+            control={form.control}
+            render={({ field }) => (
+              <Select value={field.value || ""} onValueChange={field.onChange}>
+                <SelectTrigger
+                  id="inline-status"
+                  disabled={updateArticleMutation.isPending}
+                >
+                  <SelectValue placeholder="Select a status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ARTICLE_STATUSES.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status.charAt(0).toUpperCase() +
+                        status.slice(1).toLowerCase()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {form.formState.errors.status && (
+            <p className="text-xs text-red-500">
+              {form.formState.errors.status.message}
+            </p>
+          )}
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full cursor-pointer"
+          disabled={updateArticleMutation.isPending || !isValid}
+        >
+          {updateArticleMutation.isPending ? "Updating..." : "Update article"}
+        </Button>
+      </form>
+    </Form>
+  );
+}
+```
+
+## step 3 inline edit form
+
+`features/articles/components/InlineEditArticleForm.tsx`
+
+```tsx
+"use client";
+
+import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  updateArticleSchema,
+  UpdateArticleInput,
+} from "../schemas/updateArticle.schema";
+import { useUpdateArticle } from "../hooks";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
+import { Article, ARTICLE_STATUSES } from "../types/article";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface InlineUpdateArticleFormProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+  onError?: (error: any) => void;
+  isAlwaysOpen?: boolean;
+  articleData: Article;
+}
+
+export function InlineEditArticleForm({
+  onSuccess,
+  onCancel,
+  onError,
+  isAlwaysOpen = false,
+  articleData,
+}: InlineUpdateArticleFormProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const form = useForm<UpdateArticleInput>({
+    resolver: zodResolver(updateArticleSchema),
+    mode: "onChange",
+    defaultValues: {
+      title: articleData.title,
+      content: articleData.content,
+      status: articleData.status,
+    },
+  });
+
+  const updateArticleMutation = useUpdateArticle();
+
+  const { isValid } = form.formState;
+
+  const handleSubmit = (data: UpdateArticleInput) => {
+    updateArticleMutation.mutate(
+      { id: articleData.id, data },
+      {
+        onSuccess: () => {
+          form.reset();
+          if (!isAlwaysOpen) {
+            setIsOpen(false);
+          }
+          onSuccess?.();
+        },
+        onError: (err) => {
+          onError?.(err);
+        },
+      },
+    );
+  };
+
+  if (!isAlwaysOpen && !isOpen) {
+    return (
+      <Button onClick={() => setIsOpen(true)} variant="outline">
+        Change UpdateArticle
+      </Button>
+    );
+  }
+
+  return (
+    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      {/* title */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-title" className="text-sm">
+          Title
+        </Label>
+        <Input
+          id="inline-title"
+          type="text"
+          placeholder="title"
+          disabled={updateArticleMutation.isPending}
+          {...form.register("title")}
+        />
+        {form.formState.errors.title && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.title.message}
+          </p>
+        )}
+      </div>
+
+      {/* content */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-content" className="text-sm">
+          Content
+        </Label>
+        <Input
+          id="inline-content"
+          type="text"
+          placeholder="content"
+          disabled={updateArticleMutation.isPending}
+          {...form.register("content")}
+        />
+        {form.formState.errors.content && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.content.message}
+          </p>
+        )}
+      </div>
+
+      {/* status */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-status" className="text-sm">
+          Status
+        </Label>
+        <Controller
+          name="status"
+          control={form.control}
+          render={({ field }) => (
+            <Select value={field.value || ""} onValueChange={field.onChange}>
+              <SelectTrigger
+                id="inline-status"
+                disabled={updateArticleMutation.isPending}
+              >
+                <SelectValue placeholder="Select a status" />
+              </SelectTrigger>
+              <SelectContent>
+                {ARTICLE_STATUSES.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status.charAt(0).toUpperCase() +
+                      status.slice(1).toLowerCase()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+        {form.formState.errors.status && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.status.message}
+          </p>
+        )}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-3 pt-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="cursor-pointer"
+          onClick={() => {
+            if (!isAlwaysOpen) {
+              setIsOpen(false);
+            }
+            form.reset();
+            onCancel?.();
+          }}
+          disabled={updateArticleMutation.isPending}
+        >
+          {isAlwaysOpen ? "Reset" : "Cancel"}
+        </Button>
+        <Button
+          type="submit"
+          size="sm"
+          className="cursor-pointer"
+          disabled={updateArticleMutation.isPending || !isValid}
+        >
+          {updateArticleMutation.isPending && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          {updateArticleMutation.isPending ? "Updating..." : "Update article"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+```
+
+## step 4 modal for edit
+
+`features/articles/components/modal/EditArticleModal.tsx`
+
+```tsx
+import { InlineEditArticleForm } from "../InlineEditArticleForm";
+import { useModal } from "@/components/providers/ModalProvider";
+import { toast } from "sonner";
+import { Article } from "../../types/article";
+
+export function EditArticleModal({ data }: { data: Article }) {
+  const { closeModal } = useModal();
+
+  return (
+    <InlineEditArticleForm
+      articleData={data}
+      onSuccess={() => {
+        toast.success("Successfully edited article");
+        closeModal();
+      }}
+      onCancel={() => {
+        toast.error("Error trying to edit article");
+      }}
+      isAlwaysOpen={true}
+    />
+  );
+}
+```
+
+# part 19 | make generic component for {{resource}}
+
+have ai to roughly guess UI component (its more so just to quickly check if api/hooks work, doesnt matter if its ugly)
+`components/ui/Article.tsx`
+
+```tsx
+import { Card } from "./card";
+import { Avatar, AvatarImage, AvatarFallback } from "./avatar";
+import { useRouter } from "next/navigation";
+import { Button } from "./button";
+import { Article as ArticleType } from "@/features/articles/types/article";
+import { Trash, PencilLine, Calendar } from "lucide-react";
+import { ConfirmModal } from "../modal/ConfirmModal";
+import { useModal } from "../providers/ModalProvider";
+import { useDeleteArticle } from "@/features/articles/hooks";
+import { toast } from "sonner";
+
+const STATUS_COLORS: Record<string, string> = {
+  DRAFT: "bg-gray-100 text-gray-800",
+  PUBLISHED: "bg-green-100 text-green-800",
+  ARCHIVED: "bg-red-100 text-red-800",
+  SCHEDULED: "bg-blue-100 text-blue-800",
+};
+
+export function Article({
+  data,
+  isOwner,
+  truncateContent = true,
+  truncateTitle = true,
+}: {
+  data: ArticleType;
+  isOwner: boolean;
+  truncateContent?: boolean;
+  truncateTitle?: boolean;
+}) {
+  const deleteArticle = useDeleteArticle();
+  const { openModal, closeModal } = useModal();
+  const router = useRouter();
+
+  function modifyArticle(isOwner: boolean) {
+    if (!isOwner) {
+      return;
+    } else {
+      return (
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            className="cursor-pointer transition-transform hover:scale-110 h-8 w-8 p-0"
+            variant="ghost"
+            onClick={() => router.push(`/article/edit/${data.id}`)}
+            title="Edit article"
+          >
+            <PencilLine className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            className="cursor-pointer transition-transform hover:scale-110 h-8 w-8 p-0"
+            variant="ghost"
+            onClick={() => {
+              openModal({
+                title: "Delete Article",
+                content: (
+                  <ConfirmModal
+                    message={`Are you sure you want to delete this article?`}
+                    onConfirm={() =>
+                      deleteArticle.mutate(data.id, {
+                        onSuccess: () => {
+                          closeModal();
+                          router.push(`/article`);
+                        },
+                        onError: (error) => {
+                          toast.error("Failed to delete article: " + error);
+                        },
+                      })
+                    }
+                    variant={"destructive"}
+                  />
+                ),
+              });
+            }}
+            title="Delete article"
+          >
+            <Trash className="h-4 w-4" />
+          </Button>
+        </div>
+      );
+    }
+  }
+
+  const statusColor = STATUS_COLORS[data.status] || "bg-gray-100 text-gray-800";
+  const formattedDate = new Date(data.updatedAt).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  return (
+    <Card className="p-3 md:p-4 hover:shadow-md transition-shadow">
+      <div className="flex justify-between items-start gap-2 pb-3 border-b border-border/50">
+        <div className="flex-1">
+          <h2
+            className={`cursor-pointer text-sm md:text-base font-semibold hover:text-blue-500 transition-colors ${truncateTitle ? "line-clamp-2" : ""}`}
+            style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
+            onClick={() => router.push(`/article/${data.id}`)}
+          >
+            {data?.title}
+          </h2>
+          <div className="mt-2">
+            <span
+              className={`inline-block px-2 py-1 rounded text-xs font-medium ${statusColor}`}
+            >
+              {data.status.charAt(0).toUpperCase() +
+                data.status.slice(1).toLowerCase()}
+            </span>
+          </div>
+        </div>
+        {modifyArticle(isOwner)}
+      </div>
+      <p
+        className={`text-xs md:text-sm text-foreground my-3 ${truncateContent ? "line-clamp-3" : ""}`}
+        style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
+      >
+        {data?.content}
+      </p>
+      <div className="flex items-center justify-between gap-2 mt-3 min-w-0">
+        <div
+          className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity min-w-0"
+          onClick={() => router.push("/user/" + data?.creator.username)}
+        >
+          <Avatar className="h-7 w-7 shrink-0">
+            <AvatarImage
+              src={data?.creator.avatarPath}
+              alt={data?.creator.username}
+            />
+            <AvatarFallback className="text-xs">
+              {data?.creator.username?.[0]?.toUpperCase() || "?"}
+            </AvatarFallback>
+          </Avatar>
+          <p className="text-xs md:text-sm font-medium text-muted-foreground truncate">
+            {data?.creator.username}
+          </p>
+        </div>
+        <div className="flex items-center gap-1 text-xs md:text-sm text-muted-foreground shrink-0">
+          <Calendar className="h-4 w-4" />
+          <span>{formattedDate}</span>
+        </div>
+      </div>
+    </Card>
+  );
+}
+```
+
+- import my generic skeleton
+- like button
+- view
+- collection button
+- comment
+
+# part 20 | make pagination component
+
+## step 1 make pagination list component using UI component made in previous part
+
+`src/components/pages/article/PaginatedArticles.tsx`
+
+```ts
+"use client";
+
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { useArticlesOffset } from "@/features/articles/hooks";
+import { Article } from "@/components/ui/Article";
+import { PaginatedList } from "@/components/ui/pagination/PaginatedList";
+import { useSessionUser } from "@/features/auth/hooks";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
+
+const DEFAULT_LIMIT = 4;
+
+function ArticlesListContent() {
+  const { data: user } = useSessionUser();
+
+  const searchParams = useSearchParams();
+
+  // Get page from query params
+  const page = parseInt(searchParams.get("page") ?? "1", 10);
+
+  const { data, isLoading } = useArticlesOffset(page, DEFAULT_LIMIT);
+
+  const articles = data?.items ?? [];
+  const totalItems = data?.pageInfo?.totalItems ?? 0;
+
+  return (
+    <PaginatedList
+      url="article"
+      page={page}
+      limit={DEFAULT_LIMIT}
+      items={articles}
+      totalItems={totalItems}
+      isLoading={isLoading}
+      renderItem={(articles) => (
+        <Article data={articles} isOwner={articles.creator.id === user?.id} />
+      )}
+      title="Articles"
+      layout="flex"
+      renderSkeleton={() => <PageLoadingState variant="card" />}
+    />
+  );
+}
+
+export function PaginatedArticles() {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <ArticlesListContent />
+    </Suspense>
+  );
+}
+```
+
+## step 2 (optional) cursor pagination with load more button
+
+`src/components/pages/article/CursorArticles.tsx`
+
+```tsx
+"use client";
+
+import { PageLoadingState } from "@/components/common/PageLoadingState";
+import { Article } from "@/components/ui/Article";
+import { CursorList } from "@/components/ui/pagination/CursorList";
+import { useArticlesCursor } from "@/features/articles/hooks";
+import { useSessionUser } from "@/features/auth/hooks";
+
+const DEFAULT_LIMIT = 4;
+
+export function CursorArticles() {
+  const { data: user } = useSessionUser();
+
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useArticlesCursor(DEFAULT_LIMIT);
+
+  const articles = data?.pages.flatMap((p) => p.items) ?? [];
+
+  return (
+    <CursorList
+      items={articles}
+      isLoading={isLoading}
+      isFetchingNextPage={isFetchingNextPage}
+      hasNextPage={hasNextPage}
+      onLoadMore={() => fetchNextPage()}
+      renderItem={(article) => (
+        <Article data={article} isOwner={article.creator.id === user?.id} />
+      )}
+      layout="flex"
+      title="Cursor Articles"
+      renderSkeleton={() => <PageLoadingState variant="card" />}
+    />
+  );
+}
+```
+
+## step 3 (optional) cursor pagination that uses infinite scrolling
+
+`src/components/pages/article/CursorInfiniteArticles.tsx`
+
+```tsx
+"use client";
+
+import { PageLoadingState } from "@/components/common/PageLoadingState";
+import { Article } from "@/components/ui/Article";
+import { CursorInfiniteList } from "@/components/ui/pagination/CursorInfiniteList";
+import { useArticlesCursor } from "@/features/articles/hooks";
+import { useSessionUser } from "@/features/auth/hooks";
+
+const DEFAULT_LIMIT = 4;
+
+export function CursorInfiniteArticles() {
+  const { data: user } = useSessionUser();
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    useArticlesCursor(DEFAULT_LIMIT);
+
+  const articles = data?.pages.flatMap((page) => page.items) ?? [];
+
+  return (
+    <CursorInfiniteList
+      items={articles}
+      isLoading={isLoading}
+      isFetchingNextPage={isFetchingNextPage}
+      hasNextPage={hasNextPage}
+      onLoadMore={() => fetchNextPage()}
+      renderItem={(article) => (
+        <Article data={article} isOwner={article.creator.id === user?.id} />
+      )}
+      layout="flex"
+      title="Infinite Articles"
+      renderSkeleton={() => <PageLoadingState variant="card" />}
+    />
+  );
+}
+```
+
+# part 21 | make pages
+
+## basic/home
+
+### step 1 make component for its upcoming page.tsx
+
+`src/components/pages/article/ArticlePage.tsx`
+
+```tsx
+"use client";
+
+import { PaginatedArticles } from "./PaginatedArticles";
+import { CursorArticles } from "./CursorArticles";
+import { CursorInfiniteArticles } from "./CursorInfiniteArticles";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useModal } from "@/components/providers/ModalProvider";
+import { CreateArticleModal } from "@/features/articles/components/modal/CreateArticleModal";
+
+export function ArticlePage() {
+  const router = useRouter();
+
+  const { openModal } = useModal();
+
+  return (
+    <div>
+      <div>
+        <Button
+          className="cursor-pointer w-full md:w-auto"
+          onClick={() => router.push("/article/create")}
+        >
+          <Plus /> Article
+        </Button>
+        {/* test inline forms work. remove this button after test */}
+        <Button
+          onClick={() => {
+            openModal({
+              title: "Create new article",
+              content: <CreateArticleModal />,
+            });
+          }}
+        >
+          Create Article
+        </Button>
+      </div>
+      <PaginatedArticles />
+      {/* <CursorArticles /> */}
+      {/* <CursorInfiniteArticles /> */}
+    </div>
+  );
+}
+```
+
+### step 2 use in page.tsx
+
+`src/app/(default)/article/page.tsx`
+
+```tsx
+import { ArticlePage } from "@/components/pages/article/ArticlePage";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Articles",
+};
+
+export default function page() {
+  return (
+    <div>
+      <ArticlePage />
+    </div>
+  );
+}
+```
+
+## create
+
+### step 1 make component for its upcoming page.tsx
+
+`src/components/pages/article/CreateArticlePage.tsx`
+
+```tsx
+import { CreateArticleForm } from "@/features/articles/components/CreateArticleForm";
+import { Card } from "@/components/ui/card";
+
+export function CreateArticlePage() {
+  return (
+    <Card className="p-8 w-full max-w-md mx-auto">
+      <CreateArticleForm />
+    </Card>
+  );
+}
+```
+
+### step 2 use in page.tsx
+
+`src/app/(default)/article/create/page.tsx`
+
+```tsx
+import { CreateArticlePage } from "@/components/pages/article/CreateArticlePage";
+import { requireAuth } from "@/features/auth/server";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Create Article",
+};
+
+export default async function page() {
+  const user = await requireAuth();
+
+  return <CreateArticlePage />;
+}
+```
+
+## edit
+
+### step 1 make component for its upcoming page.tsx
+
+`src/components/pages/article/EditArticlePage.tsx`
+
+```tsx
+"use client";
+
+import { useEffect } from "react";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
+import { EditArticleForm } from "@/features/articles/components/EditArticleForm";
+import { Card } from "@/components/ui/card";
+import { useParams } from "next/navigation";
+import { useSessionUser } from "@/features/auth/hooks";
+import { useArticleById } from "@/features/articles/hooks";
+import { useRouter } from "next/navigation";
+
+export function EditArticlePage() {
+  const { data: user, isLoading: loadingUser } = useSessionUser();
+  const params = useParams<{ id: string }>();
+  const { data: article, isLoading: loadingArticle } = useArticleById(
+    Number(params.id),
+  );
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loadingArticle && !article) {
+      router.push("/not-found");
+    }
+  }, [article, loadingArticle, router]);
+
+  useEffect(() => {
+    if (!loadingUser && !loadingArticle && article && user) {
+      const isOwner = user.id === article.creator?.id;
+      if (!isOwner) {
+        router.push("/unauthorized");
+      }
+    }
+  }, [user, loadingUser, article, loadingArticle, router]);
+
+  if (loadingUser || loadingArticle) {
+    return <PageLoadingState variant="card" />;
+  }
+
+  if (!article) {
+    return null;
+  }
+
+  const isOwner = user?.id === article?.creator?.id;
+  if (!isOwner) {
+    return null;
+  }
+
+  return (
+    <Card className="p-8 w-full max-w-md mx-auto">
+      <EditArticleForm articleData={article} />
+    </Card>
+  );
+}
+```
+
+### step 2 use in page.tsx
+
+`src/app/(default)/article/edit/[id]/page.tsx`
+
+```tsx
+import { EditArticlePage } from "@/components/pages/article/EditArticlePage";
+import { requireAuth } from "@/features/auth/server";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Edit Article",
+};
+
+export default async function page() {
+  const user = await requireAuth();
+
+  return <EditArticlePage />;
+}
+```
+
+## by Id
+
+### step 1 make component for its upcoming page.tsx
+
+`src/components/pages/article/ArticleDetail.tsx`
+
+```tsx
+"use client";
+
+import { Article } from "@/components/ui/Article";
+import { useArticleById } from "@/features/articles/hooks";
+import { useRecordView } from "@/features/views/hook";
+import { useParams } from "next/navigation";
+import { useEffect } from "react";
+import { PageNotFound } from "@/components/common/PageNotFound";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
+import { User } from "@/features/users/types/user";
+
+export function ArticleDetail({ user }: { user: User | undefined }) {
+  const params = useParams();
+  const articleId = Number(params.id);
+  const { data, isLoading, error } = useArticleById(articleId);
+  const { mutate: recordView } = useRecordView();
+  const isOwner = data?.creator.id === user?.id;
+
+  useEffect(() => {
+    document.title = `${data?.title} | ${process.env.NEXT_PUBLIC_APP_NAME}`;
+  }, [data?.title]);
+
+  if (isLoading) {
+    return <PageLoadingState variant="card" />;
+  }
+
+  if (error || !data) {
+    return <PageNotFound title="Article Not Found" />;
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      <Article
+        data={data}
+        isOwner={isOwner}
+        truncateTitle={false}
+        truncateContent={false}
+      />
+    </div>
+  );
+}
+```
+
+### step 2 use in page.tsx
+
+`src/app/(default)/article/[id]/page.tsx`
+
+```tsx
+import { getServerUser } from "@/features/auth/server";
+import { ArticleDetail } from "@/components/pages/article/ArticleDetail";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Articles",
+};
+export default async function page() {
+  const user = await getServerUser();
+
+  return <ArticleDetail user={user} />;
+}
+```
+
+# part ? | make generic tester folder/page (this is meant to be deleted after testing all components work)
+
+# part ? | make search (searchbar?)
+
+- admin searchbar
+
+# part ? | admin column
+
+- add to sidebar
+
+# part ? | admin data table
+
+# part ? | admin page
