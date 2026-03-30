@@ -157,7 +157,7 @@ Currently just infrastructure for learning Stripe API - syncs data between Strip
 ## Misc
 
 **Auth Philosophy:** I like old school way where its just username and password. No need to go to email and verify to access site. The gambit is if you forget password then ur out of luck unless u **optionally** add email. I'd like to make websites with bare auth then add email option then add oauth option as i do think sign in with google is most convenient but i wouldn't sign up with my email for weird/sketchy sites (I hate going to 10min email just to do 1 thing on website that requires login). Its about skipping the liminal space but giving QoL options if you really like the site.
-This is the reason why the auth system is made from scratch and not using better-auth or other alternative libaries. Its because email is a core required field.
+This is the reason why the auth system is made from scratch and not using better-auth or other alternative libraries. Its because email is a core required field.
 
 **Postman/Bruno JSON available** - For API testing
 
