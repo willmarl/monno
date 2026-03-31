@@ -4859,9 +4859,13 @@ Just go to the .dto files and controller.ts file and add swagger docs inferencin
 in `apps/web/src` make these folders if not already
 
 `features/articles/`
+`components/pages/article/`
 `app/(default)/article/`
+if admin
+`features/admin/articles/`
+`components/pages/admin/articles/`
+`app/(admin)/admin/articles/`
 
-- admin variant
 - examples
 
 # part 16 | frontend api
@@ -4938,7 +4942,51 @@ export interface UpdateArticleInput {
 
 - img upload variant
 
-## step 2 converting endpoints to `features/articles/api.ts`
+## step 2 make admin `features/admin/articles/types/{{resource}}.ts`
+
+```ts
+import { PaginatedResponse } from "@/types/pagination";
+
+export const ARTICLE_STATUSES = [
+  "DRAFT",
+  "PUBLISHED",
+  "ARCHIVED",
+  "SCHEDULED",
+] as const;
+export type ArticleStatus = (typeof ARTICLE_STATUSES)[number];
+
+interface Creator {
+  id: number;
+  username: string;
+  avatarPath: string;
+}
+export interface Article {
+  id: number;
+  title: string;
+  content: string;
+  creator: Creator;
+  createdAt: string;
+  updatedAt: string;
+  status: ArticleStatus;
+  deleted: boolean;
+  deletedAt: string;
+}
+
+export type ArticlesList = PaginatedResponse<Article>;
+
+export interface ArticleListCursor {
+  items: Article[];
+  nextCursor: string;
+}
+
+export interface UpdateArticleInput {
+  title?: string;
+  content?: string;
+  status?: ArticleStatus;
+}
+```
+
+## step 3 converting endpoints to `features/articles/api.ts`
 
 if not using cursor pagination, omit cursor code
 
@@ -5007,7 +5055,53 @@ export const deleteArticle = (id: number) =>
   });
 ```
 
-# step 3 make `features/articles/hooks.ts`
+## step 4 converting endpoints to `features/admin/articles/api.ts`
+
+```ts
+import { fetcher } from "@/lib/fetcher";
+import type {
+  Article,
+  ArticlesList,
+  UpdateArticleInput,
+} from "./types/article";
+
+// GET /admin/articles?limit=10&offset=123
+export const fetchAdminArticlesOffset = ({
+  limit,
+  offset,
+}: {
+  limit: number;
+  offset: number;
+}) =>
+  fetcher<ArticlesList>("/admin/articles", {
+    searchParams: { limit, offset },
+  });
+
+// GET /admin/articles/:id
+export const fetchAdminArticleById = (id: number) =>
+  fetcher<Article>(`/admin/articles/${id}`);
+
+// PATCH /admin/articles/:id
+export const updateAdminArticle = (id: number, data: UpdateArticleInput) =>
+  fetcher<Article>(`/admin/articles/${id}`, {
+    method: "PATCH",
+    json: data,
+  });
+
+// DELETE /admin/articles/:id
+export const deleteAdminArticle = (id: number) =>
+  fetcher<void>(`/admin/articles/${id}`, {
+    method: "DELETE",
+  });
+
+// POST /admin/articles/:id/restore
+export const restoreAdminArticle = (id: number) =>
+  fetcher<Article>(`/admin/articles/${id}/restore`, {
+    method: "POST",
+  });
+```
+
+# step 5 make `features/articles/hooks.ts`
 
 if not using cursor pagination, omit cursor code
 
@@ -5030,14 +5124,14 @@ export function useArticlesOffset(page: number, limit: number) {
   const offset = (page - 1) * limit;
 
   return useQuery({
-    queryKey: ["articles-offset", page],
+    queryKey: ["articles", page],
     queryFn: () => fetchArticlesOffset({ limit, offset }),
   });
 }
 
 export function useArticlesCursor(limit: number = 10) {
   return useInfiniteQuery({
-    queryKey: ["articles-cursor"],
+    queryKey: ["articles"],
     queryFn: ({ pageParam }) =>
       fetchArticlesCursor({
         limit,
@@ -5107,6 +5201,81 @@ export function useDeleteArticle() {
       qc.removeQueries({ queryKey: ["article", id] });
     },
     throwOnError: false, // Don't throw errors, let component handle them
+  });
+}
+```
+
+# step 6 make `features/admin/articles/hooks.ts`
+
+```ts
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  fetchAdminArticlesOffset,
+  fetchAdminArticleById,
+  updateAdminArticle,
+  deleteAdminArticle,
+  restoreAdminArticle,
+} from "./api";
+
+export function useAdminArticlesOffset(page: number, limit: number) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: ["admin-articles", page],
+    queryFn: () => fetchAdminArticlesOffset({ limit, offset }),
+  });
+}
+
+export function useAdminArticleById(id: number) {
+  return useQuery({
+    queryKey: ["admin-article", id],
+    queryFn: () => fetchAdminArticleById(id),
+    enabled: !!id,
+  });
+}
+
+export function useAdminUpdateArticle() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Parameters<typeof updateAdminArticle>[1];
+    }) => updateAdminArticle(id, data),
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ["admin-articles"] });
+      qc.invalidateQueries({ queryKey: ["admin-article", id] });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useAdminDeleteArticle() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteAdminArticle,
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ["admin-articles"] });
+      qc.removeQueries({ queryKey: ["admin-article", id] });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useAdminRestoreArticle() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: restoreAdminArticle,
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ["admin-articles"] });
+      qc.invalidateQueries({ queryKey: ["admin-article", id] });
+    },
+    throwOnError: false,
   });
 }
 ```
@@ -5508,10 +5677,13 @@ export function CreateArticleModal() {
 
 # part 18 files for update/edit
 
+for the admin variants, despite forms being identical, its more so for future proof. for instance a new field like shadowbanned, only want admin able to CRUD it.
+
 ## step 1 make zod schema for update
 
-look at the DTO files from backend to use guide on what zod validation should be
-edit `features/articles/schemas/updateArticle.schema.ts`
+look at the DTO files from backend to use as guide on what zod validation should be
+
+`features/articles/schemas/updateArticle.schema.ts`
 
 ```ts
 import { z } from "zod";
@@ -5527,9 +5699,25 @@ export type UpdateArticleInput = z.infer<typeof updateArticleSchema>;
 ```
 
 - img upload variant
-- admin variant
 
-## step 2 edit form component
+## step 2 make admin zod schema for update
+
+`features/admin/articles/schemas/adminUpdateArticle.schema.ts`
+
+```ts
+import { z } from "zod";
+import { ARTICLE_STATUSES } from "../types/article";
+
+export const adminUpdateArticleSchema = z.object({
+  title: z.string().min(1).max(100).optional(),
+  content: z.string().min(1).max(1000).optional(),
+  status: z.enum(ARTICLE_STATUSES).optional(),
+});
+
+export type AdminUpdateArticleInput = z.infer<typeof adminUpdateArticleSchema>;
+```
+
+## step 3 edit form component
 
 `features/articles/components/EditArticleForm.tsx`
 
@@ -5688,7 +5876,170 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
 }
 ```
 
-## step 3 inline edit form
+## step 4 admin edit form component
+
+`features/admin/articles/components/AdminEditArticleForm.tsx`
+
+```ts
+"use client";
+
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  adminUpdateArticleSchema,
+  AdminUpdateArticleInput,
+} from "../schemas/adminUpdateArticle.schema";
+import { useAdminUpdateArticle } from "../hooks";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Article, ARTICLE_STATUSES } from "../types/article";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+
+export function AdminEditArticleForm({
+  articleData,
+}: {
+  articleData: Article;
+}) {
+  const form = useForm<AdminUpdateArticleInput>({
+    resolver: zodResolver(adminUpdateArticleSchema),
+    mode: "onChange",
+    defaultValues: {
+      title: articleData.title,
+      content: articleData.content,
+      status: articleData.status,
+    },
+  });
+
+  const {
+    formState: { isValid },
+  } = form;
+  const router = useRouter();
+  const updateArticleMutation = useAdminUpdateArticle();
+
+  function onSubmit(data: AdminUpdateArticleInput) {
+    updateArticleMutation.mutate(
+      {
+        id: articleData.id,
+        data: data,
+      },
+      {
+        onSuccess: (response) => {
+          toast.success("Article updated");
+          router.push(`/article/${response.id}`);
+        },
+        onError: (error) => {
+          toast.error(`Error updating article. ${error.message}`);
+        },
+      },
+    );
+  }
+
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6 w-full max-w-sm"
+      >
+        {/* title */}
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+
+              <FormControl>
+                <Input placeholder="title" {...field} />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* content */}
+        <FormField
+          control={form.control}
+          name="content"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Content</FormLabel>
+
+              <FormControl>
+                <Textarea placeholder="content" {...field} />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* status */}
+        <div className="space-y-2">
+          <Label htmlFor="inline-status" className="text-sm">
+            Status
+          </Label>
+          <Controller
+            name="status"
+            control={form.control}
+            render={({ field }) => (
+              <Select value={field.value || ""} onValueChange={field.onChange}>
+                <SelectTrigger
+                  id="inline-status"
+                  disabled={updateArticleMutation.isPending}
+                >
+                  <SelectValue placeholder="Select a status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ARTICLE_STATUSES.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status.charAt(0).toUpperCase() +
+                        status.slice(1).toLowerCase()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {form.formState.errors.status && (
+            <p className="text-xs text-red-500">
+              {form.formState.errors.status.message}
+            </p>
+          )}
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full cursor-pointer"
+          disabled={updateArticleMutation.isPending || !isValid}
+        >
+          {updateArticleMutation.isPending ? "Updating..." : "Update article"}
+        </Button>
+      </form>
+    </Form>
+  );
+}
+```
+
+## step 5 inline edit form
 
 `features/articles/components/InlineEditArticleForm.tsx`
 
@@ -5882,7 +6233,201 @@ export function InlineEditArticleForm({
 }
 ```
 
-## step 4 modal for edit
+## step 6 admin inline edit form
+
+`features/admin/articles/components/AdminInlineEditArticleForm.tsx`
+
+```ts
+"use client";
+
+import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  adminUpdateArticleSchema,
+  AdminUpdateArticleInput,
+} from "../schemas/adminUpdateArticle.schema";
+import { useAdminUpdateArticle } from "../hooks";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
+import { Article, ARTICLE_STATUSES } from "../types/article";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface InlineUpdateArticleFormProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+  onError?: (error: any) => void;
+  isAlwaysOpen?: boolean;
+  articleData: Article;
+}
+
+export function AdminInlineEditArticleForm({
+  onSuccess,
+  onCancel,
+  onError,
+  isAlwaysOpen = false,
+  articleData,
+}: InlineUpdateArticleFormProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const form = useForm<AdminUpdateArticleInput>({
+    resolver: zodResolver(adminUpdateArticleSchema),
+    mode: "onChange",
+    defaultValues: {
+      title: articleData.title,
+      content: articleData.content,
+      status: articleData.status,
+    },
+  });
+
+  const updateArticleMutation = useAdminUpdateArticle();
+
+  const { isValid } = form.formState;
+
+  const handleSubmit = (data: AdminUpdateArticleInput) => {
+    updateArticleMutation.mutate(
+      { id: articleData.id, data },
+      {
+        onSuccess: () => {
+          form.reset();
+          if (!isAlwaysOpen) {
+            setIsOpen(false);
+          }
+          onSuccess?.();
+        },
+        onError: (err) => {
+          onError?.(err);
+        },
+      },
+    );
+  };
+
+  if (!isAlwaysOpen && !isOpen) {
+    return (
+      <Button onClick={() => setIsOpen(true)} variant="outline">
+        Change UpdateArticle
+      </Button>
+    );
+  }
+
+  return (
+    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      {/* title */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-title" className="text-sm">
+          Title
+        </Label>
+        <Input
+          id="inline-title"
+          type="text"
+          placeholder="title"
+          disabled={updateArticleMutation.isPending}
+          {...form.register("title")}
+        />
+        {form.formState.errors.title && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.title.message}
+          </p>
+        )}
+      </div>
+
+      {/* content */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-content" className="text-sm">
+          Content
+        </Label>
+        <Textarea
+          id="inline-content"
+          placeholder="content"
+          disabled={updateArticleMutation.isPending}
+          {...form.register("content")}
+        />
+        {form.formState.errors.content && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.content.message}
+          </p>
+        )}
+      </div>
+
+      {/* status */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-status" className="text-sm">
+          Status
+        </Label>
+        <Controller
+          name="status"
+          control={form.control}
+          render={({ field }) => (
+            <Select value={field.value || ""} onValueChange={field.onChange}>
+              <SelectTrigger
+                id="inline-status"
+                disabled={updateArticleMutation.isPending}
+              >
+                <SelectValue placeholder="Select a status" />
+              </SelectTrigger>
+              <SelectContent>
+                {ARTICLE_STATUSES.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status.charAt(0).toUpperCase() +
+                      status.slice(1).toLowerCase()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+        {form.formState.errors.status && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.status.message}
+          </p>
+        )}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-3 pt-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="cursor-pointer"
+          onClick={() => {
+            if (!isAlwaysOpen) {
+              setIsOpen(false);
+            }
+            form.reset();
+            onCancel?.();
+          }}
+          disabled={updateArticleMutation.isPending}
+        >
+          {isAlwaysOpen ? "Reset" : "Cancel"}
+        </Button>
+        <Button
+          type="submit"
+          size="sm"
+          className="cursor-pointer"
+          disabled={updateArticleMutation.isPending || !isValid}
+        >
+          {updateArticleMutation.isPending && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          {updateArticleMutation.isPending ? "Updating..." : "Update article"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+```
+
+## step 7 modal for edit
 
 `features/articles/components/modal/EditArticleModal.tsx`
 
@@ -5897,6 +6442,35 @@ export function EditArticleModal({ data }: { data: Article }) {
 
   return (
     <InlineEditArticleForm
+      articleData={data}
+      onSuccess={() => {
+        toast.success("Successfully edited article");
+        closeModal();
+      }}
+      onCancel={() => {
+        toast.error("Error trying to edit article");
+      }}
+      isAlwaysOpen={true}
+    />
+  );
+}
+```
+
+## step 8 admin modal for edit
+
+`features/admin/articles/components/modal/AdminEditArticleModal.tsx`
+
+```ts
+import { AdminInlineEditArticleForm } from "../AdminInlineEditArticleForm";
+import { useModal } from "@/components/providers/ModalProvider";
+import { toast } from "sonner";
+import { Article } from "../../types/article";
+
+export function AdminEditArticleModal({ data }: { data: Article }) {
+  const { closeModal } = useModal();
+
+  return (
+    <AdminInlineEditArticleForm
       articleData={data}
       onSuccess={() => {
         toast.success("Successfully edited article");
@@ -6482,16 +7056,284 @@ export default async function page() {
 }
 ```
 
-# part ? | make generic tester folder/page (this is meant to be deleted after testing all components work)
+## part 22 | extending admin dashboard
+
+## step 1 make columns.tsx for upcoming data table component
+
+`components/pages/admin/articles/columns.tsx`
+
+```tsx
+"use client";
+
+import { MoreHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ColumnDef } from "@tanstack/react-table";
+import { Article } from "@/features/admin/articles/types/article";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  useAdminDeleteArticle,
+  useAdminRestoreArticle,
+} from "@/features/admin/articles/hooks";
+import { useRouter } from "next/navigation";
+import { SortableHeader } from "@/components/table/SortableHeader";
+import { TextPreviewCell } from "@/components/table/TextPreviewCell";
+import { formatDate } from "@/lib/utils/date";
+import { AdminEditArticleModal } from "@/features/admin/articles/components/modal/AdminEditArticleModal";
+import { useModal } from "@/components/providers/ModalProvider";
+
+export const columns: ColumnDef<Article>[] = [
+  {
+    accessorKey: "id",
+    header: ({ column }) => <SortableHeader column={column} label="ID" />,
+  },
+  {
+    accessorKey: "title",
+    header: ({ column }) => <SortableHeader column={column} label="Title" />,
+    cell: ({ row }) => (
+      <TextPreviewCell
+        value={(row.getValue("title") as string) ?? ""}
+        title="Title"
+      />
+    ),
+  },
+  {
+    accessorKey: "content",
+    header: ({ column }) => <SortableHeader column={column} label="Content" />,
+    cell: ({ row }) => (
+      <TextPreviewCell
+        value={(row.getValue("content") as string) ?? ""}
+        title="Content"
+      />
+    ),
+  },
+  {
+    accessorKey: "creator.username",
+    header: ({ column }) => <SortableHeader column={column} label="Username" />,
+    cell: ({ row }) => {
+      const username: string = row.original.creator.username;
+      const avatarPath: string | null = row.original.creator.avatarPath;
+
+      return (
+        <div className="flex gap-1 items-center">
+          <Avatar className="h-8 w-8">
+            {avatarPath && <AvatarImage src={avatarPath} alt={username} />}
+            <AvatarFallback>{username[0]}</AvatarFallback>
+          </Avatar>
+          <p>{username}</p>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "createdAt",
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Created At" />
+    ),
+    cell: ({ row }) => {
+      const date = String(row.getValue("createdAt"));
+      const formatted = formatDate(date);
+
+      return <div>{formatted}</div>;
+    },
+  },
+  {
+    accessorKey: "deleted",
+    header: ({ column }) => <SortableHeader column={column} label="Status" />,
+    cell: ({ row }) => {
+      const article = row.original;
+      if (article.deleted) {
+        const date = String(article.deletedAt);
+        const formatted = formatDate(date);
+
+        return <div>Deleted at {formatted}</div>;
+      } else {
+        return <div>Active</div>;
+      }
+    },
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      const article = row.original;
+      const router = useRouter();
+      const restoreArticle = useAdminRestoreArticle();
+      const deleteArticle = useAdminDeleteArticle();
+      const { openModal } = useModal();
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
+            {article.deleted ? (
+              <div>
+                <DropdownMenuItem
+                  onClick={() => {
+                    openModal({
+                      title: "Edit data for " + row.original.title,
+                      content: <AdminEditArticleModal data={row.original} />,
+                    });
+                  }}
+                >
+                  Edit article
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    restoreArticle.mutate(article.id);
+                  }}
+                >
+                  Restore article
+                </DropdownMenuItem>
+              </div>
+            ) : (
+              <div>
+                <DropdownMenuItem
+                  onClick={() => {
+                    router.push(`/article/${article.id}`);
+                  }}
+                >
+                  View article
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    openModal({
+                      title: "Edit data for " + row.original.title,
+                      content: <AdminEditArticleModal data={row.original} />,
+                    });
+                  }}
+                >
+                  Edit article
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => {
+                    deleteArticle.mutate(article.id);
+                  }}
+                >
+                  Delete article
+                </DropdownMenuItem>
+              </div>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+  },
+];
+```
+
+## step 2 make ArticleDataTable.tsx
+
+`components/pages/admin/articles/ArticleDataTable.tsx`
+
+```tsx
+"use client";
+
+import { useAdminArticlesOffset } from "@/features/admin/articles/hooks";
+import { columns } from "./columns";
+import { DataTable } from "@/components/ui/data-table";
+import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
+import { useSearchParams } from "next/navigation";
+
+const DEFAULT_LIMIT = 4;
+
+export function ArticleDataTable() {
+  // Parse page and limit from search params
+  const searchParams = useSearchParams();
+
+  // Get page from query params
+  const page = parseInt(searchParams.get("page") ?? "1", 10);
+
+  const { data, isLoading, error } = useAdminArticlesOffset(
+    page,
+    DEFAULT_LIMIT,
+  );
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+    // replace me with skeleton later
+  }
+
+  if (error || !data) {
+    return (
+      <div>Something went wrong. could not pull articles. {error?.message}</div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-10">
+      <DataTable columns={columns} data={data.items} />
+      <div className="mt-4">
+        <OffsetPagination
+          url="admin/articles"
+          page={page}
+          limit={DEFAULT_LIMIT}
+          totalItems={data.pageInfo.totalItems}
+        />
+      </div>
+    </div>
+  );
+}
+```
+
+## step 3 make page component
+
+`components/pages/admin/articles/AdminArticlePage.tsx`
+
+```tsx
+import { ArticleDataTable } from "./ArticleDataTable";
+
+export function AdminArticlePage() {
+  return (
+    <div>
+      <p>admin article page here</p>
+      <ArticleDataTable />
+    </div>
+  );
+}
+```
+
+## step 4 make app admin page
+
+`app/(admin)/admin/articles/page.tsx`
+
+```tsx
+import { AdminArticlePage } from "@/components/pages/admin/articles/AdminArticlePage";
+
+export default function page() {
+  return <AdminArticlePage />;
+}
+```
+
+## step 5 add new resource to sidebar
+
+Inside `components/layout/admin/Sidebar.tsx` append to Menu items list a new object for resource. Feel free to pick lucide icon to represent resource.
+
+```tsx
+// Menu items.
+export const items = [
+  ...{
+    title: "Articles",
+    url: "/admin/articles",
+    icon: Newspaper,
+  },
+];
+```
 
 # part ? | make search (searchbar?)
 
 - admin searchbar
-
-# part ? | admin column
-
-- add to sidebar
-
-# part ? | admin data table
-
-# part ? | admin page

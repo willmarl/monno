@@ -11,6 +11,7 @@ import {
   Contact,
   Home,
   Bookmark,
+  Newspaper,
 } from "lucide-react";
 import { useSessionUser } from "@/features/auth/hooks";
 import {
@@ -67,6 +68,11 @@ export const items = [
     title: "Support",
     url: "/admin/support",
     icon: Contact,
+  },
+  {
+    title: "Articles",
+    url: "/admin/articles",
+    icon: Newspaper,
   },
 ];
 
