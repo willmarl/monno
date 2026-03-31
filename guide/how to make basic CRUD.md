@@ -120,7 +120,9 @@ Similarly, if schema has `viewCount Int @default(0)`, that signals the resource 
 
 **frontend**
 
-- WIP
+- offset or cursor pagination or both
+  - if cursor whether to have load more button or infinite scroll or both
+- admin dashboard
 
 ## example of what human should ask you
 
@@ -4854,25 +4856,17 @@ Just go to the .dto files and controller.ts file and add swagger docs inferencin
 
 ## step 1 make files
 
-in `apps/web/src` make these files if not already
+in `apps/web/src` make these folders if not already
 
-`features/{{resource}}/types/article.ts`
-`features/{{resource}}/api.ts`
-`features/{{resource}}/hooks.ts`
-`features/{{resource}}/schemas/create{{resource}}.schema.ts`
-`features/{{resource}}/schemas/update{{resource}}.schema.ts`
-`features/{{resource}}/components/Create{{resource}}Form.ts`
-`features/{{resource}}/components/InlineCreate{{resource}}Form.ts`
-`features/{{resource}}/components/Edit{{resource}}Form.ts`
-`features/{{resource}}/components/InlineEdit{{resource}}Form.ts`
-
-> Note most of the time its plural, they're might be edge cases like "support" as in "support tickets" so having "supports" wouldn't make sense.
+`features/articles/`
+`app/(default)/article/`
 
 - admin variant
+- examples
 
 # part 16 | frontend api
 
-## step 1 fill in /types/{{resource}}.ts
+## step 1 make `features/articles/types/{{resource}}.ts`
 
 from part 2, step 2 of making shared return, use that to help inference on how to make interface type
 _here is reminder of shared return from backend_
@@ -4944,7 +4938,7 @@ export interface UpdateArticleInput {
 
 - img upload variant
 
-## step 2 converting endpoints to api.ts
+## step 2 converting endpoints to `features/articles/api.ts`
 
 if not using cursor pagination, omit cursor code
 
@@ -4992,7 +4986,7 @@ export const fetchArticleById = (id: number) =>
 export const fetchArticlesByUserId = (userId: number) =>
   fetcher<Article[]>(`/articles/users/${userId}`);
 
-// ARTICLE /articles
+// POST /articles
 export const createArticle = (data: CreateArticleInput) =>
   fetcher<Article>("/articles", {
     method: "POST",
@@ -5013,7 +5007,7 @@ export const deleteArticle = (id: number) =>
   });
 ```
 
-# step 3 hooks.ts file
+# step 3 make `features/articles/hooks.ts`
 
 if not using cursor pagination, omit cursor code
 
@@ -5117,7 +5111,7 @@ export function useDeleteArticle() {
 }
 ```
 
-# part 17 create {{resource}} pipeline
+# part 17 files for creation
 
 ## step 1 make zod schema for create
 
@@ -5164,6 +5158,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -5240,7 +5235,7 @@ export function CreateArticleForm() {
               <FormLabel>Content</FormLabel>
 
               <FormControl>
-                <Input placeholder="content" {...field} />
+                <Textarea placeholder="content" {...field} />
               </FormControl>
 
               <FormMessage />
@@ -5314,6 +5309,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -5401,9 +5397,8 @@ export function InlineCreateArticleForm({
         <Label htmlFor="inline-content" className="text-sm">
           Content
         </Label>
-        <Input
+        <Textarea
           id="inline-content"
-          type="text"
           placeholder="content"
           disabled={createArticleMutation.isPending}
           {...form.register("content")}
@@ -5511,7 +5506,7 @@ export function CreateArticleModal() {
 }
 ```
 
-# part 18 update {{resource}} pipeline
+# part 18 files for update/edit
 
 ## step 1 make zod schema for update
 
@@ -5558,6 +5553,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -5637,7 +5633,7 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
               <FormLabel>Content</FormLabel>
 
               <FormControl>
-                <Input placeholder="content" {...field} />
+                <Textarea placeholder="content" {...field} />
               </FormControl>
 
               <FormMessage />
@@ -5712,6 +5708,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { Article, ARTICLE_STATUSES } from "../types/article";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -5803,9 +5800,8 @@ export function InlineEditArticleForm({
         <Label htmlFor="inline-content" className="text-sm">
           Content
         </Label>
-        <Input
+        <Textarea
           id="inline-content"
-          type="text"
           placeholder="content"
           disabled={updateArticleMutation.isPending}
           {...form.register("content")}
@@ -5917,7 +5913,7 @@ export function EditArticleModal({ data }: { data: Article }) {
 
 # part 19 | make generic component for {{resource}}
 
-have ai to roughly guess UI component (its more so just to quickly check if api/hooks work, doesnt matter if its ugly)
+Instructions for AI, roughly guess UI component based off schema model and type.ts, this is more so just to quickly check if api/hooks work. doesn't matter if its ugly
 `components/ui/Article.tsx`
 
 ```tsx
@@ -5931,13 +5927,7 @@ import { ConfirmModal } from "../modal/ConfirmModal";
 import { useModal } from "../providers/ModalProvider";
 import { useDeleteArticle } from "@/features/articles/hooks";
 import { toast } from "sonner";
-
-const STATUS_COLORS: Record<string, string> = {
-  DRAFT: "bg-gray-100 text-gray-800",
-  PUBLISHED: "bg-green-100 text-green-800",
-  ARCHIVED: "bg-red-100 text-red-800",
-  SCHEDULED: "bg-blue-100 text-blue-800",
-};
+import { InlineEditArticleForm } from "@/features/articles/components/InlineEditArticleForm";
 
 export function Article({
   data,
@@ -5969,6 +5959,19 @@ export function Article({
           >
             <PencilLine className="h-4 w-4" />
           </Button>
+          {/* edit inline button below me is for testing purposes, remove me after test */}
+          <Button
+            onClick={() => {
+              openModal({
+                title: "edit Article",
+                content: <InlineEditArticleForm articleData={data} />,
+              });
+            }}
+            title="edit article"
+          >
+            edit inline
+          </Button>
+          {/* EoF test */}
           <Button
             size="sm"
             className="cursor-pointer transition-transform hover:scale-110 h-8 w-8 p-0"
@@ -6004,7 +6007,6 @@ export function Article({
     }
   }
 
-  const statusColor = STATUS_COLORS[data.status] || "bg-gray-100 text-gray-800";
   const formattedDate = new Date(data.updatedAt).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -6023,9 +6025,7 @@ export function Article({
             {data?.title}
           </h2>
           <div className="mt-2">
-            <span
-              className={`inline-block px-2 py-1 rounded text-xs font-medium ${statusColor}`}
-            >
+            <span className="text-xs text-muted-foreground">
               {data.status.charAt(0).toUpperCase() +
                 data.status.slice(1).toLowerCase()}
             </span>
@@ -6220,6 +6220,8 @@ export function CursorInfiniteArticles() {
 
 ### step 1 make component for its upcoming page.tsx
 
+omit cursor code if not using cursor
+
 `src/components/pages/article/ArticlePage.tsx`
 
 ```tsx
@@ -6259,6 +6261,7 @@ export function ArticlePage() {
         >
           Create Article
         </Button>
+        {/* EoF test */}
       </div>
       <PaginatedArticles />
       {/* <CursorArticles /> */}

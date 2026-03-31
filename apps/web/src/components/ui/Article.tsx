@@ -8,13 +8,7 @@ import { ConfirmModal } from "../modal/ConfirmModal";
 import { useModal } from "../providers/ModalProvider";
 import { useDeleteArticle } from "@/features/articles/hooks";
 import { toast } from "sonner";
-
-const STATUS_COLORS: Record<string, string> = {
-  DRAFT: "bg-gray-100 text-gray-800",
-  PUBLISHED: "bg-green-100 text-green-800",
-  ARCHIVED: "bg-red-100 text-red-800",
-  SCHEDULED: "bg-blue-100 text-blue-800",
-};
+import { InlineEditArticleForm } from "@/features/articles/components/InlineEditArticleForm";
 
 export function Article({
   data,
@@ -46,6 +40,19 @@ export function Article({
           >
             <PencilLine className="h-4 w-4" />
           </Button>
+          {/* edit inline button below me is for testing purposes, remove me after test */}
+          <Button
+            onClick={() => {
+              openModal({
+                title: "edit Article",
+                content: <InlineEditArticleForm articleData={data} />,
+              });
+            }}
+            title="edit article"
+          >
+            edit inline
+          </Button>
+          {/* EoF test */}
           <Button
             size="sm"
             className="cursor-pointer transition-transform hover:scale-110 h-8 w-8 p-0"
@@ -81,7 +88,6 @@ export function Article({
     }
   }
 
-  const statusColor = STATUS_COLORS[data.status] || "bg-gray-100 text-gray-800";
   const formattedDate = new Date(data.updatedAt).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -100,9 +106,7 @@ export function Article({
             {data?.title}
           </h2>
           <div className="mt-2">
-            <span
-              className={`inline-block px-2 py-1 rounded text-xs font-medium ${statusColor}`}
-            >
+            <span className="text-xs text-muted-foreground">
               {data.status.charAt(0).toUpperCase() +
                 data.status.slice(1).toLowerCase()}
             </span>

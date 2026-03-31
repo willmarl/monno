@@ -39,7 +39,7 @@ export const fetchArticleById = (id: number) =>
 export const fetchArticlesByUserId = (userId: number) =>
   fetcher<Article[]>(`/articles/users/${userId}`);
 
-// ARTICLE /articles
+// POST /articles
 export const createArticle = (data: CreateArticleInput) =>
   fetcher<Article>("/articles", {
     method: "POST",

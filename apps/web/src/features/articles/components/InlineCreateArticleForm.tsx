@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -99,9 +100,8 @@ export function InlineCreateArticleForm({
         <Label htmlFor="inline-content" className="text-sm">
           Content
         </Label>
-        <Input
+        <Textarea
           id="inline-content"
-          type="text"
           placeholder="content"
           disabled={createArticleMutation.isPending}
           {...form.register("content")}

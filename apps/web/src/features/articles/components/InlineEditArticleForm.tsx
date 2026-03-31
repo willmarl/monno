@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { Article, ARTICLE_STATUSES } from "../types/article";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -104,9 +105,8 @@ export function InlineEditArticleForm({
         <Label htmlFor="inline-content" className="text-sm">
           Content
         </Label>
-        <Input
+        <Textarea
           id="inline-content"
-          type="text"
           placeholder="content"
           disabled={updateArticleMutation.isPending}
           {...form.register("content")}
