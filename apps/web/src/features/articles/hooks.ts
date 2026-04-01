@@ -6,6 +6,7 @@ import {
   fetchArticlesOffset,
   fetchArticlesCursor,
   fetchArticlesByUserId,
+  fetchArticlesByUserIdCursor,
   updateArticle,
   deleteArticle,
 } from "./api";
@@ -42,10 +43,31 @@ export function useArticleById(id: number) {
   });
 }
 
-export function useArticlesByUserId(userId: number) {
+export function useArticlesByUserId(
+  userId: number,
+  page: number,
+  limit: number,
+) {
+  const offset = (page - 1) * limit;
+
   return useQuery({
-    queryKey: ["articles-by-user", userId],
-    queryFn: () => fetchArticlesByUserId(userId),
+    queryKey: ["articles-by-user", userId, page],
+    queryFn: () => fetchArticlesByUserId({ userId, limit, offset }),
+    enabled: !!userId,
+  });
+}
+
+export function useArticlesByUserIdCursor(userId: number, limit: number = 10) {
+  return useInfiniteQuery({
+    queryKey: ["articles-by-user-cursor", userId],
+    queryFn: ({ pageParam }) =>
+      fetchArticlesByUserIdCursor({
+        userId,
+        limit,
+        cursor: pageParam ?? null,
+      }),
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialPageParam: null as string | null,
     enabled: !!userId,
   });
 }

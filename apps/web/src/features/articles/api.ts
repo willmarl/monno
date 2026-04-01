@@ -35,9 +35,33 @@ export const fetchArticlesCursor = ({
 export const fetchArticleById = (id: number) =>
   fetcher<Article>(`/articles/${id}`);
 
-// GET /articles/users/:userId
-export const fetchArticlesByUserId = (userId: number) =>
-  fetcher<Article[]>(`/articles/users/${userId}`);
+// GET /articles/users/:userId?limit=10&offset=0
+export const fetchArticlesByUserId = ({
+  userId,
+  limit,
+  offset,
+}: {
+  userId: number;
+  limit: number;
+  offset: number;
+}) =>
+  fetcher<ArticlesList>(`/articles/users/${userId}`, {
+    searchParams: { limit, offset },
+  });
+
+// GET /articles/users/:userId/cursor?limit=10&cursor=abc123
+export const fetchArticlesByUserIdCursor = ({
+  userId,
+  limit,
+  cursor,
+}: {
+  userId: number;
+  limit: number;
+  cursor?: string | null;
+}) =>
+  fetcher<ArticleListCursor>(`/articles/users/${userId}/cursor`, {
+    searchParams: { limit, cursor: cursor ?? undefined },
+  });
 
 // POST /articles
 export const createArticle = (data: CreateArticleInput) =>

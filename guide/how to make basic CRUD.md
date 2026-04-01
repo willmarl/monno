@@ -5030,9 +5030,33 @@ export const fetchArticlesCursor = ({
 export const fetchArticleById = (id: number) =>
   fetcher<Article>(`/articles/${id}`);
 
-// GET /articles/users/:userId
-export const fetchArticlesByUserId = (userId: number) =>
-  fetcher<Article[]>(`/articles/users/${userId}`);
+// GET /articles/users/:userId?limit=10&offset=0
+export const fetchArticlesByUserId = ({
+  userId,
+  limit,
+  offset,
+}: {
+  userId: number;
+  limit: number;
+  offset: number;
+}) =>
+  fetcher<ArticlesList>(`/articles/users/${userId}`, {
+    searchParams: { limit, offset },
+  });
+
+// GET /articles/users/:userId/cursor?limit=10&cursor=abc123
+export const fetchArticlesByUserIdCursor = ({
+  userId,
+  limit,
+  cursor,
+}: {
+  userId: number;
+  limit: number;
+  cursor?: string | null;
+}) =>
+  fetcher<ArticleListCursor>(`/articles/users/${userId}/cursor`, {
+    searchParams: { limit, cursor: cursor ?? undefined },
+  });
 
 // POST /articles
 export const createArticle = (data: CreateArticleInput) =>
@@ -5116,6 +5140,7 @@ import {
   fetchArticlesOffset,
   fetchArticlesCursor,
   fetchArticlesByUserId,
+  fetchArticlesByUserIdCursor,
   updateArticle,
   deleteArticle,
 } from "./api";
@@ -5152,10 +5177,31 @@ export function useArticleById(id: number) {
   });
 }
 
-export function useArticlesByUserId(userId: number) {
+export function useArticlesByUserId(
+  userId: number,
+  page: number,
+  limit: number,
+) {
+  const offset = (page - 1) * limit;
+
   return useQuery({
-    queryKey: ["articles-by-user", userId],
-    queryFn: () => fetchArticlesByUserId(userId),
+    queryKey: ["articles-by-user", userId, page],
+    queryFn: () => fetchArticlesByUserId({ userId, limit, offset }),
+    enabled: !!userId,
+  });
+}
+
+export function useArticlesByUserIdCursor(userId: number, limit: number = 10) {
+  return useInfiniteQuery({
+    queryKey: ["articles-by-user-cursor", userId],
+    queryFn: ({ pageParam }) =>
+      fetchArticlesByUserIdCursor({
+        userId,
+        limit,
+        cursor: pageParam ?? null,
+      }),
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialPageParam: null as string | null,
     enabled: !!userId,
   });
 }
@@ -7053,6 +7099,77 @@ export default async function page() {
   const user = await getServerUser();
 
   return <ArticleDetail user={user} />;
+}
+```
+
+## (optional) append to profile page list of user's articles
+
+### step 1 make component for Users articles list
+
+`components/pages/userProfile/UsersArticlesList.tsx`
+
+```tsx
+"use client";
+
+import { useState } from "react";
+import { useArticlesByUserId } from "@/features/articles/hooks";
+import { Article } from "@/components/ui/Article";
+import { PaginatedListInline } from "@/components/ui/pagination/PaginatedListInline";
+import { PublicUser } from "@/features/users/types/user";
+
+interface UsersArticlesListProps {
+  user: PublicUser;
+  isOwner: boolean;
+}
+
+const DEFAULT_LIMIT = 9;
+
+export function UsersArticlesList({ user, isOwner }: UsersArticlesListProps) {
+  const [page, setPage] = useState(1);
+
+  const { data, isLoading } = useArticlesByUserId(user.id, page, DEFAULT_LIMIT);
+
+  const articles = data?.items ?? [];
+  const totalItems = data?.pageInfo?.total ?? data?.pageInfo?.totalItems ?? 0;
+
+  return (
+    <PaginatedListInline
+      page={page}
+      limit={DEFAULT_LIMIT}
+      items={articles}
+      totalItems={totalItems}
+      isLoading={isLoading}
+      onPageChange={setPage}
+      renderItem={(article) => <Article data={article} isOwner={isOwner} />}
+      title={`Articles by ${user.username}`}
+      layout="grid"
+      emptyMessage="No articles yet."
+    />
+  );
+}
+```
+
+### step 2 add to UsersProfileContent.tsx
+
+add import of newly made UsersArticlesList.tsx
+`components/pages/userProfile/UserProfileContent.tsx`
+
+```tsx
+...
+import { UsersArticlesList } from "./UsersArticlesList";
+
+
+export function UserProfileContent({ user, isOwner }: UserProfileContentProps) {
+  return (
+    <div className="space-y-8">
+      <Suspense fallback={<p>Loading...</p>}>
+        <UsersPostsList user={user} isOwner={isOwner} />
+        <UsersArticlesList user={user} isOwner={isOwner} />
+        {isOwner && <LikedPostsList user={user} isOwner={isOwner} />}
+        {isOwner && <CollectionsList user={user} isOwner={isOwner} />}
+      </Suspense>
+    </div>
+  );
 }
 ```
 
