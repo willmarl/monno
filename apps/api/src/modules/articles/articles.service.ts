@@ -470,4 +470,21 @@ export class ArticlesService {
       nextCursor,
     };
   }
+
+  async searchSuggest(q: string, limit: number) {
+    if (!q) return [];
+
+    return this.prisma.article.findMany({
+      where: {
+        deleted: false,
+        creator: { status: 'ACTIVE' },
+        OR: [
+          { title: { contains: q, mode: 'insensitive' } },
+          { content: { contains: q, mode: 'insensitive' } },
+        ],
+      },
+      select: DEFAULT_ARTICLE_SELECT,
+      take: limit,
+    });
+  }
 }

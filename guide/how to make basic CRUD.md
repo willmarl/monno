@@ -3389,6 +3389,59 @@ enum of createdAt, updatedAt
 
 "Resource actions" / CRUD extensions
 
+## step 12 (optional) add search suggest
+
+with search suggest, try to keep it minimal/simple.
+
+```ts
+async searchSuggest(q: string, limit: number) {
+    if (!q) return [];
+
+    return this.prisma.{{resource}}.findMany({
+      where: {
+        deleted: false,
+        creator: { status: 'ACTIVE' },
+        OR: [
+          { title: { contains: q, mode: 'insensitive' } },
+          { content: { contains: q, mode: 'insensitive' } },
+        ],
+      },
+      select: DEFAULT_{{RESOURCE}}_SELECT,
+      take: limit,
+    });
+  }
+```
+
+example:
+
+```ts
+async searchSuggest(q: string, limit: number) {
+    if (!q) return [];
+
+    return this.prisma.article.findMany({
+      where: {
+        deleted: false,
+        creator: { status: 'ACTIVE' },
+        OR: [
+          { title: { contains: q, mode: 'insensitive' } },
+          { content: { contains: q, mode: 'insensitive' } },
+        ],
+      },
+      select: DEFAULT_ARTICLE_SELECT,
+      take: limit,
+    });
+  }
+```
+
+## step 13 (optional) add search suggest endpoint
+
+```ts
+@Get('search/suggest')
+  searchSuggest(@Query('q') q: string, @Query('limit') limit = 5) {
+    return this.articlesService.searchSuggest(q, Number(limit));
+  }
+```
+
 # part 9 | resource actions
 
 by the time i am writing this, there is only likes, views, comments, and collection. there might be more or less when you currently read this. prompt human the available resource actions found (likes, views, comments, collections, etc), ask which ones to apply/add.

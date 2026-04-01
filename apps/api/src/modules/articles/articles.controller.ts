@@ -75,6 +75,11 @@ export class ArticlesController {
     return this.articlesService.searchAllCursor(searchDto, currentUserId);
   }
 
+  @Get('search/suggest')
+  searchSuggest(@Query('q') q: string, @Query('limit') limit = 5) {
+    return this.articlesService.searchSuggest(q, Number(limit));
+  }
+
   @UseGuards(JwtAccessOptionalGuard)
   @Get('users/:userId')
   findByUserId(
