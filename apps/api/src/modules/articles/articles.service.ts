@@ -393,6 +393,7 @@ export class ArticlesService {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
     const orderBy = searchDto.getOrderBy();
+    const statuses = searchDto.getStatuses();
 
     const where = buildSearchWhere({
       query: searchDto.query ?? '',
@@ -400,21 +401,23 @@ export class ArticlesService {
       options: searchOptions,
     });
 
-    const whereWithStatus = {
+    const whereWithFilters = {
       ...where,
       deleted: false,
-      creator: { status: 'ACTIVE' },
+      creator: { ...(where.creator ?? {}), status: 'ACTIVE' },
+      ...(statuses.length > 0 && { status: { in: statuses } }),
     };
+
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.article,
       limit: searchDto.limit ?? 10,
       offset: searchDto.offset ?? 0,
       query: {
-        where: whereWithStatus,
+        where: whereWithFilters,
         orderBy,
         select: DEFAULT_ARTICLE_SELECT,
       },
-      countQuery: { where: whereWithStatus },
+      countQuery: { where: whereWithFilters },
     });
 
     const enhancedItems = await enhanceWithLikes(
@@ -438,6 +441,7 @@ export class ArticlesService {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
     const orderBy = searchDto.getOrderBy();
+    const statuses = searchDto.getStatuses();
 
     const where = buildSearchWhere({
       query: searchDto.query ?? '',
@@ -452,7 +456,12 @@ export class ArticlesService {
       limit: limit ?? 10,
       cursor,
       query: {
-        where: { ...where, deleted: false, creator: { status: 'ACTIVE' } },
+        where: {
+          ...where,
+          deleted: false,
+          creator: { ...(where.creator ?? {}), status: 'ACTIVE' },
+          ...(statuses.length > 0 && { status: { in: statuses } }),
+        },
         orderBy,
         select: DEFAULT_ARTICLE_SELECT,
       },

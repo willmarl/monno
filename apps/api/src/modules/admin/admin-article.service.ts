@@ -227,26 +227,27 @@ export class AdminArticleService {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
     const orderBy = searchDto.getOrderBy();
+    const statuses = searchDto.getStatuses();
 
-    const where = buildSearchWhere({
-      query: searchDto.query ?? '',
-      fields: searchFields,
-      options: searchOptions,
-    });
-
-    const whereWithStatus = {
-      ...where,
+    const where = {
+      ...buildSearchWhere({
+        query: searchDto.query ?? '',
+        fields: searchFields,
+        options: searchOptions,
+      }),
+      ...(statuses.length > 0 && { status: { in: statuses } }),
     };
+
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.article,
       limit: searchDto.limit ?? 10,
       offset: searchDto.offset ?? 0,
       query: {
-        where: whereWithStatus,
+        where,
         orderBy,
         select: DEFAULT_ARTICLE_SELECT,
       },
-      countQuery: { where: whereWithStatus },
+      countQuery: { where },
     });
 
     return {
@@ -260,12 +261,16 @@ export class AdminArticleService {
     const searchFields = searchDto.getSearchFields();
     const searchOptions = searchDto.getSearchOptions();
     const orderBy = searchDto.getOrderBy();
+    const statuses = searchDto.getStatuses();
 
-    const where = buildSearchWhere({
-      query: searchDto.query ?? '',
-      fields: searchFields,
-      options: searchOptions,
-    });
+    const where = {
+      ...buildSearchWhere({
+        query: searchDto.query ?? '',
+        fields: searchFields,
+        options: searchOptions,
+      }),
+      ...(statuses.length > 0 && { status: { in: statuses } }),
+    };
 
     const { cursor, limit } = searchDto;
 
@@ -274,7 +279,7 @@ export class AdminArticleService {
       limit: limit ?? 10,
       cursor,
       query: {
-        where: { ...where },
+        where,
         orderBy,
         select: DEFAULT_ARTICLE_SELECT,
       },
