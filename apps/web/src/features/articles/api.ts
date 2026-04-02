@@ -19,6 +19,39 @@ export const fetchArticlesOffset = ({
     searchParams: { limit, offset },
   });
 
+// GET /articles?query=world&limit=5&offset=10
+export const searchArticlesOffset = ({
+  query,
+  limit = 10,
+  offset = 0,
+  searchFields,
+  sort,
+  caseSensitive,
+  statuses,
+}: {
+  query?: string;
+  limit?: number;
+  offset?: number;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+  statuses?: string;
+} = {}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (query) searchParams.query = query;
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+  if (statuses) searchParams.statuses = statuses;
+
+  return fetcher<ArticlesList>("/articles", {
+    searchParams,
+  });
+};
+
 // GET /articles/cursor
 export const fetchArticlesCursor = ({
   limit,
@@ -30,6 +63,46 @@ export const fetchArticlesCursor = ({
   fetcher<ArticleListCursor>("/articles/cursor", {
     searchParams: { limit, cursor: cursor ?? undefined },
   });
+
+// GET /articles/cursor?query=world&limit=5&cursor=abc123
+export const searchArticlesCursor = ({
+  query,
+  limit,
+  cursor,
+  searchFields,
+  sort,
+  caseSensitive,
+  statuses,
+}: {
+  query?: string;
+  limit: number;
+  cursor?: string | null;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+  statuses?: string;
+}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+  };
+  if (query) searchParams.query = query;
+  if (cursor) searchParams.cursor = cursor;
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+  if (statuses) searchParams.statuses = statuses;
+
+  return fetcher<ArticleListCursor>("/articles/cursor", { searchParams });
+};
+
+// GET /articles/search/suggest?q=hello&limit=5
+export const fetchArticleSuggestions = (q: string, limit: number = 5) => {
+  if (!q) return Promise.resolve([]);
+
+  return fetcher<Article[]>("/articles/search/suggest", {
+    searchParams: { q, limit },
+  });
+};
 
 // GET /articles/:id
 export const fetchArticleById = (id: number) =>

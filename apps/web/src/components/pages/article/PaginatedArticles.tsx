@@ -1,27 +1,38 @@
 "use client";
 
 import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
 import { useArticlesOffset } from "@/features/articles/hooks";
 import { Article } from "@/components/ui/Article";
 import { PaginatedList } from "@/components/ui/pagination/PaginatedList";
 import { useSessionUser } from "@/features/auth/hooks";
+import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { PageLoadingState } from "@/components/common/PageLoadingState";
+import { PublicArticleSearchParams } from "@/types/search-params";
 
 const DEFAULT_LIMIT = 4;
+interface PaginatedArticlesProps {
+  searchParams?: PublicArticleSearchParams;
+}
 
-function ArticlesListContent() {
+function ArticlesListContent({ searchParams }: PaginatedArticlesProps) {
   const { data: user } = useSessionUser();
 
-  const searchParams = useSearchParams();
-
-  // Get page from query params
-  const page = parseInt(searchParams.get("page") ?? "1", 10);
-
-  const { data, isLoading } = useArticlesOffset(page, DEFAULT_LIMIT);
-
-  const articles = data?.items ?? [];
-  const totalItems = data?.pageInfo?.totalItems ?? 0;
+  const {
+    items: articles,
+    totalItems,
+    isLoading,
+    queryParams,
+    emptyMessage,
+    page,
+  } = usePaginatedSearch({
+    searchParams,
+    hook: useArticlesOffset,
+    limit: DEFAULT_LIMIT,
+    getEmptyMessage: (query) =>
+      query
+        ? `No articles found matching "${query}". Try a different search term.`
+        : "No articles available.",
+  });
 
   return (
     <PaginatedList
@@ -31,20 +42,22 @@ function ArticlesListContent() {
       items={articles}
       totalItems={totalItems}
       isLoading={isLoading}
-      renderItem={(articles) => (
-        <Article data={articles} isOwner={articles.creator.id === user?.id} />
+      renderItem={(article) => (
+        <Article data={article} isOwner={article.creator.id === user?.id} />
       )}
+      renderSkeleton={() => <PageLoadingState variant="card" />}
       title="Articles"
       layout="flex"
-      renderSkeleton={() => <PageLoadingState variant="card" />}
+      queryParams={queryParams}
+      emptyMessage={emptyMessage}
     />
   );
 }
 
-export function PaginatedArticles() {
+export function PaginatedArticles({ searchParams }: PaginatedArticlesProps) {
   return (
     <Suspense fallback={<p>Loading...</p>}>
-      <ArticlesListContent />
+      <ArticlesListContent searchParams={searchParams} />
     </Suspense>
   );
 }

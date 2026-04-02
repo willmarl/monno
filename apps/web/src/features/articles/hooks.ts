@@ -5,33 +5,120 @@ import {
   fetchArticleById,
   fetchArticlesOffset,
   fetchArticlesCursor,
+  searchArticlesOffset,
+  searchArticlesCursor,
+  fetchArticleSuggestions,
   fetchArticlesByUserId,
   fetchArticlesByUserIdCursor,
   updateArticle,
   deleteArticle,
 } from "./api";
 
-export function useArticlesOffset(page: number, limit: number) {
+// commented out as its redundant now. replaced by search
+// export function useArticlesOffset(page: number, limit: number) {
+//   const offset = (page - 1) * limit;
+
+//   return useQuery({
+//     queryKey: ["articles", page],
+//     queryFn: () => fetchArticlesOffset({ limit, offset }),
+//   });
+// }
+
+export function useArticlesOffset(
+  page: number = 1,
+  limit: number = 10,
+  query?: string,
+  options?: {
+    searchFields?: string;
+    sort?: string;
+    caseSensitive?: boolean;
+    statuses?: string;
+    [key: string]: any;
+  },
+) {
   const offset = (page - 1) * limit;
 
   return useQuery({
-    queryKey: ["articles", page],
-    queryFn: () => fetchArticlesOffset({ limit, offset }),
+    queryKey: [
+      "articles",
+      page,
+      query,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+      options?.statuses,
+    ],
+    queryFn: () =>
+      searchArticlesOffset({
+        query,
+        limit,
+        offset,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+        statuses: options?.statuses,
+      }),
   });
 }
 
-export function useArticlesCursor(limit: number = 10) {
+// commented out as its redundant now. replaced by search
+// export function useArticlesCursor(limit: number = 10) {
+//   return useInfiniteQuery({
+//     queryKey: ["articles"],
+//     queryFn: ({ pageParam }) =>
+//       fetchArticlesCursor({
+//         limit,
+//         cursor: pageParam ?? null,
+//       }),
+
+//     // pageParam = nextCursor from backend
+//     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+//     initialPageParam: null as string | null,
+//   });
+// }
+
+export function useArticlesCursor(
+  limit: number = 10,
+  query?: string,
+  options?: {
+    searchFields?: string;
+    sort?: string;
+    caseSensitive?: boolean;
+    statuses?: string;
+    [key: string]: any;
+  },
+) {
   return useInfiniteQuery({
-    queryKey: ["articles"],
+    queryKey: [
+      "articles",
+      query,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+      options?.statuses,
+    ],
     queryFn: ({ pageParam }) =>
-      fetchArticlesCursor({
+      searchArticlesCursor({
+        query,
         limit,
         cursor: pageParam ?? null,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+        statuses: options?.statuses,
       }),
 
     // pageParam = nextCursor from backend
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     initialPageParam: null as string | null,
+  });
+}
+
+export function useArticleSuggestions(q: string, limit: number = 5) {
+  return useQuery({
+    queryKey: ["article-suggestions", q],
+    queryFn: () => fetchArticleSuggestions(q, limit),
+    enabled: !!q,
   });
 }
 

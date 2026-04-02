@@ -41,3 +41,7 @@ export interface AdminSupportTicketSearchParams extends SearchParams {}
 export interface PublicPostSearchParams extends SearchParams {}
 
 export interface PublicUserSearchParams extends SearchParams {}
+
+export interface PublicArticleSearchParams extends SearchParams {
+  statuses?: string;
+}

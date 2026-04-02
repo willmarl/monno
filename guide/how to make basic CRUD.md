@@ -2890,10 +2890,11 @@ class Mixed extends Base {
 ```ts
 import { {{resource}}SearchDto } from './dto/search-{{resource}}.dto';
 
-async searchAll(searchDto: {{resource}}SearchDto) {
+async searchAll(searchDto: {{resource}}SearchDto, currentUserId?: number) {
   const searchFields = searchDto.getSearchFields();
   const searchOptions = searchDto.getSearchOptions();
   const orderBy = searchDto.getOrderBy();
+  const statuses = searchDto.getStatuses();
 
   const where = buildSearchWhere({
     query: searchDto.query ?? '',
@@ -2901,25 +2902,34 @@ async searchAll(searchDto: {{resource}}SearchDto) {
     options: searchOptions,
   });
 
-  const whereWithStatus = {
+  const whereWithFilters = {
     ...where,
     deleted: false,
-    creator: { status: 'ACTIVE' },
+    creator: { ...(where.creator ?? {}), status: 'ACTIVE' },
+    ...(statuses.length > 0 && { status: { in: statuses } }),
   };
+
   const { items, pageInfo, isRedirected } = await offsetPaginate({
     model: this.prisma.{{resource}},
     limit: searchDto.limit ?? 10,
     offset: searchDto.offset ?? 0,
     query: {
-      where: whereWithStatus,
+      where: whereWithFilters,
       orderBy,
       select: DEFAULT_{{resource}}_SELECT,
     },
-    countQuery: { where: whereWithStatus },
+    countQuery: { where: whereWithFilters },
   });
 
-  return {
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    '{{resource}}',
     items,
+    currentUserId,
+  );
+
+  return {
+    items: enhancedItems,
     pageInfo,
     ...(isRedirected && { isRedirected: true }),
   };
@@ -2931,10 +2941,11 @@ example:
 ```ts
 import { ArticleSearchDto } from './dto/search-article.dto';
 
-async searchAll(searchDto: ArticleSearchDto) {
+async searchAll(searchDto: ArticleSearchDto, currentUserId?: number) {
   const searchFields = searchDto.getSearchFields();
   const searchOptions = searchDto.getSearchOptions();
   const orderBy = searchDto.getOrderBy();
+  const statuses = searchDto.getStatuses();
 
   const where = buildSearchWhere({
     query: searchDto.query ?? '',
@@ -2942,25 +2953,34 @@ async searchAll(searchDto: ArticleSearchDto) {
     options: searchOptions,
   });
 
-  const whereWithStatus = {
+  const whereWithFilters = {
     ...where,
     deleted: false,
-    creator: { status: 'ACTIVE' },
+    creator: { ...(where.creator ?? {}), status: 'ACTIVE' },
+    ...(statuses.length > 0 && { status: { in: statuses } }),
   };
+
   const { items, pageInfo, isRedirected } = await offsetPaginate({
     model: this.prisma.article,
     limit: searchDto.limit ?? 10,
     offset: searchDto.offset ?? 0,
     query: {
-      where: whereWithStatus,
+      where: whereWithFilters,
       orderBy,
       select: DEFAULT_ARTICLE_SELECT,
     },
-    countQuery: { where: whereWithStatus },
+    countQuery: { where: whereWithFilters },
   });
 
-  return {
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
     items,
+    currentUserId,
+  );
+
+  return {
+    items: enhancedItems,
     pageInfo,
     ...(isRedirected && { isRedirected: true }),
   };
@@ -3014,26 +3034,27 @@ async searchAll(searchDto: {{resource}}SearchDto) {
   const searchFields = searchDto.getSearchFields();
   const searchOptions = searchDto.getSearchOptions();
   const orderBy = searchDto.getOrderBy();
+  const statuses = searchDto.getStatuses();
 
-  const where = buildSearchWhere({
-    query: searchDto.query ?? '',
-    fields: searchFields,
-    options: searchOptions,
-  });
-
-  const whereWithStatus = {
-    ...where,
+  const where = {
+    ...buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    }),
+    ...(statuses.length > 0 && { status: { in: statuses } }),
   };
+
   const { items, pageInfo, isRedirected } = await offsetPaginate({
     model: this.prisma.{{resource}},
     limit: searchDto.limit ?? 10,
     offset: searchDto.offset ?? 0,
     query: {
-      where: whereWithStatus,
+      where,
       orderBy,
       select: DEFAULT_{{resource}}_SELECT,
     },
-    countQuery: { where: whereWithStatus },
+    countQuery: { where },
   });
 
   return {
@@ -3053,26 +3074,27 @@ async searchAll(searchDto: ArticleSearchDto) {
   const searchFields = searchDto.getSearchFields();
   const searchOptions = searchDto.getSearchOptions();
   const orderBy = searchDto.getOrderBy();
+  const statuses = searchDto.getStatuses();
 
-  const where = buildSearchWhere({
-    query: searchDto.query ?? '',
-    fields: searchFields,
-    options: searchOptions,
-  });
-
-  const whereWithStatus = {
-    ...where,
+  const where = {
+    ...buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    }),
+    ...(statuses.length > 0 && { status: { in: statuses } }),
   };
+
   const { items, pageInfo, isRedirected } = await offsetPaginate({
     model: this.prisma.article,
     limit: searchDto.limit ?? 10,
     offset: searchDto.offset ?? 0,
     query: {
-      where: whereWithStatus,
+      where,
       orderBy,
       select: DEFAULT_ARTICLE_SELECT,
     },
-    countQuery: { where: whereWithStatus },
+    countQuery: { where },
   });
 
   return {
@@ -3132,12 +3154,16 @@ async searchAllCursor(searchDto: {{resource}}SearchCursorDto) {
   const searchFields = searchDto.getSearchFields();
   const searchOptions = searchDto.getSearchOptions();
   const orderBy = searchDto.getOrderBy();
+  const statuses = searchDto.getStatuses();
 
-  const where = buildSearchWhere({
-    query: searchDto.query ?? '',
-    fields: searchFields,
-    options: searchOptions,
-  });
+  const where = {
+    ...buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    }),
+    ...(statuses.length > 0 && { status: { in: statuses } }),
+  };
 
   const { cursor, limit } = searchDto;
 
@@ -3146,7 +3172,7 @@ async searchAllCursor(searchDto: {{resource}}SearchCursorDto) {
     limit: limit ?? 10,
     cursor,
     query: {
-      where: { ...where, deleted: false, creator: { status: 'ACTIVE' } },
+      where,
       orderBy,
       select: DEFAULT_{{resource}}_SELECT,
     },
@@ -3168,12 +3194,16 @@ async searchAllCursor(searchDto: ArticleSearchCursorDto) {
   const searchFields = searchDto.getSearchFields();
   const searchOptions = searchDto.getSearchOptions();
   const orderBy = searchDto.getOrderBy();
+  const statuses = searchDto.getStatuses();
 
-  const where = buildSearchWhere({
-    query: searchDto.query ?? '',
-    fields: searchFields,
-    options: searchOptions,
-  });
+  const where = {
+    ...buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    }),
+    ...(statuses.length > 0 && { status: { in: statuses } }),
+  };
 
   const { cursor, limit } = searchDto;
 
@@ -3182,7 +3212,7 @@ async searchAllCursor(searchDto: ArticleSearchCursorDto) {
     limit: limit ?? 10,
     cursor,
     query: {
-      where: { ...where, deleted: false, creator: { status: 'ACTIVE' } },
+      where,
       orderBy,
       select: DEFAULT_ARTICLE_SELECT,
     },
@@ -3246,12 +3276,16 @@ async searchAllCursor(searchDto: {{resource}}SearchCursorDto) {
   const searchFields = searchDto.getSearchFields();
   const searchOptions = searchDto.getSearchOptions();
   const orderBy = searchDto.getOrderBy();
+  const statuses = searchDto.getStatuses();
 
-  const where = buildSearchWhere({
-    query: searchDto.query ?? '',
-    fields: searchFields,
-    options: searchOptions,
-  });
+  const where = {
+    ...buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    }),
+    ...(statuses.length > 0 && { status: { in: statuses } }),
+  };
 
   const { cursor, limit } = searchDto;
 
@@ -3260,7 +3294,7 @@ async searchAllCursor(searchDto: {{resource}}SearchCursorDto) {
     limit: limit ?? 10,
     cursor,
     query: {
-      where: { ...where },
+      where,
       orderBy,
       select: DEFAULT_{{resource}}_SELECT,
     },
@@ -3282,12 +3316,16 @@ async searchAllCursor(searchDto: ArticleSearchCursorDto) {
   const searchFields = searchDto.getSearchFields();
   const searchOptions = searchDto.getSearchOptions();
   const orderBy = searchDto.getOrderBy();
+  const statuses = searchDto.getStatuses();
 
-  const where = buildSearchWhere({
-    query: searchDto.query ?? '',
-    fields: searchFields,
-    options: searchOptions,
-  });
+  const where = {
+    ...buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    }),
+    ...(statuses.length > 0 && { status: { in: statuses } }),
+  };
 
   const { cursor, limit } = searchDto;
 
@@ -3296,7 +3334,7 @@ async searchAllCursor(searchDto: ArticleSearchCursorDto) {
     limit: limit ?? 10,
     cursor,
     query: {
-      where: { ...where },
+      where,
       orderBy,
       select: DEFAULT_ARTICLE_SELECT,
     },
@@ -3373,8 +3411,10 @@ only search in these included fields (can be single or many at once)
 
 **statuses** : string
 filter based of status. enum of: "DRAFT","PUBLISHED","ARCHIVED","SCHEDULED"
+to clarify, this is multi-select enum, can do search of "DRAFT,PUBLISHED" and will search for `OR`
 
 - `statuses:DRAFT`
+- `statuses:DRAFT,PUBLISHED`
 
 **deleted** : boolean
 toggle on to only filter comments that are deleted
@@ -7157,6 +7197,8 @@ export default async function page() {
 
 ## (optional) append to profile page list of user's articles
 
+if `components/pages/userProfile/UserProfileContent.tsx` doesn't exist, skip this section. skip step 1 and step 2
+
 ### step 1 make component for Users articles list
 
 `components/pages/userProfile/UsersArticlesList.tsx`
@@ -7504,6 +7546,738 @@ export const items = [
 ];
 ```
 
-# part ? | make search (searchbar?)
+# part 23 | search feature
 
-- admin searchbar
+## update api related files to have search
+
+### step 1 update api.ts to query search endpoint (offset)
+
+`features/articles/api.ts`
+
+```ts
+// GET /articles?query=world&limit=5&offset=10
+export const searchArticlesOffset = ({
+  query,
+  limit = 10,
+  offset = 0,
+  searchFields,
+  sort,
+  caseSensitive,
+  statuses,
+}: {
+  query?: string;
+  limit?: number;
+  offset?: number;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+  statuses?: string;
+} = {}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (query) searchParams.query = query;
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+  if (statuses) searchParams.statuses = statuses;
+
+  return fetcher<ArticlesList>("/articles", {
+    searchParams,
+  });
+};
+```
+
+### step 2 search endpoint cursor variant (optional)
+
+```ts
+// GET /articles/cursor?query=world&limit=5&cursor=abc123
+export const searchArticlesCursor = ({
+  query,
+  limit,
+  cursor,
+  searchFields,
+  sort,
+  caseSensitive,
+  statuses,
+}: {
+  query?: string;
+  limit: number;
+  cursor?: string | null;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+  statuses?: string;
+}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+  };
+  if (query) searchParams.query = query;
+  if (cursor) searchParams.cursor = cursor;
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+  if (statuses) searchParams.statuses = statuses;
+
+  return fetcher<ArticleListCursor>("/articles/cursor", { searchParams });
+};
+```
+
+### step 3 search suggest api (optional)
+
+```ts
+// GET /articles/search/suggest?q=hello&limit=5
+export const fetchArticleSuggestions = (q: string, limit: number = 5) => {
+  if (!q) return Promise.resolve([]);
+
+  return fetcher<Article[]>("/articles/search/suggest", {
+    searchParams: { q, limit },
+  });
+};
+```
+
+### step 4 import search to hooks.ts
+
+`features/articles/hooks.ts`
+
+```ts
+import {
+  ...
+  searchArticlesOffset,
+  searchArticlesCursor,
+  fetchArticleSuggestions,
+} from "./api";
+```
+
+### step 5 search hook (offset)
+
+```ts
+// commented out as its redundant now. replaced by search
+// export function useArticlesOffset(page: number, limit: number) {
+//   const offset = (page - 1) * limit;
+
+//   return useQuery({
+//     queryKey: ["articles", page],
+//     queryFn: () => fetchArticlesOffset({ limit, offset }),
+//   });
+// }
+
+export function useArticlesOffset(
+  page: number = 1,
+  limit: number = 10,
+  query?: string,
+  options?: {
+    searchFields?: string;
+    sort?: string;
+    caseSensitive?: boolean;
+    statuses?: string;
+    [key: string]: any;
+  },
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: [
+      "articles",
+      page,
+      query,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+      options?.statuses,
+    ],
+    queryFn: () =>
+      searchArticlesOffset({
+        query,
+        limit,
+        offset,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+        statuses: options?.statuses,
+      }),
+  });
+}
+```
+
+### step 6 search hook (cursor) (optional)
+
+```ts
+export function useArticlesCursor(
+  limit: number = 10,
+  query?: string,
+  options?: {
+    searchFields?: string;
+    sort?: string;
+    caseSensitive?: boolean;
+    statuses?: string;
+    [key: string]: any;
+  },
+) {
+  return useInfiniteQuery({
+    queryKey: [
+      "articles",
+      query,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+      options?.statuses,
+    ],
+    queryFn: ({ pageParam }) =>
+      searchArticlesCursor({
+        query,
+        limit,
+        cursor: pageParam ?? null,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+        statuses: options?.statuses,
+      }),
+
+    // pageParam = nextCursor from backend
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialPageParam: null as string | null,
+  });
+}
+```
+
+### step 7 search suggest hook (optional)
+
+```ts
+export function useArticleSuggestions(q: string, limit: number = 5) {
+  return useQuery({
+    queryKey: ["article-suggestions", q],
+    queryFn: () => fetchArticleSuggestions(q, limit),
+    enabled: !!q,
+  });
+}
+```
+
+## search bar component
+
+### step 1 make search config
+
+will most likely need human input on how to go about this since for advance searches there may fields that have toggle/boolean or advance multi-searches.
+anyways the gist of how to make filters in search-config.ts is:
+
+- **checkbox (multi-filter enum)**
+
+```ts
+{
+  type: "checkbox",
+  name: "searchFields",
+  label: "my search in",
+  options: [
+    { value: "foo", label: "Foo" },
+    { value: "bar.baz", label: "Bar + baz" },
+    ],
+},
+```
+
+- **radio buttons (single select enum)**
+
+```ts
+{
+  type: "radio",
+  name: "foo",
+  label: "Filter by Foo",
+  options: [
+    { value: "bar", label: "Bar!" },
+    { value: "baz", label: "baz..." },
+  ],
+},
+```
+
+- **toggle (boolean)**
+
+```ts
+{
+  type: "toggle",
+  name: "deleted",
+  label: "Deleted",
+},
+```
+
+`features/articles/types/search-config.ts`
+
+```ts
+import type {
+  SearchFieldOption,
+  SearchFilterOption,
+  SearchSortOption,
+} from "@/features/search/types";
+
+export const articleSearchFilters: SearchFilterOption[] = [
+  {
+    type: "checkbox",
+    name: "searchFields",
+    label: "Search In",
+    options: [
+      { value: "title", label: "Title" },
+      { value: "content", label: "Content" },
+      { value: "creator.username", label: "Creator" },
+    ],
+  },
+  {
+    // filter if you want multi select enum
+    type: "checkbox",
+    name: "statuses",
+    label: "Status",
+    options: [
+      { value: "DRAFT", label: "Draft" },
+      { value: "PUBLISHED", label: "Published" },
+      { value: "ARCHIVED", label: "Archived" },
+      { value: "SCHEDULED", label: "Scheduled" },
+    ],
+  },
+  // Alternative filter if you want single select enum
+  // {
+  //   type: "radio-combobox",
+  //   name: "statuses",
+  //   label: "Filter by status",
+  //   options: [
+  //     { value: "DRAFT", label: "Draft" },
+  //     { value: "PUBLISHED", label: "Published" },
+  //     { value: "ARCHIVED", label: "Archived" },
+  //     { value: "SCHEDULED", label: "Scheduled" },
+  //   ],
+  // },
+  {
+    type: "toggle",
+    name: "caseSensitive",
+    label: "Case Sensitive",
+  },
+];
+
+export const articleSearchSorts: SearchSortOption[] = [
+  { value: "createdAt|desc", label: "Most Recent" },
+  { value: "createdAt|asc", label: "Oldest" },
+  { value: "updatedAt|desc", label: "Recently Updated" },
+  { value: "updatedAt|asc", label: "Least Recently Updated" },
+];
+```
+
+### step 2 add search params type to `search-params.ts`
+
+update `src/types/search-params.ts to have new resource search param variant
+
+```ts
+export interface PublicArticleSearchParams extends SearchParams {
+  statuses?: string;
+}
+```
+
+if you dont have advance searches like toggle or enum, then it can simply just be
+
+```ts
+export interface PublicArticleSearchParams extends SearchParams {}
+```
+
+### step 3 make search bar component
+
+heads up that `basePath` is where to redirect URL (AKA search results page). in my example im making `/article` my frontend URL for normal lookup as well as search results page. figured i'd tell you about this in case you want a dedicated search results page like `/article/search-results`
+
+if you skipped/omitted search suggest just remove the props for `useSuggestions`,`renderSuggestion`, and `onNavigateTo`. it will simply just be
+
+```tsx
+<SearchBar<Article>
+  placeholder="Search articles..."
+  queryParam="q"
+  basePath={basePath}
+/>
+```
+
+`features/articles/components/ArticleSearchBar.tsx`
+
+```tsx
+"use client";
+
+import { SearchBar } from "@/features/search/components/SearchBar";
+import { SearchFilterDropdown } from "@/features/search/components/SearchFilterDropdown";
+import { useArticleSuggestions } from "@/features/articles/hooks";
+import {
+  articleSearchFilters,
+  articleSearchSorts,
+} from "@/features/articles/types/search-config";
+import { Article } from "../types/article";
+
+const basePath = "/article";
+
+export function ArticleSearchBar() {
+  return (
+    <div className="flex gap-2">
+      <SearchBar<Article>
+        placeholder="Search articles..."
+        queryParam="q"
+        basePath={basePath}
+        useSuggestions={useArticleSuggestions}
+        renderSuggestion={(article) => ({
+          title: article.title,
+          subtitle: article.content.substring(0, 60) + "...",
+        })}
+        onNavigateTo={(article) => `article/${article.id}`}
+      />
+
+      <SearchFilterDropdown
+        filters={articleSearchFilters}
+        sorts={articleSearchSorts}
+        basePath={basePath}
+      />
+    </div>
+  );
+}
+```
+
+## update paginated list files and pages to have search params prop
+
+in order to make search bar work, need to pass in URL params from `page.tsx`
+
+### step 1 update page.tsx to take in URL params
+
+`src/app/(default)/article/page.tsx`
+
+```tsx
+import { getServerUser } from "@/features/auth/server";
+import { PublicArticleSearchParams } from "@/types/search-params";
+...
+export default async function page({
+  searchParams,
+}: {
+  searchParams: Promise<PublicArticleSearchParams>;
+}) {
+  const user = await getServerUser();
+  const params = await searchParams;
+...
+<ArticlePage user={user} searchParams={params} />
+```
+
+complete example:
+
+```tsx
+import { ArticlePage } from "@/components/pages/article/ArticlePage";
+import type { Metadata } from "next";
+import { getServerUser } from "@/features/auth/server";
+import { PublicArticleSearchParams } from "@/types/search-params";
+
+export const metadata: Metadata = {
+  title: "Articles",
+};
+
+export default async function page({
+  searchParams,
+}: {
+  searchParams: Promise<PublicArticleSearchParams>;
+}) {
+  const user = await getServerUser();
+  const params = await searchParams;
+
+  return (
+    <div>
+      <ArticlePage user={user} searchParams={params} />
+    </div>
+  );
+}
+```
+
+### step 2 update Article page to take in search params
+
+`components/pages/article/ArticlePage.tsx`
+
+```tsx
+import { User } from "@/features/users/types/user";
+import { ArticleSearchBar } from "@/features/articles/components/ArticleSearchBar";
+import { PublicArticleSearchParams } from "@/types/search-params";
+
+interface ArticlePageProps {
+  user: User | null;
+  searchParams?: PublicArticleSearchParams;
+}
+
+export function ArticlePage({ user, searchParams }: ArticlePageProps) {
+  ...
+  return (
+    <div>
+      <ArticleSearchBar />
+      ...
+      <PaginatedArticles searchParams={searchParams} />
+      {/* <CursorArticles searchParams={searchParams} /> */}
+      {/* <CursorInfiniteArticles searchParams={searchParams} /> */}
+    </div>
+  )
+}
+```
+
+complete example
+
+```tsx
+"use client";
+
+import { PaginatedArticles } from "./PaginatedArticles";
+import { CursorArticles } from "./CursorArticles";
+import { CursorInfiniteArticles } from "./CursorInfiniteArticles";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useModal } from "@/components/providers/ModalProvider";
+import { CreateArticleModal } from "@/features/articles/components/modal/CreateArticleModal";
+import { User } from "@/features/users/types/user";
+import { ArticleSearchBar } from "@/features/articles/components/ArticleSearchBar";
+import { PublicArticleSearchParams } from "@/types/search-params";
+
+interface ArticlePageProps {
+  user: User | null;
+  searchParams?: PublicArticleSearchParams;
+}
+
+export function ArticlePage({ user, searchParams }: ArticlePageProps) {
+  const router = useRouter();
+
+  const { openModal } = useModal();
+
+  return (
+    <div>
+      <div className="flex justify-center relative items-center h-10 mb-4">
+        <ArticleSearchBar />
+        {user ? (
+          <div>
+            <Button
+              className="cursor-pointer absolute right-0"
+              onClick={() => router.push("/article/create")}
+            >
+              <Plus /> Article
+              {/* test inline forms work. remove this button after test */}
+            </Button>
+            <Button
+              onClick={() => {
+                openModal({
+                  title: "Create new article",
+                  content: <CreateArticleModal />,
+                });
+              }}
+            >
+              Create Article
+            </Button>
+            {/* EoF test */}
+          </div>
+        ) : (
+          ""
+        )}
+      </div>
+      <PaginatedArticles searchParams={searchParams} />
+      {/* <CursorArticles searchParams={searchParams} /> */}
+      {/* <CursorInfiniteArticles searchParams={searchParams} /> */}
+    </div>
+  );
+}
+```
+
+### step 3 update paginated list to take search params
+
+`components/pages/article/PaginatedArticles.tsx`
+
+```tsx
+"use client";
+
+import { Suspense } from "react";
+import { useArticlesOffset } from "@/features/articles/hooks";
+import { Article } from "@/components/ui/Article";
+import { PaginatedList } from "@/components/ui/pagination/PaginatedList";
+import { useSessionUser } from "@/features/auth/hooks";
+import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
+import { PublicArticleSearchParams } from "@/types/search-params";
+
+const DEFAULT_LIMIT = 4;
+interface PaginatedArticlesProps {
+  searchParams?: PublicArticleSearchParams;
+}
+
+function ArticlesListContent({ searchParams }: PaginatedArticlesProps) {
+  const { data: user } = useSessionUser();
+
+  const {
+    items: articles,
+    totalItems,
+    isLoading,
+    queryParams,
+    emptyMessage,
+    page,
+  } = usePaginatedSearch({
+    searchParams,
+    hook: useArticlesOffset,
+    limit: DEFAULT_LIMIT,
+    getEmptyMessage: (query) =>
+      query
+        ? `No articles found matching "${query}". Try a different search term.`
+        : "No articles available.",
+  });
+
+  return (
+    <PaginatedList
+      url="article"
+      page={page}
+      limit={DEFAULT_LIMIT}
+      items={articles}
+      totalItems={totalItems}
+      isLoading={isLoading}
+      renderItem={(article) => (
+        <Article data={article} isOwner={article.creator.id === user?.id} />
+      )}
+      renderSkeleton={() => <PageLoadingState variant="card" />}
+      title="Articles"
+      layout="flex"
+      queryParams={queryParams}
+      emptyMessage={emptyMessage}
+    />
+  );
+}
+
+export function PaginatedArticles({ searchParams }: PaginatedArticlesProps) {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <ArticlesListContent searchParams={searchParams} />
+    </Suspense>
+  );
+}
+```
+
+### step 4 update cursor list to take search params (optional)
+
+`components/pages/article/CursorArticles.tsx`
+
+```tsx
+"use client";
+
+import { Suspense } from "react";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
+import { Article } from "@/components/ui/Article";
+import { CursorList } from "@/components/ui/pagination/CursorList";
+import { useArticlesCursor } from "@/features/articles/hooks";
+import { useSessionUser } from "@/features/auth/hooks";
+import { useCursorPaginatedSearch } from "@/hooks/useCursorPaginatedSearch";
+import { PublicArticleSearchParams } from "@/types/search-params";
+
+const DEFAULT_LIMIT = 4;
+
+interface CursorArticlesProps {
+  searchParams?: PublicArticleSearchParams;
+}
+
+function ArticlesListContent({ searchParams }: CursorArticlesProps) {
+  const { data: user } = useSessionUser();
+
+  const {
+    items: articles,
+    hasNextPage,
+    isLoading,
+    isFetchingNextPage,
+    emptyMessage,
+    fetchNextPage,
+  } = useCursorPaginatedSearch({
+    searchParams,
+    hook: useArticlesCursor,
+    limit: DEFAULT_LIMIT,
+    getEmptyMessage: (query) =>
+      query
+        ? `No articles found matching "${query}". Try a different search term.`
+        : "No articles available.",
+  });
+
+  return (
+    <CursorList
+      items={articles}
+      isLoading={isLoading}
+      isFetchingNextPage={isFetchingNextPage}
+      hasNextPage={hasNextPage}
+      onLoadMore={() => fetchNextPage?.()}
+      renderItem={(article) => (
+        <Article data={article} isOwner={article.creator.id === user?.id} />
+      )}
+      layout="flex"
+      title="Cursor Articles"
+      renderSkeleton={() => <PageLoadingState variant="card" />}
+      emptyMessage={emptyMessage}
+    />
+  );
+}
+
+export function CursorArticles({ searchParams }: CursorArticlesProps) {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <ArticlesListContent searchParams={searchParams} />
+    </Suspense>
+  );
+}
+```
+
+### step 5 update cursor list to take search params (optional)
+
+`components/pages/article/CursorInfiniteArticles.tsx`
+
+```tsx
+"use client";
+
+import { Suspense } from "react";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
+import { Article } from "@/components/ui/Article";
+import { CursorInfiniteList } from "@/components/ui/pagination/CursorInfiniteList";
+import { useArticlesCursor } from "@/features/articles/hooks";
+import { useSessionUser } from "@/features/auth/hooks";
+import { useCursorPaginatedSearch } from "@/hooks/useCursorPaginatedSearch";
+import { PublicArticleSearchParams } from "@/types/search-params";
+
+const DEFAULT_LIMIT = 4;
+
+interface CursorInfiniteArticlesProps {
+  searchParams?: PublicArticleSearchParams;
+}
+
+function ArticlesListContent({ searchParams }: CursorInfiniteArticlesProps) {
+  const { data: user } = useSessionUser();
+
+  const {
+    items: articles,
+    hasNextPage,
+    isLoading,
+    isFetchingNextPage,
+    emptyMessage,
+    fetchNextPage,
+  } = useCursorPaginatedSearch({
+    searchParams,
+    hook: useArticlesCursor,
+    limit: DEFAULT_LIMIT,
+    getEmptyMessage: (query) =>
+      query
+        ? `No articles found matching "${query}". Try a different search term.`
+        : "No articles available.",
+  });
+
+  return (
+    <CursorInfiniteList
+      items={articles}
+      isLoading={isLoading}
+      isFetchingNextPage={isFetchingNextPage}
+      hasNextPage={hasNextPage}
+      onLoadMore={() => fetchNextPage?.()}
+      renderItem={(article) => (
+        <Article data={article} isOwner={article.creator.id === user?.id} />
+      )}
+      layout="flex"
+      title="Infinite Articles"
+      renderSkeleton={() => <PageLoadingState variant="card" />}
+      emptyMessage={emptyMessage}
+    />
+  );
+}
+
+export function CursorInfiniteArticles({
+  searchParams,
+}: CursorInfiniteArticlesProps) {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <ArticlesListContent searchParams={searchParams} />
+    </Suspense>
+  );
+}
+```

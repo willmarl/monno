@@ -24,6 +24,7 @@ interface UseCursorPaginatedSearchOptions<T> {
   ) => {
     data?: { pages?: CursorResponse<T>[] };
     hasNextPage?: boolean;
+    isLoading?: boolean;
     isFetching?: boolean;
     isFetchingNextPage?: boolean;
     fetchNextPage?: () => void;
@@ -36,6 +37,7 @@ interface UseCursorPaginatedSearchOptions<T> {
   ) => {
     data?: { pages?: CursorResponse<T>[] };
     hasNextPage?: boolean;
+    isLoading?: boolean;
     isFetching?: boolean;
     isFetchingNextPage?: boolean;
     fetchNextPage?: () => void;
@@ -43,6 +45,7 @@ interface UseCursorPaginatedSearchOptions<T> {
   cursorHook?: (limit: number) => {
     data?: { pages?: CursorResponse<T>[] };
     hasNextPage?: boolean;
+    isLoading?: boolean;
     isFetching?: boolean;
     isFetchingNextPage?: boolean;
     fetchNextPage?: () => void;
@@ -108,7 +111,7 @@ export function useCursorPaginatedSearch<T>({
   const items: T[] =
     result.data?.pages?.flatMap((page) => page.items ?? []) ?? [];
   const hasNextPage = result.hasNextPage ?? false;
-  const isLoading = result.isFetching ?? false;
+  const isLoading = result.isLoading ?? false;
   const isFetchingNextPage = result.isFetchingNextPage ?? false;
 
   // Build query params to pass to pagination
