@@ -229,13 +229,27 @@ export class AdminArticleService {
     const orderBy = searchDto.getOrderBy();
     const statuses = searchDto.getStatuses();
 
+    const textSearchWhere = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    });
+
+    // Build filter conditions
+    const filterConditions: any[] = [];
+
+    if (statuses.length > 0) {
+      filterConditions.push({ status: { in: statuses } });
+    }
+
+    if (searchDto.deleted !== undefined) {
+      filterConditions.push({ deleted: searchDto.deleted });
+    }
+
+    // Combine text search and filters
     const where = {
-      ...buildSearchWhere({
-        query: searchDto.query ?? '',
-        fields: searchFields,
-        options: searchOptions,
-      }),
-      ...(statuses.length > 0 && { status: { in: statuses } }),
+      ...(Object.keys(textSearchWhere).length > 0 && textSearchWhere),
+      ...(filterConditions.length > 0 && { AND: filterConditions }),
     };
 
     const { items, pageInfo, isRedirected } = await offsetPaginate({
@@ -263,13 +277,27 @@ export class AdminArticleService {
     const orderBy = searchDto.getOrderBy();
     const statuses = searchDto.getStatuses();
 
+    const textSearchWhere = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    });
+
+    // Build filter conditions
+    const filterConditions: any[] = [];
+
+    if (statuses.length > 0) {
+      filterConditions.push({ status: { in: statuses } });
+    }
+
+    if (searchDto.deleted !== undefined) {
+      filterConditions.push({ deleted: searchDto.deleted });
+    }
+
+    // Combine text search and filters
     const where = {
-      ...buildSearchWhere({
-        query: searchDto.query ?? '',
-        fields: searchFields,
-        options: searchOptions,
-      }),
-      ...(statuses.length > 0 && { status: { in: statuses } }),
+      ...(Object.keys(textSearchWhere).length > 0 && textSearchWhere),
+      ...(filterConditions.length > 0 && { AND: filterConditions }),
     };
 
     const { cursor, limit } = searchDto;

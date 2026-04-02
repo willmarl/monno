@@ -395,17 +395,26 @@ export class ArticlesService {
     const orderBy = searchDto.getOrderBy();
     const statuses = searchDto.getStatuses();
 
-    const where = buildSearchWhere({
+    const textSearchWhere = buildSearchWhere({
       query: searchDto.query ?? '',
       fields: searchFields,
       options: searchOptions,
     });
 
-    const whereWithFilters = {
-      ...where,
-      deleted: false,
-      creator: { ...(where.creator ?? {}), status: 'ACTIVE' },
-      ...(statuses.length > 0 && { status: { in: statuses } }),
+    // Build filter conditions
+    const filterConditions: any[] = [
+      { deleted: false },
+      { creator: { status: 'ACTIVE' } },
+    ];
+
+    if (statuses.length > 0) {
+      filterConditions.push({ status: { in: statuses } });
+    }
+
+    // Combine text search and filters
+    const where = {
+      ...(Object.keys(textSearchWhere).length > 0 && textSearchWhere),
+      AND: filterConditions,
     };
 
     const { items, pageInfo, isRedirected } = await offsetPaginate({
@@ -413,11 +422,11 @@ export class ArticlesService {
       limit: searchDto.limit ?? 10,
       offset: searchDto.offset ?? 0,
       query: {
-        where: whereWithFilters,
+        where,
         orderBy,
         select: DEFAULT_ARTICLE_SELECT,
       },
-      countQuery: { where: whereWithFilters },
+      countQuery: { where },
     });
 
     const enhancedItems = await enhanceWithLikes(
@@ -443,11 +452,27 @@ export class ArticlesService {
     const orderBy = searchDto.getOrderBy();
     const statuses = searchDto.getStatuses();
 
-    const where = buildSearchWhere({
+    const textSearchWhere = buildSearchWhere({
       query: searchDto.query ?? '',
       fields: searchFields,
       options: searchOptions,
     });
+
+    // Build filter conditions
+    const filterConditions: any[] = [
+      { deleted: false },
+      { creator: { status: 'ACTIVE' } },
+    ];
+
+    if (statuses.length > 0) {
+      filterConditions.push({ status: { in: statuses } });
+    }
+
+    // Combine text search and filters
+    const where = {
+      ...(Object.keys(textSearchWhere).length > 0 && textSearchWhere),
+      AND: filterConditions,
+    };
 
     const { cursor, limit } = searchDto;
 
@@ -456,12 +481,7 @@ export class ArticlesService {
       limit: limit ?? 10,
       cursor,
       query: {
-        where: {
-          ...where,
-          deleted: false,
-          creator: { ...(where.creator ?? {}), status: 'ACTIVE' },
-          ...(statuses.length > 0 && { status: { in: statuses } }),
-        },
+        where,
         orderBy,
         select: DEFAULT_ARTICLE_SELECT,
       },
