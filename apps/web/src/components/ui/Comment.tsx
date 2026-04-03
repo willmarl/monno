@@ -26,6 +26,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  updateCommentSchema,
+  UpdateCommentInput,
+} from "@/features/comments/schemas/updateComment.schema";
 import { useDeleteComment, useUpdateComment } from "@/features/comments/hooks";
 import { LikeButton } from "../common/LikeButton";
 
@@ -37,7 +43,11 @@ export function Comment({
   isOwner: boolean;
 }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState(data.content);
+  const editForm = useForm<UpdateCommentInput>({
+    resolver: zodResolver(updateCommentSchema),
+    defaultValues: { content: data.content },
+    mode: "onChange",
+  });
   const like = useToggleLike();
   const { openModal, closeModal } = useModal();
   const router = useRouter();
@@ -69,11 +79,11 @@ export function Comment({
     );
   }
 
-  function handleEdit() {
+  const handleEdit = editForm.handleSubmit((values) => {
     updateComment.mutate(
       {
         id: data.id,
-        data: { content: editContent },
+        data: { content: values.content },
       },
       {
         onSuccess: () => {
@@ -81,7 +91,7 @@ export function Comment({
         },
       },
     );
-  }
+  });
 
   function handleDelete() {
     return openModal({
@@ -93,6 +103,7 @@ export function Comment({
             deleteComment.mutate(data.id);
             closeModal();
           }}
+          variant={"destructive"}
         />
       ),
     });
@@ -137,9 +148,9 @@ export function Comment({
 
   return (
     <div className="flex gap-2 sm:gap-3">
-      {/* Avatar - Left Side */}
+      {/* Left: Avatar */}
       <Avatar
-        className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 cursor-pointer mt-0.5"
+        className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 cursor-pointer mt-0.5"
         onClick={() =>
           data?.creator.username &&
           router.push(`/user/${data.creator.username}`)
@@ -154,13 +165,9 @@ export function Comment({
         </AvatarFallback>
       </Avatar>
 
-      {/* Content - Right Side */}
+      {/* Middle: Content */}
       <div className="flex-1 min-w-0">
-        {/* comment menu options - Top Right */}
-        <div className="flex justify-end mb-1">
-          {isOwner && !isEditing ? commentMenu() : ""}
-        </div>
-        {/* Top: Username and Date */}
+        {/* Username and Date */}
         <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
           <p
             className="text-xs sm:text-sm font-semibold cursor-pointer hover:text-foreground truncate"
@@ -178,29 +185,33 @@ export function Comment({
           {isEdited && renderEditVisual()}
         </div>
 
-        {/* Bottom: Comment Content or Edit Textarea */}
+        {/* Comment Content or Edit Textarea */}
         {isEditing ? (
           <div className="space-y-2 mb-2">
             <Textarea
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
+              {...editForm.register("content")}
               placeholder="Edit your comment..."
               className="resize-none min-h-[60px] text-xs sm:text-sm"
               disabled={updateComment.isPending}
             />
+            {editForm.formState.errors.content && (
+              <p className="text-xs text-red-500">
+                {editForm.formState.errors.content.message}
+              </p>
+            )}
             <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setEditContent(data.content);
+                  editForm.reset({ content: data.content });
                   setIsEditing(false);
                 }}
                 disabled={updateComment.isPending}
                 className="h-8 min-w-[80px] cursor-pointer text-xs sm:text-sm"
               >
-                <X size={16} className="mr-1 cursor-pointer flex-shrink-0" />
+                <X size={16} className="mr-1 cursor-pointer shrink-0" />
                 Cancel
               </Button>
               <Button
@@ -208,7 +219,9 @@ export function Comment({
                 size="sm"
                 onClick={handleEdit}
                 disabled={
-                  updateComment.isPending || editContent === data.content
+                  updateComment.isPending ||
+                  !editForm.formState.isDirty ||
+                  !editForm.formState.isValid
                 }
                 className="h-8 min-w-[80px] cursor-pointer text-xs sm:text-sm"
               >
@@ -222,7 +235,7 @@ export function Comment({
           </p>
         )}
 
-        {/* Actions - Only show when not editing */}
+        {/* Like - Only show when not editing */}
         {!isEditing && (
           <div className="flex items-center gap-2">
             <LikeButton
@@ -234,6 +247,11 @@ export function Comment({
           </div>
         )}
       </div>
+
+      {/* Right: Menu */}
+      {isOwner && !isEditing && (
+        <div className="shrink-0 mt-0.5">{commentMenu()}</div>
+      )}
     </div>
   );
 }
