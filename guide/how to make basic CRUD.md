@@ -7293,7 +7293,6 @@ export default async function page() {
 
 import { Article } from "@/components/ui/Article";
 import { useArticleById } from "@/features/articles/hooks";
-import { useRecordView } from "@/features/views/hook";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { PageNotFound } from "@/components/common/PageNotFound";
@@ -7304,7 +7303,6 @@ export function ArticleDetail({ user }: { user: User | undefined }) {
   const params = useParams();
   const articleId = Number(params.id);
   const { data, isLoading, error } = useArticleById(articleId);
-  const { mutate: recordView } = useRecordView();
   const isOwner = data?.creator.id === user?.id;
 
   useEffect(() => {
@@ -9222,6 +9220,149 @@ export const columns: ColumnDef<Article>[] = [
   ...{
     accessorKey: "likeCount",
     header: ({ column }) => <SortableHeader column={column} label="Likes" />,
+  },
+];
+```
+
+## adding views
+
+### step 1 add to article type view count
+
+`features/articles/types/article.ts`
+
+```ts
+export interface Article {
+  ...
+  viewCount: number;
+}
+```
+
+### step 2 add record view hook to ArticleDetail.tsx
+
+`components/pages/article/ArticleDetail.tsx`
+
+```tsx
+import { useRecordView } from "@/features/views/hook";
+...
+// Record view when article loads
+useEffect(() => {
+  if (data?.id) {
+    recordView({
+      resourceType: "ARTICLE",
+      resourceId: data.id,
+    });
+  }
+}, [data?.id, recordView]);
+```
+
+complete example:
+
+```tsx
+"use client";
+
+import { Article } from "@/components/ui/Article";
+import { useArticleById } from "@/features/articles/hooks";
+import { useParams } from "next/navigation";
+import { useEffect } from "react";
+import { PageNotFound } from "@/components/common/PageNotFound";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
+import { User } from "@/features/users/types/user";
+import { useRecordView } from "@/features/views/hook";
+
+export function ArticleDetail({ user }: { user: User | undefined }) {
+  const params = useParams();
+  const articleId = Number(params.id);
+  const { data, isLoading, error } = useArticleById(articleId);
+  const { mutate: recordView } = useRecordView();
+  const isOwner = data?.creator.id === user?.id;
+
+  useEffect(() => {
+    document.title = `${data?.title} | ${process.env.NEXT_PUBLIC_APP_NAME}`;
+  }, [data?.title]);
+
+  // Record view when article loads
+  useEffect(() => {
+    if (data?.id) {
+      recordView({
+        resourceType: "ARTICLE",
+        resourceId: data.id,
+      });
+    }
+  }, [data?.id, recordView]);
+
+  if (isLoading) {
+    return <PageLoadingState variant="card" />;
+  }
+
+  if (error || !data) {
+    return <PageNotFound title="Article Not Found" />;
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      <Article
+        data={data}
+        isOwner={isOwner}
+        truncateTitle={false}
+        truncateContent={false}
+      />
+    </div>
+  );
+}
+```
+
+### step 3 add view count to UI component
+
+`components/ui/Article.tsx`
+
+```tsx
+import { Eye } from "lucide-react";
+...
+<div className="flex items-center gap-1 text-muted-foreground">
+  <Eye className="h-4 w-4" />
+  <span>{data.viewCount}</span>
+</div>
+```
+
+complete example:
+
+```tsx
+<div className="flex gap-2 items-center text-xs md:text-sm flex-shrink-0">
+  <div className="flex items-center gap-1 text-muted-foreground">
+    <Eye className="h-4 w-4" />
+    <span>{data.viewCount}</span>
+  </div>
+  <LikeButton
+    isOwner={isOwner}
+    likedByMe={data.likedByMe}
+    likeCount={data.likeCount}
+    onLike={handleLike}
+  />
+  <Calendar className="h-4 w-4" />
+  <span>{formattedDate}</span>
+</div>
+```
+
+### step 4 add to admin article type view count
+
+`features/admin/articles/types/article.ts`
+
+```ts
+export interface Article {
+  ...
+  viewCount: number;
+}
+```
+
+### step 5 add to the admin article column like count
+
+`components/pages/admin/articles/columns.tsx`
+
+```tsx
+export const columns: ColumnDef<Article>[] = [
+  ...{
+    accessorKey: "viewCount",
+    header: ({ column }) => <SortableHeader column={column} label="Views" />,
   },
 ];
 ```

@@ -23,6 +23,7 @@ export interface Article {
   status: ArticleStatus;
   likeCount: number;
   likedByMe: boolean;
+  viewCount: number;
 }
 
 export type ArticlesList = PaginatedResponse<Article>;

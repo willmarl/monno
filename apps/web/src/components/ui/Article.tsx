@@ -3,7 +3,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "./avatar";
 import { useRouter } from "next/navigation";
 import { Button } from "./button";
 import { Article as ArticleType } from "@/features/articles/types/article";
-import { Trash, PencilLine, Calendar } from "lucide-react";
+import { Trash, PencilLine, Calendar, Eye } from "lucide-react";
 import { ConfirmModal } from "../modal/ConfirmModal";
 import { useModal } from "../providers/ModalProvider";
 import { useDeleteArticle } from "@/features/articles/hooks";
@@ -149,6 +149,10 @@ export function Article({
           </p>
         </div>
         <div className="flex gap-2 items-center text-xs md:text-sm flex-shrink-0">
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <Eye className="h-4 w-4" />
+            <span>{data.viewCount}</span>
+          </div>
           <LikeButton
             isOwner={isOwner}
             likedByMe={data.likedByMe}

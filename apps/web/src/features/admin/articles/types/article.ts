@@ -24,6 +24,7 @@ export interface Article {
   deleted: boolean;
   deletedAt: string;
   likeCount: number;
+  viewCount: number;
 }
 
 export type ArticlesList = PaginatedResponse<Article>;

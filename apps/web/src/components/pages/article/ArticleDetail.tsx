@@ -2,17 +2,17 @@
 
 import { Article } from "@/components/ui/Article";
 import { useArticleById } from "@/features/articles/hooks";
-import { useSessionUser } from "@/features/auth/hooks";
-import { useRecordView } from "@/features/views/hook";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { PageNotFound } from "@/components/common/PageNotFound";
 import { PageLoadingState } from "@/components/common/PageLoadingState";
-import { InlineNewCommentForm } from "@/features/comments/components/InlineNewCommentForm";
-// import { CommentPagInline } from "@/components/pages/article/CommnetPagInline";
-import { toast } from "sonner";
-import { Suspense } from "react";
 import { User } from "@/features/users/types/user";
+import { useRecordView } from "@/features/views/hook";
+// import { InlineNewCommentForm } from "@/features/comments/components/InlineNewCommentForm";
+// import { CommentPagInline } from "@/components/pages/article/CommnetPagInline";
+// import { Suspense } from "react";
+// import { useSessionUser } from "@/features/auth/hooks";
+// import { toast } from "sonner";
 
 export function ArticleDetail({ user }: { user: User | undefined }) {
   const params = useParams();
@@ -26,14 +26,14 @@ export function ArticleDetail({ user }: { user: User | undefined }) {
   }, [data?.title]);
 
   // Record view when article loads
-  //   useEffect(() => {
-  //     if (data?.id) {
-  //       recordView({
-  //         resourceType: "ARTICLE",
-  //         resourceId: data.id,
-  //       });
-  //     }
-  //   }, [data?.id, recordView]);
+  useEffect(() => {
+    if (data?.id) {
+      recordView({
+        resourceType: "ARTICLE",
+        resourceId: data.id,
+      });
+    }
+  }, [data?.id, recordView]);
 
   if (isLoading) {
     return <PageLoadingState variant="card" />;
