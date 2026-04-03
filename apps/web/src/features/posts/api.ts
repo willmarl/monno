@@ -113,7 +113,7 @@ export const fetchLikedByUser = ({
   limit: number;
   offset: number;
 }) =>
-  fetcher<PostsList>(`/posts/liked/${userId}`, {
+  fetcher<PostsList>(`/posts/users/${userId}/liked`, {
     searchParams: { limit, offset },
   });
 
@@ -127,7 +127,7 @@ export const fetchLikedByUserCursor = ({
   limit: number;
   cursor?: string | null;
 }) =>
-  fetcher<PostListCursor>(`/posts/liked/${userId}/cursor`, {
+  fetcher<PostListCursor>(`/posts/users/${userId}/liked/cursor`, {
     searchParams: { limit, cursor: cursor ?? undefined },
   });
 
