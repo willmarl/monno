@@ -17,8 +17,11 @@ import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 //   ArticleSearchDto,
 //   ArticleSearchCursorDto,
 // } from '../articles/dto/search-article.dto';
-import { ArticleSearchDto } from '../articles/dto/search-article.dto';
-import { ArticleSearchCursorDto } from '../articles/dto/search-article.dto';
+import {
+  ArticleSearchDto,
+  ArticleSearchCursorDto,
+  ArticleAvailability,
+} from '../articles/dto/search-article.dto';
 
 const DEFAULT_ARTICLE_SELECT = {
   id: true,
@@ -242,9 +245,12 @@ export class AdminArticleService {
       filterConditions.push({ status: { in: statuses } });
     }
 
-    if (searchDto.deleted !== undefined) {
-      filterConditions.push({ deleted: searchDto.deleted });
+    if (searchDto.availability === ArticleAvailability.ACTIVE) {
+      filterConditions.push({ deleted: false });
+    } else if (searchDto.availability === ArticleAvailability.DELETED) {
+      filterConditions.push({ deleted: true });
     }
+    // ArticleAvailability.ALL or undefined: no filter, show everything
 
     // Combine text search and filters
     const where = {
@@ -290,9 +296,12 @@ export class AdminArticleService {
       filterConditions.push({ status: { in: statuses } });
     }
 
-    if (searchDto.deleted !== undefined) {
-      filterConditions.push({ deleted: searchDto.deleted });
+    if (searchDto.availability === ArticleAvailability.ACTIVE) {
+      filterConditions.push({ deleted: false });
+    } else if (searchDto.availability === ArticleAvailability.DELETED) {
+      filterConditions.push({ deleted: true });
     }
+    // ArticleAvailability.ALL or undefined: no filter, show everything
 
     // Combine text search and filters
     const where = {

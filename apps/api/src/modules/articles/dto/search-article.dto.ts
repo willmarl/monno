@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsBoolean, IsIn } from 'class-validator';
+import { IsOptional, IsString, IsBoolean, IsIn, IsEnum } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
@@ -20,6 +20,12 @@ export enum ArticleSearchFields {
   TITLE = 'title',
   CONTENT = 'content',
   CREATOR_USERNAME = 'creator.username',
+}
+
+export enum ArticleAvailability {
+  ALL = 'ALL',
+  ACTIVE = 'ACTIVE',
+  DELETED = 'DELETED',
 }
 
 const VALID_ARTICLE_SEARCH_FIELDS = Object.values(ArticleSearchFields);
@@ -64,13 +70,13 @@ function ArticleSearchMixin<TBase extends new (...args: any[]) => {}>(
 
     @ApiPropertyOptional({
       description:
-        'Filter by deleted status. If not provided, shows both deleted and active posts.',
-      example: false,
+        'Filter by availability. ALL shows both active and deleted, ACTIVE shows only active, DELETED shows only deleted. Defaults to ALL.',
+      enum: ArticleAvailability,
+      example: ArticleAvailability.ALL,
     })
     @IsOptional()
-    @TransformBoolean()
-    @IsBoolean()
-    deleted?: boolean;
+    @IsEnum(ArticleAvailability)
+    availability?: ArticleAvailability;
 
     @ApiPropertyOptional({
       description:
