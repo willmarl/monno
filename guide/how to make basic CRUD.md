@@ -3636,17 +3636,17 @@ example:
   }
 ```
 
-# part 9 | resource actions
+# part 9 | adding resource actions to backend
 
 by the time i am writing this, there is only likes, views, comments, and collection. there might be more or less when you currently read this. prompt human the available resource actions found (likes, views, comments, collections, etc), ask which ones to apply/add.
 
-# part 10 | adding likes
+## adding likes
 
 > ⚠️ SKIP THIS PART unless human explicitly requested likes.
 
 > ⚠️ Before proceeding: verify the schema model has `likeCount Int @default(0)`. If it is missing, **stop** — tell the human to add it to the schema and run a migration, then wait for confirmation before continuing.
 
-## step 1 add/check {{Resource}} in resource.types.ts
+### step 1 add/check {{Resource}} in resource.types.ts
 
 ```ts
 export enum ResourceTypeEnum {
@@ -3672,7 +3672,7 @@ export enum ResourceTypeEnum {
 export type ResourceType = "POST" | "COMMENT" | "ARTICLE";
 ```
 
-## step 2 add {{resource}} to LIKEABLE_RESOURCES in resource.types.ts
+### step 2 add {{resource}} to LIKEABLE_RESOURCES in resource.types.ts
 
 ```ts
 export const LIKEABLE_RESOURCES = ["POST", "COMMENT", "{{resource}}"] as const;
@@ -3684,7 +3684,7 @@ example :
 export const LIKEABLE_RESOURCES = ["POST", "COMMENT", "ARTICLE"] as const;
 ```
 
-## step 3 add {{resource}} LIKEABLE_RESOURCE_CONFIG in likes.service.ts
+### step 3 add {{resource}} LIKEABLE_RESOURCE_CONFIG in likes.service.ts
 
 ```ts
 const LIKEABLE_RESOURCE_CONFIG: Record<LikeableResourceType, ResourceConfig> = {
@@ -3704,7 +3704,7 @@ const LIKEABLE_RESOURCE_CONFIG: Record<LikeableResourceType, ResourceConfig> = {
 };
 ```
 
-## step 4 add to `likeCount` to shared return in {{resource}}.service.ts
+### step 4 add to `likeCount` to shared return in {{resource}}.service.ts
 
 ```ts
 const DEFAULT_{{resource}}_SELECT = {
@@ -3722,7 +3722,7 @@ const DEFAULT_ARTICLE_SELECT = {
 };
 ```
 
-## step 5 add to `likeCount` to shared return in admin-{{resource}}.service.ts
+### step 5 add to `likeCount` to shared return in admin-{{resource}}.service.ts
 
 > ⚠️ SKIP THIS STEP unless human explicitly requested admin.
 
@@ -3742,13 +3742,13 @@ const DEFAULT_ARTICLE_SELECT = {
 };
 ```
 
-## step 6 import `enhanceWithLikes` to {{resource}}.service.ts
+### step 6 import `enhanceWithLikes` to {{resource}}.service.ts
 
 ```ts
 import { enhanceWithLikes } from "src/common/likes/enhance-with-likes";
 ```
 
-## step 7 add like and its count to findById
+### step 7 add like and its count to findById
 
 ```ts
 async findById(id: number, userId: number | undefined) {
@@ -3794,7 +3794,7 @@ async findById(id: number, userId: number | undefined) {
 }
 ```
 
-## step 8 update findById endpoint to have Jwt optional guard
+### step 8 update findById endpoint to have Jwt optional guard
 
 ```ts
 @UseGuards(JwtAccessOptionalGuard)
@@ -3816,7 +3816,7 @@ findById(@Param('id', ParseIntPipe) id: number, @Req() req) {
 }
 ```
 
-## step 9 add like and its count to findAll (offset pagination)
+### step 9 add like and its count to findAll (offset pagination)
 
 ```ts
 async findAll(pag: PaginationDto, currentUserId?: number) {
@@ -3870,7 +3870,7 @@ async findAll(pag: PaginationDto, currentUserId?: number) {
 }
 ```
 
-## step 10 update findAll (offset pagination) endpoint to have Jwt optional guard
+### step 10 update findAll (offset pagination) endpoint to have Jwt optional guard
 
 ```ts
 @UseGuards(JwtAccessOptionalGuard)
@@ -3892,7 +3892,7 @@ example:
   }
 ```
 
-## step 11 add like and its count to find All (cursor)
+### step 11 add like and its count to find All (cursor)
 
 > ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
 
@@ -3956,7 +3956,7 @@ async findAllCursor(pag: CursorPaginationDto, currentUserId?: number) {
 }
 ```
 
-## step 12 update findAll (cursor pagination) endpoint to have Jwt optional guard
+### step 12 update findAll (cursor pagination) endpoint to have Jwt optional guard
 
 > ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
 
@@ -3980,7 +3980,7 @@ findAllCursor(@Query() pag: CursorPaginationDto, @Req() req) {
 }
 ```
 
-## step 13 add like and its count to findByUserId (offset pagination)
+### step 13 add like and its count to findByUserId (offset pagination)
 
 ```ts
 async findByUserId(
@@ -4060,7 +4060,7 @@ async findByUserId(
 }
 ```
 
-## step 14 update findByUserId (offset pagination) endpoint to have Jwt optional guard
+### step 14 update findByUserId (offset pagination) endpoint to have Jwt optional guard
 
 ```ts
 @UseGuards(JwtAccessOptionalGuard)
@@ -4090,7 +4090,7 @@ findByUserId(
 }
 ```
 
-## step 15 add like and its count to findByUserId (cursor pagination)
+### step 15 add like and its count to findByUserId (cursor pagination)
 
 > ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
 
@@ -4170,7 +4170,7 @@ async findByUserIdCursor(
 }
 ```
 
-## step 16 update findByUserId (cursor pagination) endpoint to have Jwt optional guard
+### step 16 update findByUserId (cursor pagination) endpoint to have Jwt optional guard
 
 > ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
 
@@ -4202,7 +4202,7 @@ findByUserIdCursor(
 }
 ```
 
-## step 17 add like and its count to searchAll (offset pagination)
+### step 17 add like and its count to searchAll (offset pagination)
 
 ```ts
 async searchAll(searchDto: {{resource}}SearchDto, currentUserId?: number) {
@@ -4294,7 +4294,7 @@ async searchAll(searchDto: ArticleSearchDto, currentUserId?: number) {
 }
 ```
 
-## step 18 update searchAll (offset pagination) endpoint to have Jwt optional guard
+### step 18 update searchAll (offset pagination) endpoint to have Jwt optional guard
 
 ```ts
 @UseGuards(JwtAccessOptionalGuard)
@@ -4316,7 +4316,7 @@ search(@Query() searchDto: ArticleSearchDto, @Req() req) {
 }
 ```
 
-## step 19 add like and its count to searchAll (cursor pagination)
+### step 19 add like and its count to searchAll (cursor pagination)
 
 > ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
 
@@ -4406,7 +4406,7 @@ async searchAllCursor(
 }
 ```
 
-## step 20 update searchAll (cursor pagination) endpoint to have Jwt optional guard
+### step 20 update searchAll (cursor pagination) endpoint to have Jwt optional guard
 
 > ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
 
@@ -4430,7 +4430,7 @@ searchCursor(@Query() searchDto: ArticleSearchCursorDto, @Req() req) {
 }
 ```
 
-## step 21 new function findLikedByUser to get all of user's liked {{resource}} (offset pagination)
+### step 21 new function findLikedByUser to get all of user's liked {{resource}} (offset pagination)
 
 ```ts
 async findLikedByUser(
@@ -4558,7 +4558,7 @@ async findLikedByUser(
 }
 ```
 
-## step 22 endpoint for findLikedByUser (offset pagination)
+### step 22 endpoint for findLikedByUser (offset pagination)
 
 ```ts
 @UseGuards(JwtAccessOptionalGuard)
@@ -4588,7 +4588,7 @@ findLikedByUser(
 }
 ```
 
-## step 23 new function findLikedByUser to get all of user's liked {{resource}} (cursor pagination)
+### step 23 new function findLikedByUser to get all of user's liked {{resource}} (cursor pagination)
 
 > ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
 
@@ -4686,7 +4686,7 @@ async findLikedByUserCursor(
 }
 ```
 
-## step 24 endpoint for findLikedByUser (cursor pagination)
+### step 24 endpoint for findLikedByUser (cursor pagination)
 
 > ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination.
 
@@ -4726,7 +4726,7 @@ findLikedByUserCursor(
 }
 ```
 
-## step 25 Test like endpoints/summary
+### step 25 Test like endpoints/summary
 
 Tell human to tests these endpoints and wait for human's confirmation to continue on to next parts.
 
@@ -4761,13 +4761,13 @@ ex: GET `http://localhost:3000/articles/users/{{userId}}/liked/cursor`
 GET `http://localhost:3000/{{resource}}/{{articleId}}`
 ex: GET `http://localhost:3000/articles/{{articleId}}`
 
-# part 11 | adding views
+## adding views
 
 > ⚠️ SKIP THIS PART unless human explicitly requested view count.
 
 > ⚠️ Before proceeding: verify the schema model has `viewCount Int @default(0)`. If it is missing, **stop** — tell the human to add it to the schema and run a migration, then wait for confirmation before continuing.
 
-## step 1 add/check {{Resource}} in resource.types.ts
+### step 1 add/check {{Resource}} in resource.types.ts
 
 ```ts
 export enum ResourceTypeEnum {
@@ -4793,7 +4793,7 @@ export enum ResourceTypeEnum {
 export type ResourceType = "POST" | "COMMENT" | "ARTICLE";
 ```
 
-## step 2 add {{resource}} to VIEWABLE_RESOURCES in resource.types.ts
+### step 2 add {{resource}} to VIEWABLE_RESOURCES in resource.types.ts
 
 ```ts
 export const VIEWABLE_RESOURCES = ["POST", "{{resource}}"] as const;
@@ -4805,7 +4805,7 @@ example :
 export const VIEWABLE_RESOURCES = ["POST", "ARTICLE"] as const;
 ```
 
-## step 3 add {{resource}} VIEWABLE_RESOURCE_CONFIG in view-handler.service.ts
+### step 3 add {{resource}} VIEWABLE_RESOURCE_CONFIG in view-handler.service.ts
 
 ```ts
 const VIEWABLE_RESOURCE_CONFIG: Record<
@@ -4829,7 +4829,7 @@ const VIEWABLE_RESOURCE_CONFIG: Record<
 };
 ```
 
-## step 4 add to `viewCount` to shared return in {{resource}}.service.ts
+### step 4 add to `viewCount` to shared return in {{resource}}.service.ts
 
 ```ts
 const DEFAULT_{{resource}}_SELECT = {
@@ -4847,7 +4847,7 @@ const DEFAULT_ARTICLE_SELECT = {
 };
 ```
 
-## step 5 add to `viewCount` to shared return in admin-{{resource}}.service.ts
+### step 5 add to `viewCount` to shared return in admin-{{resource}}.service.ts
 
 > ⚠️ SKIP THIS STEP unless human explicitly requested admin.
 
@@ -4867,7 +4867,7 @@ const DEFAULT_ARTICLE_SELECT = {
 };
 ```
 
-## step 6 Test view endpoint for {{resource}}
+### step 6 Test view endpoint for {{resource}}
 
 Tell human to tests these endpoints and wait for human's confirmation to continue on to next parts.
 
@@ -4898,11 +4898,11 @@ ex: GET `http://localhost:3000/views/ARTICLES/{{articleId}}`
 GET `http://localhost:3000/{{resource}}/{{resourceId}}`
 ex: GET `http://localhost:3000/articles/{{articleId}}`
 
-# part 12 | adding comments
+## adding comments
 
 > ⚠️ SKIP THIS PART unless human explicitly requested comments.
 
-## step 1 add/check {{Resource}} in resource.types.ts
+### step 1 add/check {{Resource}} in resource.types.ts
 
 ```ts
 export enum ResourceTypeEnum {
@@ -4928,7 +4928,7 @@ export enum ResourceTypeEnum {
 export type ResourceType = "POST" | "COMMENT" | "ARTICLE";
 ```
 
-## step 2 add {{resource}} to COMMENTABLE_RESOURCES in resource.types.ts
+### step 2 add {{resource}} to COMMENTABLE_RESOURCES in resource.types.ts
 
 ```ts
 export const COMMENTABLE_RESOURCES = [
@@ -4944,7 +4944,7 @@ example :
 export const COMMENTABLE_RESOURCES = ["POST", "COMMENT", "ARTICLE"] as const;
 ```
 
-## step 3 add {{resource}} COMMENTABLE_RESOURCE_CONFIG in comments.service.ts
+### step 3 add {{resource}} COMMENTABLE_RESOURCE_CONFIG in comments.service.ts
 
 ```ts
 const COMMENTABLE_RESOURCE_CONFIG: Record<
@@ -4970,7 +4970,7 @@ const COMMENTABLE_RESOURCE_CONFIG: Record<
 };
 ```
 
-## step 4 Test comment endpoint for {{resource}}
+### step 4 Test comment endpoint for {{resource}}
 
 Tell human to tests these endpoints and wait for human's confirmation to continue on to next parts.
 
@@ -4999,11 +4999,11 @@ example:
 GET `http://localhost:3000/comments/resource/{{resource}}/{{resourceId}}`
 ex: GET `http://localhost:3000/comments/resource/ARTICLE/{{articleId}}`
 
-# part 13 | adding collection
+## adding collection
 
 > ⚠️ SKIP THIS PART unless human explicitly requested collections.
 
-## step 1 add/check {{Resource}} in resource.types.ts
+### step 1 add/check {{Resource}} in resource.types.ts
 
 ```ts
 export enum ResourceTypeEnum {
@@ -5029,7 +5029,7 @@ export enum ResourceTypeEnum {
 export type ResourceType = "POST" | "COMMENT" | "ARTICLE";
 ```
 
-## step 2 add {{resource}} to COLLECTABLE_RESOURCES in resource.types.ts
+### step 2 add {{resource}} to COLLECTABLE_RESOURCES in resource.types.ts
 
 ```ts
 export const COLLECTABLE_RESOURCES = ["POST", "{{resource}}"] as const;
@@ -5041,7 +5041,7 @@ example :
 export const COLLECTABLE_RESOURCES = ["POST", "ARTICLE"] as const;
 ```
 
-## step 3 add {{resource}} COLLECTABLE_RESOURCE_CONFIG in collections.service.ts
+### step 3 add {{resource}} COLLECTABLE_RESOURCE_CONFIG in collections.service.ts
 
 ```ts
 const COLLECTABLE_RESOURCE_CONFIG: Record<
@@ -5065,7 +5065,7 @@ const COLLECTABLE_RESOURCE_CONFIG: Record<
 };
 ```
 
-## step 4 Test collection endpoint for {{resource}}
+### step 4 Test collection endpoint for {{resource}}
 
 Tell human to tests these endpoints and wait for human's confirmation to continue on to next parts.
 
@@ -5094,12 +5094,12 @@ example:
 check its in collection
 GET `http://localhost:3000/collections/{{collectionId}}`
 
-# part 14 | add swagger docs to DTO and controller.ts
+# part 10 | add swagger docs to DTO and controller.ts
 
 I won't add examples as you should know how to add swagger docs.
 Just go to the .dto files and controller.ts file and add swagger docs inferencing based off current code.
 
-# part 15 | adding basic frontend files
+# part 11 | adding basic frontend files
 
 ## step 1 make files
 
@@ -5115,7 +5115,7 @@ if admin
 
 - examples
 
-# part 16 | frontend api
+# part 12 | frontend api
 
 ## step 1 make `features/articles/types/{{resource}}.ts`
 
@@ -5573,7 +5573,7 @@ export function useAdminRestoreArticle() {
 }
 ```
 
-# part 17 files for creation
+# part 13 files for creation
 
 ## step 1 make zod schema for create
 
@@ -5968,7 +5968,7 @@ export function CreateArticleModal() {
 }
 ```
 
-# part 18 files for update/edit
+# part 14 files for update/edit
 
 for the admin variants, despite forms being identical, its more so for future proof. for instance a new field like shadowbanned, only want admin able to CRUD it.
 
@@ -6778,7 +6778,7 @@ export function AdminEditArticleModal({ data }: { data: Article }) {
 }
 ```
 
-# part 19 | make generic component for {{resource}}
+# part 15 | make generic component for {{resource}}
 
 Instructions for AI, roughly guess UI component based off schema model and type.ts, this is more so just to quickly check if api/hooks work. doesn't matter if its ugly
 `components/ui/Article.tsx`
@@ -6893,8 +6893,10 @@ export function Article({
           </h2>
           <div className="mt-2">
             <span className="text-xs text-muted-foreground">
-              {data.status.charAt(0).toUpperCase() +
-                data.status.slice(1).toLowerCase()}
+              {data.status
+                ? data.status.charAt(0).toUpperCase() +
+                  data.status.slice(1).toLowerCase()
+                : "Draft"}
             </span>
           </div>
         </div>
@@ -6924,7 +6926,7 @@ export function Article({
             {data?.creator.username}
           </p>
         </div>
-        <div className="flex items-center gap-1 text-xs md:text-sm text-muted-foreground shrink-0">
+        <div className="flex gap-2 items-center text-xs md:text-sm flex-shrink-0">
           <Calendar className="h-4 w-4" />
           <span>{formattedDate}</span>
         </div>
@@ -6940,7 +6942,7 @@ export function Article({
 - collection button
 - comment
 
-# part 20 | make pagination component
+# part 16 | make pagination component
 
 ## step 1 make pagination list component using UI component made in previous part
 
@@ -7081,7 +7083,7 @@ export function CursorInfiniteArticles() {
 }
 ```
 
-# part 21 | make pages
+# part 17 | make pages
 
 ## basic/home
 
@@ -7422,7 +7424,7 @@ export function UserProfileContent({ user, isOwner }: UserProfileContentProps) {
 }
 ```
 
-## part 22 | extending admin dashboard
+## part 18 | extending admin dashboard
 
 ## step 1 make columns.tsx for upcoming data table component
 
@@ -7641,6 +7643,7 @@ export const columns: ColumnDef<Article>[] = [
 ```tsx
 "use client";
 
+import { PageLoadingState } from "@/components/common/PageLoadingState";
 import { useAdminArticlesOffset } from "@/features/admin/articles/hooks";
 import { columns } from "./columns";
 import { DataTable } from "@/components/ui/data-table";
@@ -7662,8 +7665,7 @@ export function ArticleDataTable() {
   );
 
   if (isLoading) {
-    return <div>Loading...</div>;
-    // replace me with skeleton later
+    return <PageLoadingState variant="data-table" />;
   }
 
   if (error || !data) {
@@ -7737,7 +7739,7 @@ export const items = [
 ];
 ```
 
-# part 23 | search feature
+# part 19 | search feature
 
 ## update api related files to have search
 
@@ -8704,6 +8706,7 @@ export function CursorInfiniteArticles({
 ```tsx
 "use client";
 
+import { PageLoadingState } from "@/components/common/PageLoadingState";
 import { columns } from "./columns";
 import { DataTable } from "@/components/ui/data-table";
 import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
@@ -8736,8 +8739,7 @@ export function ArticleDataTable({ searchParams }: articleDataTableProps) {
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
-    // replace me with skeleton later
+    return <PageLoadingState variant="data-table" />;
   }
 
   return (
@@ -8801,4 +8803,425 @@ export default async function page({
   const params = await searchParams;
   return <AdminArticlePage searchParams={params} />;
 }
+```
+
+# part 20 | adding resource actions to frontend
+
+## add resource type
+
+this prerequisite applies to all resource actions in this part
+`web/src/types/resource.ts`
+
+```ts
+export const RESOURCE_TYPES = {
+  POST: "POST",
+  COMMENT: "COMMENT",
+  ARTICLE: "ARTICLE",
+  // VIDEO: "VIDEO",
+} as const;
+```
+
+## adding likes
+
+> ⚠️ SKIP THIS PART unless human explicitly requested likes.
+
+### step 1 add to article type like
+
+`features/articles/types/article.ts`
+
+```ts
+export interface Article {
+  ...
+  likeCount: number;
+  likedByMe: boolean;
+}
+```
+
+### step 2 add to api the endpoint article liked by user
+
+omit cursor code if not doing cursor
+`features/articles/api.ts`
+
+```ts
+// GET /articles/liked/:userId?limit=10&offset=0
+export const fetchArticleLikedByUser = ({
+  userId,
+  limit,
+  offset,
+}: {
+  userId: number;
+  limit: number;
+  offset: number;
+}) =>
+  fetcher<ArticlesList>(`/articles/users/${userId}/liked`, {
+    searchParams: { limit, offset },
+  });
+
+// GET /articles/liked/:userId/cursor?limit=10&cursor=abc123
+export const fetchArticleLikedByUserCursor = ({
+  userId,
+  limit,
+  cursor,
+}: {
+  userId: number;
+  limit: number;
+  cursor?: string | null;
+}) =>
+  fetcher<ArticleListCursor>(`/articles/users/${userId}/liked/cursor`, {
+    searchParams: { limit, cursor: cursor ?? undefined },
+  });
+```
+
+### step 2 add to hook the like api
+
+omit cursor code if not doing cursor
+`features/articles/hooks.ts`
+
+```ts
+import {
+  ...
+  fetchArticleLikedByUser,
+  fetchArticleLikedByUserCursor,
+} from "./api";
+
+export function useArticleLikedByUser(
+  userId: number,
+  page: number,
+  limit: number,
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: ["articles-liked-by-user", userId, page],
+    queryFn: () => fetchArticleLikedByUser({ userId, limit, offset }),
+    enabled: !!userId,
+  });
+}
+
+export function useArticleLikedByUserCursor(
+  userId: number,
+  limit: number = 10,
+) {
+  return useInfiniteQuery({
+    queryKey: ["articles-liked-by-user", userId],
+    queryFn: ({ pageParam }) =>
+      fetchArticleLikedByUserCursor({
+        userId,
+        limit,
+        cursor: pageParam ?? null,
+      }),
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialPageParam: null as string | null,
+    enabled: !!userId,
+  });
+}
+```
+
+### step 3 add to global like hooks query keys to invalidate
+
+`features/likes/hooks.ts`
+
+```ts
+export function useToggleLike() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: toggleLike,
+    onSuccess: () => {
+      ...
+      // add related query keys from articles/hooks.ts here
+      qc.invalidateQueries({ queryKey: ["articles"], exact: false });
+      qc.invalidateQueries({ queryKey: ["article"], exact: false });
+      qc.invalidateQueries({ queryKey: ["articles-by-user"], exact: false });
+      qc.invalidateQueries({ queryKey: ["articles-liked-by-user"], exact: false,
+      });
+    },
+    throwOnError: false, // Don't throw errors, let component handle them
+  });
+}
+```
+
+### step 4 update article UI component to have like button
+
+`components/ui/Article.tsx`
+
+```tsx
+import { LikeButton } from "../common/LikeButton";
+import { useToggleLike } from "@/features/likes/hooks";
+import { RESOURCE_TYPES } from "@/types/resource";
+...
+const like = useToggleLike();
+function handleLike() {
+  like.mutate({ resourceType: RESOURCE_TYPES.ARTICLE, resourceId: data.id });
+}
+...
+<LikeButton
+  isOwner={isOwner}
+  likedByMe={data.likedByMe}
+  likeCount={data.likeCount}
+  onLike={handleLike}
+/>
+```
+
+complete example:
+
+```tsx
+import { Card } from "./card";
+import { Avatar, AvatarImage, AvatarFallback } from "./avatar";
+import { useRouter } from "next/navigation";
+import { Button } from "./button";
+import { Article as ArticleType } from "@/features/articles/types/article";
+import { Trash, PencilLine, Calendar } from "lucide-react";
+import { ConfirmModal } from "../modal/ConfirmModal";
+import { useModal } from "../providers/ModalProvider";
+import { useDeleteArticle } from "@/features/articles/hooks";
+import { toast } from "sonner";
+import { InlineEditArticleForm } from "@/features/articles/components/InlineEditArticleForm";
+import { LikeButton } from "../common/LikeButton";
+import { useToggleLike } from "@/features/likes/hooks";
+import { RESOURCE_TYPES } from "@/types/resource";
+
+export function Article({
+  data,
+  isOwner,
+  truncateContent = true,
+  truncateTitle = true,
+}: {
+  data: ArticleType;
+  isOwner: boolean;
+  truncateContent?: boolean;
+  truncateTitle?: boolean;
+}) {
+  const deleteArticle = useDeleteArticle();
+  const { openModal, closeModal } = useModal();
+  const router = useRouter();
+  const like = useToggleLike();
+
+  function modifyArticle(isOwner: boolean) {
+    if (!isOwner) {
+      return;
+    } else {
+      return (
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            className="cursor-pointer transition-transform hover:scale-110 h-8 w-8 p-0"
+            variant="ghost"
+            onClick={() => router.push(`/article/edit/${data.id}`)}
+            title="Edit article"
+          >
+            <PencilLine className="h-4 w-4" />
+          </Button>
+          {/* edit inline button below me is for testing purposes, remove me after test */}
+          <Button
+            onClick={() => {
+              openModal({
+                title: "edit Article",
+                content: <InlineEditArticleForm articleData={data} />,
+              });
+            }}
+            title="edit article"
+          >
+            edit inline
+          </Button>
+          {/* EoF test */}
+          <Button
+            size="sm"
+            className="cursor-pointer transition-transform hover:scale-110 h-8 w-8 p-0"
+            variant="ghost"
+            onClick={() => {
+              openModal({
+                title: "Delete Article",
+                content: (
+                  <ConfirmModal
+                    message={`Are you sure you want to delete this article?`}
+                    onConfirm={() =>
+                      deleteArticle.mutate(data.id, {
+                        onSuccess: () => {
+                          closeModal();
+                          router.push(`/article`);
+                        },
+                        onError: (error) => {
+                          toast.error("Failed to delete article: " + error);
+                        },
+                      })
+                    }
+                    variant={"destructive"}
+                  />
+                ),
+              });
+            }}
+            title="Delete article"
+          >
+            <Trash className="h-4 w-4" />
+          </Button>
+        </div>
+      );
+    }
+  }
+
+  const formattedDate = new Date(data.updatedAt).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  function handleLike() {
+    like.mutate({ resourceType: RESOURCE_TYPES.ARTICLE, resourceId: data.id });
+  }
+
+  return (
+    <Card className="p-3 md:p-4 hover:shadow-md transition-shadow">
+      <div className="flex justify-between items-start gap-2 pb-3 border-b border-border/50">
+        <div className="flex-1">
+          <h2
+            className={`cursor-pointer text-sm md:text-base font-semibold hover:text-blue-500 transition-colors ${truncateTitle ? "line-clamp-2" : ""}`}
+            style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
+            onClick={() => router.push(`/article/${data.id}`)}
+          >
+            {data?.title}
+          </h2>
+          <div className="mt-2">
+            <span className="text-xs text-muted-foreground">
+              {data.status
+                ? data.status.charAt(0).toUpperCase() +
+                  data.status.slice(1).toLowerCase()
+                : "Draft"}
+            </span>
+          </div>
+        </div>
+        {modifyArticle(isOwner)}
+      </div>
+      <p
+        className={`text-xs md:text-sm text-foreground my-3 ${truncateContent ? "line-clamp-3" : ""}`}
+        style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
+      >
+        {data?.content}
+      </p>
+      <div className="flex items-center justify-between gap-2 mt-3 min-w-0">
+        <div
+          className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity min-w-0"
+          onClick={() => router.push("/user/" + data?.creator.username)}
+        >
+          <Avatar className="h-7 w-7 shrink-0">
+            <AvatarImage
+              src={data?.creator.avatarPath}
+              alt={data?.creator.username}
+            />
+            <AvatarFallback className="text-xs">
+              {data?.creator.username?.[0]?.toUpperCase() || "?"}
+            </AvatarFallback>
+          </Avatar>
+          <p className="text-xs md:text-sm font-medium text-muted-foreground truncate">
+            {data?.creator.username}
+          </p>
+        </div>
+        <div className="flex gap-2 items-center text-xs md:text-sm flex-shrink-0">
+          <LikeButton
+            isOwner={isOwner}
+            likedByMe={data.likedByMe}
+            likeCount={data.likeCount}
+            onLike={handleLike}
+          />
+          <Calendar className="h-4 w-4" />
+          <span>{formattedDate}</span>
+        </div>
+      </div>
+    </Card>
+  );
+}
+```
+
+### step 5 make component for paginated list of user's liked articles (optional)
+
+`components/pages/userProfile/LikedArticlesList.tsx`
+
+```tsx
+"use client";
+
+import { useState } from "react";
+import { useArticleLikedByUser } from "@/features/articles/hooks";
+import { Article } from "@/components/ui/Article";
+import { PaginatedListInline } from "@/components/ui/pagination/PaginatedListInline";
+import { PublicUser } from "@/features/users/types/user";
+
+interface LikedArticlesListProps {
+  user: PublicUser;
+  isOwner: boolean;
+}
+
+const DEFAULT_LIMIT = 9;
+
+export function LikedArticlesList({ user, isOwner }: LikedArticlesListProps) {
+  const [page, setPage] = useState(1);
+
+  const { data, isLoading } = useArticleLikedByUser(
+    user.id,
+    page,
+    DEFAULT_LIMIT,
+  );
+
+  const articles = data?.items ?? [];
+  const totalItems = data?.pageInfo?.total ?? data?.pageInfo?.totalItems ?? 0;
+
+  return (
+    <PaginatedListInline
+      page={page}
+      limit={DEFAULT_LIMIT}
+      items={articles}
+      totalItems={totalItems}
+      isLoading={isLoading}
+      onPageChange={setPage}
+      renderItem={(article) => <Article data={article} isOwner={isOwner} />}
+      title={`Liked Articles by ${user.username}`}
+      layout="grid"
+      emptyMessage="No liked articles yet."
+    />
+  );
+}
+```
+
+### step 6 add to user profile (optional)
+
+this file may not even exist as all examples assume default boilerplate repo. if missing just skip step
+`components/pages/userProfile/UserProfileContent.tsx`
+
+```tsx
+import { LikedArticlesList } from "./LikedArticlesList";
+...
+export function UserProfileContent({ user, isOwner }: UserProfileContentProps) {
+  return (
+    <div className="space-y-8">
+      <Suspense fallback={<p>Loading...</p>}>
+        ...
+        <UsersArticlesList user={user} isOwner={isOwner} />
+        {isOwner && <LikedArticlesList user={user} isOwner={isOwner} />}
+      </Suspense>
+    </div>
+  );
+}
+```
+
+### step 7 add to admin article type like count
+
+`features/admin/articles/types/article.ts`
+
+```ts
+export interface Article {
+  ...
+  likeCount: number;
+}
+```
+
+### step 8 add to the admin article column like count
+
+`components/pages/admin/articles/columns.tsx`
+
+```tsx
+export const columns: ColumnDef<Article>[] = [
+  ...{
+    accessorKey: "likeCount",
+    header: ({ column }) => <SortableHeader column={column} label="Likes" />,
+  },
+];
 ```

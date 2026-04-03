@@ -85,10 +85,10 @@ export const columns: ColumnDef<Article>[] = [
   //     accessorKey: "viewCount",
   //     header: ({ column }) => <SortableHeader column={column} label="Views" />,
   //   },
-  //   {
-  //     accessorKey: "likeCount",
-  //     header: ({ column }) => <SortableHeader column={column} label="Likes" />,
-  //   },
+  {
+    accessorKey: "likeCount",
+    header: ({ column }) => <SortableHeader column={column} label="Likes" />,
+  },
   {
     accessorKey: "creator.username",
     header: ({ column }) => <SortableHeader column={column} label="Username" />,

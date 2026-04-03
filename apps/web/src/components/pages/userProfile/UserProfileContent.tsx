@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import { UsersPostsList } from "./UsersPostsList";
 import { UsersArticlesList } from "./UsersArticlesList";
+import { LikedArticlesList } from "./LikedArticlesList";
 import { LikedPostsList } from "./LikedPostsList";
 import { CollectionsList } from "./CollectionsList";
 import { PublicUser } from "@/features/users/types/user";
@@ -17,8 +18,9 @@ export function UserProfileContent({ user, isOwner }: UserProfileContentProps) {
     <div className="space-y-8">
       <Suspense fallback={<p>Loading...</p>}>
         <UsersPostsList user={user} isOwner={isOwner} />
-        <UsersArticlesList user={user} isOwner={isOwner} />
         {isOwner && <LikedPostsList user={user} isOwner={isOwner} />}
+        <UsersArticlesList user={user} isOwner={isOwner} />
+        {isOwner && <LikedArticlesList user={user} isOwner={isOwner} />}
         {isOwner && <CollectionsList user={user} isOwner={isOwner} />}
       </Suspense>
     </div>

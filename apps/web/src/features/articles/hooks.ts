@@ -12,6 +12,8 @@ import {
   fetchArticlesByUserIdCursor,
   updateArticle,
   deleteArticle,
+  fetchArticleLikedByUser,
+  fetchArticleLikedByUserCursor,
 } from "./api";
 
 // commented out as its redundant now. replaced by search
@@ -200,5 +202,37 @@ export function useDeleteArticle() {
       qc.removeQueries({ queryKey: ["article", id] });
     },
     throwOnError: false, // Don't throw errors, let component handle them
+  });
+}
+
+export function useArticleLikedByUser(
+  userId: number,
+  page: number,
+  limit: number,
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: ["articles-liked-by-user", userId, page],
+    queryFn: () => fetchArticleLikedByUser({ userId, limit, offset }),
+    enabled: !!userId,
+  });
+}
+
+export function useArticleLikedByUserCursor(
+  userId: number,
+  limit: number = 10,
+) {
+  return useInfiniteQuery({
+    queryKey: ["articles-liked-by-user", userId],
+    queryFn: ({ pageParam }) =>
+      fetchArticleLikedByUserCursor({
+        userId,
+        limit,
+        cursor: pageParam ?? null,
+      }),
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialPageParam: null as string | null,
+    enabled: !!userId,
   });
 }

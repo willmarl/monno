@@ -9,6 +9,9 @@ import { useModal } from "../providers/ModalProvider";
 import { useDeleteArticle } from "@/features/articles/hooks";
 import { toast } from "sonner";
 import { InlineEditArticleForm } from "@/features/articles/components/InlineEditArticleForm";
+import { LikeButton } from "../common/LikeButton";
+import { useToggleLike } from "@/features/likes/hooks";
+import { RESOURCE_TYPES } from "@/types/resource";
 
 export function Article({
   data,
@@ -24,6 +27,7 @@ export function Article({
   const deleteArticle = useDeleteArticle();
   const { openModal, closeModal } = useModal();
   const router = useRouter();
+  const like = useToggleLike();
 
   function modifyArticle(isOwner: boolean) {
     if (!isOwner) {
@@ -94,6 +98,10 @@ export function Article({
     year: "numeric",
   });
 
+  function handleLike() {
+    like.mutate({ resourceType: RESOURCE_TYPES.ARTICLE, resourceId: data.id });
+  }
+
   return (
     <Card className="p-3 md:p-4 hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start gap-2 pb-3 border-b border-border/50">
@@ -107,8 +115,10 @@ export function Article({
           </h2>
           <div className="mt-2">
             <span className="text-xs text-muted-foreground">
-              {data.status.charAt(0).toUpperCase() +
-                data.status.slice(1).toLowerCase()}
+              {data.status
+                ? data.status.charAt(0).toUpperCase() +
+                  data.status.slice(1).toLowerCase()
+                : "Draft"}
             </span>
           </div>
         </div>
@@ -138,7 +148,13 @@ export function Article({
             {data?.creator.username}
           </p>
         </div>
-        <div className="flex items-center gap-1 text-xs md:text-sm text-muted-foreground shrink-0">
+        <div className="flex gap-2 items-center text-xs md:text-sm flex-shrink-0">
+          <LikeButton
+            isOwner={isOwner}
+            likedByMe={data.likedByMe}
+            likeCount={data.likeCount}
+            onLike={handleLike}
+          />
           <Calendar className="h-4 w-4" />
           <span>{formattedDate}</span>
         </div>

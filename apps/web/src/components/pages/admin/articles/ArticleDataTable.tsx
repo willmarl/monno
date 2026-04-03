@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoadingState } from "@/components/common/PageLoadingState";
 import { columns } from "./columns";
 import { DataTable } from "@/components/ui/data-table";
 import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
@@ -32,8 +33,7 @@ export function ArticleDataTable({ searchParams }: articleDataTableProps) {
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
-    // replace me with skeleton later
+    return <PageLoadingState variant="data-table" />;
   }
 
   return (

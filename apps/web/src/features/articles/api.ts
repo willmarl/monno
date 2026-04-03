@@ -155,3 +155,31 @@ export const deleteArticle = (id: number) =>
   fetcher<void>(`/articles/${id}`, {
     method: "DELETE",
   });
+
+// GET /articles/liked/:userId?limit=10&offset=0
+export const fetchArticleLikedByUser = ({
+  userId,
+  limit,
+  offset,
+}: {
+  userId: number;
+  limit: number;
+  offset: number;
+}) =>
+  fetcher<ArticlesList>(`/articles/users/${userId}/liked`, {
+    searchParams: { limit, offset },
+  });
+
+// GET /articles/liked/:userId/cursor?limit=10&cursor=abc123
+export const fetchArticleLikedByUserCursor = ({
+  userId,
+  limit,
+  cursor,
+}: {
+  userId: number;
+  limit: number;
+  cursor?: string | null;
+}) =>
+  fetcher<ArticleListCursor>(`/articles/users/${userId}/liked/cursor`, {
+    searchParams: { limit, cursor: cursor ?? undefined },
+  });

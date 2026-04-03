@@ -14,6 +14,13 @@ export function useToggleLike() {
       qc.invalidateQueries({ queryKey: ["posts-by-user"], exact: false });
       qc.invalidateQueries({ queryKey: ["comments"], exact: false });
       qc.invalidateQueries({ queryKey: ["comments-resource"], exact: false });
+      qc.invalidateQueries({ queryKey: ["articles"], exact: false });
+      qc.invalidateQueries({ queryKey: ["article"], exact: false });
+      qc.invalidateQueries({ queryKey: ["articles-by-user"], exact: false });
+      qc.invalidateQueries({
+        queryKey: ["articles-liked-by-user"],
+        exact: false,
+      });
     },
     throwOnError: false, // Don't throw errors, let component handle them
   });

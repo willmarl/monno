@@ -6,8 +6,8 @@
 export const RESOURCE_TYPES = {
   POST: "POST",
   COMMENT: "COMMENT",
+  ARTICLE: "ARTICLE",
   // VIDEO: "VIDEO",
-  // ARTICLE: "ARTICLE",
 } as const;
 
 export type ResourceType = (typeof RESOURCE_TYPES)[keyof typeof RESOURCE_TYPES];
