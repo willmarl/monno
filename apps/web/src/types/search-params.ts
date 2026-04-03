@@ -34,7 +34,10 @@ export interface AdminCreditTransactionsSearchParams extends SearchParams {}
 export interface AdminProductPurchasesSearchParams extends SearchParams {}
 export interface AdminSubscriptionsSearchParams extends SearchParams {}
 export interface AdminSupportTicketSearchParams extends SearchParams {}
-
+export interface AdminArticleSearchParams extends SearchParams {
+  status?: string;
+  deleted?: string;
+}
 /**
  * Public search params (extends base SearchParams)
  */

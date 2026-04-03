@@ -1,18 +1,60 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchAdminArticlesOffset,
+  searchAdminArticlesOffset,
   fetchAdminArticleById,
   updateAdminArticle,
   deleteAdminArticle,
   restoreAdminArticle,
 } from "./api";
 
-export function useAdminArticlesOffset(page: number, limit: number) {
+// commented out as its redundant now. replaced by search
+// export function useAdminArticlesOffset(page: number, limit: number) {
+//   const offset = (page - 1) * limit;
+
+//   return useQuery({
+//     queryKey: ["admin-articles", page],
+//     queryFn: () => fetchAdminArticlesOffset({ limit, offset }),
+//   });
+// }
+
+export function useAdminArticlesOffset(
+  page: number = 1,
+  limit: number = 10,
+  query?: string,
+  options?: {
+    searchFields?: string;
+    sort?: string;
+    caseSensitive?: boolean;
+    statuses?: string;
+    availability?: string;
+    [key: string]: any;
+  },
+) {
   const offset = (page - 1) * limit;
 
   return useQuery({
-    queryKey: ["admin-articles", page],
-    queryFn: () => fetchAdminArticlesOffset({ limit, offset }),
+    queryKey: [
+      "admin-articles",
+      page,
+      query,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+      options?.statuses,
+      options?.availability,
+    ],
+    queryFn: () =>
+      searchAdminArticlesOffset({
+        query,
+        limit,
+        offset,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+        statuses: options?.statuses,
+        availability: options?.availability,
+      }),
   });
 }
 

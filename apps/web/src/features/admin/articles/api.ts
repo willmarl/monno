@@ -17,6 +17,42 @@ export const fetchAdminArticlesOffset = ({
     searchParams: { limit, offset },
   });
 
+// GET /admin/articles?query=world&limit=5&offset=10
+export const searchAdminArticlesOffset = ({
+  query,
+  limit = 10,
+  offset = 0,
+  searchFields,
+  sort,
+  caseSensitive,
+  statuses,
+  availability,
+}: {
+  query?: string;
+  limit?: number;
+  offset?: number;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+  statuses?: string;
+  availability?: string;
+} = {}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (query) searchParams.query = query;
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+  if (statuses) searchParams.statuses = statuses;
+  if (availability) searchParams.availability = availability;
+
+  return fetcher<ArticlesList>("/admin/articles", {
+    searchParams,
+  });
+};
+
 // GET /admin/articles/:id
 export const fetchAdminArticleById = (id: number) =>
   fetcher<Article>(`/admin/articles/${id}`);

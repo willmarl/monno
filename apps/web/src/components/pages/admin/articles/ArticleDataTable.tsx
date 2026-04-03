@@ -1,45 +1,51 @@
 "use client";
 
-import { useAdminArticlesOffset } from "@/features/admin/articles/hooks";
 import { columns } from "./columns";
 import { DataTable } from "@/components/ui/data-table";
 import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
-import { useSearchParams } from "next/navigation";
+import { useAdminArticlesOffset } from "@/features/admin/articles/hooks";
+import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
+import { AdminArticleSearchParams } from "@/types/search-params";
 
-const DEFAULT_LIMIT = 4;
+const DEFAULT_LIMIT = 10;
 
-export function ArticleDataTable() {
-  // Parse page and limit from search params
-  const searchParams = useSearchParams();
+interface articleDataTableProps {
+  searchParams?: AdminArticleSearchParams;
+}
 
-  // Get page from query params
-  const page = parseInt(searchParams.get("page") ?? "1", 10);
-
-  const { data, isLoading, error } = useAdminArticlesOffset(
+export function ArticleDataTable({ searchParams }: articleDataTableProps) {
+  const {
+    items: articles,
+    totalItems,
+    isLoading,
     page,
-    DEFAULT_LIMIT,
-  );
+    emptyMessage,
+    queryParams,
+  } = usePaginatedSearch({
+    searchParams,
+    hook: useAdminArticlesOffset,
+    limit: DEFAULT_LIMIT,
+    getEmptyMessage: (query) =>
+      query
+        ? `No articles found matching "${query}". Try a different search term.`
+        : "No articles available.",
+  });
 
   if (isLoading) {
     return <div>Loading...</div>;
     // replace me with skeleton later
   }
 
-  if (error || !data) {
-    return (
-      <div>Something went wrong. could not pull articles. {error?.message}</div>
-    );
-  }
-
   return (
     <div className="container mx-auto py-10">
-      <DataTable columns={columns} data={data.items} />
+      <DataTable columns={columns} data={articles} />
       <div className="mt-4">
         <OffsetPagination
           url="admin/articles"
           page={page}
           limit={DEFAULT_LIMIT}
-          totalItems={data.pageInfo.totalItems}
+          queryParams={queryParams}
+          totalItems={totalItems}
         />
       </div>
     </div>

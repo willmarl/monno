@@ -1,7 +1,12 @@
 "use client";
 
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +33,29 @@ export const columns: ColumnDef<Article>[] = [
   {
     accessorKey: "id",
     header: ({ column }) => <SortableHeader column={column} label="ID" />,
+    cell: ({ row }) => {
+      const article = row.original;
+      const id = String(row.getValue("id"));
+
+      if (article.deleted) {
+        const date = String(article.deletedAt);
+        const formatted = formatDate(date);
+
+        return (
+          <div className="flex items-center gap-2">
+            <span>{id}</span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Trash2 className="h-4 w-4 text-muted-foreground opacity-60 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent>Deleted at {formatted}</TooltipContent>
+            </Tooltip>
+          </div>
+        );
+      }
+
+      return <div>{id}</div>;
+    },
   },
   {
     accessorKey: "title",
@@ -48,6 +76,10 @@ export const columns: ColumnDef<Article>[] = [
         title="Content"
       />
     ),
+  },
+  {
+    accessorKey: "status",
+    header: ({ column }) => <SortableHeader column={column} label="Status" />,
   },
   //   {
   //     accessorKey: "viewCount",
@@ -85,21 +117,6 @@ export const columns: ColumnDef<Article>[] = [
       const formatted = formatDate(date);
 
       return <div>{formatted}</div>;
-    },
-  },
-  {
-    accessorKey: "deleted",
-    header: ({ column }) => <SortableHeader column={column} label="Status" />,
-    cell: ({ row }) => {
-      const article = row.original;
-      if (article.deleted) {
-        const date = String(article.deletedAt);
-        const formatted = formatDate(date);
-
-        return <div>Deleted at {formatted}</div>;
-      } else {
-        return <div>Active</div>;
-      }
     },
   },
   {

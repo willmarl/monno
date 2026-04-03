@@ -2514,7 +2514,7 @@ ex: POST `http://localhost:3000/admin/articles/<id>/restore`
 Add to dto folder `search-{{resource}}.dto.ts`. The code at beginning of file applies regardless if using offset or cursor pagination. Should adjust `{{resource}}SearchFields` object to match fields that you want to query in.
 
 ```ts
-import { IsOptional, IsString, IsBoolean, IsIn } from 'class-validator';
+import { IsOptional, IsString, IsBoolean, IsIn, IsEnum } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
@@ -2538,6 +2538,12 @@ export enum {{resource}}SearchFields {
   CREATOR_USERNAME = 'creator.username',
 }
 
+export enum {{resource}}Availability {
+  ALL = 'ALL',
+  ACTIVE = 'ACTIVE',
+  DELETED = 'DELETED',
+}
+
 const VALID_{{resource}}_SEARCH_FIELDS = Object.values({{resource}}SearchFields);
 
 function {{resource}}SearchMixin<TBase extends new (...args: any[]) => {}>(
@@ -2558,7 +2564,7 @@ export class {{resource}}SearchCursorDto extends {{resource}}SearchMixin(
 example:
 
 ```ts
-import { IsOptional, IsString, IsBoolean, IsIn } from "class-validator";
+import { IsOptional, IsString, IsBoolean, IsIn, IsEnum } from "class-validator";
 import { Transform } from "class-transformer";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { PaginationDto } from "src/common/pagination/dto/pagination.dto";
@@ -2580,6 +2586,12 @@ export enum ArticleSearchFields {
   TITLE = "title",
   CONTENT = "content",
   CREATOR_USERNAME = "creator.username",
+}
+
+export enum ArticleAvailability {
+  ALL = 'ALL',
+  ACTIVE = 'ACTIVE',
+  DELETED = 'DELETED',
 }
 
 const VALID_ARTICLE_SEARCH_FIELDS = Object.values(ArticleSearchFields);
@@ -2681,13 +2693,13 @@ class Mixed extends Base {
 
   @ApiPropertyOptional({
     description:
-      'Filter by deleted status. If not provided, shows both deleted and active posts.',
-    example: false,
+      'Filter by availability. ALL shows both active and deleted, ACTIVE shows only active, DELETED shows only deleted. Defaults to ALL.',
+    enum: {{resource}}Availability,
+    example: {{resource}}Availability.ALL,
   })
   @IsOptional()
-  @TransformBoolean()
-  @IsBoolean()
-  deleted?: boolean;
+  @IsEnum({{resource}}Availability)
+  availability?: {{resource}}Availability;
 
   @ApiPropertyOptional({
     description:
@@ -2803,13 +2815,13 @@ class Mixed extends Base {
 
   @ApiPropertyOptional({
     description:
-      "Filter by deleted status. If not provided, shows both deleted and active posts.",
-    example: false,
+      "Filter by availability. ALL shows both active and deleted, ACTIVE shows only active, DELETED shows only deleted. Defaults to ALL.",
+    enum: ArticleAvailability,
+    example: ArticleAvailability.ALL,
   })
   @IsOptional()
-  @TransformBoolean()
-  @IsBoolean()
-  deleted?: boolean;
+  @IsEnum(ArticleAvailability)
+  availability?: ArticleAvailability;
 
   @ApiPropertyOptional({
     description:
@@ -2891,49 +2903,58 @@ class Mixed extends Base {
 import { {{resource}}SearchDto } from './dto/search-{{resource}}.dto';
 
 async searchAll(searchDto: {{resource}}SearchDto, currentUserId?: number) {
-  const searchFields = searchDto.getSearchFields();
-  const searchOptions = searchDto.getSearchOptions();
-  const orderBy = searchDto.getOrderBy();
-  const statuses = searchDto.getStatuses();
+    const searchFields = searchDto.getSearchFields();
+    const searchOptions = searchDto.getSearchOptions();
+    const orderBy = searchDto.getOrderBy();
+    const statuses = searchDto.getStatuses();
 
-  const where = buildSearchWhere({
-    query: searchDto.query ?? '',
-    fields: searchFields,
-    options: searchOptions,
-  });
+    const textSearchWhere = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    });
 
-  const whereWithFilters = {
-    ...where,
-    deleted: false,
-    creator: { ...(where.creator ?? {}), status: 'ACTIVE' },
-    ...(statuses.length > 0 && { status: { in: statuses } }),
-  };
+    // Build filter conditions
+    const filterConditions: any[] = [
+      { deleted: false },
+      { creator: { status: 'ACTIVE' } },
+    ];
 
-  const { items, pageInfo, isRedirected } = await offsetPaginate({
-    model: this.prisma.{{resource}},
-    limit: searchDto.limit ?? 10,
-    offset: searchDto.offset ?? 0,
-    query: {
-      where: whereWithFilters,
-      orderBy,
-      select: DEFAULT_{{resource}}_SELECT,
-    },
-    countQuery: { where: whereWithFilters },
-  });
+    if (statuses.length > 0) {
+      filterConditions.push({ status: { in: statuses } });
+    }
 
-  const enhancedItems = await enhanceWithLikes(
-    this.prisma,
-    '{{resource}}',
-    items,
-    currentUserId,
-  );
+    // Combine text search and filters
+    const where = {
+      ...(Object.keys(textSearchWhere).length > 0 && textSearchWhere),
+      AND: filterConditions,
+    };
 
-  return {
-    items: enhancedItems,
-    pageInfo,
-    ...(isRedirected && { isRedirected: true }),
-  };
-}
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
+      model: this.prisma.{{resource}},
+      limit: searchDto.limit ?? 10,
+      offset: searchDto.offset ?? 0,
+      query: {
+        where,
+        orderBy,
+        select: DEFAULT_{{resource}}_SELECT,
+      },
+      countQuery: { where },
+    });
+
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      '{{resource}}',
+      items,
+      currentUserId,
+    );
+
+    return {
+      items: enhancedItems,
+      pageInfo,
+      ...(isRedirected && { isRedirected: true }),
+    };
+  }
 ```
 
 example:
@@ -2947,17 +2968,26 @@ async searchAll(searchDto: ArticleSearchDto, currentUserId?: number) {
   const orderBy = searchDto.getOrderBy();
   const statuses = searchDto.getStatuses();
 
-  const where = buildSearchWhere({
+  const textSearchWhere = buildSearchWhere({
     query: searchDto.query ?? '',
     fields: searchFields,
     options: searchOptions,
   });
 
-  const whereWithFilters = {
-    ...where,
-    deleted: false,
-    creator: { ...(where.creator ?? {}), status: 'ACTIVE' },
-    ...(statuses.length > 0 && { status: { in: statuses } }),
+  // Build filter conditions
+  const filterConditions: any[] = [
+    { deleted: false },
+    { creator: { status: 'ACTIVE' } },
+  ];
+
+  if (statuses.length > 0) {
+    filterConditions.push({ status: { in: statuses } });
+  }
+
+  // Combine text search and filters
+  const where = {
+    ...(Object.keys(textSearchWhere).length > 0 && textSearchWhere),
+    AND: filterConditions,
   };
 
   const { items, pageInfo, isRedirected } = await offsetPaginate({
@@ -2965,11 +2995,11 @@ async searchAll(searchDto: ArticleSearchDto, currentUserId?: number) {
     limit: searchDto.limit ?? 10,
     offset: searchDto.offset ?? 0,
     query: {
-      where: whereWithFilters,
+      where,
       orderBy,
       select: DEFAULT_ARTICLE_SELECT,
     },
-    countQuery: { where: whereWithFilters },
+    countQuery: { where },
   });
 
   const enhancedItems = await enhanceWithLikes(
@@ -3028,7 +3058,7 @@ search(@Query() searchDto: ArticleSearchDto) {
 > ⚠️ SKIP THIS STEP unless human explicitly requested admin.
 
 ```ts
-import { {{resource}}SearchDto } from '../{{resource}}/dto/search-{{resource}}.dto';
+import { {{resource}}SearchDto, {{resource}}Availability } from '../{{resource}}/dto/search-{{resource}}.dto';
 
 async searchAll(searchDto: {{resource}}SearchDto) {
   const searchFields = searchDto.getSearchFields();
@@ -3036,13 +3066,30 @@ async searchAll(searchDto: {{resource}}SearchDto) {
   const orderBy = searchDto.getOrderBy();
   const statuses = searchDto.getStatuses();
 
+  const textSearchWhere = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  // Build filter conditions
+  const filterConditions: any[] = [];
+
+  if (statuses.length > 0) {
+    filterConditions.push({ status: { in: statuses } });
+  }
+
+  if (searchDto.availability === {{resource}}Availability.ACTIVE) {
+    filterConditions.push({ deleted: false });
+  } else if (searchDto.availability === {{resource}}Availability.DELETED) {
+    filterConditions.push({ deleted: true });
+  }
+  // {{resource}}Availability.ALL or undefined: no filter, show everything
+
+  // Combine text search and filters
   const where = {
-    ...buildSearchWhere({
-      query: searchDto.query ?? '',
-      fields: searchFields,
-      options: searchOptions,
-    }),
-    ...(statuses.length > 0 && { status: { in: statuses } }),
+    ...(Object.keys(textSearchWhere).length > 0 && textSearchWhere),
+    ...(filterConditions.length > 0 && { AND: filterConditions }),
   };
 
   const { items, pageInfo, isRedirected } = await offsetPaginate({
@@ -3068,7 +3115,7 @@ async searchAll(searchDto: {{resource}}SearchDto) {
 example:
 
 ```ts
-import { ArticleSearchDto } from '../articles/dto/search-article.dto';
+import { ArticleSearchDto, ArticleAvailability, } from '../articles/dto/search-article.dto';
 
 async searchAll(searchDto: ArticleSearchDto) {
   const searchFields = searchDto.getSearchFields();
@@ -3076,13 +3123,30 @@ async searchAll(searchDto: ArticleSearchDto) {
   const orderBy = searchDto.getOrderBy();
   const statuses = searchDto.getStatuses();
 
+  const textSearchWhere = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  // Build filter conditions
+  const filterConditions: any[] = [];
+
+  if (statuses.length > 0) {
+    filterConditions.push({ status: { in: statuses } });
+  }
+
+  if (searchDto.availability === ArticleAvailability.ACTIVE) {
+    filterConditions.push({ deleted: false });
+  } else if (searchDto.availability === ArticleAvailability.DELETED) {
+    filterConditions.push({ deleted: true });
+  }
+  // ArticleAvailability.ALL or undefined: no filter, show everything
+
+  // Combine text search and filters
   const where = {
-    ...buildSearchWhere({
-      query: searchDto.query ?? '',
-      fields: searchFields,
-      options: searchOptions,
-    }),
-    ...(statuses.length > 0 && { status: { in: statuses } }),
+    ...(Object.keys(textSearchWhere).length > 0 && textSearchWhere),
+    ...(filterConditions.length > 0 && { AND: filterConditions }),
   };
 
   const { items, pageInfo, isRedirected } = await offsetPaginate({
@@ -3150,19 +3214,35 @@ search(@Query() searchDto: ArticleSearchDto) {
 ```ts
 import { {{resource}}SearchCursorDto } from './dto/search-{{resource}}.dto';
 
-async searchAllCursor(searchDto: {{resource}}SearchCursorDto) {
+async searchAllCursor(
+  searchDto: {{resource}}SearchCursorDto,
+  currentUserId?: number,
+) {
   const searchFields = searchDto.getSearchFields();
   const searchOptions = searchDto.getSearchOptions();
   const orderBy = searchDto.getOrderBy();
   const statuses = searchDto.getStatuses();
 
+  const textSearchWhere = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  // Build filter conditions
+  const filterConditions: any[] = [
+    { deleted: false },
+    { creator: { status: 'ACTIVE' } },
+  ];
+
+  if (statuses.length > 0) {
+    filterConditions.push({ status: { in: statuses } });
+  }
+
+  // Combine text search and filters
   const where = {
-    ...buildSearchWhere({
-      query: searchDto.query ?? '',
-      fields: searchFields,
-      options: searchOptions,
-    }),
-    ...(statuses.length > 0 && { status: { in: statuses } }),
+    ...(Object.keys(textSearchWhere).length > 0 && textSearchWhere),
+    AND: filterConditions,
   };
 
   const { cursor, limit } = searchDto;
@@ -3178,8 +3258,15 @@ async searchAllCursor(searchDto: {{resource}}SearchCursorDto) {
     },
   });
 
-  return {
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    '{{resource}}',
     items,
+    currentUserId,
+  );
+
+  return {
+    items: enhancedItems,
     nextCursor,
   };
 }
@@ -3190,19 +3277,35 @@ example :
 ```ts
 import { ArticleSearchCursorDto } from './dto/search-article.dto';
 
-async searchAllCursor(searchDto: ArticleSearchCursorDto) {
+async searchAllCursor(
+  searchDto: ArticleSearchCursorDto,
+  currentUserId?: number,
+) {
   const searchFields = searchDto.getSearchFields();
   const searchOptions = searchDto.getSearchOptions();
   const orderBy = searchDto.getOrderBy();
   const statuses = searchDto.getStatuses();
 
+  const textSearchWhere = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  // Build filter conditions
+  const filterConditions: any[] = [
+    { deleted: false },
+    { creator: { status: 'ACTIVE' } },
+  ];
+
+  if (statuses.length > 0) {
+    filterConditions.push({ status: { in: statuses } });
+  }
+
+  // Combine text search and filters
   const where = {
-    ...buildSearchWhere({
-      query: searchDto.query ?? '',
-      fields: searchFields,
-      options: searchOptions,
-    }),
-    ...(statuses.length > 0 && { status: { in: statuses } }),
+    ...(Object.keys(textSearchWhere).length > 0 && textSearchWhere),
+    AND: filterConditions,
   };
 
   const { cursor, limit } = searchDto;
@@ -3218,8 +3321,15 @@ async searchAllCursor(searchDto: ArticleSearchCursorDto) {
     },
   });
 
-  return {
+  const enhancedItems = await enhanceWithLikes(
+    this.prisma,
+    'ARTICLE',
     items,
+    currentUserId,
+  );
+
+  return {
+    items: enhancedItems,
     nextCursor,
   };
 }
@@ -3270,7 +3380,7 @@ searchCursor(@Query() searchDto: ArticleSearchCursorDto) {
 > ⚠️ SKIP THIS STEP unless human explicitly requested cursor pagination AND admin.
 
 ```ts
-import { {{resource}}SearchCursorDto } from '../{{resource}}/dto/search-{{resource}}.dto';
+import { {{resource}}SearchCursorDto, {{resource}}Availability } from '../{{resource}}/dto/search-{{resource}}.dto';
 
 async searchAllCursor(searchDto: {{resource}}SearchCursorDto) {
   const searchFields = searchDto.getSearchFields();
@@ -3278,13 +3388,30 @@ async searchAllCursor(searchDto: {{resource}}SearchCursorDto) {
   const orderBy = searchDto.getOrderBy();
   const statuses = searchDto.getStatuses();
 
+  const textSearchWhere = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  // Build filter conditions
+  const filterConditions: any[] = [];
+
+  if (statuses.length > 0) {
+    filterConditions.push({ status: { in: statuses } });
+  }
+
+  if (searchDto.availability === {{resource}}Availability.ACTIVE) {
+    filterConditions.push({ deleted: false });
+  } else if (searchDto.availability === {{resource}}Availability.DELETED) {
+    filterConditions.push({ deleted: true });
+  }
+  // {{resource}}Availability.ALL or undefined: no filter, show everything
+
+  // Combine text search and filters
   const where = {
-    ...buildSearchWhere({
-      query: searchDto.query ?? '',
-      fields: searchFields,
-      options: searchOptions,
-    }),
-    ...(statuses.length > 0 && { status: { in: statuses } }),
+    ...(Object.keys(textSearchWhere).length > 0 && textSearchWhere),
+    ...(filterConditions.length > 0 && { AND: filterConditions }),
   };
 
   const { cursor, limit } = searchDto;
@@ -3310,7 +3437,7 @@ async searchAllCursor(searchDto: {{resource}}SearchCursorDto) {
 example :
 
 ```ts
-import { ArticleSearchCursorDto } from '../articles/dto/search-article.dto';
+import { ArticleSearchCursorDto, ArticleAvailability } from '../articles/dto/search-article.dto';
 
 async searchAllCursor(searchDto: ArticleSearchCursorDto) {
   const searchFields = searchDto.getSearchFields();
@@ -3318,13 +3445,30 @@ async searchAllCursor(searchDto: ArticleSearchCursorDto) {
   const orderBy = searchDto.getOrderBy();
   const statuses = searchDto.getStatuses();
 
+  const textSearchWhere = buildSearchWhere({
+    query: searchDto.query ?? '',
+    fields: searchFields,
+    options: searchOptions,
+  });
+
+  // Build filter conditions
+  const filterConditions: any[] = [];
+
+  if (statuses.length > 0) {
+    filterConditions.push({ status: { in: statuses } });
+  }
+
+  if (searchDto.availability === ArticleAvailability.ACTIVE) {
+    filterConditions.push({ deleted: false });
+  } else if (searchDto.availability === ArticleAvailability.DELETED) {
+    filterConditions.push({ deleted: true });
+  }
+  // ArticleAvailability.ALL or undefined: no filter, show everything
+
+  // Combine text search and filters
   const where = {
-    ...buildSearchWhere({
-      query: searchDto.query ?? '',
-      fields: searchFields,
-      options: searchOptions,
-    }),
-    ...(statuses.length > 0 && { status: { in: statuses } }),
+    ...(Object.keys(textSearchWhere).length > 0 && textSearchWhere),
+    ...(filterConditions.length > 0 && { AND: filterConditions }),
   };
 
   const { cursor, limit } = searchDto;
@@ -3416,10 +3560,11 @@ to clarify, this is multi-select enum, can do search of "DRAFT,PUBLISHED" and wi
 - `statuses:DRAFT`
 - `statuses:DRAFT,PUBLISHED`
 
-**deleted** : boolean
-toggle on to only filter comments that are deleted
+**availability** : string
+filter based of status. enum of: "DELETED","ACTIVE","ALL"
+to clarify, this is single-select enum.
 
-- `deleted=true`
+- `availability=DELETED`
 
 **sort**: string
 enum of createdAt, updatedAt
@@ -3479,6 +3624,15 @@ async searchSuggest(q: string, limit: number) {
 @Get('search/suggest')
   searchSuggest(@Query('q') q: string, @Query('limit') limit = 5) {
     return this.articlesService.searchSuggest(q, Number(limit));
+  }
+```
+
+example:
+
+```ts
+@Get('search/suggest')
+  searchSuggest(@Query('q') q: string, @Query('limit') limit = 5) {
+    return this.{{resource}}Service.searchSuggest(q, Number(limit));
   }
 ```
 
@@ -7280,6 +7434,11 @@ export function UserProfileContent({ user, isOwner }: UserProfileContentProps) {
 import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -7305,6 +7464,29 @@ export const columns: ColumnDef<Article>[] = [
   {
     accessorKey: "id",
     header: ({ column }) => <SortableHeader column={column} label="ID" />,
+    cell: ({ row }) => {
+      const article = row.original;
+      const id = String(row.getValue("id"));
+
+      if (article.deleted) {
+        const date = String(article.deletedAt);
+        const formatted = formatDate(date);
+
+        return (
+          <div className="flex items-center gap-2">
+            <span>{id}</span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Trash2 className="h-4 w-4 text-muted-foreground opacity-60 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent>Deleted at {formatted}</TooltipContent>
+            </Tooltip>
+          </div>
+        );
+      }
+
+      return <div>{id}</div>;
+    },
   },
   {
     accessorKey: "title",
@@ -7325,6 +7507,10 @@ export const columns: ColumnDef<Article>[] = [
         title="Content"
       />
     ),
+  },
+  {
+    accessorKey: "status",
+    header: ({ column }) => <SortableHeader column={column} label="Status" />,
   },
   {
     accessorKey: "creator.username",
@@ -7525,6 +7711,11 @@ export function AdminArticlePage() {
 
 ```tsx
 import { AdminArticlePage } from "@/components/pages/admin/articles/AdminArticlePage";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Articles",
+};
 
 export default function page() {
   return <AdminArticlePage />;
@@ -7754,6 +7945,105 @@ export function useArticleSuggestions(q: string, limit: number = 5) {
 }
 ```
 
+### step 8 update admin api.ts to query search endpoint (offset)
+
+```ts
+// GET /admin/articles?query=world&limit=5&offset=10
+export const searchAdminArticlesOffset = ({
+  query,
+  limit = 10,
+  offset = 0,
+  searchFields,
+  sort,
+  caseSensitive,
+  statuses,
+  availability,
+}: {
+  query?: string;
+  limit?: number;
+  offset?: number;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+  statuses?: string;
+  availability?: string;
+} = {}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (query) searchParams.query = query;
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+  if (statuses) searchParams.statuses = statuses;
+  if (availability) searchParams.availability = availability;
+
+  return fetcher<ArticlesList>("/admin/articles", {
+    searchParams,
+  });
+};
+```
+
+### step 9 import search to admin hooks.ts
+
+```ts
+import {
+  ...
+  searchAdminArticlesOffset,
+} from "./api";
+
+// commented out as its redundant now. replaced by search
+// export function useAdminArticlesOffset(page: number, limit: number) {
+//   const offset = (page - 1) * limit;
+
+//   return useQuery({
+//     queryKey: ["admin-articles", page],
+//     queryFn: () => fetchAdminArticlesOffset({ limit, offset }),
+//   });
+// }
+
+export function useAdminArticlesOffset(
+  page: number = 1,
+  limit: number = 10,
+  query?: string,
+  options?: {
+    searchFields?: string;
+    sort?: string;
+    caseSensitive?: boolean;
+    statuses?: string;
+    availability?: string;
+    [key: string]: any;
+  },
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: [
+      "admin-articles",
+      page,
+      query,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+      options?.statuses,
+      options?.availability,
+    ],
+    queryFn: () =>
+      searchAdminArticlesOffset({
+        query,
+        limit,
+        offset,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+        statuses: options?.statuses,
+        availability: options?.availability,
+      }),
+  });
+}
+```
+
 ## search bar component
 
 ### step 1 make search config
@@ -7860,7 +8150,7 @@ export const articleSearchSorts: SearchSortOption[] = [
 
 ### step 2 add search params type to `search-params.ts`
 
-update `src/types/search-params.ts to have new resource search param variant
+update `src/types/search-params.ts` to have new resource search param variant
 
 ```ts
 export interface PublicArticleSearchParams extends SearchParams {
@@ -7874,7 +8164,94 @@ if you dont have advance searches like toggle or enum, then it can simply just b
 export interface PublicArticleSearchParams extends SearchParams {}
 ```
 
-### step 3 make search bar component
+### step 3 make admin variant of search config
+
+`features/admin/articles/types/search-config.ts`
+
+```ts
+import type {
+  SearchFieldOption,
+  SearchFilterOption,
+  SearchSortOption,
+} from "@/features/search/types";
+
+export const adminArticleSearchFilters: SearchFilterOption[] = [
+  {
+    type: "checkbox",
+    name: "searchFields",
+    label: "Search In",
+    options: [
+      { value: "title", label: "Title" },
+      { value: "content", label: "Content" },
+      { value: "creator.username", label: "Creator" },
+    ],
+  },
+  {
+    // filter if you want multi select enum
+    type: "checkbox",
+    name: "statuses",
+    label: "Status",
+    options: [
+      { value: "DRAFT", label: "Draft" },
+      { value: "PUBLISHED", label: "Published" },
+      { value: "ARCHIVED", label: "Archived" },
+      { value: "SCHEDULED", label: "Scheduled" },
+    ],
+  },
+  // Alternative filter if you want single select enum
+  // {
+  //   type: "radio-combobox",
+  //   name: "statuses",
+  //   label: "Filter by status",
+  //   options: [
+  //     { value: "DRAFT", label: "Draft" },
+  //     { value: "PUBLISHED", label: "Published" },
+  //     { value: "ARCHIVED", label: "Archived" },
+  //     { value: "SCHEDULED", label: "Scheduled" },
+  //   ],
+  // },
+  {
+    type: "toggle",
+    name: "caseSensitive",
+    label: "Case Sensitive",
+  },
+  {
+    type: "toggle",
+    name: "deleted",
+    label: "Deleted",
+  },
+  {
+    type: "radio-combobox",
+    name: "availability",
+    label: "Filter By Availability",
+    options: [
+      { value: "ALL", label: "All" },
+      { value: "ACTIVE", label: "Active" },
+      { value: "DELETED", label: "DELETED" },
+    ],
+  },
+];
+
+export const adminArticleSearchSorts: SearchSortOption[] = [
+  { value: "createdAt|desc", label: "Most Recent" },
+  { value: "createdAt|asc", label: "Oldest" },
+  { value: "updatedAt|desc", label: "Recently Updated" },
+  { value: "updatedAt|asc", label: "Least Recently Updated" },
+];
+```
+
+### step 4 add admin search params type to `search-params.ts`
+
+`src/types/search-params.ts`
+
+```ts
+export interface AdminArticleSearchParams extends SearchParams {
+  status?: string;
+  deleted?: string;
+}
+```
+
+### step 5 make search bar component
 
 heads up that `basePath` is where to redirect URL (AKA search results page). in my example im making `/article` my frontend URL for normal lookup as well as search results page. figured i'd tell you about this in case you want a dedicated search results page like `/article/search-results`
 
@@ -7922,6 +8299,42 @@ export function ArticleSearchBar() {
       <SearchFilterDropdown
         filters={articleSearchFilters}
         sorts={articleSearchSorts}
+        basePath={basePath}
+      />
+    </div>
+  );
+}
+```
+
+### step 6 make admin search bar component
+
+`features/articles/components/ArticleSearchBar.tsx`
+
+```tsx
+"use client";
+
+import { SearchBar } from "@/features/search/components/SearchBar";
+import { SearchFilterDropdown } from "@/features/search/components/SearchFilterDropdown";
+import {
+  adminArticleSearchFilters,
+  adminArticleSearchSorts,
+} from "@/features/admin/articles/types/search-config";
+import { Article } from "../types/article";
+
+const basePath = "/admin/articles";
+
+export function AdminArticleSearchBar() {
+  return (
+    <div className="flex gap-2">
+      <SearchBar<Article>
+        placeholder="Search articles..."
+        queryParam="q"
+        basePath={basePath}
+      />
+
+      <SearchFilterDropdown
+        filters={adminArticleSearchFilters}
+        sorts={adminArticleSearchSorts}
         basePath={basePath}
       />
     </div>
@@ -8279,5 +8692,113 @@ export function CursorInfiniteArticles({
       <ArticlesListContent searchParams={searchParams} />
     </Suspense>
   );
+}
+```
+
+## update admin dashboard related files to have search params prop
+
+### step 1 update data table to have search params
+
+`components/pages/admin/articles/ArticleDataTable.tsx`
+
+```tsx
+"use client";
+
+import { columns } from "./columns";
+import { DataTable } from "@/components/ui/data-table";
+import { OffsetPagination } from "@/components/ui/pagination/OffsetPagination";
+import { useAdminArticlesOffset } from "@/features/admin/articles/hooks";
+import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
+import { AdminArticleSearchParams } from "@/types/search-params";
+
+const DEFAULT_LIMIT = 10;
+
+interface articleDataTableProps {
+  searchParams?: AdminArticleSearchParams;
+}
+
+export function ArticleDataTable({ searchParams }: articleDataTableProps) {
+  const {
+    items: articles,
+    totalItems,
+    isLoading,
+    page,
+    emptyMessage,
+    queryParams,
+  } = usePaginatedSearch({
+    searchParams,
+    hook: useAdminArticlesOffset,
+    limit: DEFAULT_LIMIT,
+    getEmptyMessage: (query) =>
+      query
+        ? `No articles found matching "${query}". Try a different search term.`
+        : "No articles available.",
+  });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+    // replace me with skeleton later
+  }
+
+  return (
+    <div className="container mx-auto py-10">
+      <DataTable columns={columns} data={articles} />
+      <div className="mt-4">
+        <OffsetPagination
+          url="admin/articles"
+          page={page}
+          limit={DEFAULT_LIMIT}
+          queryParams={queryParams}
+          totalItems={totalItems}
+        />
+      </div>
+    </div>
+  );
+}
+```
+
+### step 2 update component page to take search params and add admin search bar
+
+`components/pages/admin/articles/AdminArticlePage.tsx`
+
+```tsx
+import { AdminArticleSearchBar } from "@/features/admin/articles/components/AdminArticleSearchBar";
+import { ArticleDataTable } from "./ArticleDataTable";
+import { AdminArticleSearchParams } from "@/types/search-params";
+
+interface AdminArticlePageProps {
+  searchParams?: AdminArticleSearchParams;
+}
+
+export function AdminArticlePage({ searchParams }: AdminArticlePageProps) {
+  return (
+    <div className="container mx-auto py-10 flex flex-col gap-4">
+      <AdminArticleSearchBar />
+      <ArticleDataTable searchParams={searchParams} />
+    </div>
+  );
+}
+```
+
+### step 3 update admin page.tsx to have read params
+
+`src/app/(admin)/articles/page.tsx`
+
+```tsx
+import { AdminArticleSearchParams } from "@/types/search-params";
+import { AdminArticlePage } from "@/components/pages/admin/articles/AdminArticlePage";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Articles",
+};
+
+export default async function page({
+  searchParams,
+}: {
+  searchParams: Promise<AdminArticleSearchParams>;
+}) {
+  const params = await searchParams;
+  return <AdminArticlePage searchParams={params} />;
 }
 ```
