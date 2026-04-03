@@ -15,12 +15,13 @@ export const adminCommentSearchFilters: SearchFilterOption[] = [
     ],
   },
   {
-    type: "radio",
+    type: "radio-combobox",
     name: "resourceType",
     label: "Filter by resource",
     options: [
       { value: "POST", label: "Post" },
       { value: "COMMENT", label: "Comment" },
+      { value: "ARTICLE", label: "Article" },
       // { value: "VIDEO", label: "Video" },
     ],
   },

@@ -9366,3 +9366,127 @@ export const columns: ColumnDef<Article>[] = [
   },
 ];
 ```
+
+## adding comment
+
+### step 1 add comments component to ArticleDetail.tsx
+
+```tsx
+import { Suspense } from "react";
+import { InlineNewCommentForm } from "@/features/comments/components/InlineNewCommentForm";
+import { CommentPagInline } from "@/features/comments/components/CommnetPagInline";
+import { toast } from "sonner";
+...
+<div className="bg-card rounded-lg p-4">
+  <h3 className="font-semibold mb-4">Comments</h3>
+  <InlineNewCommentForm
+    resourceType="ARTICLE"
+    resourceId={data.id}
+    onSuccess={() => {
+      toast.success("Comment articleed!");
+    }}
+    isAlwaysOpen={true}
+    user={user}
+  />
+  <div className="mt-10">
+    <Suspense>
+      <CommentPagInline resourceType="ARTICLE" resourceId={data?.id} />
+    </Suspense>
+  </div>
+</div>
+```
+
+complete example:
+
+```tsx
+"use client";
+
+import { Article } from "@/components/ui/Article";
+import { useArticleById } from "@/features/articles/hooks";
+import { useParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
+import { PageNotFound } from "@/components/common/PageNotFound";
+import { PageLoadingState } from "@/components/common/PageLoadingState";
+import { User } from "@/features/users/types/user";
+import { useRecordView } from "@/features/views/hook";
+import { InlineNewCommentForm } from "@/features/comments/components/InlineNewCommentForm";
+import { CommentPagInline } from "@/features/comments/components/CommnetPagInline";
+import { toast } from "sonner";
+// import { useSessionUser } from "@/features/auth/hooks";
+
+export function ArticleDetail({ user }: { user: User | undefined }) {
+  const params = useParams();
+  const articleId = Number(params.id);
+  const { data, isLoading, error } = useArticleById(articleId);
+  const { mutate: recordView } = useRecordView();
+  const isOwner = data?.creator.id === user?.id;
+
+  useEffect(() => {
+    document.title = `${data?.title} | ${process.env.NEXT_PUBLIC_APP_NAME}`;
+  }, [data?.title]);
+
+  // Record view when article loads
+  useEffect(() => {
+    if (data?.id) {
+      recordView({
+        resourceType: "ARTICLE",
+        resourceId: data.id,
+      });
+    }
+  }, [data?.id, recordView]);
+
+  if (isLoading) {
+    return <PageLoadingState variant="card" />;
+  }
+
+  if (error || !data) {
+    return <PageNotFound title="Article Not Found" />;
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      <Article
+        data={data}
+        isOwner={isOwner}
+        truncateTitle={false}
+        truncateContent={false}
+      />
+      <div className="bg-card rounded-lg p-4">
+        <h3 className="font-semibold mb-4">Comments</h3>
+        <InlineNewCommentForm
+          resourceType="ARTICLE"
+          resourceId={data.id}
+          onSuccess={() => {
+            toast.success("Comment articleed!");
+          }}
+          isAlwaysOpen={true}
+          user={user}
+        />
+        <div className="mt-10">
+          <Suspense>
+            <CommentPagInline resourceType="ARTICLE" resourceId={data?.id} />
+          </Suspense>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+### step 2 update admin comments dashboard to include article comments
+
+`features/admin/comments/types/search-config.ts`
+
+```ts
+{
+  type: "radio-combobox",
+  name: "resourceType",
+  label: "Filter by resource",
+  options: [
+    { value: "POST", label: "Post" },
+    { value: "COMMENT", label: "Comment" },
+    { value: "ARTICLE", label: "Article" },
+    // { value: "VIDEO", label: "Video" },
+  ],
+},
+```

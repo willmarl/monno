@@ -3,16 +3,15 @@
 import { Article } from "@/components/ui/Article";
 import { useArticleById } from "@/features/articles/hooks";
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { PageNotFound } from "@/components/common/PageNotFound";
 import { PageLoadingState } from "@/components/common/PageLoadingState";
 import { User } from "@/features/users/types/user";
 import { useRecordView } from "@/features/views/hook";
-// import { InlineNewCommentForm } from "@/features/comments/components/InlineNewCommentForm";
-// import { CommentPagInline } from "@/components/pages/article/CommnetPagInline";
-// import { Suspense } from "react";
+import { InlineNewCommentForm } from "@/features/comments/components/InlineNewCommentForm";
+import { CommentPagInline } from "@/features/comments/components/CommnetPagInline";
+import { toast } from "sonner";
 // import { useSessionUser } from "@/features/auth/hooks";
-// import { toast } from "sonner";
 
 export function ArticleDetail({ user }: { user: User | undefined }) {
   const params = useParams();
@@ -51,7 +50,7 @@ export function ArticleDetail({ user }: { user: User | undefined }) {
         truncateTitle={false}
         truncateContent={false}
       />
-      {/* <div className="bg-card rounded-lg p-4">
+      <div className="bg-card rounded-lg p-4">
         <h3 className="font-semibold mb-4">Comments</h3>
         <InlineNewCommentForm
           resourceType="ARTICLE"
@@ -67,7 +66,7 @@ export function ArticleDetail({ user }: { user: User | undefined }) {
             <CommentPagInline resourceType="ARTICLE" resourceId={data?.id} />
           </Suspense>
         </div>
-      </div> */}
+      </div>
     </div>
   );
 }
