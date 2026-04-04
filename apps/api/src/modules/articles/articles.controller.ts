@@ -128,6 +128,13 @@ export class ArticlesController {
     );
   }
 
+  @UseGuards(JwtAccessGuard)
+  @Get(':id/collections')
+  getArticleCollections(@Param('id', ParseIntPipe) id: number, @Req() req) {
+    const userId = req.user.sub;
+    return this.articlesService.getCollectionsForArticle(id, userId);
+  }
+
   @UseGuards(JwtAccessOptionalGuard)
   @Get(':id')
   findById(@Param('id', ParseIntPipe) id: number, @Req() req) {

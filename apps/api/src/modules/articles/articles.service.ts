@@ -516,4 +516,27 @@ export class ArticlesService {
       take: limit,
     });
   }
+
+  async getCollectionsForArticle(id: number, userId: number) {
+    const collections = await this.prisma.collectionItem.findMany({
+      where: {
+        resourceType: 'ARTICLE',
+        resourceId: id,
+        deleted: false,
+        collection: {
+          deleted: false,
+        },
+      },
+      select: {
+        collection: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return collections.map((item) => item.collection);
+  }
 }
