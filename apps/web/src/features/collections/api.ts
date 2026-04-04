@@ -64,9 +64,14 @@ export const removeCollectionItem = (id: number, data: CollectionItemInput) =>
     json: data,
   });
 
-// get collections containing a specific post
-export const fetchCollectionsForPost = (postId: number) =>
-  fetcher<CollectionRef[]>(`/posts/${postId}/collections`);
+// get collections containing a specific resource (generic)
+export const fetchCollectionsForResource = (
+  resourceType: string,
+  resourceId: number,
+) =>
+  fetcher<CollectionRef[]>(
+    `/${resourceType.toLowerCase()}s/${resourceId}/collections`,
+  );
 
 //==============
 //   Admin

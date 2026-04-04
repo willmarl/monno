@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/components/providers/ModalProvider";
-import { RESOURCE_TYPES } from "@/types/resource";
+import { ResourceType } from "@/types/resource";
 import { InlineNewCollectionForm } from "@/features/collections/components/InlineNewCollectionForm";
 import { toast } from "sonner";
 import { Separator } from "../ui/separator";
@@ -11,7 +11,7 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { PaginatedListInline } from "@/components/ui/pagination/PaginatedListInline";
 import {
   useCollectionsByUserId,
-  useCollectionsForPost,
+  useCollectionsForResource,
 } from "@/features/collections/hooks";
 import { useSessionUser } from "@/features/auth/hooks";
 import { useState, useEffect } from "react";
@@ -21,13 +21,15 @@ import {
 } from "@/features/collections/hooks";
 
 interface ModifyCollectionItemModalProps {
-  postId: number;
+  resourceId: number;
+  resourceType: ResourceType;
 }
 
 const LIMIT = 10;
 
 export function ModifyCollectionItemModal({
-  postId,
+  resourceId,
+  resourceType,
 }: ModifyCollectionItemModalProps) {
   const { closeModal } = useModal();
   const { data: user } = useSessionUser();
@@ -37,7 +39,10 @@ export function ModifyCollectionItemModal({
     page,
     LIMIT,
   );
-  const { data: collectionsWithPost } = useCollectionsForPost(postId);
+  const { data: collectionsWithPost } = useCollectionsForResource(
+    resourceType,
+    resourceId,
+  );
   const addItem = useAddCollectionItem();
   const removeItem = useRemoveCollectionItem();
   const [checkedCollections, setCheckedCollections] = useState<Set<number>>(
@@ -53,21 +58,23 @@ export function ModifyCollectionItemModal({
 
   const handleCollectionToggle = (collectionId: number, checked: boolean) => {
     const newChecked = new Set(checkedCollections);
+    const collectionName =
+      collections.find((c) => c.id === collectionId)?.name ?? "collection";
 
     if (checked) {
       newChecked.add(collectionId);
       addItem.mutate(
         {
           collectionId,
-          data: { resourceType: RESOURCE_TYPES.POST, resourceId: postId },
+          data: { resourceType, resourceId },
         },
         {
           onSuccess: () => {
             setCheckedCollections(newChecked);
-            toast.success("Post added to collection");
+            toast.success(`Added to "${collectionName}"`);
           },
           onError: (err) => {
-            toast.error(`Failed to add post: ${err.message}`);
+            toast.error(`Failed to add to "${collectionName}": ${err.message}`);
           },
         },
       );
@@ -76,15 +83,17 @@ export function ModifyCollectionItemModal({
       removeItem.mutate(
         {
           collectionId,
-          data: { resourceType: RESOURCE_TYPES.POST, resourceId: postId },
+          data: { resourceType, resourceId },
         },
         {
           onSuccess: () => {
             setCheckedCollections(newChecked);
-            toast.success("Post removed from collection");
+            toast.success(`Removed from "${collectionName}"`);
           },
           onError: (err) => {
-            toast.error(`Failed to remove post: ${err.message}`);
+            toast.error(
+              `Failed to remove from "${collectionName}": ${err.message}`,
+            );
           },
         },
       );

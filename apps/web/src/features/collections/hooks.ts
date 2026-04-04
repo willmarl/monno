@@ -8,7 +8,7 @@ import {
   deleteCollection,
   addCollectionItem,
   removeCollectionItem,
-  fetchCollectionsForPost,
+  fetchCollectionsForResource,
   fetchAdminCollections,
   fetchAdminCollectionById,
   deleteAdminCollection,
@@ -49,13 +49,16 @@ export function useCollectionById(
 }
 
 /**
- * Get collections containing a specific post for current user
+ * Get collections containing a specific resource for current user
  */
-export function useCollectionsForPost(postId: number) {
+export function useCollectionsForResource(
+  resourceType: string,
+  resourceId: number,
+) {
   return useQuery({
-    queryKey: ["post-collections", postId],
-    queryFn: () => fetchCollectionsForPost(postId),
-    enabled: !!postId,
+    queryKey: ["resource-collections", resourceType, resourceId],
+    queryFn: () => fetchCollectionsForResource(resourceType, resourceId),
+    enabled: !!resourceId && !!resourceType,
   });
 }
 
