@@ -12,6 +12,7 @@ import { InlineEditArticleForm } from "@/features/articles/components/InlineEdit
 import { LikeButton } from "../common/LikeButton";
 import { useToggleLike } from "@/features/likes/hooks";
 import { RESOURCE_TYPES } from "@/types/resource";
+import { CollectionButton } from "../common/CollectionButton";
 
 export function Article({
   data,
@@ -158,6 +159,10 @@ export function Article({
             likedByMe={data.likedByMe}
             likeCount={data.likeCount}
             onLike={handleLike}
+          />
+          <CollectionButton
+            resourceId={data.id}
+            resourceType={RESOURCE_TYPES.ARTICLE}
           />
           <Calendar className="h-4 w-4" />
           <span>{formattedDate}</span>

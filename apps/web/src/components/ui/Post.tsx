@@ -4,15 +4,14 @@ import { useRouter } from "next/navigation";
 import { Button } from "./button";
 import { Post as PostType } from "@/features/posts/types/post";
 import { RESOURCE_TYPES } from "@/types/resource";
-import { Trash, PencilLine, Eye, BookmarkPlus } from "lucide-react";
+import { Trash, PencilLine, Eye } from "lucide-react";
 import { ConfirmModal } from "../modal/ConfirmModal";
 import { useModal } from "../providers/ModalProvider";
 import { useDeletePost } from "@/features/posts/hooks";
 import { toast } from "sonner";
-import { useSessionUser } from "@/features/auth/hooks";
 import { useToggleLike } from "@/features/likes/hooks";
-import { ModifyCollectionItemModal } from "../modal/ModifyCollectionItemModal";
 import { LikeButton } from "../common/LikeButton";
+import { CollectionButton } from "../common/CollectionButton";
 
 export function Post({
   data,
@@ -25,7 +24,6 @@ export function Post({
   truncateContent?: boolean;
   truncateTitle?: boolean;
 }) {
-  const { data: user } = useSessionUser();
   const deletePost = useDeletePost();
   const { openModal, closeModal } = useModal();
   const router = useRouter();
@@ -81,26 +79,6 @@ export function Post({
     }
   }
 
-  function bookmarkFeature(id: number) {
-    if (!user) return "";
-    return (
-      <Button
-        size="sm"
-        variant="ghost"
-        className="cursor-pointer h-8 w-8 p-0"
-        onClick={() => {
-          openModal({
-            title: "Add post to collection",
-            content: <ModifyCollectionItemModal postId={data.id} />,
-          });
-        }}
-        title="Add to collection"
-      >
-        <BookmarkPlus className="h-4 w-4" />
-      </Button>
-    );
-  }
-
   function handleLike() {
     like.mutate({ resourceType: RESOURCE_TYPES.POST, resourceId: data.id });
   }
@@ -152,7 +130,10 @@ export function Post({
             likeCount={data.likeCount}
             onLike={handleLike}
           />
-          {bookmarkFeature(data?.id)}
+          <CollectionButton
+            resourceId={data.id}
+            resourceType={RESOURCE_TYPES.POST}
+          />
         </div>
       </div>
     </Card>
