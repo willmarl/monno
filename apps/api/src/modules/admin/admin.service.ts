@@ -113,6 +113,32 @@ export class AdminService {
   }
 
   /**
+   * Compute deletion rate as a percentage rounded to 1 decimal place
+   */
+  private calcDeletionRate(deleted: number, total: number): number {
+    return total > 0 ? Math.round((deleted / total) * 1000) / 10 : 0;
+  }
+
+  /**
+   * Fetch the three core counts shared by all soft-deletable content models
+   */
+  private async getBaseContentCounts(model: {
+    count: (args?: { where?: Record<string, unknown> }) => Promise<number>;
+  }) {
+    const [active, total, deleted] = await Promise.all([
+      model.count({ where: { deleted: false } }),
+      model.count(),
+      model.count({ where: { deleted: true } }),
+    ]);
+    return {
+      active,
+      total,
+      deleted,
+      deletionRate: this.calcDeletionRate(deleted, total),
+    };
+  }
+
+  /**
    * Get user statistics broken down by status and other metrics
    */
   private async getUserStats() {
@@ -143,16 +169,30 @@ export class AdminService {
    * Deleted posts can indicate content moderation/removal patterns
    */
   private async getPostStats() {
-    const [total, published, deletedCount] = await Promise.all([
-      this.prisma.post.count(),
-      this.prisma.post.count({ where: { deleted: false } }),
-      this.prisma.post.count({ where: { deleted: true } }),
+    return this.getBaseContentCounts(this.prisma.post);
+  }
+
+  /**
+   * Get article statistics broken down by status and deletion rate
+   */
+  private async getArticleStats() {
+    const [base, draft, published, archived, scheduled] = await Promise.all([
+      this.getBaseContentCounts(this.prisma.article),
+      this.prisma.article.count({ where: { status: 'DRAFT', deleted: false } }),
+      this.prisma.article.count({
+        where: { status: 'PUBLISHED', deleted: false },
+      }),
+      this.prisma.article.count({
+        where: { status: 'ARCHIVED', deleted: false },
+      }),
+      this.prisma.article.count({
+        where: { status: 'SCHEDULED', deleted: false },
+      }),
     ]);
 
     return {
-      total,
-      published,
-      deleted: deletedCount,
+      ...base,
+      byStatus: { draft, published, archived, scheduled },
     };
   }
 
@@ -160,21 +200,21 @@ export class AdminService {
    * Get all dashboard stats (system metrics + user stats + post stats)
    */
   async getStats() {
-    const [systemStats, userStats, postStats] = await Promise.all([
-      Promise.resolve(this.getSystemStats()),
-      this.getUserStats(),
-      this.getPostStats(),
-    ]);
+    const [systemStats, userStats, postStats, articleStats] = await Promise.all(
+      [
+        Promise.resolve(this.getSystemStats()),
+        this.getUserStats(),
+        this.getPostStats(),
+        this.getArticleStats(),
+      ],
+    );
 
     return {
       system: systemStats,
       users: userStats,
       posts: postStats,
+      articles: articleStats,
       timestamp: new Date().toISOString(),
     };
   }
-
-  // ===== FUTURE ADDITIONS =====
-  // - getUserStats()
-  // - getPostStats()
 }
