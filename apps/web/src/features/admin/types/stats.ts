@@ -20,13 +20,28 @@ export interface UserStats {
 
 export interface PostStats {
   total: number;
-  published: number;
+  active: number;
   deleted: number;
+  deletionRate: number;
+}
+
+export interface ArticleStats {
+  total: number;
+  active: number;
+  byStatus: {
+    draft: number;
+    published: number;
+    archived: number;
+    scheduled: number;
+  };
+  deleted: number;
+  deletionRate: number;
 }
 
 export interface DashboardStats {
   system: SystemStats;
   users: UserStats;
   posts: PostStats;
+  articles: ArticleStats;
   timestamp: string;
 }

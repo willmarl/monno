@@ -4,6 +4,7 @@ import { useStats } from "@/features/admin/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UsersStatsWidget } from "./widgets/UsersStatsWidget";
 import { PostsStatsWidget } from "./widgets/PostsStatsWidget";
+import { ArticlesStatsWidget } from "./widgets/ArticlesStatsWidget";
 import { SystemStatsWidget } from "./widgets/SystemStatsWidget";
 import { RecentActivityWidget } from "./widgets/RecentActivityWidget";
 
@@ -15,9 +16,11 @@ export function AdminDashboardPage() {
       <div className="space-y-6">
         <Skeleton className="h-10 w-64" />
         <div className="grid gap-6 md:grid-cols-2">
-          <Skeleton className="h-80 md:col-span-2" />
-          <Skeleton className="h-64" />
-          <Skeleton className="h-64" />
+          {/* for each widget add a skeleton */}
+          <Skeleton className="h-80 md:col-span-2" /> {/*system stats*/}
+          <Skeleton className="h-64" /> {/*user stats*/}
+          <Skeleton className="h-64" /> {/*post stats*/}
+          <Skeleton className="h-64" /> {/*article stats*/}
         </div>
       </div>
     );
@@ -36,6 +39,7 @@ export function AdminDashboardPage() {
         <SystemStatsWidget data={data?.system} />
         <UsersStatsWidget data={data?.users} />
         <PostsStatsWidget data={data?.posts} />
+        <ArticlesStatsWidget data={data?.articles} />
         <RecentActivityWidget />
       </div>
     </div>

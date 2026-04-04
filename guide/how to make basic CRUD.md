@@ -2417,6 +2417,124 @@ restore(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
 }
 ```
 
+# part 8 | add stats for {{resource}} in admin
+
+## step 1 add to `admin.service.ts` get stats
+
+```ts
+/**
+ * Get {{resource}} statistics broken down by status and deletion rate
+ */
+private async get{{resource}}Stats() {
+  const [base, draft, published, archived, scheduled] = await Promise.all([
+    this.getBaseContentCounts(this.prisma.{{resource}}),
+    this.prisma.{{resource}}.count({ where: { status: 'DRAFT', deleted: false } }),
+    this.prisma.{{resource}}.count({
+      where: { status: 'PUBLISHED', deleted: false },
+    }),
+    this.prisma.{{resource}}.count({
+      where: { status: 'ARCHIVED', deleted: false },
+    }),
+    this.prisma.{{resource}}.count({
+      where: { status: 'SCHEDULED', deleted: false },
+    }),
+  ]);
+
+  return {
+    ...base,
+    byStatus: { draft, published, archived, scheduled },
+  };
+}
+```
+
+if its simple (i.e. no enum) then can just do:
+
+```ts
+private async get{{resource}}Stats() {
+    return this.getBaseContentCounts(this.prisma.{{resource}});
+  }
+```
+
+example:
+
+```ts
+/**
+ * Get article statistics broken down by status and deletion rate
+ */
+private async getArticleStats() {
+  const [base, draft, published, archived, scheduled] = await Promise.all([
+    this.getBaseContentCounts(this.prisma.article),
+    this.prisma.article.count({ where: { status: 'DRAFT', deleted: false } }),
+    this.prisma.article.count({
+      where: { status: 'PUBLISHED', deleted: false },
+    }),
+    this.prisma.article.count({
+      where: { status: 'ARCHIVED', deleted: false },
+    }),
+    this.prisma.article.count({
+      where: { status: 'SCHEDULED', deleted: false },
+    }),
+  ]);
+
+  return {
+    ...base,
+    byStatus: { draft, published, archived, scheduled },
+  };
+}
+```
+
+## step 2 add to array of centralized `getStats()`
+
+```ts
+/**
+ * Get all dashboard stats (system metrics + user stats + post stats)
+ */
+async getStats() {
+  const [systemStats, userStats, postStats, {{resource}}Stats] = await Promise.all(
+    [
+      Promise.resolve(this.getSystemStats()),
+      this.getUserStats(),
+      this.getPostStats(),
+      this.get{{resource}}Stats(),
+    ],
+  );
+
+  return {
+    system: systemStats,
+    users: userStats,
+    posts: postStats,
+    {{resource}}: {{resource}}Stats,
+    timestamp: new Date().toISOString(),
+  };
+}
+```
+
+example:
+
+```ts
+/**
+ * Get all dashboard stats (system metrics + user stats + post stats)
+ */
+async getStats() {
+  const [systemStats, userStats, postStats, articleStats] = await Promise.all(
+    [
+      Promise.resolve(this.getSystemStats()),
+      this.getUserStats(),
+      this.getPostStats(),
+      this.getArticleStats(),
+    ],
+  );
+
+  return {
+    system: systemStats,
+    users: userStats,
+    posts: postStats,
+    articles: articleStats,
+    timestamp: new Date().toISOString(),
+  };
+}
+```
+
 # part 7 | Test CRUD endpoints/summary
 
 Tell human to tests these endpoints and wait for human's confirmation to continue on to next parts.
@@ -2505,7 +2623,7 @@ ex: DELETE `http://localhost:3000/admin/articles/<id>`
 POST `http://localhost:3000/admin/{{resource}}/<id>/restore`
 ex: POST `http://localhost:3000/admin/articles/<id>/restore`
 
-# part 8 | basic search engine
+# part 9 | basic search engine
 
 > ⚠️ SKIP THIS ENTIRE PART unless human explicitly requested search.
 
@@ -3636,7 +3754,7 @@ example:
   }
 ```
 
-# part 9 | adding resource actions to backend
+# part 10 | adding resource actions to backend
 
 by the time i am writing this, there is only likes, views, comments, and collection. there might be more or less when you currently read this. prompt human the available resource actions found (likes, views, comments, collections, etc), ask which ones to apply/add.
 
@@ -5173,12 +5291,12 @@ GET `http://localhost:3000/collections/{{collectionId}}`
 **collections containing this article**
 GET `http://localhost:3000/articles/{{articleId}}/collections`
 
-# part 10 | add swagger docs to DTO and controller.ts
+# part 11 | add swagger docs to DTO and controller.ts
 
 I won't add examples as you should know how to add swagger docs.
 Just go to the .dto files and controller.ts file and add swagger docs inferencing based off current code.
 
-# part 11 | adding basic frontend files
+# part 12 | adding basic frontend files
 
 ## step 1 make files
 
@@ -5194,7 +5312,7 @@ if admin
 
 - examples
 
-# part 12 | frontend api
+# part 13 | frontend api
 
 ## step 1 make `features/articles/types/{{resource}}.ts`
 
@@ -5652,7 +5770,7 @@ export function useAdminRestoreArticle() {
 }
 ```
 
-# part 13 files for creation
+# part 14 files for creation
 
 ## step 1 make zod schema for create
 
@@ -6047,7 +6165,7 @@ export function CreateArticleModal() {
 }
 ```
 
-# part 14 files for update/edit
+# part 15 files for update/edit
 
 for the admin variants, despite forms being identical, its more so for future proof. for instance a new field like shadowbanned, only want admin able to CRUD it.
 
@@ -6857,7 +6975,7 @@ export function AdminEditArticleModal({ data }: { data: Article }) {
 }
 ```
 
-# part 15 | make generic component for {{resource}}
+# part 16 | make generic component for {{resource}}
 
 Instructions for AI, roughly guess UI component based off schema model and type.ts, this is more so just to quickly check if api/hooks work. doesn't matter if its ugly
 `components/ui/Article.tsx`
@@ -7021,7 +7139,7 @@ export function Article({
 - collection button
 - comment
 
-# part 16 | make pagination component
+# part 17 | make pagination component
 
 ## step 1 make pagination list component using UI component made in previous part
 
@@ -7162,7 +7280,7 @@ export function CursorInfiniteArticles() {
 }
 ```
 
-# part 17 | make pages
+# part 18 | make pages
 
 ## basic/home
 
@@ -7501,7 +7619,7 @@ export function UserProfileContent({ user, isOwner }: UserProfileContentProps) {
 }
 ```
 
-## part 18 | extending admin dashboard
+## part 19 | extending admin dashboard
 
 ## step 1 make columns.tsx for upcoming data table component
 
@@ -7816,7 +7934,222 @@ export const items = [
 ];
 ```
 
-# part 19 | search feature
+## step 6 add to admin stats type Article
+
+`features/admin/types/stats.ts`
+
+```tsx
+export interface ArticleStats {
+  total: number;
+  active: number;
+  byStatus: {
+    draft: number;
+    published: number;
+    archived: number;
+    scheduled: number;
+  };
+  deleted: number;
+  deletionRate: number;
+}
+
+export interface DashboardStats {
+  system: SystemStats;
+  users: UserStats;
+  posts: PostStats;
+  articles: ArticleStats;
+  timestamp: string;
+}
+```
+
+## step 7 make article stats widget
+
+change lucide icon to something more appropriate
+`components/pages/admin/dashboard/widgets/ArticlesStatsWidget.tsx`
+
+```tsx
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  BookOpen,
+  FileEdit,
+  CheckCircle2,
+  Archive,
+  Clock,
+  XCircle,
+} from "lucide-react";
+import { ArticleStats } from "@/features/admin/types";
+
+interface ArticlesStatsWidgetProps {
+  data?: ArticleStats;
+}
+
+export function ArticlesStatsWidget({ data }: ArticlesStatsWidgetProps) {
+  return (
+    <Card className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-emerald-100 rounded-lg">
+            <BookOpen className="h-5 w-5 text-emerald-600" />
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Total Articles</p>
+            <p className="text-2xl font-bold">{data?.total ?? 0}</p>
+          </div>
+        </div>
+        <Badge variant="outline" className="ml-auto">
+          Active: {data?.active ?? 0}
+        </Badge>
+      </div>
+
+      <Separator className="my-4" />
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FileEdit className="h-4 w-4 text-gray-500" />
+            <span className="text-sm">Draft</span>
+          </div>
+          <span className="font-semibold">{data?.byStatus.draft ?? 0}</span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <span className="text-sm">Published</span>
+          </div>
+          <span className="font-semibold">{data?.byStatus.published ?? 0}</span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Archive className="h-4 w-4 text-blue-500" />
+            <span className="text-sm">Archived</span>
+          </div>
+          <span className="font-semibold">{data?.byStatus.archived ?? 0}</span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-yellow-500" />
+            <span className="text-sm">Scheduled</span>
+          </div>
+          <span className="font-semibold">{data?.byStatus.scheduled ?? 0}</span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <XCircle className="h-4 w-4 text-red-600" />
+            <span className="text-sm">Deleted</span>
+          </div>
+          <span className="font-semibold">{data?.deleted ?? 0}</span>
+        </div>
+
+        {data?.total ? (
+          <div className="pt-2">
+            <div className="flex justify-between text-xs text-muted-foreground mb-2">
+              <span>Deletion Rate</span>
+              <span>{data.deletionRate.toFixed(1)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-red-600 h-2 rounded-full"
+                style={{ width: `${data.deletionRate}%` }}
+              />
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </Card>
+  );
+}
+```
+
+## step 8 add to admin dashboard page
+
+`components/pages/admin/dashboard/AdminDashboardPage.tsx`
+
+```tsx
+import { ArticlesStatsWidget } from "./widgets/ArticlesStatsWidget";
+...
+
+if (isLoading) {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-10 w-64" />
+      <div className="grid gap-6 md:grid-cols-2">
+      {/* for each widget add a skeleton */}
+        <Skeleton className="h-80 md:col-span-2" /> {/*system stats*/}
+        <Skeleton className="h-64" /> {/*user stats*/}
+        <Skeleton className="h-64" /> {/*post stats*/}
+        <Skeleton className="h-64" /> {/*article stats*/}
+      </div>
+    </div>
+  );
+}
+...
+<div className="grid gap-6 md:grid-cols-2">
+  <SystemStatsWidget data={data?.system} />
+  <UsersStatsWidget data={data?.users} />
+  <PostsStatsWidget data={data?.posts} />
+  <ArticlesStatsWidget data={data?.articles} />
+  <RecentActivityWidget />
+</div>
+```
+
+complete example:
+
+```tsx
+"use client";
+
+import { useStats } from "@/features/admin/hooks";
+import { Skeleton } from "@/components/ui/skeleton";
+import { UsersStatsWidget } from "./widgets/UsersStatsWidget";
+import { PostsStatsWidget } from "./widgets/PostsStatsWidget";
+import { ArticlesStatsWidget } from "./widgets/ArticlesStatsWidget";
+import { SystemStatsWidget } from "./widgets/SystemStatsWidget";
+import { RecentActivityWidget } from "./widgets/RecentActivityWidget";
+
+export function AdminDashboardPage() {
+  const { data, isLoading } = useStats();
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* for each widget add a skeleton */}
+          <Skeleton className="h-80 md:col-span-2" /> {/*system stats*/}
+          <Skeleton className="h-64" /> {/*user stats*/}
+          <Skeleton className="h-64" /> {/*post stats*/}
+          <Skeleton className="h-64" /> {/*article stats*/}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Overview of your platform's statistics and activity
+        </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <SystemStatsWidget data={data?.system} />
+        <UsersStatsWidget data={data?.users} />
+        <PostsStatsWidget data={data?.posts} />
+        <ArticlesStatsWidget data={data?.articles} />
+        <RecentActivityWidget />
+      </div>
+    </div>
+  );
+}
+```
+
+# part 20 | search feature
 
 ## update api related files to have search
 
@@ -8882,7 +9215,7 @@ export default async function page({
 }
 ```
 
-# part 20 | adding resource actions to frontend
+# part 21 | adding resource actions to frontend
 
 ## add resource type
 
