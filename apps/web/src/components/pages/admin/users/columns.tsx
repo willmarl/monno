@@ -68,12 +68,20 @@ export const columns: ColumnDef<User>[] = [
     header: ({ column }) => (
       <SortableHeader column={column} label="Sub. status" />
     ),
+    cell: ({ row }) => {
+      const status = row.original.subscription?.status;
+      return <div>{status ?? "-"}</div>;
+    },
   },
   {
     accessorKey: "subscription.tier",
     header: ({ column }) => (
       <SortableHeader column={column} label="Sub. tier" />
     ),
+    cell: ({ row }) => {
+      const tier = row.original.subscription?.tier;
+      return <div>{tier ?? "-"}</div>;
+    },
   },
   {
     accessorKey: "status",
