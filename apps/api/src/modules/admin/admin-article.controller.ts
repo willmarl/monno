@@ -14,6 +14,7 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { Roles } from '../../decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -56,6 +57,7 @@ export class AdminArticlesController {
   }
 
   @Patch(':id')
+  @UseInterceptors(FileInterceptor('image'))
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateArticleDto,

@@ -345,12 +345,12 @@ export class ArticlesService {
           await this.fileProcessing.deleteFile(article.imagePath);
         }
 
-        const avatarPath = await this.fileProcessing.processFile(
+        const imagePath = await this.fileProcessing.processFile(
           file,
-          'postImage',
+          'articleImage',
           userId,
         );
-        data.imagePath = avatarPath;
+        data.imagePath = imagePath;
       } catch (error) {
         const errorMessage =
           error instanceof Error
