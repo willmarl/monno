@@ -4,24 +4,55 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
 import { Upload, X } from "lucide-react";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
 
-interface FileDropzoneProps {
+import { Button } from "@/components/ui/button";
+import {
+  DROPZONE_PRESETS,
+  DropzonePresetName,
+  DropzoneConfig,
+} from "./file-dropzone-presets";
+
+type FileDropzoneProps = {
   onFileSelect: (file: File) => void;
-  accept?: Record<string, string[]>;
-  maxSize?: number;
   disabled?: boolean;
   preview?: boolean;
-}
+} & (
+  | {
+      /** Use a named preset (e.g. "avatar", "articleImage") */
+      preset: DropzonePresetName;
+      /** Optional overrides on top of the preset */
+      overrides?: Partial<DropzoneConfig>;
+      accept?: never;
+      maxSize?: never;
+    }
+  | {
+      preset?: never;
+      overrides?: never;
+      /** Custom accept map (dropzone format) */
+      accept?: Record<string, string[]>;
+      /** Custom max file size in bytes */
+      maxSize?: number;
+    }
+);
 
 export function FileDropzone({
   onFileSelect,
-  accept = { "image/*": [".jpeg", ".jpg", ".png", ".webp", ".gif"] },
-  maxSize = 5 * 1024 * 1024, // 5MB default
   disabled = false,
   preview = true,
+  ...rest
 }: FileDropzoneProps) {
+  // Resolve config from preset or direct props
+  const resolvedConfig: DropzoneConfig = rest.preset
+    ? { ...DROPZONE_PRESETS[rest.preset], ...rest.overrides }
+    : {
+        accept: rest.accept ?? {
+          "image/*": [".jpeg", ".jpg", ".png", ".webp", ".gif"],
+        },
+        maxSize: rest.maxSize ?? 5 * 1024 * 1024,
+        hint: `Up to ${((rest.maxSize ?? 5 * 1024 * 1024) / 1024 / 1024).toFixed(0)} MB`,
+      };
+
+  const { accept, maxSize, hint } = resolvedConfig;
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +66,7 @@ export function FileDropzone({
         const reason = rejectedFiles[0].errors[0]?.code;
         if (reason === "file-too-large") {
           setError(
-            `File is too large. Maximum size is ${maxSize / 1024 / 1024}MB`
+            `File is too large. Maximum size is ${maxSize / 1024 / 1024}MB`,
           );
         } else if (reason === "file-invalid-type") {
           setError("Invalid file type. Please upload an image.");
@@ -61,7 +92,7 @@ export function FileDropzone({
         }
       }
     },
-    [onFileSelect, maxSize, preview]
+    [onFileSelect, maxSize, preview],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -89,7 +120,7 @@ export function FileDropzone({
             ? "border-primary bg-primary/5"
             : "border-muted-foreground/30 bg-muted",
           disabled && "cursor-not-allowed opacity-50",
-          "cursor-pointer p-8 text-center hover:bg-muted/80"
+          "cursor-pointer p-8 text-center hover:bg-muted/80",
         )}
       >
         <input {...getInputProps()} />
@@ -101,7 +132,7 @@ export function FileDropzone({
               {isDragActive ? "Drop files here" : "Drag & drop files here"}
             </p>
             <p className="text-sm text-muted-foreground">
-              or click to select files (Max {maxSize / 1024 / 1024}MB)
+              or click to select &mdash; {hint}
             </p>
           </div>
         </div>
@@ -110,7 +141,11 @@ export function FileDropzone({
       {/* Preview */}
       {preview && previewUrl && (
         <div className="relative h-40 w-40 overflow-hidden rounded-lg border border-border">
-          <Image src={previewUrl} alt="Preview" fill className="object-cover" />
+          <img
+            src={previewUrl}
+            alt="Preview"
+            className="h-full w-full object-cover"
+          />
           <Button
             onClick={handleRemove}
             size="sm"

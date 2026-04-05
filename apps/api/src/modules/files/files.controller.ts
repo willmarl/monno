@@ -1,6 +1,6 @@
-import { Controller, Get, Param, Res } from '@nestjs/common';
+import { Controller, Get, Res, Req } from '@nestjs/common';
 import { ApiExcludeEndpoint } from '@nestjs/swagger';
-import type { Response } from 'express';
+import type { Response, Request } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -10,19 +10,18 @@ export class FilesController {
    * Serve static files from the uploads directory
    * This endpoint is only used when STORAGE_BACKEND=local
    * For S3, files are served directly from the S3 URL
+   * Supports nested paths like: /files/articles/images/filename.webp
    */
   @ApiExcludeEndpoint()
-  @Get(':type/:filename')
-  serveFile(
-    @Param('type') type: string,
-    @Param('filename') filename: string,
-    @Res() res: Response,
-  ): void {
+  @Get('*')
+  serveFile(@Req() req: Request, @Res() res: Response): void {
     const uploadPath = process.env.LOCAL_UPLOAD_PATH || '/uploads';
-    const filePath = path.join(uploadPath, type, filename);
+    // Extract file path from URL, removing the /files prefix
+    const filePath = req.path.replace(/^\/files\/?/, '');
+    const fullPath = path.join(uploadPath, filePath);
 
     // Security: Prevent directory traversal attacks
-    const normalizedPath = path.normalize(filePath);
+    const normalizedPath = path.normalize(fullPath);
     if (!normalizedPath.startsWith(path.normalize(uploadPath))) {
       res.status(403).send('Forbidden');
       return;
