@@ -1,3 +1,46 @@
+## Media/File Uploads
+
+**Refactor article `imagePath` → `Media` table relationship**
+
+Currently articles store a single `imagePath: String?`. This should be migrated to a dedicated `Media` model.
+
+**Decision history:**
+
+| Option   | Description                                                        | Rejected because                                                                                  |
+| -------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| A        | Flat columns on model (`imagePath`, `thumbnailPath`, `blurHash`)   | Every new variant = migration + code change everywhere. Doesn't generalize to Posts, Videos, etc. |
+| C        | Polymorphic `Media` with `resourceType`/`resourceId` string fields | Polymorphic relations in Prisma are awkward, join logic becomes messy, no referential integrity   |
+| **B** ✅ | Dedicated `Media` model with FK on each resource model             | Chosen — see below                                                                                |
+
+**Chosen approach — `Media` table:**
+
+```prisma
+model Media {
+  id        Int      @id @default(autoincrement())
+  original  String   // full res URL
+  thumbnail String?  // small preview
+  blurHash  String?  // low quality image placeholder
+  mimeType  String   // "image/webp", "video/mp4"
+  width     Int?
+  height    Int?
+  sizeBytes Int?
+  createdAt DateTime @default(now())
+
+  article   Article? @relation(fields: [articleId], references: [id])
+  articleId Int?     @unique // @unique = one-to-one, remove for gallery (one-to-many)
+}
+```
+
+**Why:**
+
+- New variants (`censored`, `hd`, `compressed`) = new column on `Media` only, zero touch on `Article`
+- Reusable — `Post`, `Comment`, `User` can all grow a `mediaId` FK
+- `mimeType` naturally extends to video without a new model
+- `blurHash` enables instant skeleton previews before image loads (eliminates layout shift)
+- `width`/`height` lets frontend reserve layout space before image loads
+
+---
+
 ## Monno V2
 
 **Auth & User Management**

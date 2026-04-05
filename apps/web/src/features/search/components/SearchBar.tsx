@@ -16,6 +16,7 @@ export interface SearchBarBaseProps<T> {
   renderSuggestion?: (suggestion: T) => {
     title: string;
     subtitle?: string;
+    image?: string;
   };
   reactiveUrl?: boolean;
 }
@@ -246,14 +247,25 @@ export function SearchBar<T>({
                         isSelected ? "bg-muted" : "hover:bg-muted"
                       }`}
                     >
-                      <div className="font-medium text-foreground truncate">
-                        {display.title}
-                      </div>
-                      {display.subtitle && (
-                        <div className="text-xs text-muted-foreground truncate">
-                          {display.subtitle}
+                      <div className="flex gap-3">
+                        {display.image && (
+                          <img
+                            src={display.image}
+                            alt={display.title}
+                            className="h-10 w-10 rounded object-cover shrink-0"
+                          />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-foreground truncate">
+                            {display.title}
+                          </div>
+                          {display.subtitle && (
+                            <div className="text-xs text-muted-foreground truncate">
+                              {display.subtitle}
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </button>
                   </li>
                 );

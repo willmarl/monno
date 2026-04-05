@@ -18,6 +18,7 @@ import {
 import { ColumnDef } from "@tanstack/react-table";
 import { Article } from "@/features/admin/articles/types/article";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { AppImage } from "@/components/ui/AppImage";
 import {
   useAdminDeleteArticle,
   useAdminRestoreArticle,
@@ -67,6 +68,26 @@ export const columns: ColumnDef<Article>[] = [
       />
     ),
   },
+  // omit me if no image
+  {
+    accessorKey: "imagePath",
+    header: "Image",
+    cell: ({ row }) => {
+      const article = row.original;
+      if (!article.imagePath) {
+        return <div className="text-xs text-muted-foreground">No image</div>;
+      }
+      return (
+        <AppImage
+          src={article.imagePath}
+          alt={article.title}
+          className="h-16 w-16 rounded object-cover cursor-pointer hover:opacity-80 transition-opacity"
+          expandable
+        />
+      );
+    },
+  },
+  // EoF Omit
   {
     accessorKey: "content",
     header: ({ column }) => <SortableHeader column={column} label="Content" />,

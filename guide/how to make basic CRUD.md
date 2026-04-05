@@ -8189,6 +8189,7 @@ import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 import { formatDate } from "@/lib/utils/date";
 import { AdminEditArticleModal } from "@/features/admin/articles/components/modal/AdminEditArticleModal";
 import { useModal } from "@/components/providers/ModalProvider";
+import { AppImage } from "@/components/ui/AppImage"; // omit me if not using image
 
 export const columns: ColumnDef<Article>[] = [
   {
@@ -8228,6 +8229,26 @@ export const columns: ColumnDef<Article>[] = [
       />
     ),
   },
+  // omit me if no image
+  {
+    accessorKey: "imagePath",
+    header: "Image",
+    cell: ({ row }) => {
+      const article = row.original;
+      if (!article.imagePath) {
+        return <div className="text-xs text-muted-foreground">No image</div>;
+      }
+      return (
+        <AppImage
+          src={article.imagePath}
+          alt={article.title}
+          className="h-16 w-16 rounded object-cover cursor-pointer hover:opacity-80 transition-opacity"
+          expandable
+        />
+      );
+    },
+  },
+  // EoF Omit
   {
     accessorKey: "content",
     header: ({ column }) => <SortableHeader column={column} label="Content" />,
@@ -9237,6 +9258,7 @@ export function ArticleSearchBar() {
         renderSuggestion={(article) => ({
           title: article.title,
           subtitle: article.content.substring(0, 60) + "...",
+          image: article.imagePath ?? undefined, // omit if not using image
         })}
         onNavigateTo={(article) => `article/${article.id}`}
       />
@@ -10299,7 +10321,7 @@ export interface Article {
 }
 ```
 
-### step 5 add to the admin article column like count
+### step 5 add to the admin article column view count
 
 `components/pages/admin/articles/columns.tsx`
 
