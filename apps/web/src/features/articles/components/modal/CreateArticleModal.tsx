@@ -12,9 +12,12 @@ export function CreateArticleModal() {
         closeModal();
       }}
       onCancel={() => {
+        toast.info("Reset form");
+      }}
+      onError={() => {
         toast.error("Error trying to make article");
       }}
-      isAlwaysOpen={true}
+      isAlwaysOpen={false}
     />
   );
 }

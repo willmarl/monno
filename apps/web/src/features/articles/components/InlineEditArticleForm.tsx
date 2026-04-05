@@ -77,7 +77,7 @@ export function InlineEditArticleForm({
   if (!isAlwaysOpen && !isOpen) {
     return (
       <Button onClick={() => setIsOpen(true)} variant="outline">
-        Change UpdateArticle
+        Edit Article
       </Button>
     );
   }

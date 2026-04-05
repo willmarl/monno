@@ -75,7 +75,7 @@ export function InlineCreateArticleForm({
   if (!isAlwaysOpen && !isOpen) {
     return (
       <Button onClick={() => setIsOpen(true)} variant="outline">
-        Change CreateArticle
+        Create Article
       </Button>
     );
   }

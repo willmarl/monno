@@ -14,6 +14,9 @@ export function AdminEditArticleModal({ data }: { data: Article }) {
         closeModal();
       }}
       onCancel={() => {
+        toast.info("Reset form");
+      }}
+      onError={() => {
         toast.error("Error trying to edit article");
       }}
       isAlwaysOpen={true}
