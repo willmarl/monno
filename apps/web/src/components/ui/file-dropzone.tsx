@@ -16,6 +16,8 @@ type FileDropzoneProps = {
   onFileSelect: (file: File) => void;
   disabled?: boolean;
   preview?: boolean;
+  /** Current image URL to display before a new file is selected */
+  currentImageUrl?: string;
 } & (
   | {
       /** Use a named preset (e.g. "avatar", "articleImage") */
@@ -39,6 +41,7 @@ export function FileDropzone({
   onFileSelect,
   disabled = false,
   preview = true,
+  currentImageUrl,
   ...rest
 }: FileDropzoneProps) {
   // Resolve config from preset or direct props
@@ -138,22 +141,29 @@ export function FileDropzone({
         </div>
       </div>
 
-      {/* Preview */}
-      {preview && previewUrl && (
+      {/* Preview - New file or current image */}
+      {preview && (previewUrl || (!selectedFile && currentImageUrl)) && (
         <div className="relative h-40 w-40 overflow-hidden rounded-lg border border-border">
           <img
-            src={previewUrl}
-            alt="Preview"
+            src={previewUrl || currentImageUrl!}
+            alt={previewUrl ? "Preview" : "Current image"}
             className="h-full w-full object-cover"
           />
-          <Button
-            onClick={handleRemove}
-            size="sm"
-            variant="destructive"
-            className="absolute right-1 top-1"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          {selectedFile && (
+            <Button
+              onClick={handleRemove}
+              size="sm"
+              variant="destructive"
+              className="absolute right-1 top-1"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+          {!selectedFile && currentImageUrl && (
+            <div className="absolute bottom-1 left-1 right-1 bg-black/50 px-2 py-1 rounded text-xs text-white">
+              Current
+            </div>
+          )}
         </div>
       )}
 
