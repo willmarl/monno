@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { Article, ARTICLE_STATUSES } from "../types/article";
 import { Textarea } from "@/components/ui/textarea";
+import { FileDropzone } from "@/components/ui/file-dropzone";
 import {
   Select,
   SelectContent,
@@ -38,6 +39,7 @@ export function AdminInlineEditArticleForm({
   articleData,
 }: InlineUpdateArticleFormProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const form = useForm<AdminUpdateArticleInput>({
     resolver: zodResolver(adminUpdateArticleSchema),
@@ -55,10 +57,11 @@ export function AdminInlineEditArticleForm({
 
   const handleSubmit = (data: AdminUpdateArticleInput) => {
     updateArticleMutation.mutate(
-      { id: articleData.id, data },
+      { id: articleData.id, data, file: selectedFile ?? undefined },
       {
         onSuccess: () => {
           form.reset();
+          setSelectedFile(null);
           if (!isAlwaysOpen) {
             setIsOpen(false);
           }
@@ -152,6 +155,18 @@ export function AdminInlineEditArticleForm({
         )}
       </div>
 
+      {/* file upload */}
+      <div className="space-y-2">
+        <Label className="text-sm">Featured Image (Optional)</Label>
+        <FileDropzone
+          preset="articleImage"
+          onFileSelect={setSelectedFile}
+          disabled={updateArticleMutation.isPending}
+          preview
+          currentImageUrl={articleData.imagePath ?? undefined}
+        />
+      </div>
+
       {/* Action Buttons */}
       <div className="flex gap-3 pt-2">
         <Button
@@ -164,6 +179,7 @@ export function AdminInlineEditArticleForm({
               setIsOpen(false);
             }
             form.reset();
+            setSelectedFile(null);
             onCancel?.();
           }}
           disabled={updateArticleMutation.isPending}

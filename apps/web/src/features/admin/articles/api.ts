@@ -1,4 +1,5 @@
 import { fetcher } from "@/lib/fetcher";
+import { toFormData } from "@/lib/utils/form-data";
 import type {
   Article,
   ArticlesList,
@@ -58,11 +59,24 @@ export const fetchAdminArticleById = (id: number) =>
   fetcher<Article>(`/admin/articles/${id}`);
 
 // PATCH /admin/articles/:id
-export const updateAdminArticle = (id: number, data: UpdateArticleInput) =>
-  fetcher<Article>(`/admin/articles/${id}`, {
+export const updateAdminArticle = (
+  id: number,
+  data: UpdateArticleInput,
+  file?: File,
+) => {
+  // Use FormData if file is provided, otherwise JSON
+  if (file) {
+    return fetcher<Article>(`/admin/articles/${id}`, {
+      method: "PATCH",
+      body: toFormData(data, file),
+    });
+  }
+
+  return fetcher<Article>(`/admin/articles/${id}`, {
     method: "PATCH",
     json: data,
   });
+};
 
 // DELETE /admin/articles/:id
 export const deleteAdminArticle = (id: number) =>

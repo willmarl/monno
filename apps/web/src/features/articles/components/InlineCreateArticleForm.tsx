@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FileDropzone } from "@/components/ui/file-dropzone";
 import { ARTICLE_STATUSES } from "../types/article";
 
 interface InlineCreateArticleFormProps {
@@ -36,6 +37,7 @@ export function InlineCreateArticleForm({
   isAlwaysOpen = false,
 }: InlineCreateArticleFormProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const form = useForm<CreateArticleInput>({
     resolver: zodResolver(createArticleSchema),
@@ -52,18 +54,22 @@ export function InlineCreateArticleForm({
   const { isValid } = form.formState;
 
   const handleSubmit = (data: CreateArticleInput) => {
-    createArticleMutation.mutate(data, {
-      onSuccess: () => {
-        form.reset();
-        if (!isAlwaysOpen) {
-          setIsOpen(false);
-        }
-        onSuccess?.();
+    createArticleMutation.mutate(
+      { data, file: selectedFile ?? undefined },
+      {
+        onSuccess: () => {
+          form.reset();
+          setSelectedFile(null);
+          if (!isAlwaysOpen) {
+            setIsOpen(false);
+          }
+          onSuccess?.();
+        },
+        onError: (err) => {
+          onError?.(err);
+        },
       },
-      onError: (err) => {
-        onError?.(err);
-      },
-    });
+    );
   };
 
   if (!isAlwaysOpen && !isOpen) {
@@ -147,6 +153,17 @@ export function InlineCreateArticleForm({
         )}
       </div>
 
+      {/* file upload */}
+      <div className="space-y-2">
+        <Label className="text-sm">Featured Image (Optional)</Label>
+        <FileDropzone
+          preset="articleImage"
+          onFileSelect={setSelectedFile}
+          disabled={createArticleMutation.isPending}
+          preview
+        />
+      </div>
+
       {/* Action Buttons */}
       <div className="flex gap-3 pt-2">
         <Button
@@ -159,6 +176,7 @@ export function InlineCreateArticleForm({
               setIsOpen(false);
             }
             form.reset();
+            setSelectedFile(null);
             onCancel?.();
           }}
           disabled={createArticleMutation.isPending}

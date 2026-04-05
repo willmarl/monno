@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -26,11 +27,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { FileDropzone } from "@/components/ui/file-dropzone";
 import { ARTICLE_STATUSES } from "../types/article";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export function CreateArticleForm() {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
   const form = useForm<CreateArticleInput>({
     resolver: zodResolver(createArticleSchema),
     mode: "onChange",
@@ -48,18 +52,18 @@ export function CreateArticleForm() {
   const createArticleMutation = useCreateArticle();
 
   function onSubmit(data: CreateArticleInput) {
-    const payload = {
-      ...data,
-    };
-    createArticleMutation.mutate(payload, {
-      onSuccess: (response) => {
-        toast.success("Article created");
-        router.push(`/article/${response.id}`);
+    createArticleMutation.mutate(
+      { data, file: selectedFile ?? undefined },
+      {
+        onSuccess: (response) => {
+          toast.success("Article created");
+          router.push(`/article/${response?.id}`);
+        },
+        onError: (error) => {
+          toast.error(`Error creating article. ${error.message}`);
+        },
       },
-      onError: (error) => {
-        toast.error(`Error creating article. ${error.message}`);
-      },
-    });
+    );
   }
 
   return (
@@ -134,6 +138,17 @@ export function CreateArticleForm() {
               {form.formState.errors.status.message}
             </p>
           )}
+        </div>
+
+        {/* file upload */}
+        <div className="space-y-2">
+          <Label className="text-sm">Featured Image (Optional)</Label>
+          <FileDropzone
+            preset="articleImage"
+            onFileSelect={setSelectedFile}
+            disabled={createArticleMutation.isPending}
+            preview
+          />
         </div>
 
         <Button

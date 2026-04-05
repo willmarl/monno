@@ -1,4 +1,5 @@
 import { fetcher } from "@/lib/fetcher";
+import { toFormData } from "@/lib/utils/form-data";
 import type {
   Article,
   ArticlesList,
@@ -137,18 +138,40 @@ export const fetchArticlesByUserIdCursor = ({
   });
 
 // POST /articles
-export const createArticle = (data: CreateArticleInput) =>
-  fetcher<Article>("/articles", {
+export const createArticle = (data: CreateArticleInput, file?: File) => {
+  // Use FormData if file is provided, otherwise JSON
+  if (file) {
+    return fetcher<Article>("/articles", {
+      method: "POST",
+      body: toFormData(data, file),
+    });
+  }
+
+  return fetcher<Article>("/articles", {
     method: "POST",
     json: data,
   });
+};
 
 // PATCH /articles/:id
-export const updateArticle = (id: number, data: UpdateArticleInput) =>
-  fetcher<Article>(`/articles/${id}`, {
+export const updateArticle = (
+  id: number,
+  data: UpdateArticleInput,
+  file?: File,
+) => {
+  // Use FormData if file is provided, otherwise JSON
+  if (file) {
+    return fetcher<Article>(`/articles/${id}`, {
+      method: "PATCH",
+      body: toFormData(data, file),
+    });
+  }
+
+  return fetcher<Article>(`/articles/${id}`, {
     method: "PATCH",
     json: data,
   });
+};
 
 // DELETE /articles/:id
 export const deleteArticle = (id: number) =>

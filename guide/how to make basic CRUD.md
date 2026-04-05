@@ -961,7 +961,7 @@ async create(data: CreateArticleDto, userId: number, file?: any) {
 
 ```ts
 @Post()
-@UseInterceptors(FileInterceptor({{appropriate media type}}))
+@UseInterceptors(FileInterceptor({{ field name used in multipart form data }}))
 @UseGuards(JwtAccessGuard)
 create(
   @Req() req,
@@ -1859,12 +1859,12 @@ async update(id: number, data: Update{{resource}}Dto, file?: any) {
           await this.fileProcessing.deleteFile({{resource}}.imagePath);
         }
 
-        const avatarPath = await this.fileProcessing.processFile(
+        const imagePath = await this.fileProcessing.processFile(
           file,
-          'postImage',
+          '{{resource}}Image',
           userId,
         );
-        data.imagePath = avatarPath;
+        data.imagePath = imagePath;
       } catch (error) {
         const errorMessage =
           error instanceof Error
@@ -1910,12 +1910,12 @@ async update(id: number, data: UpdateArticleDto, file?: any) {
           await this.fileProcessing.deleteFile(article.imagePath);
         }
 
-        const avatarPath = await this.fileProcessing.processFile(
+        const imagePath = await this.fileProcessing.processFile(
           file,
-          'postImage',
+          'articleImage',
           userId,
         );
-        data.imagePath = avatarPath;
+        data.imagePath = imagePath;
       } catch (error) {
         const errorMessage =
           error instanceof Error
@@ -1938,7 +1938,7 @@ async update(id: number, data: UpdateArticleDto, file?: any) {
 ```ts
 @UseGuards(JwtAccessGuard, CreatorGuard)
 @ProtectedResource('{{resource}}')
-@UseInterceptors(FileInterceptor({{appropriate media type}})))
+@UseInterceptors(FileInterceptor({{ field name used in multipart form data }})))
 @Patch(':id')
 update(
   @Param('id', ParseIntPipe) id: number,
@@ -2000,12 +2000,12 @@ async update(
         await this.fileProcessing.deleteFile({{resource}}.imagePath);
       }
 
-      const avatarPath = await this.fileProcessing.processFile(
+      const imagePath = await this.fileProcessing.processFile(
         file,
-        'postImage',
+        '{{resource}}Image',
         userId,
       );
-      data.imagePath = avatarPath;
+      data.imagePath = imagePath;
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -2066,12 +2066,12 @@ async update(
         await this.fileProcessing.deleteFile(article.imagePath);
       }
 
-      const avatarPath = await this.fileProcessing.processFile(
+      const imagePath = await this.fileProcessing.processFile(
         file,
-        'postImage',
+        'articleImage',
         userId,
       );
-      data.imagePath = avatarPath;
+      data.imagePath = imagePath;
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -2103,6 +2103,7 @@ async update(
 
 ```ts
 @Patch(':id')
+@UseInterceptors(FileInterceptor({{ field name used in multipart form data }}))
 update(
   @Param('id', ParseIntPipe) id: number,
   @Body() body: Update{{resource}}Dto,
@@ -2118,6 +2119,7 @@ example :
 
 ```ts
 @Patch(':id')
+@UseInterceptors(FileInterceptor('image'))
 update(
   @Param('id', ParseIntPipe) id: number,
   @Body() body: UpdateArticleDto,
@@ -5358,6 +5360,7 @@ export interface Article {
   id: number;
   title: string;
   content: string;
+  imagePath?: string | null;
   creator: Creator;
   createdAt: string;
   updatedAt: string;
@@ -5408,6 +5411,7 @@ export interface Article {
   id: number;
   title: string;
   content: string;
+  imagePath?: string | null;
   creator: Creator;
   createdAt: string;
   updatedAt: string;
@@ -5433,8 +5437,6 @@ export interface UpdateArticleInput {
 ## step 3 converting endpoints to `features/articles/api.ts`
 
 if not using cursor pagination, omit cursor code
-
-- img upload variant
 
 ```ts
 import { fetcher } from "@/lib/fetcher";
@@ -5523,7 +5525,51 @@ export const deleteArticle = (id: number) =>
   });
 ```
 
-## step 4 converting endpoints to `features/admin/articles/api.ts`
+## step 4 if needing file upload
+
+replace create and update
+
+```ts
+import { toFormData } from "@/lib/utils/form-data";
+...
+// POST /articles
+export const createArticle = (data: CreateArticleInput, file?: File) => {
+  // Use FormData if file is provided, otherwise JSON
+  if (file) {
+    return fetcher<Article>("/articles", {
+      method: "POST",
+      body: toFormData(data, file),
+    });
+  }
+
+  return fetcher<Article>("/articles", {
+    method: "POST",
+    json: data,
+  });
+};
+
+// PATCH /articles/:id
+export const updateArticle = (
+  id: number,
+  data: UpdateArticleInput,
+  file?: File,
+) => {
+  // Use FormData if file is provided, otherwise JSON
+  if (file) {
+    return fetcher<Article>(`/articles/${id}`, {
+      method: "PATCH",
+      body: toFormData(data, file),
+    });
+  }
+
+  return fetcher<Article>(`/articles/${id}`, {
+    method: "PATCH",
+    json: data,
+  });
+};
+```
+
+## step 5 converting endpoints to `features/admin/articles/api.ts`
 
 ```ts
 import { fetcher } from "@/lib/fetcher";
@@ -5569,11 +5615,37 @@ export const restoreAdminArticle = (id: number) =>
   });
 ```
 
-# step 5 make `features/articles/hooks.ts`
+## step 6 if admin needing file upload
+
+replace update
+
+```ts
+import { toFormData } from "@/lib/utils/form-data";
+...
+// PATCH /admin/articles/:id
+export const updateAdminArticle = (
+  id: number,
+  data: UpdateArticleInput,
+  file?: File,
+) => {
+  // Use FormData if file is provided, otherwise JSON
+  if (file) {
+    return fetcher<Article>(`/admin/articles/${id}`, {
+      method: "PATCH",
+      body: toFormData(data, file),
+    });
+  }
+
+  return fetcher<Article>(`/admin/articles/${id}`, {
+    method: "PATCH",
+    json: data,
+  });
+};
+```
+
+## step 7 make `features/articles/hooks.ts`
 
 if not using cursor pagination, omit cursor code
-
-- img upload variant
 
 ```ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -5695,7 +5767,49 @@ export function useDeleteArticle() {
 }
 ```
 
-# step 6 make `features/admin/articles/hooks.ts`
+## step 8 if needing file upload
+
+replace create and update
+
+```ts
+import { CreateArticleInput } from "./types/article";
+...
+export function useCreateArticle() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ data, file }: { data: CreateArticleInput; file?: File }) =>
+      createArticle(data, file),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["articles"] });
+    },
+    throwOnError: false, // Don't throw errors, let component handle them
+  });
+}
+
+export function useUpdateArticle() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+      file,
+    }: {
+      id: number;
+      data: Parameters<typeof updateArticle>[1];
+      file?: File;
+    }) => updateArticle(id, data, file),
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ["articles"] });
+      qc.invalidateQueries({ queryKey: ["article", id] });
+    },
+    throwOnError: false, // Don't throw errors, let component handle them
+  });
+}
+```
+
+## step 9 make `features/admin/articles/hooks.ts`
 
 ```ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -5762,6 +5876,33 @@ export function useAdminRestoreArticle() {
   return useMutation({
     mutationFn: restoreAdminArticle,
     onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ["admin-articles"] });
+      qc.invalidateQueries({ queryKey: ["admin-article", id] });
+    },
+    throwOnError: false,
+  });
+}
+```
+
+## step 10 if admin needing file upload
+
+replace update
+
+```ts
+export function useAdminUpdateArticle() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+      file,
+    }: {
+      id: number;
+      data: Parameters<typeof updateAdminArticle>[1];
+      file?: File;
+    }) => updateAdminArticle(id, data, file),
+    onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ["admin-articles"] });
       qc.invalidateQueries({ queryKey: ["admin-article", id] });
     },
@@ -5949,7 +6090,57 @@ export function CreateArticleForm() {
 }
 ```
 
-## step 3 inline create form
+## step 3 create form with file upload
+
+need to add:
+
+- `fileDropzone` and `useState` import
+- file state variable
+- change onSubmit function
+- input for file upload
+
+```tsx
+import { FileDropzone } from "@/components/ui/file-dropzone";
+import { useState } from "react";
+```
+
+```tsx
+const [selectedFile, setSelectedFile] = useState<File | null>(null);
+```
+
+```tsx
+function onSubmit(data: CreateArticleInput) {
+  createArticleMutation.mutate(
+    { data, file: selectedFile ?? undefined },
+    {
+      onSuccess: (response) => {
+        toast.success("Article created");
+        router.push(`/article/${response?.id}`);
+      },
+      onError: (error) => {
+        toast.error(`Error creating article. ${error.message}`);
+      },
+    },
+  );
+}
+```
+
+```tsx
+{
+  /* file upload */
+}
+<div className="space-y-2">
+  <Label className="text-sm">Featured Image (Optional)</Label>
+  <FileDropzone
+    preset="articleImage"
+    onFileSelect={setSelectedFile}
+    disabled={createArticleMutation.isPending}
+    preview
+  />
+</div>;
+```
+
+## step 4 inline create form
 
 `features/articles/components/InlineCreateArticleForm.tsx`
 
@@ -6138,7 +6329,81 @@ export function InlineCreateArticleForm({
 }
 ```
 
-## step 4 modal for create
+## step 5 inline create form with file upload
+
+need to add:
+
+- `fileDropzone` import
+- file state variable
+- change handleSubmit function
+- input for file upload
+- clear file on reset button in action buttons
+
+```tsx
+import { FileDropzone } from "@/components/ui/file-dropzone";
+```
+
+```tsx
+const [selectedFile, setSelectedFile] = useState<File | null>(null);
+```
+
+```tsx
+const handleSubmit = (data: CreateArticleInput) => {
+  createArticleMutation.mutate(
+    { data, file: selectedFile ?? undefined },
+    {
+      onSuccess: () => {
+        form.reset();
+        setSelectedFile(null);
+        if (!isAlwaysOpen) {
+          setIsOpen(false);
+        }
+        onSuccess?.();
+      },
+      onError: (err) => {
+        onError?.(err);
+      },
+    },
+  );
+};
+```
+
+```tsx
+{
+  /* file upload */
+}
+<div className="space-y-2">
+  <Label className="text-sm">Featured Image (Optional)</Label>
+  <FileDropzone
+    preset="articleImage"
+    onFileSelect={setSelectedFile}
+    disabled={createArticleMutation.isPending}
+    preview
+  />
+</div>;
+```
+
+```tsx
+{/* Action Buttons */}
+<div className="flex gap-3 pt-2">
+  <Button
+    type="button"
+    variant="outline"
+    size="sm"
+    className="cursor-pointer"
+    onClick={() => {
+      if (!isAlwaysOpen) {
+        setIsOpen(false);
+      }
+      form.reset();
+      setSelectedFile(null);
+      onCancel?.();
+    }}
+    disabled={createArticleMutation.isPending}
+  >
+```
+
+## step 6 modal for create
 
 `features/articles/components/modal/CreateArticleModal.tsx`
 
@@ -6366,7 +6631,62 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
 }
 ```
 
-## step 4 admin edit form component
+## step 4 edit form component with file upload
+
+need to add:
+
+- `fileDropzone` and `useState` import
+- file state variable
+- change onSubmit function
+- input for file upload
+
+```tsx
+import { FileDropzone } from "@/components/ui/file-dropzone";
+import { useState } from "react";
+```
+
+```tsx
+const [selectedFile, setSelectedFile] = useState<File | null>(null);
+```
+
+```tsx
+function onSubmit(data: UpdateArticleInput) {
+  updateArticleMutation.mutate(
+    {
+      id: articleData.id,
+      data: data,
+      file: selectedFile ?? undefined,
+    },
+    {
+      onSuccess: (response) => {
+        toast.success("Article updated");
+        router.push(`/article/${response.id}`);
+      },
+      onError: (error) => {
+        toast.error(`Error updating article. ${error.message}`);
+      },
+    },
+  );
+}
+```
+
+```tsx
+{
+  /* file upload */
+}
+<div className="space-y-2">
+  <Label className="text-sm">Featured Image (Optional)</Label>
+  <FileDropzone
+    preset="articleImage"
+    onFileSelect={setSelectedFile}
+    disabled={updateArticleMutation.isPending}
+    preview
+    currentImageUrl={articleData.imagePath ?? undefined}
+  />
+</div>;
+```
+
+## step 5 admin edit form component
 
 `features/admin/articles/components/AdminEditArticleForm.tsx`
 
@@ -6529,7 +6849,62 @@ export function AdminEditArticleForm({
 }
 ```
 
-## step 5 inline edit form
+## step 6 admin edit form component with file upload
+
+need to add:
+
+- `fileDropzone` and `useState` import
+- file state variable
+- change onSubmit function
+- input for file upload
+
+```tsx
+import { FileDropzone } from "@/components/ui/file-dropzone";
+import { useState } from "react";
+```
+
+```tsx
+const [selectedFile, setSelectedFile] = useState<File | null>(null);
+```
+
+```tsx
+function onSubmit(data: AdminUpdateArticleInput) {
+  updateArticleMutation.mutate(
+    {
+      id: articleData.id,
+      data: data,
+      file: selectedFile ?? undefined,
+    },
+    {
+      onSuccess: (response) => {
+        toast.success("Article updated");
+        router.push(`/article/${response.id}`);
+      },
+      onError: (error) => {
+        toast.error(`Error updating article. ${error.message}`);
+      },
+    },
+  );
+}
+```
+
+```tsx
+{
+  /* file upload */
+}
+<div className="space-y-2">
+  <Label className="text-sm">Featured Image (Optional)</Label>
+  <FileDropzone
+    preset="articleImage"
+    onFileSelect={setSelectedFile}
+    disabled={updateArticleMutation.isPending}
+    preview
+    currentImageUrl={articleData.imagePath ?? undefined}
+  />
+</div>;
+```
+
+## step 7 inline edit form
 
 `features/articles/components/InlineEditArticleForm.tsx`
 
@@ -6723,7 +7098,82 @@ export function InlineEditArticleForm({
 }
 ```
 
-## step 6 admin inline edit form
+## step 8 inline edit form with file upload
+
+need to add:
+
+- `fileDropzone` import
+- file state variable
+- change handleSubmit function
+- input for file upload
+- clear file on reset button in action buttons
+
+```tsx
+import { FileDropzone } from "@/components/ui/file-dropzone";
+```
+
+```tsx
+const [selectedFile, setSelectedFile] = useState<File | null>(null);
+```
+
+```tsx
+const handleSubmit = (data: UpdateArticleInput) => {
+  updateArticleMutation.mutate(
+    { id: articleData.id, data, file: selectedFile ?? undefined },
+    {
+      onSuccess: () => {
+        form.reset();
+        setSelectedFile(null);
+        if (!isAlwaysOpen) {
+          setIsOpen(false);
+        }
+        onSuccess?.();
+      },
+      onError: (err) => {
+        onError?.(err);
+      },
+    },
+  );
+};
+```
+
+```tsx
+{
+  /* file upload */
+}
+<div className="space-y-2">
+  <Label className="text-sm">Featured Image (Optional)</Label>
+  <FileDropzone
+    preset="articleImage"
+    onFileSelect={setSelectedFile}
+    disabled={updateArticleMutation.isPending}
+    preview
+    currentImageUrl={articleData.imagePath ?? undefined}
+  />
+</div>;
+```
+
+```tsx
+{/* Action Buttons */}
+<div className="flex gap-3 pt-2">
+  <Button
+    type="button"
+    variant="outline"
+    size="sm"
+    className="cursor-pointer"
+    onClick={() => {
+      if (!isAlwaysOpen) {
+        setIsOpen(false);
+      }
+      form.reset();
+      setSelectedFile(null);
+      onCancel?.();
+    }}
+    disabled={updateArticleMutation.isPending}
+  >
+```
+
+## step 9 admin inline edit form
 
 `features/admin/articles/components/AdminInlineEditArticleForm.tsx`
 
@@ -6917,7 +7367,82 @@ export function AdminInlineEditArticleForm({
 }
 ```
 
-## step 7 modal for edit
+## step 10 admin inline edit form with file upload
+
+need to add:
+
+- `fileDropzone` import
+- file state variable
+- change handleSubmit function
+- input for file upload
+- clear file on reset button in action buttons
+
+```tsx
+import { FileDropzone } from "@/components/ui/file-dropzone";
+```
+
+```tsx
+const [selectedFile, setSelectedFile] = useState<File | null>(null);
+```
+
+```tsx
+const handleSubmit = (data: AdminUpdateArticleInput) => {
+  updateArticleMutation.mutate(
+    { id: articleData.id, data, file: selectedFile ?? undefined },
+    {
+      onSuccess: () => {
+        form.reset();
+        setSelectedFile(null);
+        if (!isAlwaysOpen) {
+          setIsOpen(false);
+        }
+        onSuccess?.();
+      },
+      onError: (err) => {
+        onError?.(err);
+      },
+    },
+  );
+};
+```
+
+```tsx
+{
+  /* file upload */
+}
+<div className="space-y-2">
+  <Label className="text-sm">Featured Image (Optional)</Label>
+  <FileDropzone
+    preset="articleImage"
+    onFileSelect={setSelectedFile}
+    disabled={updateArticleMutation.isPending}
+    preview
+    currentImageUrl={articleData.imagePath ?? undefined}
+  />
+</div>;
+```
+
+```tsx
+{/* Action Buttons */}
+<div className="flex gap-3 pt-2">
+  <Button
+    type="button"
+    variant="outline"
+    size="sm"
+    className="cursor-pointer"
+    onClick={() => {
+      if (!isAlwaysOpen) {
+        setIsOpen(false);
+      }
+      form.reset();
+      setSelectedFile(null);
+      onCancel?.();
+    }}
+    disabled={updateArticleMutation.isPending}
+  >
+```
+
+## step 11 modal for edit
 
 `features/articles/components/modal/EditArticleModal.tsx`
 
@@ -6946,7 +7471,7 @@ export function EditArticleModal({ data }: { data: Article }) {
 }
 ```
 
-## step 8 admin modal for edit
+## step 12 admin modal for edit
 
 `features/admin/articles/components/modal/AdminEditArticleModal.tsx`
 
@@ -6979,6 +7504,7 @@ export function AdminEditArticleModal({ data }: { data: Article }) {
 
 Instructions for AI, roughly guess UI component based off schema model and type.ts, this is more so just to quickly check if api/hooks work. doesn't matter if its ugly
 `components/ui/Article.tsx`
+this example assumes image but if different media like video, attempt to render it in html. recommend what libraries or components to use in comments.
 
 ```tsx
 import { Card } from "./card";
@@ -6992,6 +7518,7 @@ import { useModal } from "../providers/ModalProvider";
 import { useDeleteArticle } from "@/features/articles/hooks";
 import { toast } from "sonner";
 import { InlineEditArticleForm } from "@/features/articles/components/InlineEditArticleForm";
+import { AppImage } from "./AppImage"; // omit if schema doesn't have media image
 
 export function Article({
   data,
@@ -7099,6 +7626,18 @@ export function Article({
         </div>
         {modifyArticle(isOwner)}
       </div>
+      {/* omit me if doing image */}
+      {data?.imagePath && (
+        <div className="w-full h-48 md:h-64 rounded-md overflow-hidden my-3 bg-muted">
+          <AppImage
+            src={data.imagePath}
+            alt={data.title}
+            className="w-full h-full object-cover"
+            expandable
+          />
+        </div>
+      )}
+      {/* EoF omit */}
       <p
         className={`text-xs md:text-sm text-foreground my-3 ${truncateContent ? "line-clamp-3" : ""}`}
         style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
@@ -7123,7 +7662,7 @@ export function Article({
             {data?.creator.username}
           </p>
         </div>
-        <div className="flex gap-2 items-center text-xs md:text-sm flex-shrink-0">
+        <div className="flex gap-2 items-center text-xs md:text-sm shrink-0">
           <Calendar className="h-4 w-4" />
           <span>{formattedDate}</span>
         </div>
@@ -7132,12 +7671,6 @@ export function Article({
   );
 }
 ```
-
-- import my generic skeleton
-- like button
-- view
-- collection button
-- comment
 
 # part 17 | make pagination component
 

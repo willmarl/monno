@@ -15,6 +15,7 @@ import {
   fetchArticleLikedByUser,
   fetchArticleLikedByUserCursor,
 } from "./api";
+import { CreateArticleInput } from "./types/article";
 
 // commented out as its redundant now. replaced by search
 // export function useArticlesOffset(page: number, limit: number) {
@@ -165,7 +166,8 @@ export function useCreateArticle() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: createArticle,
+    mutationFn: ({ data, file }: { data: CreateArticleInput; file?: File }) =>
+      createArticle(data, file),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["articles"] });
     },
@@ -180,10 +182,12 @@ export function useUpdateArticle() {
     mutationFn: ({
       id,
       data,
+      file,
     }: {
       id: number;
       data: Parameters<typeof updateArticle>[1];
-    }) => updateArticle(id, data),
+      file?: File;
+    }) => updateArticle(id, data, file),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ["articles"] });
       qc.invalidateQueries({ queryKey: ["article", id] });

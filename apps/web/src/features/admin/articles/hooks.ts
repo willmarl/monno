@@ -73,10 +73,12 @@ export function useAdminUpdateArticle() {
     mutationFn: ({
       id,
       data,
+      file,
     }: {
       id: number;
       data: Parameters<typeof updateAdminArticle>[1];
-    }) => updateAdminArticle(id, data),
+      file?: File;
+    }) => updateAdminArticle(id, data, file),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ["admin-articles"] });
       qc.invalidateQueries({ queryKey: ["admin-article", id] });

@@ -26,11 +26,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { FileDropzone } from "@/components/ui/file-dropzone";
 import { Article, ARTICLE_STATUSES } from "../types/article";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export function EditArticleForm({ articleData }: { articleData: Article }) {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
   const form = useForm<UpdateArticleInput>({
     resolver: zodResolver(updateArticleSchema),
     mode: "onChange",
@@ -52,6 +56,7 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
       {
         id: articleData.id,
         data: data,
+        file: selectedFile ?? undefined,
       },
       {
         onSuccess: (response) => {
@@ -137,6 +142,18 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
               {form.formState.errors.status.message}
             </p>
           )}
+        </div>
+
+        {/* file upload */}
+        <div className="space-y-2">
+          <Label className="text-sm">Featured Image (Optional)</Label>
+          <FileDropzone
+            preset="articleImage"
+            onFileSelect={setSelectedFile}
+            disabled={updateArticleMutation.isPending}
+            preview
+            currentImageUrl={articleData.imagePath ?? undefined}
+          />
         </div>
 
         <Button

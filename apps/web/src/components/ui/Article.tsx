@@ -13,6 +13,7 @@ import { LikeButton } from "../common/LikeButton";
 import { useToggleLike } from "@/features/likes/hooks";
 import { RESOURCE_TYPES } from "@/types/resource";
 import { CollectionButton } from "../common/CollectionButton";
+import { AppImage } from "./AppImage";
 
 export function Article({
   data,
@@ -125,6 +126,16 @@ export function Article({
         </div>
         {modifyArticle(isOwner)}
       </div>
+      {data?.imagePath && (
+        <div className="w-full h-48 md:h-64 rounded-md overflow-hidden my-3 bg-muted">
+          <AppImage
+            src={data.imagePath}
+            alt={data.title}
+            className="w-full h-full object-cover"
+            expandable
+          />
+        </div>
+      )}
       <p
         className={`text-xs md:text-sm text-foreground my-3 ${truncateContent ? "line-clamp-3" : ""}`}
         style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
@@ -149,7 +160,7 @@ export function Article({
             {data?.creator.username}
           </p>
         </div>
-        <div className="flex gap-2 items-center text-xs md:text-sm flex-shrink-0">
+        <div className="flex gap-2 items-center text-xs md:text-sm shrink-0">
           <div className="flex items-center gap-1 text-muted-foreground">
             <Eye className="h-4 w-4" />
             <span>{data.viewCount}</span>
