@@ -9,7 +9,7 @@ import { PageLoadingState } from "@/components/common/PageLoadingState";
 import { User } from "@/features/users/types/user";
 import { useRecordView } from "@/features/views/hook";
 import { InlineNewCommentForm } from "@/features/comments/components/InlineNewCommentForm";
-import { CommentPagInline } from "@/features/comments/components/CommnetPagInline";
+import { CommentPagInline } from "@/features/comments/components/CommentPagInline";
 import { toast } from "sonner";
 // import { useSessionUser } from "@/features/auth/hooks";
 
@@ -56,7 +56,7 @@ export function ArticleDetail({ user }: { user: User | undefined }) {
           resourceType="ARTICLE"
           resourceId={data.id}
           onSuccess={() => {
-            toast.success("Comment articleed!");
+            toast.success("Comment added");
           }}
           isAlwaysOpen={true}
           user={user}
