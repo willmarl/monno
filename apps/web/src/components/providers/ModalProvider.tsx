@@ -3,14 +3,21 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
+type ModalVariant = "default" | "naked";
+
 type ModalState = {
   isOpen: boolean;
   title?: string;
   content?: ReactNode;
+  variant?: ModalVariant;
 };
 
 type ModalContextType = {
-  openModal: (options: { title: string; content: ReactNode }) => void;
+  openModal: (options: {
+    title: string;
+    content: ReactNode;
+    variant?: ModalVariant;
+  }) => void;
   closeModal: () => void;
 };
 
@@ -23,11 +30,16 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     content: null,
   });
 
-  const openModal = (options: { title: string; content: ReactNode }) => {
+  const openModal = (options: {
+    title: string;
+    content: ReactNode;
+    variant?: ModalVariant;
+  }) => {
     setModal({
       isOpen: true,
       title: options.title,
       content: options.content,
+      variant: options.variant ?? "default",
     });
   };
 
@@ -40,12 +52,19 @@ export function ModalProvider({ children }: { children: ReactNode }) {
       {children}
 
       <Dialog open={modal.isOpen} onOpenChange={closeModal}>
-        <DialogContent>
-          <DialogTitle>{modal.title}</DialogTitle>
-          <div className="mt-4 p-1 max-h-[calc(100vh-200px)] overflow-y-auto">
+        {modal.variant === "naked" ? (
+          <DialogContent className="bg-transparent border-none shadow-none p-0 max-w-screen-lg w-auto">
+            <DialogTitle className="sr-only">{modal.title}</DialogTitle>
             {modal.content}
-          </div>
-        </DialogContent>
+          </DialogContent>
+        ) : (
+          <DialogContent>
+            <DialogTitle>{modal.title}</DialogTitle>
+            <div className="mt-4 p-1 max-h-[calc(100vh-200px)] overflow-y-auto">
+              {modal.content}
+            </div>
+          </DialogContent>
+        )}
       </Dialog>
     </ModalContext.Provider>
   );
