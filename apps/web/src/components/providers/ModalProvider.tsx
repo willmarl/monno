@@ -1,7 +1,12 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 type ModalVariant = "default" | "naked";
 
@@ -55,11 +60,17 @@ export function ModalProvider({ children }: { children: ReactNode }) {
         {modal.variant === "naked" ? (
           <DialogContent className="bg-transparent border-none shadow-none p-0 max-w-screen-lg w-auto">
             <DialogTitle className="sr-only">{modal.title}</DialogTitle>
+            <DialogDescription className="sr-only">
+              Modal dialog
+            </DialogDescription>
             {modal.content}
           </DialogContent>
         ) : (
           <DialogContent>
             <DialogTitle>{modal.title}</DialogTitle>
+            <DialogDescription className="sr-only">
+              Modal dialog
+            </DialogDescription>
             <div className="mt-4 p-1 max-h-[calc(100vh-200px)] overflow-y-auto">
               {modal.content}
             </div>
