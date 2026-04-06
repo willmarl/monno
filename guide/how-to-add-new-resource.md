@@ -14986,3 +14986,53 @@ export function Article({
   );
 }
 ```
+
+### step 2 update CollectionItem.tsx to handle {{resource}} type
+
+`web/src/components/ui/CollectionItem.tsx`
+
+Add an import for the new resource's hook and UI component, then add a new `if` block for the resource type.
+
+```tsx
+import { use{{Resource}}ById } from "@/features/{{resource}}/hooks";
+import { {{Resource}} } from "./{{Resource}}";
+...
+
+if (item.resourceType === "{{RESOURCE}}") {
+  const { data: {{resource}} } = use{{Resource}}ById(item.resourceId);
+  if (!{{resource}}) return <div>Loading {{resource}}...</div>;
+  return <{{Resource}} data={{{resource}}} isOwner={isOwner} />;
+}
+```
+
+example:
+`web/src/components/ui/CollectionItem.tsx`
+
+```tsx
+import { usePostById } from "@/features/posts/hooks";
+import { useArticleById } from "@/features/articles/hooks";
+import { Post } from "./Post";
+import { Article } from "./Article";
+import { CollectionItem as CollectionItemType } from "@/features/collections/types/collection";
+
+interface CollectionItemProps {
+  item: CollectionItemType;
+  isOwner: boolean;
+}
+
+export function CollectionItem({ item, isOwner }: CollectionItemProps) {
+  if (item.resourceType === "POST") {
+    const { data: post } = usePostById(item.resourceId);
+    if (!post) return <div>Loading post...</div>;
+    return <Post data={post} isOwner={isOwner} />;
+  }
+
+  if (item.resourceType === "ARTICLE") {
+    const { data: article } = useArticleById(item.resourceId);
+    if (!article) return <div>Loading article...</div>;
+    return <Article data={article} isOwner={isOwner} />;
+  }
+
+  return <div>Unknown resource type: {item.resourceType}</div>;
+}
+```

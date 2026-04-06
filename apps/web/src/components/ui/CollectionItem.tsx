@@ -1,6 +1,8 @@
 import { usePostById } from "@/features/posts/hooks";
+import { useArticleById } from "@/features/articles/hooks";
 import { Post } from "./Post";
 import { CollectionItem as CollectionItemType } from "@/features/collections/types/collection";
+import { Article } from "./Article";
 
 interface CollectionItemProps {
   item: CollectionItemType;
@@ -14,12 +16,14 @@ export function CollectionItem({ item, isOwner }: CollectionItemProps) {
     return <Post data={post} isOwner={isOwner} />;
   }
 
+  if (item.resourceType === "ARTICLE") {
+    const { data: article } = useArticleById(item.resourceId);
+    if (!article) return <div>Loading article...</div>;
+    return <Article data={article} isOwner={isOwner} />;
+  }
+
   // if (item.resourceType === "VIDEO") {
   //   return <div>Video #{item.resourceId}</div>;
-  // }
-
-  // if (item.resourceType === "ARTICLE") {
-  //   return <div>Article #{item.resourceId}</div>;
   // }
 
   return <div>Unknown resource type: {item.resourceType}</div>;
