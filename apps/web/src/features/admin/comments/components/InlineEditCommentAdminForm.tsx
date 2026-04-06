@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  UpdateCommentAdminInput,
-  updateCommentAdminSchema,
-} from "../schemas/updateCommentAdmin.schema";
+  EditCommentAdminInput,
+  editCommentAdminSchema,
+} from "../schemas/editCommentAdmin.schema";
 import { useAdminUpdateComment } from "@/features/comments/hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { Comment } from "@/features/comments/types/comment";
 
-interface InlineUpdateCommentAdminFormProps {
+interface InlineEditCommentAdminFormProps {
   data: Comment;
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -22,29 +22,29 @@ interface InlineUpdateCommentAdminFormProps {
   isAlwaysOpen?: boolean;
 }
 
-export function InlineUpdateCommentAdminForm({
+export function InlineEditCommentAdminForm({
   data: commentData,
   onSuccess,
   onCancel,
   onError,
   isAlwaysOpen = false,
-}: InlineUpdateCommentAdminFormProps) {
+}: InlineEditCommentAdminFormProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const form = useForm<UpdateCommentAdminInput>({
-    resolver: zodResolver(updateCommentAdminSchema),
+  const form = useForm<EditCommentAdminInput>({
+    resolver: zodResolver(editCommentAdminSchema),
     mode: "onChange",
     defaultValues: {
       content: commentData.content,
     },
   });
 
-  const updateCommentAdminMutation = useAdminUpdateComment();
+  const editCommentAdminMutation = useAdminUpdateComment();
 
   const { isValid } = form.formState;
 
-  const handleSubmit = (data: UpdateCommentAdminInput) => {
-    updateCommentAdminMutation.mutate(
+  const handleSubmit = (data: EditCommentAdminInput) => {
+    editCommentAdminMutation.mutate(
       { id: commentData.id, data },
       {
         onSuccess: () => {
@@ -64,7 +64,7 @@ export function InlineUpdateCommentAdminForm({
   if (!isAlwaysOpen && !isOpen) {
     return (
       <Button onClick={() => setIsOpen(true)} variant="outline">
-        Change UpdateCommentAdmin
+        Edit Comment
       </Button>
     );
   }
@@ -80,7 +80,7 @@ export function InlineUpdateCommentAdminForm({
           id="inline-content"
           type="text"
           placeholder="content"
-          disabled={updateCommentAdminMutation.isPending}
+          disabled={editCommentAdminMutation.isPending}
           {...form.register("content")}
         />
         {form.formState.errors.content && (
@@ -104,7 +104,7 @@ export function InlineUpdateCommentAdminForm({
             form.reset();
             onCancel?.();
           }}
-          disabled={updateCommentAdminMutation.isPending}
+          disabled={editCommentAdminMutation.isPending}
         >
           {isAlwaysOpen ? "Reset" : "Cancel"}
         </Button>
@@ -112,14 +112,12 @@ export function InlineUpdateCommentAdminForm({
           type="submit"
           size="sm"
           className="cursor-pointer"
-          disabled={updateCommentAdminMutation.isPending || !isValid}
+          disabled={editCommentAdminMutation.isPending || !isValid}
         >
-          {updateCommentAdminMutation.isPending && (
+          {editCommentAdminMutation.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          {updateCommentAdminMutation.isPending
-            ? "Updating..."
-            : "Update comment"}
+          {editCommentAdminMutation.isPending ? "Saving..." : "Save comment"}
         </Button>
       </div>
     </form>

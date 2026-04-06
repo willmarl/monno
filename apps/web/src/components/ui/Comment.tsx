@@ -29,9 +29,9 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  updateCommentSchema,
-  UpdateCommentInput,
-} from "@/features/comments/schemas/updateComment.schema";
+  editCommentSchema,
+  EditCommentInput,
+} from "@/features/comments/schemas/editComment.schema";
 import { useDeleteComment, useUpdateComment } from "@/features/comments/hooks";
 import { LikeButton } from "../common/LikeButton";
 
@@ -43,8 +43,8 @@ export function Comment({
   isOwner: boolean;
 }) {
   const [isEditing, setIsEditing] = useState(false);
-  const editForm = useForm<UpdateCommentInput>({
-    resolver: zodResolver(updateCommentSchema),
+  const editForm = useForm<EditCommentInput>({
+    resolver: zodResolver(editCommentSchema),
     defaultValues: { content: data.content },
     mode: "onChange",
   });
