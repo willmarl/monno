@@ -3,6 +3,7 @@ import { Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
+import { Role, UserStatus } from '../../../generated/prisma/client';
 
 /**
  * Transform string booleans from query params to actual booleans
@@ -91,11 +92,11 @@ export class UserSearchDto extends PaginationDto {
   getRoles(): string[] {
     if (!this.roles) return [];
 
-    const validRoles = ['USER', 'ADMIN', 'MOD'];
+    const validRoles = Object.values(Role);
     return this.roles
       .split(',')
       .map((role) => role.trim().toUpperCase())
-      .filter((role) => validRoles.includes(role));
+      .filter((role) => validRoles.includes(role as Role));
   }
 
   /**
@@ -105,11 +106,11 @@ export class UserSearchDto extends PaginationDto {
   getStatuses(): string[] {
     if (!this.statuses) return [];
 
-    const validStatuses = ['ACTIVE', 'SUSPENDED', 'BANNED', 'DELETED'];
+    const validStatuses = Object.values(UserStatus);
     return this.statuses
       .split(',')
       .map((status) => status.trim().toUpperCase())
-      .filter((status) => validStatuses.includes(status));
+      .filter((status) => validStatuses.includes(status as UserStatus));
   }
 
   /**
@@ -211,11 +212,11 @@ export class UserSearchCursorDto extends CursorPaginationDto {
   getRoles(): string[] {
     if (!this.roles) return [];
 
-    const validRoles = ['USER', 'ADMIN', 'MOD'];
+    const validRoles = Object.values(Role);
     return this.roles
       .split(',')
       .map((role) => role.trim().toUpperCase())
-      .filter((role) => validRoles.includes(role));
+      .filter((role) => validRoles.includes(role as Role));
   }
 
   /**
@@ -225,11 +226,11 @@ export class UserSearchCursorDto extends CursorPaginationDto {
   getStatuses(): string[] {
     if (!this.statuses) return [];
 
-    const validStatuses = ['ACTIVE', 'SUSPENDED', 'BANNED', 'DELETED'];
+    const validStatuses = Object.values(UserStatus);
     return this.statuses
       .split(',')
       .map((status) => status.trim().toUpperCase())
-      .filter((status) => validStatuses.includes(status));
+      .filter((status) => validStatuses.includes(status as UserStatus));
   }
 
   /**

@@ -1,11 +1,6 @@
-export enum ResourceTypeEnum {
-  POST = 'POST',
-  COMMENT = 'COMMENT',
-  ARTICLE = 'ARTICLE',
-}
+import { ResourceType } from '../../generated/prisma/client';
 
-// export type ResourceType = 'POST' | 'VIDEO' | 'ARTICLE' | 'COMMENT';
-export type ResourceType = 'POST' | 'COMMENT' | 'ARTICLE';
+export type { ResourceType };
 
 // Module-specific subsets
 export const LIKEABLE_RESOURCES = ['POST', 'COMMENT', 'ARTICLE'] as const;

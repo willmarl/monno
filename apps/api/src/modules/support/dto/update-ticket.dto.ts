@@ -1,20 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
-
-enum Status {
-  OPEN = 'OPEN',
-  RESPONDED = 'RESPONDED',
-  CLOSED = 'CLOSED',
-}
+import { SupportTicketStatus } from '../../../generated/prisma/client';
 
 export class UpdateTicketDto {
   @ApiProperty({
     description: 'The status of the support ticket',
-    enum: Status,
+    enum: SupportTicketStatus,
     example: 'OPEN',
   })
-  @IsEnum(Status)
-  status: Status;
+  @IsEnum(SupportTicketStatus)
+  status: SupportTicketStatus;
 
   @ApiPropertyOptional({
     description: 'Internal notes for admin reference',
