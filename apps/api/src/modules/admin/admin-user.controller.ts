@@ -47,56 +47,6 @@ export class AdminUsersController {
     private readonly usersService: UsersService,
   ) {}
 
-  @ApiOperation({
-    summary: 'Get all users with optional search and filters (admin only)',
-  })
-  @ApiBearerAuth()
-  @ApiResponse({
-    status: 200,
-    description: 'List of users',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
-  @Get()
-  @ApiQuery({ name: 'query', required: false, description: 'Search query' })
-  @ApiQuery({ name: 'limit', required: false })
-  @ApiQuery({ name: 'offset', required: false })
-  findAll(@Query() searchDto: UserSearchDto) {
-    return this.adminUserService.search(searchDto);
-  }
-
-  @ApiOperation({
-    summary:
-      'Get all users with cursor pagination and optional search/filters (admin only)',
-  })
-  @ApiBearerAuth()
-  @ApiQuery({
-    name: 'query',
-    required: false,
-    description: 'Search query',
-  })
-  @ApiQuery({
-    name: 'cursor',
-    required: false,
-    description: 'Cursor for pagination',
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    example: 10,
-    description: 'Number of items per page',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'List of users with next cursor',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
-  @Get('cursor')
-  findAllCursor(@Query() searchDto: UserSearchCursorDto) {
-    return this.adminUserService.searchCursor(searchDto);
-  }
-
   @ApiOperation({ summary: 'Search users (admin only)' })
   @ApiBearerAuth()
   @ApiResponse({

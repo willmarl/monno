@@ -41,6 +41,16 @@ import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination
 import { UserSearchDto, UserSearchCursorDto } from './dto/search-user.dto';
 import { cookieConfig } from 'src/config/cookie.config';
 
+// ============================================================
+// ⚠️  DUPLICATE ENDPOINTS + PAGINATION NOTE
+// This controller exposes BOTH @Get() and @Get('search') which
+// call the same method, and @Get('cursor') / @Get('search/cursor')
+// which also call the same method. The root endpoints are redundant
+// — pick one convention and remove the other.
+// It also has BOTH offset (@Get('search')) and cursor
+// (@Get('search/cursor')) pagination. Prefer one style per resource.
+// ============================================================
+
 @ApiTags('users')
 @Controller('users')
 export class UsersController {

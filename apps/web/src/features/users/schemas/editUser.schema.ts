@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const updateUserSchema = z.object({
+export const editUserSchema = z.object({
   username: z
     .string()
     .min(2, "username must be at least 2 characters")
@@ -21,4 +21,4 @@ export const updateUserSchema = z.object({
     .optional(),
 });
 
-export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type EditUserInput = z.infer<typeof editUserSchema>;

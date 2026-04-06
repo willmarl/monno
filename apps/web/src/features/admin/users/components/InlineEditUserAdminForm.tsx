@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  updateUserAdminSchema,
-  UpdateUserAdminInput,
-} from "../schemas/updateUserAdmin.schema";
+  editUserAdminSchema,
+  EditUserAdminInput,
+} from "../schemas/editUserAdmin.schema";
 import { useAdminUpdateUser } from "../../../users/hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ import { Loader2 } from "lucide-react";
 import { User } from "@/features/users/types/user";
 import { AvatarUpload } from "@/components/ui/avatar-upload";
 
-interface InlineUpdateUserAdminFormProps {
+interface InlineEditUserAdminFormProps {
   user: User;
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -31,18 +31,18 @@ interface InlineUpdateUserAdminFormProps {
   isAlwaysOpen?: boolean;
 }
 
-export function InlineUpdateUserAdminForm({
+export function InlineEditUserAdminForm({
   user,
   onSuccess,
   onCancel,
   onError,
   isAlwaysOpen = false,
-}: InlineUpdateUserAdminFormProps) {
+}: InlineEditUserAdminFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const form = useForm<UpdateUserAdminInput>({
-    resolver: zodResolver(updateUserAdminSchema),
+  const form = useForm<EditUserAdminInput>({
+    resolver: zodResolver(editUserAdminSchema),
     mode: "onChange",
     defaultValues: {
       username: user.username,
@@ -55,17 +55,17 @@ export function InlineUpdateUserAdminForm({
     },
   });
 
-  const updateUserAdminMutation = useAdminUpdateUser();
+  const editUserAdminMutation = useAdminUpdateUser();
 
   const { isValid } = form.formState;
 
-  const handleSubmit = (data: UpdateUserAdminInput) => {
+  const handleSubmit = (data: EditUserAdminInput) => {
     // Filter out empty strings
     const filteredData = Object.fromEntries(
       Object.entries(data).filter(([, value]) => value !== ""),
-    ) as UpdateUserAdminInput;
+    ) as EditUserAdminInput;
 
-    updateUserAdminMutation.mutate(
+    editUserAdminMutation.mutate(
       { id: user.id, data: filteredData, file: selectedFile || undefined },
       {
         onSuccess: () => {
@@ -86,14 +86,13 @@ export function InlineUpdateUserAdminForm({
   if (!isAlwaysOpen && !isOpen) {
     return (
       <Button onClick={() => setIsOpen(true)} variant="outline">
-        Change UpdateUserAdmin
+        Edit User
       </Button>
     );
   }
 
   return (
     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-      {/* Input fields here*/}
       {/* username */}
       <div className="space-y-2">
         <Label htmlFor="inline-username" className="text-sm">
@@ -102,7 +101,7 @@ export function InlineUpdateUserAdminForm({
         <Input
           id="inline-username"
           type="text"
-          disabled={updateUserAdminMutation.isPending}
+          disabled={editUserAdminMutation.isPending}
           {...form.register("username")}
         />
         {form.formState.errors.username && (
@@ -117,7 +116,7 @@ export function InlineUpdateUserAdminForm({
         <Label className="text-sm">Avatar</Label>
         <AvatarUpload
           onFileSelect={setSelectedFile}
-          disabled={updateUserAdminMutation.isPending}
+          disabled={editUserAdminMutation.isPending}
           currentAvatarUrl={user?.avatarPath || undefined}
           maxSize={2 * 1024 * 1024}
         />
@@ -131,7 +130,7 @@ export function InlineUpdateUserAdminForm({
         <Input
           id="inline-email"
           type="text"
-          disabled={updateUserAdminMutation.isPending}
+          disabled={editUserAdminMutation.isPending}
           {...form.register("email")}
         />
         {form.formState.errors.email && (
@@ -149,7 +148,7 @@ export function InlineUpdateUserAdminForm({
         <Input
           id="inline-password"
           type="text"
-          disabled={updateUserAdminMutation.isPending}
+          disabled={editUserAdminMutation.isPending}
           {...form.register("password")}
         />
         {form.formState.errors.password && (
@@ -171,7 +170,7 @@ export function InlineUpdateUserAdminForm({
             <Select value={field.value || ""} onValueChange={field.onChange}>
               <SelectTrigger
                 id="inline-role"
-                disabled={updateUserAdminMutation.isPending}
+                disabled={editUserAdminMutation.isPending}
               >
                 <SelectValue placeholder="Select a role" />
               </SelectTrigger>
@@ -202,7 +201,7 @@ export function InlineUpdateUserAdminForm({
             <Select value={field.value || ""} onValueChange={field.onChange}>
               <SelectTrigger
                 id="inline-status"
-                disabled={updateUserAdminMutation.isPending}
+                disabled={editUserAdminMutation.isPending}
               >
                 <SelectValue placeholder="Select a status" />
               </SelectTrigger>
@@ -230,7 +229,7 @@ export function InlineUpdateUserAdminForm({
         <Textarea
           id="inline-statusReason"
           placeholder="Reason for status change (optional)"
-          disabled={updateUserAdminMutation.isPending}
+          disabled={editUserAdminMutation.isPending}
           {...form.register("statusReason")}
         />
         {form.formState.errors.statusReason && (
@@ -254,19 +253,19 @@ export function InlineUpdateUserAdminForm({
             setSelectedFile(null);
             onCancel?.();
           }}
-          disabled={updateUserAdminMutation.isPending}
+          disabled={editUserAdminMutation.isPending}
         >
           {isAlwaysOpen ? "Reset" : "Cancel"}
         </Button>
         <Button
           type="submit"
           size="sm"
-          disabled={updateUserAdminMutation.isPending || !isValid}
+          disabled={editUserAdminMutation.isPending || !isValid}
         >
-          {updateUserAdminMutation.isPending && (
+          {editUserAdminMutation.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          {updateUserAdminMutation.isPending ? "Updating..." : "Update User"}
+          {editUserAdminMutation.isPending ? "Saving..." : "Save User"}
         </Button>
       </div>
     </form>

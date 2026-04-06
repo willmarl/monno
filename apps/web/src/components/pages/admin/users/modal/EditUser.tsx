@@ -1,18 +1,18 @@
 "use client";
 
-import { InlineUpdateUserAdminForm } from "@/features/admin/users/components/InlineUpdateUserAdminForm";
+import { InlineEditUserAdminForm } from "@/features/admin/users/components/InlineEditUserAdminForm";
 import { User } from "@/features/users/types/user";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 
-export function UpdateUser({ user }: { user: User }) {
+export function EditUser({ user }: { user: User }) {
   const { closeModal } = useModal();
 
   return (
-    <InlineUpdateUserAdminForm
+    <InlineEditUserAdminForm
       user={user}
       onSuccess={() => {
-        toast.success(`Editted ${user.username} successfully`);
+        toast.success(`Edited ${user.username} successfully`);
         closeModal();
       }}
       onError={() => {

@@ -121,7 +121,7 @@ export const fetchAdminUsers = ({
   if (roles) searchParams.roles = roles;
   if (statuses) searchParams.statuses = statuses;
 
-  return fetcher<UsersList>("/admin/users", { searchParams });
+  return fetcher<UsersList>("/admin/users/search", { searchParams });
 };
 
 export const fetchAdminUserById = (id: number) =>

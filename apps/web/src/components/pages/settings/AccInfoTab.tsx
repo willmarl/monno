@@ -21,9 +21,9 @@ import {
 } from "@/features/auth/hooks";
 import { useUpdateProfile } from "@/features/users/hooks";
 import {
-  updateUserSchema,
-  type UpdateUserInput,
-} from "@/features/users/schemas/updateUser.schema";
+  editUserSchema,
+  type EditUserInput,
+} from "@/features/users/schemas/editUser.schema";
 import { AvatarUpload } from "@/components/ui/avatar-upload";
 import { toastSuccess, toastError } from "@/lib/toast";
 
@@ -36,8 +36,8 @@ export function AccInfoTab() {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const form = useForm<UpdateUserInput>({
-    resolver: zodResolver(updateUserSchema),
+  const form = useForm<EditUserInput>({
+    resolver: zodResolver(editUserSchema),
     defaultValues: {
       username: user?.username || "",
       email: user?.email || "",
@@ -55,7 +55,7 @@ export function AccInfoTab() {
     }
   }, [user, form]);
 
-  const handleSaveChanges = (data: UpdateUserInput) => {
+  const handleSaveChanges = (data: EditUserInput) => {
     const payload = {
       ...data,
       email: data.email || undefined,

@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useModal } from "@/components/providers/ModalProvider";
-import { UpdateUser } from "@/components/pages/admin/users/modal/UpdateUser";
+import { EditUser } from "@/components/pages/admin/users/modal/EditUser";
 import { DeleteUser } from "./modal/DeleteUser";
 import { SortableHeader } from "@/components/table/SortableHeader";
 import { TextPreviewCell } from "@/components/table/TextPreviewCell";
@@ -151,7 +151,7 @@ export const columns: ColumnDef<User>[] = [
               onClick={() => {
                 openModal({
                   title: "Edit data for " + row.original.username,
-                  content: <UpdateUser user={row.original} />,
+                  content: <EditUser user={row.original} />,
                 });
               }}
             >
