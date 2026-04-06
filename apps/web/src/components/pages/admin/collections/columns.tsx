@@ -14,7 +14,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Collection } from "@/features/collections/types/collection";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
-  useAdminUpdateCollection,
+  useAdminEditCollection,
   useAdminDeleteCollection,
   useAdminRestoreCollection,
 } from "@/features/collections/hooks";
@@ -22,7 +22,7 @@ import { useRouter } from "next/navigation";
 import { SortableHeader } from "@/components/table/SortableHeader";
 import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 import { formatDate } from "@/lib/utils/date";
-import { UpdateCollection } from "./modal/UpdateCollection";
+import { EditCollection } from "./modal/EditCollection";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 
@@ -135,7 +135,7 @@ export const columns: ColumnDef<Collection>[] = [
               onClick={() => {
                 openModal({
                   title: "Update collection " + row.original.name,
-                  content: <UpdateCollection collection={row.original} />,
+                  content: <EditCollection collection={row.original} />,
                 });
               }}
             >

@@ -1,13 +1,13 @@
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 import { Collection } from "@/features/collections/types/collection";
-import { InlineUpdateCollectionAdminForm } from "@/features/admin/collections/components/InlineUpdateCollectionAdminForm";
+import { InlineEditCollectionAdminForm } from "@/features/admin/collections/components/InlineEditCollectionAdminForm";
 
-export function UpdateCollection({ collection }: { collection: Collection }) {
+export function EditCollection({ collection }: { collection: Collection }) {
   const { closeModal } = useModal();
 
   return (
-    <InlineUpdateCollectionAdminForm
+    <InlineEditCollectionAdminForm
       data={collection}
       onSuccess={() => {
         toast.success("Successfully updated collection");

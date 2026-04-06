@@ -8,7 +8,7 @@ import type {
   CollectionItemInput,
   CollectionRef,
 } from "./types/collection";
-import { UpdateCollectionInput } from "./schemas/updateCollection.schema";
+import { EditCollectionInput } from "./schemas/editCollection.schema";
 
 // get all of user's collections
 export const fetchCollectionByUserId = (
@@ -112,7 +112,7 @@ export const fetchAdminCollectionById = (id: number) =>
 
 export const updateAdminCollection = (
   id: number,
-  data: UpdateCollectionInput,
+  data: EditCollectionInput,
 ) =>
   fetcher<Collection>(`/admin/collections/${id}`, {
     method: "PATCH",

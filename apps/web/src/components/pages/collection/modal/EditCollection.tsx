@@ -1,4 +1,4 @@
-import { InlineUpdateCollectionForm } from "@/features/collections/components/InlineUpdateCollectionForm";
+import { InlineEditCollectionForm } from "@/features/collections/components/InlineEditCollectionForm";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 import { Collection } from "@/features/collections/types/collection";
@@ -7,7 +7,7 @@ export function EditCollection({ data }: { data: Collection }) {
   const { closeModal } = useModal();
 
   return (
-    <InlineUpdateCollectionForm
+    <InlineEditCollectionForm
       data={data}
       onSuccess={() => {
         toast.success("Successfully edit collection");

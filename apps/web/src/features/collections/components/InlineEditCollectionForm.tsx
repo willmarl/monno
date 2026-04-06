@@ -4,18 +4,18 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  updateCollectionAdminSchema,
-  UpdateCollectionAdminInput,
-} from "../schemas/updateUserAdmin.schema";
-import { useAdminUpdateCollection } from "@/features/collections/hooks";
+  editCollectionSchema,
+  EditCollectionInput,
+} from "../schemas/editCollection.schema";
+import { useUpdateCollection } from "../hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { Collection } from "@/features/collections/types/collection";
+import { Collection } from "../types/collection";
 import { Textarea } from "@/components/ui/textarea";
 
-interface InlineUpdateCollectionFormProps {
+interface InlineEditCollectionFormProps {
   data: Collection;
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -23,16 +23,16 @@ interface InlineUpdateCollectionFormProps {
   isAlwaysOpen?: boolean;
 }
 
-export function InlineUpdateCollectionAdminForm({
+export function InlineEditCollectionForm({
   data: collectionData,
   onSuccess,
   onCancel,
   onError,
   isAlwaysOpen = false,
-}: InlineUpdateCollectionFormProps) {
+}: InlineEditCollectionFormProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const form = useForm<UpdateCollectionAdminInput>({
-    resolver: zodResolver(updateCollectionAdminSchema),
+  const form = useForm<EditCollectionInput>({
+    resolver: zodResolver(editCollectionSchema),
     mode: "onChange",
     defaultValues: {
       name: collectionData.name,
@@ -40,10 +40,10 @@ export function InlineUpdateCollectionAdminForm({
     },
   });
 
-  const updateCollectionMutation = useAdminUpdateCollection();
+  const editCollectionMutation = useUpdateCollection();
   const { isValid } = form.formState;
-  const handleSubmit = (data: UpdateCollectionAdminInput) => {
-    updateCollectionMutation.mutate(
+  const handleSubmit = (data: EditCollectionInput) => {
+    editCollectionMutation.mutate(
       { id: collectionData.id, data },
       {
         onSuccess: () => {
@@ -63,14 +63,13 @@ export function InlineUpdateCollectionAdminForm({
   if (!isAlwaysOpen && !isOpen) {
     return (
       <Button onClick={() => setIsOpen(true)} variant="outline">
-        Change UpdateCollection
+        Edit Collection
       </Button>
     );
   }
 
   return (
     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-      {/* Input fields here*/}
       {/* name */}
       <div className="space-y-2">
         <Label htmlFor="inline-name" className="text-sm">
@@ -80,7 +79,7 @@ export function InlineUpdateCollectionAdminForm({
           id="inline-name"
           type="text"
           placeholder="name"
-          disabled={updateCollectionMutation.isPending}
+          disabled={editCollectionMutation.isPending}
           {...form.register("name")}
         />
         {form.formState.errors.name && (
@@ -98,7 +97,7 @@ export function InlineUpdateCollectionAdminForm({
         <Textarea
           id="inline-description"
           placeholder="description"
-          disabled={updateCollectionMutation.isPending}
+          disabled={editCollectionMutation.isPending}
           {...form.register("description")}
         />
         {form.formState.errors.description && (
@@ -122,22 +121,20 @@ export function InlineUpdateCollectionAdminForm({
             form.reset();
             onCancel?.();
           }}
-          disabled={updateCollectionMutation.isPending}
+          disabled={editCollectionMutation.isPending}
         >
           {isAlwaysOpen ? "Reset" : "Cancel"}
         </Button>
         <Button
           type="submit"
           size="sm"
-          disabled={updateCollectionMutation.isPending || !isValid}
+          disabled={editCollectionMutation.isPending || !isValid}
           className="cursor-pointer"
         >
-          {updateCollectionMutation.isPending && (
+          {editCollectionMutation.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          {updateCollectionMutation.isPending
-            ? "Updating..."
-            : "Update collection"}
+          {editCollectionMutation.isPending ? "Saving..." : "Save collection"}
         </Button>
       </div>
     </form>

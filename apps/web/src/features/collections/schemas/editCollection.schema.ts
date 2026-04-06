@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-export const updateCollectionSchema = z.object({
+export const editCollectionSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(2000).optional(),
 });
 
-export type UpdateCollectionInput = z.infer<typeof updateCollectionSchema>;
+export type EditCollectionInput = z.infer<typeof editCollectionSchema>;
