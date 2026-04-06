@@ -4,11 +4,10 @@ import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  updateTicketSchema,
-  UpdateTicketInput,
-} from "../schemas/updateTicketAdmin.schema";
+  editTicketAdminSchema,
+  EditTicketAdminInput,
+} from "../schemas/editTicketAdmin.schema";
 import { useUpdateSupportTicket } from "../../../support/hooks";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,26 +21,25 @@ import {
 import { Loader2 } from "lucide-react";
 import { SupportTicket } from "../../../support/types/support";
 
-interface InlineUpdateTicketFormProps {
+interface InlineEditTicketAdminFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   onError?: (error: any) => void;
-
   isAlwaysOpen?: boolean;
   ticket: SupportTicket;
 }
 
-export function InlineUpdateTicketForm({
+export function InlineEditTicketAdminForm({
   onSuccess,
   onCancel,
   onError,
   isAlwaysOpen = false,
   ticket,
-}: InlineUpdateTicketFormProps) {
+}: InlineEditTicketAdminFormProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const form = useForm<UpdateTicketInput>({
-    resolver: zodResolver(updateTicketSchema),
+  const form = useForm<EditTicketAdminInput>({
+    resolver: zodResolver(editTicketAdminSchema),
     mode: "onChange",
     defaultValues: {
       status: ticket.status,
@@ -49,16 +47,16 @@ export function InlineUpdateTicketForm({
     },
   });
 
-  const updateTicketMutation = useUpdateSupportTicket();
+  const editTicketMutation = useUpdateSupportTicket();
 
   const { isValid } = form.formState;
 
-  const handleSubmit = (data: UpdateTicketInput) => {
+  const handleSubmit = (data: EditTicketAdminInput) => {
     // Filter out empty strings and undefined values
     const filteredData = Object.fromEntries(
       Object.entries(data).filter(([, value]) => value !== ""),
-    ) as UpdateTicketInput;
-    updateTicketMutation.mutate(
+    ) as EditTicketAdminInput;
+    editTicketMutation.mutate(
       { id: ticket.id, data: filteredData },
       {
         onSuccess: () => {
@@ -78,7 +76,7 @@ export function InlineUpdateTicketForm({
   if (!isAlwaysOpen && !isOpen) {
     return (
       <Button onClick={() => setIsOpen(true)} variant="outline">
-        Change UpdateTicket
+        Edit Ticket
       </Button>
     );
   }
@@ -97,7 +95,7 @@ export function InlineUpdateTicketForm({
             <Select value={field.value || ""} onValueChange={field.onChange}>
               <SelectTrigger
                 id="inline-status"
-                disabled={updateTicketMutation.isPending}
+                disabled={editTicketMutation.isPending}
               >
                 <SelectValue placeholder="Select a status" />
               </SelectTrigger>
@@ -124,7 +122,7 @@ export function InlineUpdateTicketForm({
         <Textarea
           id="inline-adminNotes"
           placeholder="Admin notes (optional)"
-          disabled={updateTicketMutation.isPending}
+          disabled={editTicketMutation.isPending}
           {...form.register("adminNotes")}
         />
         {form.formState.errors.adminNotes && (
@@ -148,20 +146,20 @@ export function InlineUpdateTicketForm({
             form.reset();
             onCancel?.();
           }}
-          disabled={updateTicketMutation.isPending}
+          disabled={editTicketMutation.isPending}
         >
           {isAlwaysOpen ? "Reset" : "Cancel"}
         </Button>
         <Button
           type="submit"
           size="sm"
-          disabled={updateTicketMutation.isPending || !isValid}
+          disabled={editTicketMutation.isPending || !isValid}
           className="cursor-pointer"
         >
-          {updateTicketMutation.isPending && (
+          {editTicketMutation.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          {updateTicketMutation.isPending ? "Updating..." : "Update"}
+          {editTicketMutation.isPending ? "Saving..." : "Save"}
         </Button>
       </div>
     </form>

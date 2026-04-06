@@ -1,13 +1,13 @@
-import { InlineUpdateTicketForm } from "@/features/admin/support/components/InlineUpdateTicketAdminForm";
+import { InlineEditTicketAdminForm } from "@/features/admin/support/components/InlineEditTicketAdminForm";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 import { SupportTicket } from "@/features/support/types/support";
 
-export function UpdateTicket({ ticket }: { ticket: SupportTicket }) {
+export function EditTicket({ ticket }: { ticket: SupportTicket }) {
   const { closeModal } = useModal();
 
   return (
-    <InlineUpdateTicketForm
+    <InlineEditTicketAdminForm
       ticket={ticket}
       onSuccess={() => {
         toast.success("Successfully updated ticket");
