@@ -205,22 +205,40 @@ async function main() {
   log.success(`Saved PROJECT-BRIEF-${resource}.md`);
   console.log();
   console.log(`Next steps:`);
+  console.log();
+  console.log(`  [Session 1 — Schema Planning]`);
+  console.log(`  1. Start a NEW chat session with your AI`);
   console.log(
-    `  1. Open PROMPT-${resource}.txt → copy contents → give to AI#1 with your schema.prisma`,
+    `  2. Share: PROMPT-${resource}.txt + apps/api/prisma/schema.prisma`,
   );
   console.log(
-    `  2. In that same message, describe the ${resource} fields freely`,
+    `  3. In the same message, describe the ${resource} fields freely:`,
   );
   console.log(
     `     e.g. "title, summary, content. importance enum (low/mid/high). cover image optional"`,
   );
   console.log(
-    `  3. AI#1 proposes schema → confirm → AI#1 outputs final PROJECT-BRIEF-${resource}.md`,
+    `  4. AI proposes schema → you confirm → AI outputs final PROJECT-BRIEF-${resource}.md`,
   );
   console.log(
-    `  4. Give PROJECT-BRIEF-${resource}.md + guide/how-to-add-new-resource.md to AI#2`,
+    `  5. In agent mode the brief is auto-saved; otherwise manually update/replace the generated PROJECT-BRIEF-${resource}.md with the AI output`,
   );
-  console.log(`  5. AI#2 implements — no clarification needed`);
+  console.log();
+  console.log(`  [Session 2 — Implementation]`);
+  console.log(`  6. Start another NEW chat session with your AI`);
+  console.log(
+    `  7. Share: PROJECT-BRIEF-${resource}.md + guide/how-to-add-new-resource.md`,
+  );
+  console.log(
+    `  8. Say: "You are in Implementation Mode. Follow the guide parts in order.`,
+  );
+  console.log(
+    `          All decisions are in the brief — no clarifying questions needed."`,
+  );
+  console.log(
+    `  9. If the chat gets too long mid-way, start a new session and add:`,
+  );
+  console.log(`     "We completed up to Part X. Continue from Part X+1."`);
   console.log();
 }
 
