@@ -21,15 +21,15 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
-import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
-import { Roles } from '../../decorators/roles.decorator';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { JwtAccessGuard } from '../../auth/guards/jwt-access.guard';
+import { Roles } from '../../../decorators/roles.decorator';
+import { RolesGuard } from '../../../common/guards/roles.guard';
 import { AdminPostService } from './admin-post.service';
-import { UpdatePostDto } from '../posts/dto/update-post.dto';
+import { UpdatePostDto } from '../../posts/dto/update-post.dto';
 import {
   PostSearchDto,
   PostSearchCursorDto,
-} from '../posts/dto/search-post.dto';
+} from '../../posts/dto/search-post.dto';
 
 @ApiTags('admin-posts')
 @Controller('admin/posts')

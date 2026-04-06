@@ -21,12 +21,12 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
-import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
-import { Roles } from '../../decorators/roles.decorator';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { JwtAccessGuard } from '../../auth/guards/jwt-access.guard';
+import { Roles } from '../../../decorators/roles.decorator';
+import { RolesGuard } from '../../../common/guards/roles.guard';
 import { AdminCommentService } from './admin-comment.service';
-import { CommentSearchDto } from '../comments/dto/search-comment.dto';
-import { UpdateCommentDto } from '../comments/dto/update-comment.dto';
+import { CommentSearchDto } from '../../comments/dto/search-comment.dto';
+import { UpdateCommentDto } from '../../comments/dto/update-comment.dto';
 
 @ApiTags('admin-comments')
 @Controller('admin/comments')

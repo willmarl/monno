@@ -1,14 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma.service';
-import { UpdatePostDto } from '../posts/dto/update-post.dto';
+import { PrismaService } from '../../../prisma.service';
+import { UpdatePostDto } from '../../posts/dto/update-post.dto';
 import {
   PostSearchDto,
   PostSearchCursorDto,
-} from '../posts/dto/search-post.dto';
+} from '../../posts/dto/search-post.dto';
 import { buildSearchWhere } from 'src/common/search/search.utils';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
-import { AdminService } from './admin.service';
+import { AdminService } from '../admin.service';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 
 const DEFAULT_POST_SELECT = {

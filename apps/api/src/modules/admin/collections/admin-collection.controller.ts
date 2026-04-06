@@ -21,12 +21,12 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
-import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
-import { Roles } from '../../decorators/roles.decorator';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { JwtAccessGuard } from '../../auth/guards/jwt-access.guard';
+import { Roles } from '../../../decorators/roles.decorator';
+import { RolesGuard } from '../../../common/guards/roles.guard';
 import { AdminCollectionService } from './admin-collection.service';
-import { UpdateCollectionDto } from '../collections/dto/update-collection.dto';
-import { CollectionSearchDto } from '../collections/dto/search-collection.dto';
+import { UpdateCollectionDto } from '../../collections/dto/update-collection.dto';
+import { CollectionSearchDto } from '../../collections/dto/search-collection.dto';
 
 @ApiTags('admin-collections')
 @Controller('admin/collections')

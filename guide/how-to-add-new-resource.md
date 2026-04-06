@@ -226,8 +226,8 @@ in `apps/api/src` make these files if not already
 `modules/{{resource}}/dto/create-{{resource}}.dto.ts`
 `modules/{{resource}}/dto/update-{{resource}}.dto.ts`
 `modules/{{resource}}/dto/search-{{resource}}.dto.ts` — ⚠️ SKIP unless human requested search
-`modules/admin/admin-{{resource}}.service.ts` — ⚠️ SKIP unless human requested admin
-`modules/admin/admin-{{resource}}.controller.ts` — ⚠️ SKIP unless human requested admin
+`modules/admin/{{resource}}/admin-{{resource}}.service.ts` — ⚠️ SKIP unless human requested admin
+`modules/admin/{{resource}}/admin-{{resource}}.controller.ts` — ⚠️ SKIP unless human requested admin
 
 for example:
 `modules/articles/articles.service.ts`
@@ -236,8 +236,8 @@ for example:
 `modules/articles/dto/create-article.dto.ts`
 `modules/articles/dto/update-article.dto.ts`
 `modules/articles/dto/search-article.dto.ts` — ⚠️ SKIP unless human requested search
-`modules/admin/admin-article.service.ts` — ⚠️ SKIP unless human requested admin
-`modules/admin/admin-article.controller.ts` — ⚠️ SKIP unless human requested admin
+`modules/admin/articles/admin-article.service.ts` — ⚠️ SKIP unless human requested admin
+`modules/admin/articles/admin-article.controller.ts` — ⚠️ SKIP unless human requested admin
 
 > Note most of the time its plural, they're might be edge cases like "support" as in "support tickets" so having "supports" wouldn't make sense.
 
@@ -450,8 +450,8 @@ in the file `modules/admin/admin.module.ts` add imports and add on to array of c
 it is normal for import lines of new resource to give error as service and controller file is not set up yet.
 
 ```ts
-import { Admin{{resource}}sController } from './admin-{{resource}}.controller';
-import { Admin{{resource}}Service } from './admin-{{resource}}.service';
+import { Admin{{resource}}sController } from './{{resource}}/admin-{{resource}}.controller';
+import { Admin{{resource}}Service } from './{{resource}}/admin-{{resource}}.service';
 
 @Module({
   imports: [UsersModule],
@@ -473,8 +473,8 @@ import { Admin{{resource}}Service } from './admin-{{resource}}.service';
 example:
 
 ```ts
-import { AdminArticlesController } from './admin-article.controller';
-import { AdminArticleService } from './admin-article.service';
+import { AdminArticlesController } from './articles/admin-article.controller';
+import { AdminArticleService } from './articles/admin-article.service';
 
 @Module({
   imports: [UsersModule],
@@ -687,10 +687,10 @@ here is the general template you'd want to use whenever init creating admin serv
 
 ```ts
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../prisma.service';
-import { AdminService } from './admin.service';
-import { Update{{resource}}Dto } from '../{{resource}}/dto/update-{{resource}}.dto';
-import { FileProcessingService } from '../../common/file-processing/file-processing.service'; // remove if no file upload
+import { PrismaService } from '../../../prisma.service';
+import { AdminService } from '../admin.service';
+import { Update{{resource}}Dto } from '../../{{resource}}/dto/update-{{resource}}.dto';
+import { FileProcessingService } from '../../../common/file-processing/file-processing.service'; // remove if no file upload
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 import { buildSearchWhere } from 'src/common/search/search.utils'; // remove if no search
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto'; // remove if no offset pagination
@@ -718,10 +718,10 @@ import {
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
-import { PrismaService } from "../../prisma.service";
-import { AdminService } from "./admin.service";
-import { UpdateArticleDto } from "../articles/dto/update-article.dto";
-import { FileProcessingService } from "../../common/file-processing/file-processing.service";
+import { PrismaService } from "../../../prisma.service";
+import { AdminService } from "../admin.service";
+import { UpdateArticleDto } from "../../articles/dto/update-article.dto";
+import { FileProcessingService } from "../../../common/file-processing/file-processing.service";
 import { AlreadyDeletedException } from "src/common/exceptions/already-deleted.exception";
 import { buildSearchWhere } from "src/common/search/search.utils";
 import { PaginationDto } from "src/common/pagination/dto/pagination.dto";
@@ -805,12 +805,12 @@ import {
   Post,
   HttpCode,
 } from '@nestjs/common';
-import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
-import { Roles } from '../../decorators/roles.decorator';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { JwtAccessGuard } from '../../auth/guards/jwt-access.guard';
+import { Roles } from '../../../decorators/roles.decorator';
+import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Admin{{resource}}Service } from './admin-{{resource}}.service';
-import { Update{{resource}}Dto } from '../{{resource}}/dto/update-{{resource}}.dto';
-import { PaginationDto } from '../../common/pagination/dto/pagination.dto'; // remove if no offset pagination
+import { Update{{resource}}Dto } from '../../{{resource}}/dto/update-{{resource}}.dto';
+import { PaginationDto } from '../../../common/pagination/dto/pagination.dto'; // remove if no offset pagination
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination
 
 @Controller('admin/{{resource}}')

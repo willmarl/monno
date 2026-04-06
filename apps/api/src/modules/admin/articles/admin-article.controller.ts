@@ -15,15 +15,15 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
-import { Roles } from '../../decorators/roles.decorator';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { JwtAccessGuard } from '../../auth/guards/jwt-access.guard';
+import { Roles } from '../../../decorators/roles.decorator';
+import { RolesGuard } from '../../../common/guards/roles.guard';
 import { AdminArticleService } from './admin-article.service';
-import { UpdateArticleDto } from '../articles/dto/update-article.dto';
-import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
+import { UpdateArticleDto } from '../../articles/dto/update-article.dto';
+import { PaginationDto } from '../../../common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
-import { ArticleSearchDto } from '../articles/dto/search-article.dto';
-import { ArticleSearchCursorDto } from '../articles/dto/search-article.dto';
+import { ArticleSearchDto } from '../../articles/dto/search-article.dto';
+import { ArticleSearchCursorDto } from '../../articles/dto/search-article.dto';
 
 @Controller('admin/articles')
 @UseGuards(JwtAccessGuard, RolesGuard)

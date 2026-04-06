@@ -20,12 +20,12 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
-import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
-import { Roles } from '../../decorators/roles.decorator';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { JwtAccessGuard } from '../../auth/guards/jwt-access.guard';
+import { Roles } from '../../../decorators/roles.decorator';
+import { RolesGuard } from '../../../common/guards/roles.guard';
 import { AdminSupportService } from './admin-support.service';
-import { SupportSearchDto } from '../support/dto/search-ticket.dto';
-import { UpdateTicketDto } from '../support/dto/update-ticket.dto';
+import { SupportSearchDto } from '../../support/dto/search-ticket.dto';
+import { UpdateTicketDto } from '../../support/dto/update-ticket.dto';
 
 @ApiTags('admin-support')
 @Controller('admin/support')

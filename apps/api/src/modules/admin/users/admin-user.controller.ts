@@ -23,18 +23,18 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
-import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
-import { Roles } from '../../decorators/roles.decorator';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { JwtAccessGuard } from '../../auth/guards/jwt-access.guard';
+import { Roles } from '../../../decorators/roles.decorator';
+import { RolesGuard } from '../../../common/guards/roles.guard';
 import { AdminUserService } from './admin-user.service';
-import { UsersService } from '../users/users.service';
-import { CreateUserDto } from '../users/dto/create-user.dto';
-import { UpdateUserAdminDto } from './dto/update-user-admin.dto';
+import { UsersService } from '../../users/users.service';
+import { CreateUserDto } from '../../users/dto/create-user.dto';
+import { UpdateUserAdminDto } from '../dto/update-user-admin.dto';
 import { UploadedFile } from '@nestjs/common';
 import {
   UserSearchDto,
   UserSearchCursorDto,
-} from '../users/dto/search-user.dto';
+} from '../../users/dto/search-user.dto';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 
 @ApiTags('admin-users')

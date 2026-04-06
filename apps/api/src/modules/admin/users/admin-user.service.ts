@@ -4,10 +4,10 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
-import { PrismaService } from '../../prisma.service';
-import { AdminService } from './admin.service';
-import { UsersService } from '../users/users.service';
-import { UpdateUserAdminDto } from './dto/update-user-admin.dto';
+import { PrismaService } from '../../../prisma.service';
+import { AdminService } from '../admin.service';
+import { UsersService } from '../../users/users.service';
+import { UpdateUserAdminDto } from '../dto/update-user-admin.dto';
 import * as bcrypt from 'bcrypt';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
@@ -16,9 +16,9 @@ import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 import {
   UserSearchDto,
   UserSearchCursorDto,
-} from '../users/dto/search-user.dto';
+} from '../../users/dto/search-user.dto';
 import { buildSearchWhere } from 'src/common/search/search.utils';
-import { FileProcessingService } from '../../common/file-processing/file-processing.service';
+import { FileProcessingService } from '../../../common/file-processing/file-processing.service';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 
 /**

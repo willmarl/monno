@@ -1,24 +1,24 @@
 import { Module } from '@nestjs/common';
 import { UsersModule } from '../users/users.module';
-import { AdminUsersController } from './admin-user.controller';
-import { AdminPostsController } from './admin-post.controller';
-import { AdminCommentsController } from './admin-comment.controller';
-import { AdminCollectionsController } from './admin-collection.controller';
-import { AdminStripeController } from './admin-stripe.controller';
-import { AdminSupportsController } from './admin-support.controller';
-import { AdminArticlesController } from './admin-article.controller';
+import { AdminUsersController } from './users/admin-user.controller';
+import { AdminPostsController } from './posts/admin-post.controller';
+import { AdminCommentsController } from './comments/admin-comment.controller';
+import { AdminCollectionsController } from './collections/admin-collection.controller';
+import { AdminStripeController } from './stripe/admin-stripe.controller';
+import { AdminSupportsController } from './support/admin-support.controller';
+import { AdminArticlesController } from './articles/admin-article.controller';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
-import { AdminUserService } from './admin-user.service';
-import { AdminPostService } from './admin-post.service';
-import { AdminCommentService } from './admin-comment.service';
-import { AdminCollectionService } from './admin-collection.service';
-import { AdminStripeService } from './admin-stripe.service';
-import { AdminSupportService } from './admin-support.service';
+import { AdminUserService } from './users/admin-user.service';
+import { AdminPostService } from './posts/admin-post.service';
+import { AdminCommentService } from './comments/admin-comment.service';
+import { AdminCollectionService } from './collections/admin-collection.service';
+import { AdminStripeService } from './stripe/admin-stripe.service';
+import { AdminSupportService } from './support/admin-support.service';
 import { SeedService } from './seed.service';
 import { PrismaService } from '../../prisma.service';
 import { FileProcessingService } from '../../common/file-processing/file-processing.service';
-import { AdminArticleService } from './admin-article.service';
+import { AdminArticleService } from './articles/admin-article.service';
 @Module({
   imports: [UsersModule],
   controllers: [

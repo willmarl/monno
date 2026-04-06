@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma.service';
-import { SupportSearchDto } from '../support/dto/search-ticket.dto';
-import { UpdateTicketDto } from '../support/dto/update-ticket.dto';
+import { PrismaService } from '../../../prisma.service';
+import { SupportSearchDto } from '../../support/dto/search-ticket.dto';
+import { UpdateTicketDto } from '../../support/dto/update-ticket.dto';
 import { buildSearchWhere } from 'src/common/search/search.utils';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
-import { AdminService } from './admin.service';
+import { AdminService } from '../admin.service';
 
 const DEFAULT_SUPPORT_SELECT = {
   id: true,

@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma.service';
-import { CommentSearchDto } from '../comments/dto/search-comment.dto';
+import { PrismaService } from '../../../prisma.service';
+import { CommentSearchDto } from '../../comments/dto/search-comment.dto';
 import { buildSearchWhere } from 'src/common/search/search.utils';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
-import { UpdateCommentDto } from '../comments/dto/update-comment.dto';
-import { AdminService } from './admin.service';
+import { UpdateCommentDto } from '../../comments/dto/update-comment.dto';
+import { AdminService } from '../admin.service';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 
 const DEFAULT_COMMENT_SELECT = {
