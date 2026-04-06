@@ -3,7 +3,7 @@ import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 import { Collection } from "@/features/collections/types/collection";
 
-export function EditCollection({ data }: { data: Collection }) {
+export function EditCollectionModal({ data }: { data: Collection }) {
   const { closeModal } = useModal();
 
   return (

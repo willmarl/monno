@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { InlineEditPostAdminForm } from "@/features/admin/posts/components/InlineEditPostAdminForm";
 import { Post } from "@/features/posts/types/post";
 
-export function EditPost({ post }: { post: Post }) {
+export function EditPostModal({ post }: { post: Post }) {
   const { closeModal } = useModal();
 
   return (

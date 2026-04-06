@@ -7,7 +7,7 @@ import { PaginatedListInline } from "@/components/ui/pagination/PaginatedListInl
 import { PublicUser } from "@/features/users/types/user";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { NewCollection } from "./modal/NewCollection";
+import { NewCollectionModal } from "@/features/collections/components/modal/NewCollectionModal";
 import { useModal } from "@/components/providers/ModalProvider";
 
 interface CollectionsListProps {
@@ -37,7 +37,7 @@ export function CollectionsList({ user, isOwner }: CollectionsListProps) {
         onClick={() => {
           openModal({
             title: "Create new collection",
-            content: <NewCollection />,
+            content: <NewCollectionModal />,
           });
         }}
       >

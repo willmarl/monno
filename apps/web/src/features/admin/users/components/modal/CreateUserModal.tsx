@@ -2,7 +2,7 @@ import { InlineCreateUserAdminForm } from "@/features/admin/users/components/Inl
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 
-export function CreateUser() {
+export function CreateUserModal() {
   const { closeModal } = useModal();
 
   return (

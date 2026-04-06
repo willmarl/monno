@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { Collection } from "@/features/collections/types/collection";
 import { InlineEditCollectionAdminForm } from "@/features/admin/collections/components/InlineEditCollectionAdminForm";
 
-export function EditCollection({ collection }: { collection: Collection }) {
+export function EditCollectionModal({ collection }: { collection: Collection }) {
   const { closeModal } = useModal();
 
   return (

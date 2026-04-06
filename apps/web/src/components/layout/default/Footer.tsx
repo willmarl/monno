@@ -1,6 +1,6 @@
 "use client";
 
-import { CreateTicket } from "../../pages/admin/support/modal/CreateTicket";
+import { CreateTicketModal } from "@/features/admin/support/components/modal/CreateTicketModal";
 import { useModal } from "@/components/providers/ModalProvider";
 
 export default function Footer() {
@@ -14,7 +14,7 @@ export default function Footer() {
         onClick={() => {
           openModal({
             title: "Create new user",
-            content: <CreateTicket />,
+            content: <CreateTicketModal />,
           });
         }}
       >

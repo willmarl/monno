@@ -5,7 +5,7 @@ import { useAdminDeleteUser } from "@/features/users/hooks";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 
-export function DeleteUser({ user }: { user: User }) {
+export function DeleteUserModal({ user }: { user: User }) {
   const deleteUser = useAdminDeleteUser();
   const { closeModal } = useModal();
 

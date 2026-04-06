@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useSessionUser } from "@/features/auth/hooks";
 import { ThumbsUp } from "lucide-react";
 import { useModal } from "@/components/providers/ModalProvider";
-import { AuthModal } from "../modal/AuthModal";
+import { AuthModal } from "@/features/auth/components/modal/AuthModal";
 
 interface LikeButtonProps {
   isOwner: boolean;

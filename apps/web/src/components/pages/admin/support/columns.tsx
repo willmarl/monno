@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useModal } from "@/components/providers/ModalProvider";
 import { TextPreviewCell } from "@/components/table/TextPreviewCell";
-import { EditTicket } from "@/components/pages/admin/support/modal/EditTicket";
+import { EditTicketModal } from "@/features/admin/support/components/modal/EditTicketModal";
 
 interface SortableHeaderProps {
   column: Column<any, unknown>;
@@ -154,7 +154,7 @@ export const columns: ColumnDef<SupportTicket>[] = [
               onClick={() => {
                 openModal({
                   title: "Edit data for " + row.original.title,
-                  content: <EditTicket ticket={ticket} />,
+                  content: <EditTicketModal ticket={ticket} />,
                 });
               }}
             >

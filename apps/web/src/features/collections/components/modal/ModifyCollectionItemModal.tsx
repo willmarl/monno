@@ -5,8 +5,8 @@ import { useModal } from "@/components/providers/ModalProvider";
 import { ResourceType } from "@/types/resource";
 import { InlineNewCollectionForm } from "@/features/collections/components/InlineNewCollectionForm";
 import { toast } from "sonner";
-import { Separator } from "../ui/separator";
-import { Checkbox } from "../ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { PaginatedListInline } from "@/components/ui/pagination/PaginatedListInline";
 import {

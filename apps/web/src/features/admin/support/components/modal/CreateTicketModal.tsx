@@ -2,7 +2,7 @@ import { InlineCreateTicketForm } from "@/features/support/components/InlineCrea
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 
-export function CreateTicket() {
+export function CreateTicketModal() {
   const { closeModal } = useModal();
 
   return (

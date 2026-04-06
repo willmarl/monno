@@ -6,7 +6,7 @@ import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-export function DeleteCollection({ data }: { data: Collection }) {
+export function DeleteCollectionModal({ data }: { data: Collection }) {
   const router = useRouter();
   const deleteData = useDeleteCollection();
   const { closeModal } = useModal();

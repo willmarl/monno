@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/button";
 import { useSessionUser } from "@/features/auth/hooks";
 import { FolderPlus } from "lucide-react";
 import { useModal } from "@/components/providers/ModalProvider";
-import { ModifyCollectionItemModal } from "@/components/modal/ModifyCollectionItemModal";
-import { AuthModal } from "../modal/AuthModal";
+import { ModifyCollectionItemModal } from "@/features/collections/components/modal/ModifyCollectionItemModal";
+import { AuthModal } from "@/features/auth/components/modal/AuthModal";
 import { ResourceType } from "@/types/resource";
 
 interface CollectionButtonProps {

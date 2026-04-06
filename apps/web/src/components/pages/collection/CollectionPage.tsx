@@ -11,8 +11,8 @@ import { CollectionItemsList } from "./CollectionItemsList";
 import { Suspense } from "react";
 import { useSessionUser } from "@/features/auth/hooks";
 import { useModal } from "@/components/providers/ModalProvider";
-import { DeleteCollection } from "./modal/DeleteCollection";
-import { EditCollection } from "./modal/EditCollection";
+import { DeleteCollectionModal } from "@/features/collections/components/modal/DeleteCollectionModal";
+import { EditCollectionModal } from "@/features/collections/components/modal/EditCollectionModal";
 import { useRouter } from "next/navigation";
 import { PageNotFound } from "@/components/common/PageNotFound";
 import { PageLoadingState } from "@/components/common/PageLoadingState";
@@ -57,7 +57,7 @@ export function CollectionPage({ id }: CollectionPageProps) {
                   onClick={() => {
                     openModal({
                       title: "Edit Collection",
-                      content: <EditCollection data={data} />,
+                      content: <EditCollectionModal data={data} />,
                     });
                   }}
                 >
@@ -69,7 +69,7 @@ export function CollectionPage({ id }: CollectionPageProps) {
                   onClick={() => {
                     openModal({
                       title: "Delete Collection",
-                      content: <DeleteCollection data={data} />,
+                      content: <DeleteCollectionModal data={data} />,
                     });
                   }}
                 >

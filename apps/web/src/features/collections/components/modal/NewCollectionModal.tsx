@@ -3,7 +3,7 @@ import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-export function NewCollection() {
+export function NewCollectionModal() {
   const { closeModal } = useModal();
   const router = useRouter();
 

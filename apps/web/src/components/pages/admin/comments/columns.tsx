@@ -21,7 +21,7 @@ import { useRouter } from "next/navigation";
 import { SortableHeader } from "@/components/table/SortableHeader";
 import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 import { formatDate } from "@/lib/utils/date";
-import { EditComment } from "./modal/EditComment";
+import { EditCommentModal } from "@/features/admin/comments/components/modal/EditCommentModal";
 import { useModal } from "@/components/providers/ModalProvider";
 
 export const columns: ColumnDef<Comment>[] = [
@@ -123,7 +123,7 @@ export const columns: ColumnDef<Comment>[] = [
               onClick={() => {
                 openModal({
                   title: "Edit comment",
-                  content: <EditComment comment={row.original} />,
+                  content: <EditCommentModal comment={row.original} />,
                 });
               }}
             >

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { AdminUserSearchBar } from "@/features/admin/users/components/AdminUserSearchBar";
 import { UserDataTable } from "./UserDataTable";
 import { useModal } from "@/components/providers/ModalProvider";
-import { CreateUser } from "./modal/CreateUser";
+import { CreateUserModal } from "@/features/admin/users/components/modal/CreateUserModal";
 import { AdminUserSearchParams } from "@/types/search-params";
 
 interface AdminUserPageProps {
@@ -22,7 +22,7 @@ export function AdminUserPage({ searchParams }: AdminUserPageProps) {
           onClick={() => {
             openModal({
               title: "Create new user",
-              content: <CreateUser />,
+              content: <CreateUserModal />,
             });
           }}
         >
