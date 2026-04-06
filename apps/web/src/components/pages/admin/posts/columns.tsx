@@ -21,7 +21,7 @@ import { useRouter } from "next/navigation";
 import { SortableHeader } from "@/components/table/SortableHeader";
 import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 import { formatDate } from "@/lib/utils/date";
-import { UpdatePost } from "./modal/UpdatePost";
+import { EditPost } from "./modal/EditPost";
 import { useModal } from "@/components/providers/ModalProvider";
 
 export const columns: ColumnDef<Post>[] = [
@@ -128,7 +128,7 @@ export const columns: ColumnDef<Post>[] = [
                   onClick={() => {
                     openModal({
                       title: "Edit data for " + row.original.title,
-                      content: <UpdatePost post={row.original} />,
+                      content: <EditPost post={row.original} />,
                     });
                   }}
                 >
@@ -155,7 +155,7 @@ export const columns: ColumnDef<Post>[] = [
                   onClick={() => {
                     openModal({
                       title: "Edit data for " + row.original.title,
-                      content: <UpdatePost post={row.original} />,
+                      content: <EditPost post={row.original} />,
                     });
                   }}
                 >

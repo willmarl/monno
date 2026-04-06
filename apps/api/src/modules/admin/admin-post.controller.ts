@@ -38,56 +38,6 @@ import {
 export class AdminPostsController {
   constructor(private readonly adminPostService: AdminPostService) {}
 
-  @ApiOperation({
-    summary: 'Get all posts with optional search and filters (admin only)',
-  })
-  @ApiBearerAuth()
-  @ApiResponse({
-    status: 200,
-    description: 'List of posts including deleted',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
-  @Get()
-  @ApiQuery({ name: 'query', required: false, description: 'Search query' })
-  @ApiQuery({ name: 'limit', required: false })
-  @ApiQuery({ name: 'offset', required: false })
-  findAll(@Query() searchDto: PostSearchDto) {
-    return this.adminPostService.search(searchDto);
-  }
-
-  @ApiOperation({
-    summary:
-      'Get all posts with cursor pagination and optional search/filters (admin only)',
-  })
-  @ApiBearerAuth()
-  @ApiQuery({
-    name: 'query',
-    required: false,
-    description: 'Search query',
-  })
-  @ApiQuery({
-    name: 'cursor',
-    required: false,
-    description: 'Cursor for pagination',
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    example: 10,
-    description: 'Number of items per page',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'List of posts with next cursor',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
-  @Get('cursor')
-  findAllCursor(@Query() searchDto: PostSearchCursorDto) {
-    return this.adminPostService.searchCursor(searchDto);
-  }
-
   @ApiOperation({ summary: 'Search posts (admin only)' })
   @ApiBearerAuth()
   @ApiResponse({

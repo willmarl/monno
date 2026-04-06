@@ -26,6 +26,16 @@ import { CreatorGuard } from 'src/common/guards/creator.guard';
 import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
 import { PostSearchDto, PostSearchCursorDto } from './dto/search-post.dto';
 
+// ============================================================
+// ⚠️  PAGINATION NOTE
+// This controller exposes BOTH offset and cursor pagination variants
+// for several endpoints (findByUserId, findLikedByUser, search).
+// In general you should pick ONE pagination style per resource
+// and stick with it. Having both is unusual and adds maintenance
+// overhead. Consider removing whichever variant is not actively
+// used in the frontend before this grows further.
+// ============================================================
+
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}

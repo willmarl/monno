@@ -25,6 +25,16 @@ const DEFAULT_POST_SELECT = {
   likeCount: true,
 };
 
+// ============================================================
+// ⚠️  PAGINATION NOTE
+// This service has BOTH offset and cursor pagination for several
+// endpoints (findByUserId, findLikedByUser). In general you should
+// pick ONE pagination style per endpoint and stick with it.
+// Having both is unusual and adds maintenance overhead.
+// Consider removing whichever variant is not actively used in
+// the frontend before this grows further.
+// ============================================================
+
 @Injectable()
 export class PostsService {
   constructor(private prisma: PrismaService) {}
@@ -35,6 +45,7 @@ export class PostsService {
         ...data,
         creatorId: userId,
       },
+      select: DEFAULT_POST_SELECT,
     });
   }
 
@@ -320,6 +331,7 @@ export class PostsService {
     return this.prisma.post.update({
       where: { id },
       data,
+      select: DEFAULT_POST_SELECT,
     });
   }
 

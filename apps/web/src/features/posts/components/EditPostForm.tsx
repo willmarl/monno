@@ -3,9 +3,9 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  updatePostSchema,
-  UpdatePostInput,
-} from "../schemas/updatePost.schema";
+  editPostSchema,
+  EditPostInput,
+} from "../schemas/editPost.schema";
 import { useUpdatePost, usePostById } from "../hooks";
 import {
   Form,
@@ -22,11 +22,11 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Post } from "../types/post";
 
-export default function UpdatePostForm({ post }: { post: Post }) {
+export default function EditPostForm({ post }: { post: Post }) {
   const router = useRouter();
 
-  const form = useForm<UpdatePostInput>({
-    resolver: zodResolver(updatePostSchema),
+  const form = useForm<EditPostInput>({
+    resolver: zodResolver(editPostSchema),
     mode: "onChange",
     defaultValues: {
       title: post.title,
@@ -39,7 +39,7 @@ export default function UpdatePostForm({ post }: { post: Post }) {
   } = form;
   const updatePostMutation = useUpdatePost();
 
-  function onSubmit(data: UpdatePostInput) {
+  function onSubmit(data: EditPostInput) {
     updatePostMutation.mutate(
       { id: post.id, data },
       {
@@ -63,7 +63,7 @@ export default function UpdatePostForm({ post }: { post: Post }) {
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Update Title</FormLabel>
+              <FormLabel>Edit Title</FormLabel>
 
               <FormControl>
                 <Input placeholder="title" {...field} />
@@ -80,7 +80,7 @@ export default function UpdatePostForm({ post }: { post: Post }) {
           name="content"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Update Content</FormLabel>
+              <FormLabel>Edit Content</FormLabel>
 
               <FormControl>
                 <Textarea placeholder="content" {...field} />
@@ -96,7 +96,7 @@ export default function UpdatePostForm({ post }: { post: Post }) {
           className="w-full cursor-pointer"
           disabled={updatePostMutation.isPending || !isValid}
         >
-          {updatePostMutation.isPending ? "Updating..." : "Update Post"}
+          {updatePostMutation.isPending ? "Saving..." : "Save Post"}
         </Button>
       </form>
     </Form>

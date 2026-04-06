@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  updatePostAdminSchema,
-  UpdatePostAdminInput,
-} from "../schemas/updatePostAdmin.schema";
+  editPostAdminSchema,
+  EditPostAdminInput,
+} from "../schemas/editPostAdmin.schema";
 import { useAdminUpdatePost } from "@/features/posts/hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { Post } from "@/features/posts/types/post";
 
-interface InlineUpdatePostAdminFormProps {
+interface InlineEditPostAdminFormProps {
   data: Post;
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -22,17 +22,17 @@ interface InlineUpdatePostAdminFormProps {
   isAlwaysOpen?: boolean;
 }
 
-export function InlineUpdatePostAdminForm({
+export function InlineEditPostAdminForm({
   data: postData,
   onSuccess,
   onCancel,
   onError,
   isAlwaysOpen = false,
-}: InlineUpdatePostAdminFormProps) {
+}: InlineEditPostAdminFormProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const form = useForm<UpdatePostAdminInput>({
-    resolver: zodResolver(updatePostAdminSchema),
+  const form = useForm<EditPostAdminInput>({
+    resolver: zodResolver(editPostAdminSchema),
     mode: "onChange",
     defaultValues: {
       title: postData.title,
@@ -44,7 +44,7 @@ export function InlineUpdatePostAdminForm({
 
   const { isValid } = form.formState;
 
-  const handleSubmit = (data: UpdatePostAdminInput) => {
+  const handleSubmit = (data: EditPostAdminInput) => {
     updatePostAdminMutation.mutate(
       { id: postData.id, data },
       {
@@ -65,7 +65,7 @@ export function InlineUpdatePostAdminForm({
   if (!isAlwaysOpen && !isOpen) {
     return (
       <Button onClick={() => setIsOpen(true)} variant="outline">
-        Change UpdatePostAdmin
+        Edit Post
       </Button>
     );
   }
@@ -137,7 +137,7 @@ export function InlineUpdatePostAdminForm({
           {updatePostAdminMutation.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          {updatePostAdminMutation.isPending ? "Updating..." : "Update post"}
+          {updatePostAdminMutation.isPending ? "Saving..." : "Save post"}
         </Button>
       </div>
     </form>

@@ -155,7 +155,7 @@ export const deletePost = (id: number) =>
 //   Admin
 //==============
 
-// GET /admin/posts?query=world&limit=5&offset=0&deleted=true
+// GET /admin/posts/search?query=world&limit=5&offset=0&deleted=true
 export const fetchAdminPosts = ({
   query,
   limit = 10,
@@ -183,10 +183,10 @@ export const fetchAdminPosts = ({
   if (caseSensitive) searchParams.caseSensitive = caseSensitive;
   if (deleted !== undefined) searchParams.deleted = deleted;
 
-  return fetcher<PostsList>("/admin/posts", { searchParams });
+  return fetcher<PostsList>("/admin/posts/search", { searchParams });
 };
 
-// GET /admin/posts/cursor?query=world&limit=5&cursor=abc123&deleted=true
+// GET /admin/posts/search/cursor?query=world&limit=5&cursor=abc123&deleted=true
 export const fetchAdminPostsCursor = ({
   query,
   limit,
@@ -214,7 +214,7 @@ export const fetchAdminPostsCursor = ({
   if (caseSensitive) searchParams.caseSensitive = caseSensitive;
   if (deleted !== undefined) searchParams.deleted = deleted;
 
-  return fetcher<PostListCursor>("/admin/posts/cursor", { searchParams });
+  return fetcher<PostListCursor>("/admin/posts/search/cursor", { searchParams });
 };
 
 // GET /admin/posts/:id

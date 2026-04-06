@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { PageLoadingState } from "@/components/common/PageLoadingState";
-import UpdatePostForm from "@/features/posts/components/UpdatePostForm";
+import EditPostForm from "@/features/posts/components/EditPostForm";
 import { Card } from "@/components/ui/card";
 import { useParams } from "next/navigation";
 import { useSessionUser } from "@/features/auth/hooks";
@@ -45,7 +45,7 @@ export default function page() {
 
   return (
     <Card className="p-8 w-full max-w-md mx-auto">
-      <UpdatePostForm post={post} />
+      <EditPostForm post={post} />
     </Card>
   );
 }
