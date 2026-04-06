@@ -8,10 +8,13 @@
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "deploy:env": "bash ./scripts/deploy-env.sh",
-    "deploy:vm": "bash ./scripts/deploy-vm.sh"
+    "deploy:vm": "bash ./scripts/deploy-vm.sh",
+    "crud": "node guide/cli-crud-builder.js"
   },
   "devDependencies": {
+    "@inquirer/prompts": "^8.4.0",
     "cross-env": "^10.1.0",
-    "dotenv-cli": "^11.0.0"
+    "dotenv-cli": "^11.0.0",
+    "inquirer": "^13.4.0"
   }
 }

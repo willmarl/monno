@@ -1,5 +1,37 @@
 notes for me whilst i write this. ignore me
 
+## Why CLI Script Instead of Original AI-WORKFLOW Plan
+
+**Original Plan:** Human describes resource → AI#1 asks clarifying questions → AI#1 outputs PROJECT-BRIEF
+
+**Problem Discovered:** AI hallucinated features during planning phase:
+
+- Invented "ban users from blogging" (role-based bans have no logic in schema, only dummy status fields)
+- Suggested "fuzzy/partial match search" (infrastructure only supports basic search)
+- Proposed "exact match only" search (not a real option in implementation)
+- Asked about features that don't exist in the stack
+
+**Root Cause:** AI-WORKFLOW was too open-ended. It asked AI to "run the feature checklist" and ask clarifying questions, but:
+
+1. AI doesn't know which features are actually implemented
+2. AI invents options that sound reasonable but don't match your architecture
+3. This forced 10+ messages back-and-forth to correct AI's assumptions
+4. By then, context was already muddled
+
+**Solution: CLI Script**
+
+- Human fills out a checklist (similar to Vite/create-react-app scaffolding)
+- Only presents **real options that exist in your infrastructure**
+- Script validates choices against schema.prisma patterns
+- Outputs a **pre-formatted prompt + pre-filled PROJECT-BRIEF**
+- Human copy-pastes to AI#1 (no clarification needed, already decided)
+- AI#1 validates for 2min, outputs final brief
+- AI#2 implements
+
+**Benefit:** Deterministic input → no hallucination → no back-and-forth
+
+---
+
 ## Structural / Navigation
 
 - [ ] Add a "checklist block" at the very top that AI must fill out before any steps (pagination type, search, file upload, image processing, enum/status)
