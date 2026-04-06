@@ -23,6 +23,127 @@ export enum UserSearchFields {
 
 const VALID_USER_SEARCH_FIELDS = Object.values(UserSearchFields);
 
+function UserSearchMixin<TBase extends new (...args: any[]) => {}>(
+  Base: TBase,
+) {
+  class Mixed extends Base {
+    @IsOptional()
+    @IsString()
+    query?: string;
+
+    @IsOptional()
+    @IsString()
+    searchFields?: string;
+
+    @IsOptional()
+    @IsString()
+    @ApiPropertyOptional({
+      description:
+        'Comma-separated list of roles to filter by (e.g., USER,ADMIN,MOD)',
+    })
+    roles?: string;
+
+    @IsOptional()
+    @IsString()
+    @ApiPropertyOptional({
+      description:
+        'Comma-separated list of statuses to filter by (e.g., ACTIVE,SUSPENDED,BANNED,DELETED)',
+    })
+    statuses?: string;
+
+    @IsOptional()
+    @TransformBoolean()
+    @IsBoolean()
+    caseSensitive?: boolean;
+
+    @ApiPropertyOptional({
+      description:
+        'Sort by field and direction (field|direction). E.g., createdAt|desc, updatedAt|asc',
+      example: 'createdAt|desc',
+    })
+    @IsOptional()
+    @IsString()
+    sort?: string;
+
+    /**
+     * Parse and validate searchFields into an array of valid fields
+     * Invalid fields are silently ignored
+     */
+    getSearchFields(): string[] {
+      if (!this.searchFields) {
+        // Default to all fields
+        return VALID_USER_SEARCH_FIELDS;
+      }
+
+      return this.searchFields
+        .split(',')
+        .map((field) => field.trim())
+        .filter((field) => VALID_USER_SEARCH_FIELDS.includes(field as any));
+    }
+
+    /**
+     * Parse and validate roles filter into an array
+     * Invalid roles are silently ignored
+     */
+    getRoles(): string[] {
+      if (!this.roles) return [];
+
+      const validRoles = Object.values(Role);
+      return this.roles
+        .split(',')
+        .map((role) => role.trim().toUpperCase())
+        .filter((role) => validRoles.includes(role as Role));
+    }
+
+    /**
+     * Parse and validate statuses filter into an array
+     * Invalid statuses are silently ignored
+     */
+    getStatuses(): string[] {
+      if (!this.statuses) return [];
+
+      const validStatuses = Object.values(UserStatus);
+      return this.statuses
+        .split(',')
+        .map((status) => status.trim().toUpperCase())
+        .filter((status) => validStatuses.includes(status as UserStatus));
+    }
+
+    /**
+     * Get search options (caseSensitive flag)
+     */
+    getSearchOptions() {
+      return {
+        caseSensitive: this.caseSensitive ?? false,
+      };
+    }
+
+    /**
+     * Parse sort parameter into Prisma orderBy clause
+     * Format: "field|direction" e.g., "createdAt|desc"
+     * Defaults to createdAt|desc
+     */
+    getOrderBy(): Record<string, 'asc' | 'desc'> {
+      if (!this.sort) {
+        return { createdAt: 'desc' };
+      }
+
+      const [field, direction] = this.sort.split('|');
+      const validFields = ['createdAt', 'updatedAt'];
+      const validDirection = ['asc', 'desc'].includes(direction?.toLowerCase())
+        ? (direction?.toLowerCase() as 'asc' | 'desc')
+        : 'desc';
+
+      if (!validFields.includes(field)) {
+        return { createdAt: 'desc' };
+      }
+
+      return { [field]: validDirection };
+    }
+  }
+  return Mixed;
+}
+
 /**
  * Search DTO for users with offset pagination
  * Extends PaginationDto with search-specific parameters
@@ -30,238 +151,10 @@ const VALID_USER_SEARCH_FIELDS = Object.values(UserSearchFields);
  * @example
  * GET /users/search?query=hello&searchFields=username,email&roles=USER,MOD&statuses=ACTIVE,BANNED&limit=10&offset=0&caseSensitive=false
  */
-export class UserSearchDto extends PaginationDto {
-  @IsOptional()
-  @IsString()
-  query?: string;
-
-  @IsOptional()
-  @IsString()
-  searchFields?: string;
-
-  @IsOptional()
-  @IsString()
-  @ApiPropertyOptional({
-    description:
-      'Comma-separated list of roles to filter by (e.g., USER,ADMIN,MOD)',
-  })
-  roles?: string;
-
-  @IsOptional()
-  @IsString()
-  @ApiPropertyOptional({
-    description:
-      'Comma-separated list of statuses to filter by (e.g., ACTIVE,SUSPENDED,BANNED,DELETED)',
-  })
-  statuses?: string;
-
-  @IsOptional()
-  @TransformBoolean()
-  @IsBoolean()
-  caseSensitive?: boolean;
-
-  @ApiPropertyOptional({
-    description:
-      'Sort by field and direction (field|direction). E.g., createdAt|desc, updatedAt|asc',
-    example: 'createdAt|desc',
-  })
-  @IsOptional()
-  @IsString()
-  sort?: string;
-
-  /**
-   * Parse and validate searchFields into an array of valid fields
-   * Invalid fields are silently ignored
-   */
-  getSearchFields(): string[] {
-    if (!this.searchFields) {
-      // Default to all fields
-      return VALID_USER_SEARCH_FIELDS;
-    }
-
-    return this.searchFields
-      .split(',')
-      .map((field) => field.trim())
-      .filter((field) => VALID_USER_SEARCH_FIELDS.includes(field as any));
-  }
-
-  /**
-   * Parse and validate roles filter into an array
-   * Invalid roles are silently ignored
-   */
-  getRoles(): string[] {
-    if (!this.roles) return [];
-
-    const validRoles = Object.values(Role);
-    return this.roles
-      .split(',')
-      .map((role) => role.trim().toUpperCase())
-      .filter((role) => validRoles.includes(role as Role));
-  }
-
-  /**
-   * Parse and validate statuses filter into an array
-   * Invalid statuses are silently ignored
-   */
-  getStatuses(): string[] {
-    if (!this.statuses) return [];
-
-    const validStatuses = Object.values(UserStatus);
-    return this.statuses
-      .split(',')
-      .map((status) => status.trim().toUpperCase())
-      .filter((status) => validStatuses.includes(status as UserStatus));
-  }
-
-  /**
-   * Get search options (caseSensitive flag)
-   */
-  getSearchOptions() {
-    return {
-      caseSensitive: this.caseSensitive ?? false,
-    };
-  }
-
-  /**
-   * Parse sort parameter into Prisma orderBy clause
-   * Format: "field|direction" e.g., "createdAt|desc"
-   * Defaults to createdAt|desc
-   */
-  getOrderBy(): Record<string, 'asc' | 'desc'> {
-    if (!this.sort) {
-      return { createdAt: 'desc' };
-    }
-
-    const [field, direction] = this.sort.split('|');
-    const validFields = ['createdAt', 'updatedAt'];
-    const validDirection = ['asc', 'desc'].includes(direction?.toLowerCase())
-      ? (direction?.toLowerCase() as 'asc' | 'desc')
-      : 'desc';
-
-    if (!validFields.includes(field)) {
-      return { createdAt: 'desc' };
-    }
-
-    return { [field]: validDirection };
-  }
-}
+export class UserSearchDto extends UserSearchMixin(PaginationDto) {}
 
 /**
  * Search DTO for Users with cursor pagination
  * Extends CursorPaginationDto with search-specific parameters
  */
-export class UserSearchCursorDto extends CursorPaginationDto {
-  @IsOptional()
-  @IsString()
-  query?: string;
-
-  @IsOptional()
-  @IsString()
-  searchFields?: string;
-
-  @IsOptional()
-  @IsString()
-  @ApiPropertyOptional({
-    description:
-      'Comma-separated list of roles to filter by (e.g., USER,ADMIN,MOD)',
-  })
-  roles?: string;
-
-  @IsOptional()
-  @IsString()
-  @ApiPropertyOptional({
-    description:
-      'Comma-separated list of statuses to filter by (e.g., ACTIVE,SUSPENDED,BANNED,DELETED)',
-  })
-  statuses?: string;
-
-  @IsOptional()
-  @TransformBoolean()
-  @IsBoolean()
-  caseSensitive?: boolean;
-
-  @ApiPropertyOptional({
-    description:
-      'Sort by field and direction (field|direction). E.g., createdAt|desc, updatedAt|asc',
-    example: 'createdAt|desc',
-  })
-  @IsOptional()
-  @IsString()
-  sort?: string;
-
-  /**
-   * Parse and validate searchFields into an array of valid fields
-   * Invalid fields are silently ignored
-   */
-  getSearchFields(): string[] {
-    if (!this.searchFields) {
-      // Default to all fields
-      return VALID_USER_SEARCH_FIELDS;
-    }
-
-    return this.searchFields
-      .split(',')
-      .map((field) => field.trim())
-      .filter((field) => VALID_USER_SEARCH_FIELDS.includes(field as any));
-  }
-
-  /**
-   * Parse and validate roles filter into an array
-   * Invalid roles are silently ignored
-   */
-  getRoles(): string[] {
-    if (!this.roles) return [];
-
-    const validRoles = Object.values(Role);
-    return this.roles
-      .split(',')
-      .map((role) => role.trim().toUpperCase())
-      .filter((role) => validRoles.includes(role as Role));
-  }
-
-  /**
-   * Parse and validate statuses filter into an array
-   * Invalid statuses are silently ignored
-   */
-  getStatuses(): string[] {
-    if (!this.statuses) return [];
-
-    const validStatuses = Object.values(UserStatus);
-    return this.statuses
-      .split(',')
-      .map((status) => status.trim().toUpperCase())
-      .filter((status) => validStatuses.includes(status as UserStatus));
-  }
-
-  /**
-   * Get search options (caseSensitive flag)
-   */
-  getSearchOptions() {
-    return {
-      caseSensitive: this.caseSensitive ?? false,
-    };
-  }
-
-  /**
-   * Parse sort parameter into Prisma orderBy clause
-   * Format: "field|direction" e.g., "createdAt|desc"
-   * Defaults to createdAt|desc
-   */
-  getOrderBy(): Record<string, 'asc' | 'desc'> {
-    if (!this.sort) {
-      return { createdAt: 'desc' };
-    }
-
-    const [field, direction] = this.sort.split('|');
-    const validFields = ['createdAt', 'updatedAt'];
-    const validDirection = ['asc', 'desc'].includes(direction?.toLowerCase())
-      ? (direction?.toLowerCase() as 'asc' | 'desc')
-      : 'desc';
-
-    if (!validFields.includes(field)) {
-      return { createdAt: 'desc' };
-    }
-
-    return { [field]: validDirection };
-  }
-}
+export class UserSearchCursorDto extends UserSearchMixin(CursorPaginationDto) {}
