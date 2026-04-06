@@ -122,6 +122,11 @@ Similarly, if schema has `viewCount Int @default(0)`, that signals the resource 
 
 - offset or cursor pagination or both
   - if cursor whether to have load more button or infinite scroll or both
+- resource actions (only include what was requested in backend)
+  - likes
+  - views
+  - comments
+  - collections
 - admin dashboard
 
 ## example of what human should ask you
@@ -140,17 +145,77 @@ I want it to have:
 
 Go through this checklist with the human **before writing any code**. Do not proceed until all items are confirmed.
 
+**schema**
+
 - [ ] Is the Prisma schema model provided?
+
+**backend**
+
 - [ ] Should there be an **admin** variant? (admin service + controller)
 - [ ] Is there **file/media upload**?
   - [ ] If yes: what kind? Generic image? Video? Something more complex? Any processing (resize, format conversion, file size limit)?
-- [ ] **Pagination** — primitive `findAll` (no pagination), offset, cursor, or both offset + cursor?
-  - [ ] Same question for `findByUserId` endpoint
+- [ ] **Pagination** for `findAll` — none (primitive), offset, cursor, or both?
+- [ ] **Pagination** for `findByUserId` — same question (can differ from above)
 - [ ] Should there be a **search** endpoint?
-- [ ] Any **resource actions**? (likes, views, comments, collections, etc.)
-  - [ ] If yes: which ones?
+  - [ ] If yes: should there also be a **search suggest** (autocomplete) endpoint?
+- [ ] **Resource actions** — which of the following?
+  - [ ] Likes
+  - [ ] Views
+  - [ ] Comments
+  - [ ] Collections
+
+**frontend**
+
+- [ ] Do you want frontend implemented at all, or just the backend?
+- [ ] If cursor pagination: **load more button**, **infinite scroll**, or both?
+- [ ] Should the resource list appear on the **user profile page**?
+- [ ] **Frontend resource actions** — confirm same set as backend (likes UI, views UI, comments UI, collections UI)
+- [ ] **Admin dashboard** page + data table?
 
 Once confirmed, summarize back to the human what you will implement before starting.
+
+## implementation plan file
+
+After confirming everything with the human, create a `CRUD-plan.md` file at the root of the project (or wherever makes sense). This file tracks what was agreed on so you don't lose context across a long conversation.
+
+```md
+# CRUD Plan — {{resource}}
+
+## Resource
+
+- Model: {{resource}}
+- Prisma table: {{resource}} (plural: {{resource}}s)
+- Route prefix: /{{resource}}
+
+## Backend
+
+- [ ] Basic CRUD
+- [ ] Offset pagination (findAll, findByUserId)
+- [ ] Cursor pagination (findAll, findByUserId)
+- [ ] File/media upload
+- [ ] Search
+- [ ] Admin (service + controller + module)
+- [ ] Likes
+- [ ] Views
+- [ ] Comments
+- [ ] Collections
+
+## Frontend
+
+- [ ] Offset pagination
+- [ ] Cursor pagination (load more / infinite scroll)
+- [ ] Likes UI
+- [ ] Views UI
+- [ ] Comments UI
+- [ ] Collections UI
+- [ ] Admin dashboard page + data table
+
+## Notes
+
+(anything human clarified that doesn't fit above — e.g. "image field is optional", "no status enum", "admin only needs read/delete")
+```
+
+Fill in the checkboxes based on what was confirmed. Check them off as you complete each part. Update the Notes section whenever the human clarifies something mid-implementation.
 
 # Part 1 | adding basic backend files
 
@@ -438,7 +503,7 @@ import { AdminArticleService } from './admin-article.service';
 
 here is the general template you'd want to use whenever init creating service.ts, even if you don't think you'll be using all the imported data, leave import lines in anyways.
 
-> ⚠️ Remove `FileProcessingService` import and constructor injection if human did NOT request file upload. Remove `buildSearchWhere` import if human did NOT request search. Remove cursor imports if human did NOT request cursor pagination.
+> ⚠️ Remove `FileProcessingService` import and constructor injection if human did NOT request file upload. Remove `buildSearchWhere` import if human did NOT request search. Remove offset imports if human did NOT request offset pagination. Remove cursor imports if human did NOT request cursor pagination.
 
 ```ts
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
@@ -448,8 +513,8 @@ import { Update{{resource}}Dto } from './dto/update-{{resource}}.dto';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 import { FileProcessingService } from '../../common/file-processing/file-processing.service'; // remove if no file upload
 import { buildSearchWhere } from 'src/common/search/search.utils'; // remove if no search
-import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
-import { offsetPaginate } from 'src/common/pagination/offset-pagination';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto'; // remove if no offset pagination
+import { offsetPaginate } from 'src/common/pagination/offset-pagination'; // remove if no offset pagination
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination'; // remove if no cursor pagination
 
@@ -475,8 +540,8 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 import { FileProcessingService } from '../../common/file-processing/file-processing.service'; // remove if no file upload
 import { buildSearchWhere } from 'src/common/search/search.utils'; // remove if no search
-import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
-import { offsetPaginate } from 'src/common/pagination/offset-pagination';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto'; // remove if no offset pagination
+import { offsetPaginate } from 'src/common/pagination/offset-pagination'; // remove if no offset pagination
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination'; // remove if no cursor pagination
 
@@ -536,7 +601,7 @@ const DEFAULT_ARTICLE_SELECT = {
 
 here is the general template you'd want to use whenever init creating service.ts, even if you don't think you'll be using all the imported data, leave import lines in anyways.
 
-> ⚠️ Remove `UseInterceptors`, `UploadedFile`, and `FileInterceptor` imports if human did NOT request file upload. Remove `CursorPaginationDto` import if human did NOT request cursor pagination.
+> ⚠️ Remove `UseInterceptors`, `UploadedFile`, and `FileInterceptor` imports if human did NOT request file upload. Remove `PaginationDto` import if human did NOT request offset pagination. Remove `CursorPaginationDto` import if human did NOT request cursor pagination.
 
 ```ts
 import {
@@ -561,8 +626,8 @@ import { Create{{resource}}Dto } from './dto/create-{{resource}}.dto';
 import { Update{{resource}}Dto } from './dto/update-{{resource}}.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { JwtAccessOptionalGuard } from '../auth/guards/jwt-access-optional.guard';
-import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
-import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
+import { PaginationDto } from '../../common/pagination/dto/pagination.dto'; // remove if no offset pagination
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination (already was)
 import { CreatorGuard } from 'src/common/guards/creator.guard';
 import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
 import { FileInterceptor } from '@nestjs/platform-express'; // remove if no file upload
@@ -600,8 +665,8 @@ import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { JwtAccessOptionalGuard } from '../auth/guards/jwt-access-optional.guard';
-import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
-import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
+import { PaginationDto } from '../../common/pagination/dto/pagination.dto'; // remove if no offset pagination
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination
 import { CreatorGuard } from 'src/common/guards/creator.guard';
 import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
 import { FileInterceptor } from '@nestjs/platform-express'; // remove if no file upload
@@ -620,7 +685,7 @@ export class ArticlesController {
 
 here is the general template you'd want to use whenever init creating admin service, even if you don't think you'll be using all the imported data, leave import lines in anyways.
 
-> ⚠️ Within this file: remove `FileProcessingService` import and injection if human did NOT request file upload. Remove `buildSearchWhere` if human did NOT request search. Remove cursor imports if human did NOT request cursor pagination.
+> ⚠️ Within this file: remove `FileProcessingService` import and injection if human did NOT request file upload. Remove `buildSearchWhere` if human did NOT request search. Remove offset imports if human did NOT request offset pagination. Remove cursor imports if human did NOT request cursor pagination.
 
 ```ts
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
@@ -630,8 +695,8 @@ import { Update{{resource}}Dto } from '../{{resource}}/dto/update-{{resource}}.d
 import { FileProcessingService } from '../../common/file-processing/file-processing.service'; // remove if no file upload
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 import { buildSearchWhere } from 'src/common/search/search.utils'; // remove if no search
-import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
-import { offsetPaginate } from 'src/common/pagination/offset-pagination';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto'; // remove if no offset pagination
+import { offsetPaginate } from 'src/common/pagination/offset-pagination'; // remove if no offset pagination
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination'; // remove if no cursor pagination
 
@@ -725,6 +790,8 @@ const DEFAULT_ARTICLE_SELECT = {
 
 here is the general template you'd want to use whenever init creating service.ts, even if you don't think you'll be using all the imported data, leave import lines in anyways.
 
+> ⚠️ Within this file: remove `PaginationDto` import if human did NOT request offset pagination. Remove `CursorPaginationDto` import if human did NOT request cursor pagination.
+
 ```ts
 import {
   Controller,
@@ -745,8 +812,8 @@ import { Roles } from '../../decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Admin{{resource}}Service } from './admin-{{resource}}.service';
 import { Update{{resource}}Dto } from '../{{resource}}/dto/update-{{resource}}.dto';
-import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
-import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
+import { PaginationDto } from '../../common/pagination/dto/pagination.dto'; // remove if no offset pagination
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination
 
 @Controller('admin/{{resource}}')
 @UseGuards(JwtAccessGuard, RolesGuard)
@@ -780,8 +847,8 @@ import { Roles } from "../../decorators/roles.decorator";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { AdminArticleService } from "./admin-article.service";
 import { UpdateArticleDto } from "../articles/dto/update-article.dto";
-import { PaginationDto } from "../../common/pagination/dto/pagination.dto";
-import { CursorPaginationDto } from "src/common/pagination/dto/cursor-pagination.dto";
+import { PaginationDto } from "../../common/pagination/dto/pagination.dto"; // remove if no offset pagination
+import { CursorPaginationDto } from "src/common/pagination/dto/cursor-pagination.dto"; // remove if no cursor pagination
 
 @Controller("admin/articles")
 @UseGuards(JwtAccessGuard, RolesGuard)
@@ -1187,6 +1254,8 @@ findAll() {
 
 ## offset pagination find all
 
+> ⚠️ SKIP THIS ENTIRE SECTION unless human explicitly requested offset pagination.
+
 ### step 1 offset pagination logic for service.ts
 
 ```ts
@@ -1455,9 +1524,9 @@ findAllCursor(@Query() pag: CursorPaginationDto) {
 }
 ```
 
-## find all created/owner by user (rare/optional due to no pagination)
+## find all created/owner by user (rare/optional — no pagination)
 
-this one use your judgement to see if getting all of user's resource makes sense. for example a Public Marketplace / Catalog Items, having this `GET /products` makes sense but this `GET /users/:id/products` users don't own products in a shopping context. If unsure ask for clarification.
+> ⚠️ SKIP THIS ENTIRE SECTION unless human explicitly requested this. This returns all records with no pagination — only appropriate for resources known to have a low item count. Use your judgement: for example `GET /users/:id/products` doesn't make sense if users don't "own" products in a shopping context. If unsure, ask for clarification.
 
 ### step 1 find all by user logic for service.ts
 
@@ -1502,6 +1571,8 @@ findByUserIdRaw(@Param('userId', ParseIntPipe) userId: number) {
 ```
 
 ## find all created/owner by user offset pagination
+
+> ⚠️ SKIP THIS ENTIRE SECTION unless human explicitly requested offset pagination.
 
 ### step 1 offset pagination find all by user logic for service.ts
 
@@ -2419,7 +2490,7 @@ restore(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
 }
 ```
 
-# part 8 | add stats for {{resource}} in admin
+# part 7 | add stats for {{resource}} in admin
 
 ## step 1 add to `admin.service.ts` get stats
 
@@ -2537,7 +2608,7 @@ async getStats() {
 }
 ```
 
-# part 7 | Test CRUD endpoints/summary
+# part 8 | Test CRUD endpoints/summary
 
 Tell human to tests these endpoints and wait for human's confirmation to continue on to next parts.
 
@@ -3062,6 +3133,8 @@ async searchAll(searchDto: {{resource}}SearchDto, currentUserId?: number) {
       countQuery: { where },
     });
 
+    // ⚠️ Remove enhanceWithLikes call if human did NOT request likes.
+    // If removed, replace `enhancedItems` with `items` in the return below.
     const enhancedItems = await enhanceWithLikes(
       this.prisma,
       '{{resource}}',
@@ -3378,6 +3451,8 @@ async searchAllCursor(
     },
   });
 
+  // ⚠️ Remove enhanceWithLikes call if human did NOT request likes.
+  // If removed, replace `enhancedItems` with `items` in the return below.
   const enhancedItems = await enhanceWithLikes(
     this.prisma,
     '{{resource}}',
@@ -5534,7 +5609,7 @@ export interface Update{{resource}}Input {
 
 ## step 3 converting endpoints to `features/{{resource}}/api.ts`
 
-if not using cursor pagination, omit cursor code
+> ⚠️ Omit offset functions (`fetch{{resource}}sOffset`, `fetch{{resource}}sByUserId`) if human did NOT request offset pagination. Omit cursor functions (`fetch{{resource}}sCursor`, `fetch{{resource}}sByUserIdCursor`) if human did NOT request cursor pagination.
 
 `web/src/features/{{resource}}/api.ts`
 
@@ -5952,7 +6027,8 @@ export const updateAdminArticle = (
 
 ## step 7 make `features/{{resource}}/hooks.ts`
 
-if not using cursor pagination, omit cursor code
+> ⚠️ Omit offset hooks (`use{{resource}}Offset`, `use{{resource}}ByUserId`) if human did NOT request offset pagination. Omit cursor hooks (`use{{resource}}Cursor`, `use{{resource}}ByUserIdCursor`) if human did NOT request cursor pagination.
+
 `web/src/features/{{resource}}/hooks.ts`
 
 ```ts
@@ -7021,7 +7097,7 @@ export function InlineCreate{{resource}}Form({
           id="inline-title"
           type="text"
           placeholder="title"
-          disabled={createArticleMutation.isPending}
+          disabled={create{{resource}}Mutation.isPending}
           {...form.register("title")}
         />
         {form.formState.errors.title && (
@@ -7039,7 +7115,7 @@ export function InlineCreate{{resource}}Form({
         <Textarea
           id="inline-content"
           placeholder="content"
-          disabled={createArticleMutation.isPending}
+          disabled={create{{resource}}Mutation.isPending}
           {...form.register("content")}
         />
         {form.formState.errors.content && (
@@ -7061,12 +7137,12 @@ export function InlineCreate{{resource}}Form({
             <Select value={field.value || ""} onValueChange={field.onChange}>
               <SelectTrigger
                 id="inline-status"
-                disabled={createArticleMutation.isPending}
+                disabled={create{{resource}}Mutation.isPending}
               >
                 <SelectValue placeholder="Select a status" />
               </SelectTrigger>
               <SelectContent>
-                {ARTICLE_STATUSES.map((status) => (
+                {{{resource}}_STATUSES.map((status) => (
                   <SelectItem key={status} value={status}>
                     {status.charAt(0).toUpperCase() +
                       status.slice(1).toLowerCase()}
@@ -7097,7 +7173,7 @@ export function InlineCreate{{resource}}Form({
             form.reset();
             onCancel?.();
           }}
-          disabled={createArticleMutation.isPending}
+          disabled={create{{resource}}Mutation.isPending}
         >
           {isAlwaysOpen ? "Reset" : "Cancel"}
         </Button>
@@ -7105,12 +7181,12 @@ export function InlineCreate{{resource}}Form({
           type="submit"
           size="sm"
           className="cursor-pointer"
-          disabled={createArticleMutation.isPending || !isValid}
+          disabled={create{{resource}}Mutation.isPending || !isValid}
         >
-          {createArticleMutation.isPending && (
+          {create{{resource}}Mutation.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          {createArticleMutation.isPending ? "Creating..." : "Create article"}
+          {create{{resource}}Mutation.isPending ? "Creating..." : "Create {{resource}}"}
         </Button>
       </div>
     </form>
@@ -10860,7 +10936,7 @@ export function UserProfileContent({ user, isOwner }: UserProfileContentProps) {
 ```tsx
 "use client";
 
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -11090,7 +11166,7 @@ example:
 ```tsx
 "use client";
 
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
