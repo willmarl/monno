@@ -1,5 +1,3 @@
-future me : make checklist of things human to clarify to ai
-
 # preamble
 
 note everything here assumes the human or AI has prisma schema model ready (resource is in schema.prisma and the migrations has been set), for example:
