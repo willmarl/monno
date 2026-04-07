@@ -1,5 +1,7 @@
 # Monno
 
+![Posts Feed](./screenshots/Posts.jpg)
+
 A full-stack CRUD boilerplate with auth. This is a mono repo that uses nestjs for backend and nextjs for frontend. (its where repo name comes from "Monno" = Mono repo + (nn == nextjs + nestjs))
 
 ## what's included
@@ -32,6 +34,7 @@ see [setup.md](./setup.md) for full details
 
 - [setup.md](./setup.md) - dev environment setup, building, and deployment
 - [features.md](./features.md) - feature overview and what's actually implemented
+- [screenshots.md](./screenshots.md) - visual overview of the app with embedded screenshots
 - [tests.md](./tests.md) - how to run tests and coverage status
 - [futureToDo.md](./futureToDo.md) - planned features for v2
 - [ai-tut.md](./ai-tut.md) - how to use AI to scaffold new CRUD resources (`pnpm run crud`)
