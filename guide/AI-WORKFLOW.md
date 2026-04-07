@@ -445,16 +445,15 @@ For each part in the guide:
 2. **Skip the section** if it doesn't apply (e.g., skip admin sections if admin not requested)
 3. **Follow the template code exactly** — adapt `{{resource}}` names but keep structure
 4. **Create/edit files** as instructed
-5. **Test as you go** (run `pnpm run dev`, check for errors)
+5. **Do NOT start the server or run curl/HTTP tests** — human tests endpoints after you finish
 
-#### Step 5: Test Endpoints
+#### Step 5: Prompt Human to Test Endpoints
 
-After completing all parts, run the test suite from **Part 8** of the guide:
+After completing all parts, follow **Part 8** of the guide:
 
-- POST (create)
-- GET (read all, read one, read by user, pagination variants)
-- PATCH (update)
-- DELETE (soft delete, restore if admin)
+- List the endpoints for the human to test (POST, GET, PATCH, DELETE)
+- **Do NOT run the server yourself or curl any endpoints**
+- Wait for human confirmation before continuing
 
 #### Step 6: Verify Completeness
 
@@ -473,8 +472,7 @@ Implementation Complete!
 
 ✓ Backend: 8 parts finished
 ✓ Frontend: 6 parts finished (if applicable)
-✓ Tested: All endpoints working
-✓ Ready for: Human review + integration testing
+✓ Ready for: Human endpoint testing + integration review
 
 Test your endpoints:
 - POST /{{resource}}
@@ -497,9 +495,9 @@ Test your endpoints:
 ### Gate 2: Implementation Completion (AI#2)
 
 - [ ] All backend files created
-- [ ] All endpoints tested and working
-- [ ] All frontend components render (if applicable)
+- [ ] All frontend components created (if applicable)
 - [ ] CRUD plan fully checked off
+- [ ] Human has been prompted to test endpoints (AI does NOT run the server or curl tests)
 
 ### Gate 3: Human Integration Testing (Human)
 

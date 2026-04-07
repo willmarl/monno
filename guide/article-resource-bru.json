@@ -1,0 +1,1070 @@
+{
+  "name": "article-resource",
+  "version": "1",
+  "items": [
+    {
+      "type": "folder",
+      "name": "admin",
+      "filename": "admin",
+      "seq": 2,
+      "examples": [],
+      "root": {
+        "request": {
+          "auth": {
+            "mode": "inherit"
+          }
+        },
+        "meta": {
+          "name": "admin",
+          "seq": 2
+        }
+      },
+      "items": [
+        {
+          "type": "folder",
+          "name": "article",
+          "filename": "article",
+          "seq": 2,
+          "examples": [],
+          "root": {
+            "request": {
+              "auth": {
+                "mode": "inherit"
+              }
+            },
+            "meta": {
+              "name": "article",
+              "seq": 2
+            }
+          },
+          "items": [
+            {
+              "type": "http",
+              "name": "delete article",
+              "filename": "delete article.bru",
+              "seq": 6,
+              "settings": {
+                "encodeUrl": true,
+                "timeout": 0
+              },
+              "tags": [],
+              "examples": [],
+              "request": {
+                "url": "{{base_URL}}/admin/articles/{{articleId}}",
+                "method": "DELETE",
+                "headers": [],
+                "params": [],
+                "body": {
+                  "mode": "none",
+                  "json": "{\"title\":\"admin edited\"}",
+                  "formUrlEncoded": [],
+                  "multipartForm": [],
+                  "file": []
+                },
+                "script": {},
+                "vars": {},
+                "assertions": [],
+                "tests": "",
+                "docs": "",
+                "auth": {
+                  "mode": "inherit"
+                }
+              }
+            },
+            {
+              "type": "http",
+              "name": "article search",
+              "filename": "article search.bru",
+              "seq": 4,
+              "settings": {
+                "encodeUrl": true,
+                "timeout": 0
+              },
+              "tags": [],
+              "examples": [],
+              "request": {
+                "url": "{{base_URL}}/admin/articles?availability=ACTIVE&limit=5&searchFields=cat&query=deleted&offset=1&statuses=ARCHVIED",
+                "method": "GET",
+                "headers": [],
+                "params": [
+                  {
+                    "name": "availability",
+                    "value": "ACTIVE",
+                    "type": "query",
+                    "enabled": true
+                  },
+                  {
+                    "name": "limit",
+                    "value": "5",
+                    "type": "query",
+                    "enabled": true
+                  },
+                  {
+                    "name": "searchFields",
+                    "value": "cat",
+                    "type": "query",
+                    "enabled": true
+                  },
+                  {
+                    "name": "query",
+                    "value": "deleted",
+                    "type": "query",
+                    "enabled": true
+                  },
+                  {
+                    "name": "offset",
+                    "value": "1",
+                    "type": "query",
+                    "enabled": true
+                  },
+                  {
+                    "name": "statuses",
+                    "value": "ARCHVIED",
+                    "type": "query",
+                    "enabled": true
+                  }
+                ],
+                "body": {
+                  "mode": "none",
+                  "formUrlEncoded": [],
+                  "multipartForm": [],
+                  "file": []
+                },
+                "script": {},
+                "vars": {},
+                "assertions": [],
+                "tests": "",
+                "docs": "## basic search\n**limit** : number\n- `limit=10`\n\n**offset** : number\n- `offset=0`\n\n**query** : string\n- `query=john`\n\n___\n\n## Post specific\n**deleted**: boolean\ntoggle on to only filter posts that are deleted\n- `deleted=true`\n- `deleted=false`\n\n**sort**: string\nenum of createdAt, updatedAt, viewCount, likeCount\n- `sort=createdAt|desc` (or `asc`)\n- `sort=updatedAt|desc` (or `asc`)\n- `sort=viewCount|desc` (or `asc`)\n- `sort=likeCount|desc` (or `asc`)\n\n**caseSensitive**: boolean\nenable case-sensitive search (default: false)\n- `caseSensitive=true`",
+                "auth": {
+                  "mode": "inherit"
+                }
+              }
+            },
+            {
+              "type": "http",
+              "name": "get all article cursor",
+              "filename": "get all article cursor.bru",
+              "seq": 2,
+              "settings": {
+                "encodeUrl": true,
+                "timeout": 0
+              },
+              "tags": [],
+              "examples": [],
+              "request": {
+                "url": "{{base_URL}}/admin/articles/cursor?limit=2&cursor=8",
+                "method": "GET",
+                "headers": [],
+                "params": [
+                  {
+                    "name": "limit",
+                    "value": "2",
+                    "type": "query",
+                    "enabled": true
+                  },
+                  {
+                    "name": "cursor",
+                    "value": "8",
+                    "type": "query",
+                    "enabled": true
+                  }
+                ],
+                "body": {
+                  "mode": "none",
+                  "formUrlEncoded": [],
+                  "multipartForm": [],
+                  "file": []
+                },
+                "script": {},
+                "vars": {},
+                "assertions": [],
+                "tests": "",
+                "docs": "",
+                "auth": {
+                  "mode": "inherit"
+                }
+              }
+            },
+            {
+              "type": "http",
+              "name": "get all article",
+              "filename": "get all article.bru",
+              "seq": 1,
+              "settings": {
+                "encodeUrl": true,
+                "timeout": 0
+              },
+              "tags": [],
+              "examples": [],
+              "request": {
+                "url": "{{base_URL}}/admin/articles",
+                "method": "GET",
+                "headers": [],
+                "params": [
+                  {
+                    "name": "searchFields",
+                    "value": "creator.username",
+                    "type": "query",
+                    "enabled": false
+                  },
+                  {
+                    "name": "query",
+                    "value": "dog",
+                    "type": "query",
+                    "enabled": false
+                  }
+                ],
+                "body": {
+                  "mode": "none",
+                  "formUrlEncoded": [],
+                  "multipartForm": [],
+                  "file": []
+                },
+                "script": {},
+                "vars": {},
+                "assertions": [],
+                "tests": "",
+                "docs": "",
+                "auth": {
+                  "mode": "inherit"
+                }
+              }
+            },
+            {
+              "type": "http",
+              "name": "get article by id",
+              "filename": "get article by id.bru",
+              "seq": 3,
+              "settings": {
+                "encodeUrl": true,
+                "timeout": 0
+              },
+              "tags": [],
+              "examples": [],
+              "request": {
+                "url": "{{base_URL}}/admin/articles/{{articleId}}",
+                "method": "GET",
+                "headers": [],
+                "params": [],
+                "body": {
+                  "mode": "none",
+                  "formUrlEncoded": [],
+                  "multipartForm": [],
+                  "file": []
+                },
+                "script": {},
+                "vars": {},
+                "assertions": [],
+                "tests": "",
+                "docs": "",
+                "auth": {
+                  "mode": "inherit"
+                }
+              }
+            },
+            {
+              "type": "http",
+              "name": "restore article",
+              "filename": "restore article.bru",
+              "seq": 7,
+              "settings": {
+                "encodeUrl": true,
+                "timeout": 0
+              },
+              "tags": [],
+              "examples": [],
+              "request": {
+                "url": "{{base_URL}}/admin/articles/{{articleId}}/restore",
+                "method": "POST",
+                "headers": [],
+                "params": [],
+                "body": {
+                  "mode": "none",
+                  "json": "{\"title\":\"admin edited\"}",
+                  "formUrlEncoded": [],
+                  "multipartForm": [],
+                  "file": []
+                },
+                "script": {},
+                "vars": {},
+                "assertions": [],
+                "tests": "",
+                "docs": "",
+                "auth": {
+                  "mode": "inherit"
+                }
+              }
+            },
+            {
+              "type": "http",
+              "name": "update article",
+              "filename": "update article.bru",
+              "seq": 5,
+              "settings": {
+                "encodeUrl": true,
+                "timeout": 0
+              },
+              "tags": [],
+              "examples": [],
+              "request": {
+                "url": "{{base_URL}}/admin/articles/{{articleId}}",
+                "method": "PATCH",
+                "headers": [],
+                "params": [],
+                "body": {
+                  "mode": "multipartForm",
+                  "json": "{\n  \"content\": \"updated post\"\n}",
+                  "formUrlEncoded": [],
+                  "multipartForm": [
+                    {
+                      "type": "text",
+                      "name": "title",
+                      "value": "adasdas",
+                      "enabled": true
+                    },
+                    {
+                      "type": "file",
+                      "name": "imagefoo",
+                      "value": [
+                        "/home/cat/Downloads/cat_tree.png"
+                      ],
+                      "enabled": true
+                    }
+                  ],
+                  "file": []
+                },
+                "script": {},
+                "vars": {},
+                "assertions": [],
+                "tests": "",
+                "docs": "",
+                "auth": {
+                  "mode": "inherit"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "name": "articles",
+      "filename": "articles",
+      "seq": 3,
+      "examples": [],
+      "root": {
+        "request": {
+          "auth": {
+            "mode": "inherit"
+          }
+        },
+        "meta": {
+          "name": "articles",
+          "seq": 3
+        }
+      },
+      "items": [
+        {
+          "type": "http",
+          "name": "collections containing this article",
+          "filename": "collections containing this article.bru",
+          "seq": 15,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{base_URL}}/articles/{{articleId}}/collections",
+            "method": "GET",
+            "headers": [],
+            "params": [],
+            "body": {
+              "mode": "none",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {},
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "create article",
+          "filename": "create article.bru",
+          "seq": 1,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{base_URL}}/articles",
+            "method": "POST",
+            "headers": [],
+            "params": [],
+            "body": {
+              "mode": "multipartForm",
+              "json": "{\n  \"title\": \"hi\",\n  \"content\": \"{{username}}\"\n}",
+              "formUrlEncoded": [],
+              "multipartForm": [
+                {
+                  "type": "text",
+                  "name": "title",
+                  "value": "edit me article title here",
+                  "enabled": true
+                },
+                {
+                  "type": "text",
+                  "name": "content",
+                  "value": "edit me article content here",
+                  "enabled": true
+                },
+                {
+                  "type": "file",
+                  "name": "image",
+                  "value": [
+                    "/home/cat/Downloads/cat_tree.png"
+                  ],
+                  "enabled": true
+                },
+                {
+                  "type": "text",
+                  "name": "status",
+                  "value": "DRAFT",
+                  "enabled": true
+                }
+              ],
+              "file": []
+            },
+            "script": {},
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "cursor search",
+          "filename": "cursor search.bru",
+          "seq": 8,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{base_URL}}/posts/search/cursor?cursor=3&limit=3&query=cat",
+            "method": "GET",
+            "headers": [],
+            "params": [
+              {
+                "name": "cursor",
+                "value": "3",
+                "type": "query",
+                "enabled": true
+              },
+              {
+                "name": "limit",
+                "value": "3",
+                "type": "query",
+                "enabled": true
+              },
+              {
+                "name": "query",
+                "value": "cat",
+                "type": "query",
+                "enabled": true
+              }
+            ],
+            "body": {
+              "mode": "none",
+              "json": "{\n  \"title\": \"first post\",\n  \"content\": \"hellow world\"\n}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {},
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "delete article",
+          "filename": "delete article.bru",
+          "seq": 11,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{base_URL}}/articles/{{articleId}}",
+            "method": "DELETE",
+            "headers": [],
+            "params": [],
+            "body": {
+              "mode": "none",
+              "json": "{\n  \"title\": \"first post\",\n  \"content\": \"hellow world\"\n}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {},
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "get all articles",
+          "filename": "get all articles.bru",
+          "seq": 2,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{base_URL}}/articles",
+            "method": "GET",
+            "headers": [],
+            "params": [
+              {
+                "name": "limit",
+                "value": "2",
+                "type": "query",
+                "enabled": false
+              },
+              {
+                "name": "sort",
+                "value": "likeCount|desc",
+                "type": "query",
+                "enabled": false
+              },
+              {
+                "name": "sort",
+                "value": "viewCount|desc",
+                "type": "query",
+                "enabled": false
+              }
+            ],
+            "body": {
+              "mode": "none",
+              "json": "{\n  \"title\": \"first post\",\n  \"content\": \"hellow world\"\n}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {},
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "get all user's articles (cursor)",
+          "filename": "get all user's articles (cursor).bru",
+          "seq": 6,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{base_URL}}/articles/users/{{userId}}/cursor",
+            "method": "GET",
+            "headers": [],
+            "params": [],
+            "body": {
+              "mode": "none",
+              "json": "{\n  \"title\": \"first post\",\n  \"content\": \"hellow world\"\n}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {},
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "get all article cursor",
+          "filename": "get all article cursor.bru",
+          "seq": 3,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{base_URL}}/articles/cursor?limit=1&cursor=6",
+            "method": "GET",
+            "headers": [],
+            "params": [
+              {
+                "name": "limit",
+                "value": "1",
+                "type": "query",
+                "enabled": true
+              },
+              {
+                "name": "cursor",
+                "value": "6",
+                "type": "query",
+                "enabled": true
+              }
+            ],
+            "body": {
+              "mode": "none",
+              "json": "{\n  \"title\": \"first post\",\n  \"content\": \"hellow world\"\n}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {},
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "get all user's articles",
+          "filename": "get all user's articles.bru",
+          "seq": 5,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{base_URL}}/articles/users/{{userId}}",
+            "method": "GET",
+            "headers": [],
+            "params": [],
+            "body": {
+              "mode": "none",
+              "json": "{\n  \"title\": \"first post\",\n  \"content\": \"hellow world\"\n}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {},
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "get article by id",
+          "filename": "get article by id.bru",
+          "seq": 9,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{base_URL}}/articles/{{articleId}}",
+            "method": "GET",
+            "headers": [],
+            "params": [],
+            "body": {
+              "mode": "none",
+              "json": "{\n  \"title\": \"first post\",\n  \"content\": \"hellow world\"\n}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {},
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "get user's liked post cursor",
+          "filename": "get user's liked post cursor.bru",
+          "seq": 14,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{base_URL}}/articles/users/{{userId}}/liked/cursor",
+            "method": "GET",
+            "headers": [],
+            "params": [],
+            "body": {
+              "mode": "none",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {},
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "next cursor",
+          "filename": "next cursor.bru",
+          "seq": 4,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{base_URL}}/articles/cursor?cursor=3&limit=3",
+            "method": "GET",
+            "headers": [],
+            "params": [
+              {
+                "name": "cursor",
+                "value": "3",
+                "type": "query",
+                "enabled": true
+              },
+              {
+                "name": "limit",
+                "value": "3",
+                "type": "query",
+                "enabled": true
+              }
+            ],
+            "body": {
+              "mode": "none",
+              "json": "{\n  \"title\": \"first post\",\n  \"content\": \"hellow world\"\n}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {},
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "get user's liked post",
+          "filename": "get user's liked post.bru",
+          "seq": 13,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{base_URL}}/articles/users/{{userId}}/liked",
+            "method": "GET",
+            "headers": [],
+            "params": [
+              {
+                "name": "offset",
+                "value": "1",
+                "type": "query",
+                "enabled": false
+              },
+              {
+                "name": "limit",
+                "value": "3",
+                "type": "query",
+                "enabled": false
+              }
+            ],
+            "body": {
+              "mode": "none",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {},
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "search article",
+          "filename": "search article.bru",
+          "seq": 7,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{base_URL}}/articles?statuses=DRAFT,PUBLISHED&query=hello&caseSensitive=true&sort=createdAt|asc&searchFields=title,content,creator.username",
+            "method": "GET",
+            "headers": [],
+            "params": [
+              {
+                "name": "statuses",
+                "value": "DRAFT,PUBLISHED",
+                "type": "query",
+                "enabled": true
+              },
+              {
+                "name": "query",
+                "value": "hello",
+                "type": "query",
+                "enabled": true
+              },
+              {
+                "name": "caseSensitive",
+                "value": "true",
+                "type": "query",
+                "enabled": true
+              },
+              {
+                "name": "sort",
+                "value": "createdAt|asc",
+                "type": "query",
+                "enabled": true
+              },
+              {
+                "name": "searchFields",
+                "value": "title,content,creator.username",
+                "type": "query",
+                "enabled": true
+              },
+              {
+                "name": "searchFields",
+                "value": "content",
+                "type": "query",
+                "enabled": false
+              },
+              {
+                "name": "searchFields",
+                "value": "creator.username",
+                "type": "query",
+                "enabled": false
+              },
+              {
+                "name": "searchFields",
+                "value": "title",
+                "type": "query",
+                "enabled": false
+              },
+              {
+                "name": "sort",
+                "value": "createdAt|desc",
+                "type": "query",
+                "enabled": false
+              },
+              {
+                "name": "sort",
+                "value": "updatedAt|desc",
+                "type": "query",
+                "enabled": false
+              },
+              {
+                "name": "sort",
+                "value": "updatedAt|asc",
+                "type": "query",
+                "enabled": false
+              }
+            ],
+            "body": {
+              "mode": "none",
+              "json": "{\n  \"title\": \"first post\",\n  \"content\": \"hellow world\"\n}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {},
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "## basic search\n**limit** : number\n- `limit=10`\n\n**offset** : number\n- `offset=1`\n**cursor** : number\n- `cursor=1`\n\n**query** : string\n- `query=cat`\n\n**search fields** : string\nonly search in these included fields (can be single or many at once)\n- `searchFields:title,content,creator.username`\n- `searchFields:title`\n\n**statuses** : string\nfilter based of status. enum of: \"DRAFT\",\"PUBLISHED\",\"ARCHIVED\",\"SCHEDULED\"\n- `statuses:DRAFT`\n**deleted** : boolean\ntoggle on to only filter comments that are deleted\n- `deleted=true`\n\n**sort**: string\nenum of createdAt, updatedAt\n- `sort=createdAt|desc` (or `asc`)\n- `sort=updatedAt|desc` (or `asc`)\n___\n\n# FIX ME LATER\n\n## Comment specific\n**resourceType**: string\nenum of \"POST\" or \"COMMENT\"\n- `resourceType=POST`\n- `resourceType=COMMENT`\n\n**deleted** : boolean\ntoggle on to only filter comments that are deleted\n- `deleted=true`\n\n**sort**: string\nenum of createdAt, updatedAt, likeCount\n- `sort=createdAt|desc` (or `asc`)\n- `sort=updatedAt|desc` (or `asc`)\n- `sort=likeCount|desc` (or `asc`)",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "search post suggest",
+          "filename": "search post suggest.bru",
+          "seq": 12,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{base_URL}}/articles/search/suggest?q=as",
+            "method": "GET",
+            "headers": [],
+            "params": [
+              {
+                "name": "q",
+                "value": "as",
+                "type": "query",
+                "enabled": true
+              }
+            ],
+            "body": {
+              "mode": "none",
+              "json": "{\n  \"title\": \"first post\",\n  \"content\": \"hellow world\"\n}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {},
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "update article",
+          "filename": "update article.bru",
+          "seq": 10,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{base_URL}}/articles/{{articleId}}",
+            "method": "PATCH",
+            "headers": [],
+            "params": [],
+            "body": {
+              "mode": "multipartForm",
+              "json": "{\n  \"content\": \"updated post\"\n}",
+              "formUrlEncoded": [],
+              "multipartForm": [
+                {
+                  "type": "text",
+                  "name": "title",
+                  "value": "adasdas",
+                  "enabled": true
+                },
+                {
+                  "type": "file",
+                  "name": "image",
+                  "value": [
+                    "/home/cat/Downloads/cat_tree.png"
+                  ],
+                  "enabled": true
+                }
+              ],
+              "file": []
+            },
+            "script": {},
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "environments": [],
+  "brunoConfig": {
+    "version": "1",
+    "name": "article-resource",
+    "type": "collection",
+    "ignore": [
+      "node_modules",
+      ".git"
+    ],
+    "size": 0,
+    "filesCount": 0
+  },
+  "exportedAt": "2026-04-07T00:11:47.312Z",
+  "exportedUsing": "Bruno/3.0.1"
+}

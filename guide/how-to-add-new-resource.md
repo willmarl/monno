@@ -2608,6 +2608,48 @@ async getStats() {
 
 # part 8 | Test CRUD endpoints/summary
 
+## step 1 | Generate Bruno collection file
+
+Generate a Bruno collection JSON file so the human can import it into Bruno and test all endpoints.
+
+Save the file as `guide/{{resource}}-bru.json`.
+
+Use `guide/article-resource-bru.json` as the format reference — the structure, field names, and variable conventions must match exactly.
+
+**Rules:**
+
+- Use `{{base_URL}}` for the host (never hardcode `http://localhost:3000`)
+- Use `{{resourceId}}` (e.g. `{{blogId}}`) and `{{userId}}` for path variables — match Bruno variable naming from article example
+- Only include requests for endpoints that were actually implemented based on the PROJECT-BRIEF
+- Skip admin folder entirely if admin was not requested
+- Skip cursor requests if cursor pagination was not implemented
+- Skip search request if search was not implemented
+- For `multipartForm` bodies: include only the fields that exist on the actual schema
+- `seq` values should be sequential integers starting at 1 per folder
+- Set `auth.mode` to `"inherit"` on all requests and folders
+
+**Folder structure to generate (adapt based on what was implemented):**
+
+```
+root items:
+  - folder: "admin" (skip if no admin)
+      - folder: "{{resource}}" (lowercase)
+          - requests: get all, get all cursor, get by id, search, update, delete, restore
+  - folder: "{{resources}}" (plural lowercase)
+      - requests: create, get all, get all cursor, get by user, get by user cursor,
+                  get by id, search, search suggest, update, delete,
+                  get user's liked (if likes implemented),
+                  collections containing this (if collections implemented)
+```
+
+After generating the file, tell the human:
+
+> "Bruno collection saved to `guide/{{resource}}-bru.json`. Import it into Bruno to test all endpoints."
+
+---
+
+## step 2 | Prompt human to test
+
 Tell human to tests these endpoints and wait for human's confirmation to continue on to next parts.
 
 **Create**
