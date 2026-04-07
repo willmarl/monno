@@ -11,6 +11,7 @@ A full-stack CRUD boilerplate with auth. This is a mono repo that uses nestjs fo
 - **auth**: username/password (email optional), oauth (google/github), 2-token system (refresh + access), role-based access
 - **admin dashboard**: manage users, posts, comments, audit logs, support tickets
 - **tests**: 52 unit tests, 16 api tests, 12 e2e tests with playwright
+- **ai scaffolding**: CLI + guides for adding new CRUD resources with AI without hallucination (`pnpm run crud`)
 
 ## quick start
 
@@ -33,6 +34,7 @@ see [setup.md](./setup.md) for full details
 - [features.md](./features.md) - feature overview and what's actually implemented
 - [tests.md](./tests.md) - how to run tests and coverage status
 - [futureToDo.md](./futureToDo.md) - planned features for v2
+- [ai-tut.md](./ai-tut.md) - how to use AI to scaffold new CRUD resources (`pnpm run crud`)
 
 ## why this exists
 

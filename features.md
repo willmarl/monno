@@ -159,6 +159,10 @@ Currently just infrastructure for learning Stripe API - syncs data between Strip
 **Auth Philosophy:** I like old school way where its just username and password. No need to go to email and verify to access site. The gambit is if you forget password then ur out of luck unless u **optionally** add email. I'd like to make websites with bare auth then add email option then add oauth option as i do think sign in with google is most convenient but i wouldn't sign up with my email for weird/sketchy sites (I hate going to 10min email just to do 1 thing on website that requires login). Its about skipping the liminal space but giving QoL options if you really like the site.
 This is the reason why the auth system is made from scratch and not using better-auth or other alternative libraries. Its because email is a core required field.
 
+**_articles resource_**: Only exists as a reference pattern for AI. Statuses (draft, published, etc) do nothing — will likely be removed in v2
+
+**AI scaffolding**: CLI + two-phase guide for adding new CRUD resources. Run `pnpm run crud` to scaffold decisions, generates a prompt + project brief for AI to plan schema then implement. See [ai-tut.md](../ai-tut.md)
+
 **Postman/Bruno JSON available** - For API testing
 
 **Infrastructure:**
