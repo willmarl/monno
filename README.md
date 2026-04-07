@@ -2,6 +2,8 @@
 
 ![Posts Feed](./screenshots/Posts.jpg)
 
+**[Live Demo](https://willmarl.github.io/monno-demo/)** — fully static, no backend required (any credentials work, data resets on refresh)
+
 A full-stack CRUD boilerplate with auth. This is a mono repo that uses nestjs for backend and nextjs for frontend. (its where repo name comes from "Monno" = Mono repo + (nn == nextjs + nestjs))
 
 ## what's included
