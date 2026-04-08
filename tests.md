@@ -3,13 +3,17 @@
 - **Unit tests** :
   1. `cd apps/api`
   2. `pnpm run test`
+- **Integration tests** (real DB required. Not mock DB):
+  1. `pnpm run db:test:up` from repo root (starts test DB on port 5433)
+  2. `cd apps/api`
+  3. `pnpm run test:integration`
 - **API tests** : start runner (recursive) on tests folder. (i use bruno)
 - **E2E tests** :
   - **reminders**:
     - temporarily increase rate limiting in `api/.env`
     - change username in `apps/web/tests/constants.ts` periodically to avoid flakiness (particularly with `collections.spec.ts`)
     - i do have `fullyParallel: true,`. may want to switch that off `apps/web/playwright.configs.ts`
-    - also have firefox commented out. **run only one browser at a time** running chroem and firefox (espically with parallel on) causes test flakiness due to shared test user
+    - also have firefox commented out. **run only one browser at a time** running chrome and firefox (especially with parallel on) causes test flakiness due to shared test user
   1. make sure backend is running
   2. `cd apps/web`
   3. `pnpm run tests:e2e`

@@ -14,8 +14,8 @@ A full-stack CRUD boilerplate with auth. This is a mono repo that uses nestjs fo
 - **database**: postgresql with redis caching (using docker compose)
 - **auth**: username/password (email optional), oauth (google/github), 2-token system (refresh + access), role-based access
 - **admin dashboard**: manage users, posts, comments, audit logs, support tickets
-- **tests**: 52 unit tests, 16 api tests, 12 e2e tests with playwright
-- **ai scaffolding**: CLI + guides for adding new CRUD resources with AI without hallucination (`pnpm run crud`)
+- **tests**: 123 unit tests, 80 integration tests (real DB), 16 api tests, 12 e2e tests with playwright
+- **ai scaffolding**: CLI + guides for adding new CRUD resources with AI without hallucination (`pnpm run crud`), plus `/write-tests` slash command for generating integration tests with BV/EP/pairwise coverage
 
 ## quick start
 

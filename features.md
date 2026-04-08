@@ -55,9 +55,11 @@
 
 [**tests**](./tests.md)
 
-- **52 Vitest unit tests**: AuthService, PasswordResetService, UsersService, PostsService
+- **123 Vitest unit tests**: AuthService, PasswordResetService, UsersService, PostsService, search utils, pagination, likes, risk scoring — with BV/EP/pairwise coverage
+- **80 Vitest integration tests**: All 8 controllers (auth, posts, users, comments, collections, likes, sessions, support) — real HTTP against real test DB
 - **16 Bruno API tests**: Auth, Posts, Users, Collections, Error cases
 - **12 Playwright E2E tests**: Auth flow, Posts lifecycle, User profile, Collections
+- **`/write-tests` agent**: Slash command that generates integration tests for new modules with BV/EP/pairwise coverage, probes human for business logic flows before writing
 
 # More details
 

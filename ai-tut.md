@@ -63,3 +63,36 @@ All decisions are in the brief — no clarifying questions needed.
 ```
 
 _If the chat gets too long mid-implementation, start a new session and say "We completed up to Part X. Continue from Part X+1."_
+
+---
+
+## Session 3 — Write integration tests
+
+After the backend code from Session 2 is working, use the `/write-tests` slash command to generate integration tests.
+
+**Before running it** — if the new resource has any non-obvious business logic (state transitions, cross-resource effects, ownership rules that differ from the standard pattern), add it to `FLOWS.md` at the repo root. The agent reads this file for context. Write it while the decision is still fresh.
+
+**Run the command** in a new chat:
+
+```
+/write-tests <module-name>
+```
+
+Example: `/write-tests articles`
+
+**What the agent does:**
+
+1. Reads the controller, service, all DTOs, Prisma schema, and `FLOWS.md`
+2. Surfaces non-obvious flows as plain-English questions — you confirm before any code is written
+3. Shows a plain-English list of every test case planned — you approve the plan
+4. Writes the test file at `src/modules/<name>/<name>.controller.integration.spec.ts`
+
+**What you review** — you don't need to read the assertion code. Just the test descriptions (step 3 above) to confirm the scenarios are correct and nothing's missing.
+
+**To run the tests:**
+
+```bash
+pnpm db:test:up        # start test DB (first time only, or after restart)
+cd apps/api
+pnpm test:integration  # runs all integration specs against the test DB
+```
