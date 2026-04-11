@@ -28,6 +28,9 @@ describe('UsersService', () => {
       post: {
         updateMany: vi.fn(),
       },
+      article: {
+        updateMany: vi.fn(),
+      },
       collection: {
         create: vi.fn(),
       },

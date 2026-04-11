@@ -62,6 +62,7 @@ describe('PostsService', () => {
           content: 'Test content',
           creatorId: userId,
         },
+        select: expect.any(Object),
       });
       expect(result).toEqual(createdPost);
     });
@@ -84,13 +85,15 @@ describe('PostsService', () => {
       await service.create(createPostDto, userId);
 
       // ASSERT
-      expect(mockPrisma.post.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          creatorId: userId,
-          title: 'Test Post',
-          content: 'Test content',
+      expect(mockPrisma.post.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            creatorId: userId,
+            title: 'Test Post',
+            content: 'Test content',
+          }),
         }),
-      });
+      );
     });
   });
 
@@ -104,11 +107,11 @@ describe('PostsService', () => {
         creatorId: 1,
         deleted: false,
         viewCount: 5,
+        likeCount: 3,
         creator: { id: 1, username: 'testuser', avatarPath: null },
       };
 
       mockPrisma.post.findUnique.mockResolvedValue(post);
-      mockPrisma.like.count.mockResolvedValue(3);
       mockPrisma.like.findUnique.mockResolvedValue(null); // Current user hasn't liked
 
       // ACT
@@ -201,6 +204,7 @@ describe('PostsService', () => {
       expect(mockPrisma.post.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: updatePostDto,
+        select: expect.any(Object),
       });
       expect(result).toEqual(updatedPost);
     });
@@ -223,6 +227,7 @@ describe('PostsService', () => {
       expect(mockPrisma.post.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: { title: 'New Title' },
+        select: expect.any(Object),
       });
     });
   });
