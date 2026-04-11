@@ -64,6 +64,8 @@
 | Edit Comment           |     -      |    ✅     |     -     |
 | Delete Comment (Soft)  |     -      |    ✅     |     -     |
 | Like Comment           |     -      |    ✅     |     -     |
+| **Support**            |
+| Create Support Ticket  |     -      |    ✅     |     -     |
 | **Error Handling**     |
 | 400 Bad Request        |     -      |    ✅     |     -     |
 | 401 Unauthorized       |     -      |    ✅     |    ✅     |

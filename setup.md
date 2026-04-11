@@ -1,39 +1,64 @@
 ## how to setup dev environment
 
-_assumes you have node, pnpm, and docker installed_
+_assumes you have Node 24+, pnpm, and docker installed_
 
 1. `git clone https://github.com/willmarl/monno.git`
 2. in `docker-compose.yml` file, replace name "monno" to what your app name is
 3. rename the `.env.template` files without the template in file name (ex: `env.local.template` -> `.env.local`)
-4. modify the 4 env files to fit your name and details like storage, oauth, resend, etc
-   here are the locations of the 4 env files
+4. modify the 5 env files to fit your name and details like storage, oauth, resend, etc
+   here are the locations of the 5 env files
 
+- `.env.docker`
 - `apps/api/.env.template`
 - `apps/worker/.env.template`
 - `apps/web/.env.local.template`
 - `apps/web/.env.production.template`
 
-  **_next steps whilst in root project_**
+### Next steps whilst in root project
 
 5. `pnpm i` _fair warning: the install downloads ~6GB_
 6. `pnpm run db:up`
-7. in `apps/api` and in `apps/worker` run:
-
-```bash
-pnpm prisma migrate deploy
-pnpm prisma generate
-```
-
+7. `pnpm run db:migrate` to run prisma migrations and generate in both `apps/api` and `apps/worker`
 8. `pnpm run dev` to launch all apps instance in same terminal
    > i personally dont like it too much, i just have seperate terminal for each app <br>
    > `cd apps/api` `pnpm run dev`
 
 reminder swagger docs exists | http://localhost:3001/docs
 
-**troubleshooting**
-if your getting build error trying to access frontend, try deleting `pnpm-lock.yaml` and `node_modules` folder then retry install
+## how to run integration tests
 
-> _assumes you can access backend just fine_
+### Setup test database (one-time)
+
+1. Copy test env template:
+
+   ```bash
+   cp apps/api/.env.test.template apps/api/.env.test
+   ```
+
+2. Start test database containers (runs on different ports than dev):
+   ```bash
+   pnpm run db:test:up
+   ```
+
+### Run integration tests
+
+```bash
+pnpm run test:integration
+```
+
+Tests will run against the isolated test database. The test database is automatically reset before each test run by the global setup (see `apps/api/src/test-utils/global-setup.ts`).
+
+### Cleanup
+
+To stop test containers:
+
+```bash
+pnpm run db:test:down
+```
+
+### Troubleshooting
+
+If you're having issues setting up the project (build errors, missing dependencies, etc.), the easiest fix is to do a clean reinstall:
 
 ```bash
 cd /home/johndoe/myrepos/monno
@@ -46,11 +71,19 @@ rm -rf apps/*/node_modules apps/*/.next apps/*/dist
 pnpm install --force
 ```
 
-**not all envs are required if your not using that service**
-What i mean by this is that if you plan on using local storage then dont need to fill in S3 configs.
+This removes all cached dependencies and lock files, then reinstalls everything fresh. This usually resolves:
+
+- Build errors
+- Missing modules
+- Environment variable loading issues
+- Docker connectivity problems
+
+### Optional environment variables
+
+Not all environment variables are required if you're not using that service. For example, if you plan on using local storage, you don't need to fill in S3 configs.
 Dont want/need to use Oauth, posthog, stripe, or sentry? then can omit from env files. Except for resend just fill with dummy string if not using it.
 
-reminder if omiting then to remove/not use its respective service/components ex:
+reminder if omitting then to remove/not use its respective service/components ex:
 
 - oauth components on frontend
 - have stripe env set to false on frontend `.env`s
@@ -165,13 +198,7 @@ pnpm install
 
 ```bash
 pnpm run db:up
-cd /opt/apps/monno/app/api
-pnpm prisma migrate deploy
-pnpm prisma generate
-cd /opt/apps/monno/app/worker
-pnpm prisma migrate deploy
-pnpm prisma generate
-cd /opt/apps/monno/
+pnpm run db:migrate
 ```
 
 #### 4. reminder to set env, secret token, and Oauth
@@ -305,17 +332,18 @@ should setup DB backup by adding backup script to cron job
 
 #### to backup DB
 
-[backup-db.sh](./scripts/backup-db.sh) works by using `pg_dump` command inside the postgres docker, compress that file, then save in backs up folder. it also removes older backs depending on `KEEP_DAYS` variable
+[backup-db.sh](./scripts/backup-db.sh) works by using `pg_dump` command inside the postgres docker, compress that file, then save in backs up folder. The script automatically reads your `COMPOSE_PROJECT_NAME` from `.env.docker` to determine the correct container name.
 
-1. change the variables in script file to your liking
+1. Optionally change the variables in script file to customize backup location or retention:
 
 ```bash
 BACKUP_DIR="/opt/apps/monno/backups"
-CONTAINER_NAME="monno_db"
 DB_USER="postgres"
 DB_NAME="appdb"
 KEEP_DAYS=7
 ```
+
+The container name is automatically derived from `COMPOSE_PROJECT_NAME` in `.env.docker`, so no manual configuration needed there.
 
 2. enable script by `chmod +x scripts/backup-db.sh`
 3. Test backup manually first

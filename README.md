@@ -24,13 +24,12 @@ A full-stack CRUD boilerplate with auth. This is a mono repo that uses nestjs fo
 3. rename `.env.template` files (remove "template" from filename)
 4. fill in your env vars (look at setup.md for details)
 5. `pnpm run db:up` to start docker services
-6. run migrations: `cd apps/api && pnpm prisma migrate deploy && pnpm prisma generate`
-7. same for worker: `cd apps/worker && pnpm prisma migrate deploy && pnpm prisma generate`
-8. `pnpm run dev` to start everything (or separate terminals per app, i prefer that)
+6. `pnpm run db:migrate` to run database migrations
+7. `pnpm run dev` to start everything (or separate terminals per app)
 
 api docs at http://localhost:3001/docs
 
-see [setup.md](./setup.md) for full details
+integration tests available — see [setup.md](./setup.md) for test setup instructions and [tests.md](./tests.md) for current coverage details
 
 ## documentation
 

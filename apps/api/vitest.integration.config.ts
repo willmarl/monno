@@ -1,9 +1,31 @@
 import { defineConfig } from 'vitest/config';
 import swc from 'unplugin-swc';
 import path from 'path';
+import fs from 'fs';
 import * as dotenv from 'dotenv';
 
-dotenv.config({ path: path.resolve(__dirname, '.env.test'), override: true });
+const envTestPath = path.resolve(__dirname, '.env.test');
+if (!fs.existsSync(envTestPath)) {
+  console.error(`
+❌ Missing .env.test file
+
+To run integration tests, you need to create .env.test in apps/api/:
+
+  1. Copy the template:
+     cp apps/api/.env.test.template apps/api/.env.test
+
+  2. Start the test database:
+     pnpm run db:test:up
+
+  3. Run integration tests:
+     pnpm run test:integration
+
+For more details, see setup.md
+  `);
+  process.exit(1);
+}
+
+dotenv.config({ path: envTestPath, override: true });
 
 export default defineConfig({
   plugins: [

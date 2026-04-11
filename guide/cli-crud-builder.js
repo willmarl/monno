@@ -240,6 +240,22 @@ async function main() {
   );
   console.log(`     "We completed up to Part X. Continue from Part X+1."`);
   console.log();
+  console.log(`  [Session 3 — Write Integration Tests]`);
+  console.log(`  10. Optional: Add non-obvious business logic to FLOWS.md at repo root`);
+  console.log(
+    `      (only if your ${resource} has state transitions, cross-resource effects, or special ownership rules)`,
+  );
+  console.log(`  11. Start another NEW chat session with your AI`);
+  console.log(`  12. Use the skill: /write-tests ${resource.toLowerCase()}`);
+  console.log(`      (this is a Claude Code slash command, not a pnpm command)`);
+  console.log(`  13. Review the test plan the AI shows you (descriptions only)`);
+  console.log(`  14. AI generates: src/modules/${resource.toLowerCase()}/${resource.toLowerCase()}.controller.integration.spec.ts`);
+  console.log();
+  console.log(`  To run the tests:`);
+  console.log(`    pnpm db:test:up        # start test DB (first time only)`);
+  console.log(`    cd apps/api`);
+  console.log(`    pnpm test:integration  # run all integration tests`);
+  console.log();
 }
 
 function generateAI1Prompt(resource, config) {

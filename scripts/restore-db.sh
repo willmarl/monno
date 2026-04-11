@@ -15,8 +15,17 @@
 
 set -e
 
+# Load .env.docker to get COMPOSE_PROJECT_NAME
+if [ ! -f "$(dirname "$0")/../.env.docker" ]; then
+    echo "❌ .env.docker file not found!"
+    exit 1
+fi
+
+source "$(dirname "$0")/../.env.docker"
+
 # Configuration
-CONTAINER_NAME="monno_db"
+# Container name is derived from COMPOSE_PROJECT_NAME
+CONTAINER_NAME="${COMPOSE_PROJECT_NAME}_db"
 DB_USER="postgres"
 DB_NAME="appdb"
 
