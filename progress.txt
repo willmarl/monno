@@ -1,7 +1,17 @@
+1
 
 ## Iteration 1 - Move article API routes to legacy folder
 - What was implemented: Updated PRD to mark US-001 as complete after verifying article routes already in legacy folder.
 - Files changed: PRD.md
 - Learnings for future iterations:
   - Verify code moves before marking PRD.
+---
+
+## Iteration 2 - Move article frontend UI components to legacy folder
+- What was implemented: Moved article frontend components to legacy folder, updated imports and sidebar, removed article pages.
+- Files changed: PRD.md, apps/web/src/components/pages/userProfile/UserProfileContent.tsx, apps/web/src/components/layout/admin/Sidebar.tsx, moved multiple article-related files to legacy/frontend/articles, removed article components and pages from apps/web/src, created legacy/frontend/articles directory.
+- Learnings for future iterations:
+  - Ensure to update all imports after moving files.
+  - Keep legacy code for reference but remove active imports.
+  - Test after major removals to catch missing references.
 ---

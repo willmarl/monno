@@ -30,9 +30,9 @@ Remove the article feature from the active codebase by moving all article-relate
 **Description:** As a developer, I want article frontend components moved to legacy so they remain for future reference.
 
 **Acceptance Criteria:**
-- [ ] Identify all React components related to articles
-- [ ] Move article components to `legacy/` folder
-- [ ] Update any component tests to point to new legacy paths
+- [x] Identify all React components related to articles
+- [x] Move article components to `legacy/` folder
+- [x] Update any component tests to point to new legacy paths
 - [ ] Verify components in legacy render correctly (for reference)
 - [x] Typecheck passes
 

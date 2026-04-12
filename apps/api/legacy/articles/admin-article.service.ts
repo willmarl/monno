@@ -3,10 +3,10 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '../../../prisma.service';
+import { PrismaService } from '../../prisma.service';
 import { AdminService } from '../admin.service';
-import { UpdateArticleDto } from '../../articles/dto/update-article.dto';
-import { FileProcessingService } from '../../../common/file-processing/file-processing.service';
+import { UpdateArticleDto } from '../src/modules/articles/dto/update-article.dto';
+import { FileProcessingService } from '../../src/common/file-processing/file-processing.service';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 import { buildSearchWhere } from 'src/common/search/search.utils';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
@@ -16,12 +16,12 @@ import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 // import {
 //   ArticleSearchDto,
 //   ArticleSearchCursorDto,
-// } from '../../articles/dto/search-article.dto';
+// } from '../src/modules/articles/dto/search-article.dto';
 import {
   ArticleSearchDto,
   ArticleSearchCursorDto,
   ArticleAvailability,
-} from '../../articles/dto/search-article.dto';
+} from '../src/modules/articles/dto/search-article.dto';
 
 const DEFAULT_ARTICLE_SELECT = {
   id: true,

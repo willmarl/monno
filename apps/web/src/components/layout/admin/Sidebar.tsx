@@ -69,11 +69,6 @@ export const items = [
     url: "/admin/support",
     icon: Contact,
   },
-  {
-    title: "Articles",
-    url: "/admin/articles",
-    icon: Newspaper,
-  },
 ];
 
 export const stripeItems = [

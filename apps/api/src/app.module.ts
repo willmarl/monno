@@ -17,7 +17,6 @@ import { EmailModule } from './common/email/email.module';
 import { OauthModule } from './modules/auth/oauth/oauth.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { PostsModule } from './modules/posts/posts.module';
-import { ArticlesModule } from './modules/articles/articles.module';
 import { LikesModule } from './modules/likes/likes.module';
 import { ViewsModule } from './modules/views/views.module';
 import { CollectionsModule } from './modules/collections/collections.module';
@@ -103,7 +102,6 @@ import { PrismaService } from './prisma.service';
     OauthModule,
     AdminModule,
     PostsModule,
-    ArticlesModule,
     LikesModule,
     ViewsModule,
     CollectionsModule,
