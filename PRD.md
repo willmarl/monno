@@ -33,7 +33,7 @@ Remove the article feature from the active codebase by moving all article-relate
 - [x] Identify all React components related to articles
 - [x] Move article components to `legacy/` folder
 - [x] Update any component tests to point to new legacy paths
-- [ ] Verify components in legacy render correctly (for reference)
+- [x] Verify components in legacy render correctly (for reference)
 - [x] Typecheck passes
 
 ### US-003: Remove article database schema
