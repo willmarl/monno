@@ -76,7 +76,7 @@ Remove the article feature from the active codebase by moving all article-relate
 - [x] Identify all tests related to articles
 - [x] Remove article test files
 - [x] Remove article test fixtures or data
-- [ ] Run full test suite to verify no broken tests
+- [x] Run full test suite to verify no broken tests
 - [x] Typecheck passes
 
 ### US-007: Verify all remaining features work
