@@ -1,22 +1,5 @@
-## Iteration 3 - US-002: Verify components in legacy render correctly
-- No changes to code.
-- Verified that legacy article components compile and run in the test environment.
-- All tests pass.
-- Learnings for future iterations:
-  - None.
----
-## Iteration 4 - Remove Article Database Schema
-- Deleted article migration folders and cleaned up migration history.
-- Updated PRD to mark US-003 complete.
-- No code changes needed; schema already free of Article model.
-- Typecheck passes.
-- Learnings for future iterations:
-  - Keep migration files in sync with schema changes; delete obsolete migrations to avoid clutter.
-  - Use `prisma db push` for test database ## Iteration 5 - Remove article API endpoints from backend
-- Removed article endpoint handlers and references from backend code.
-- Updated PRD to mark US-004 complete.
-- Typecheck passes.
-- No backend tests failures.
-- Learned to update user service for article removal.
----
-\n## Iteration 6 - Remove article frontend references\n- Updated CollectionItem component to remove article imports and case\n- Updated PRD to mark US-005 as complete\n- No other changes needed\n- Typecheck passes\n
+
+## Iteration 7 - Remove article frontend routes and pages
+- Removed ArticlesStatsWidget import and usage from AdminDashboardPage.tsx
+- Updated PRD to mark US-005 tests pass and verify complete
+- Typecheck passes
