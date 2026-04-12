@@ -85,10 +85,10 @@ Remove the article feature from the active codebase by moving all article-relate
 **Acceptance Criteria:**
 - [x] Run backend tests and verify all pass
 - [x] Run frontend tests and verify all pass
-- [ ] Run integration tests and verify all pass
-- [ ] Start application and verify it loads without errors
-- [ ] Test core features manually in browser
-- [ ] No console errors in browser
+- [x] Run integration tests and verify all pass
+- [x] Start application and verify it loads without errors
+- [x] Test core features manually in browser
+- [x] No console errors in browser
 - [x] Typecheck passes
 
 ## Non-goals
