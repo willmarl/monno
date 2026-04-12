@@ -19,3 +19,4 @@
 - No backend tests failures.
 - Learned to update user service for article removal.
 ---
+\n## Iteration 6 - Remove article frontend references\n- Updated CollectionItem component to remove article imports and case\n- Updated PRD to mark US-005 as complete\n- No other changes needed\n- Typecheck passes\n
