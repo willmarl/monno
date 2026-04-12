@@ -61,9 +61,9 @@ Remove the article feature from the active codebase by moving all article-relate
 **Description:** As a developer, I want article pages and routes removed from frontend so they're not accessible.
 
 **Acceptance Criteria:**
-- [ ] Remove article route definitions from frontend
-- [ ] Remove article page components
-- [ ] Remove article layout components
+- [x] Remove article route definitions from frontend
+- [x] Remove article page components
+- [x] Remove article layout components
 - [ ] Remove article navigation links
 - [x] Typecheck passes
 - [ ] Frontend tests pass
