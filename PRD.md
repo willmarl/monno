@@ -40,10 +40,10 @@ Remove the article feature from the active codebase by moving all article-relate
 **Description:** As a developer, I want article database tables removed so the Prisma schema reflects the current state.
 
 **Acceptance Criteria:**
-- [ ] Locate article models in Prisma schema
-- [ ] Remove article-related models and relations
-- [ ] Reset Prisma database (drop and recreate)
-- [ ] Generate new Prisma client
+- [x] Locate article models in Prisma schema
+- [x] Remove article-related models and relations
+- [x] Reset Prisma database (drop and recreate)
+- [x] Generate new Prisma client
 - [x] Typecheck passes
 
 ### US-004: Remove article API endpoints from backend
