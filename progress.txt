@@ -1,5 +1,6 @@
-
-## Iteration 7 - Remove article frontend routes and pages
-- Removed ArticlesStatsWidget import and usage from AdminDashboardPage.tsx
-- Updated PRD to mark US-005 tests pass and verify complete
-- Typecheck passes
+## Iteration 8 - Remove article tests
+- Identified that no article test files exist
+- Marked US-006 items 76-78 as completed
+- Updated PRD.md accordingly
+- No code changes beyond PRD update
+- Learnings: article test files were already removed; no test fixtures to delete

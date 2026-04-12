@@ -73,9 +73,9 @@ Remove the article feature from the active codebase by moving all article-relate
 **Description:** As a developer, I want article tests removed so they don't interfere with test suite.
 
 **Acceptance Criteria:**
-- [ ] Identify all tests related to articles
-- [ ] Remove article test files
-- [ ] Remove article test fixtures or data
+- [x] Identify all tests related to articles
+- [x] Remove article test files
+- [x] Remove article test fixtures or data
 - [ ] Run full test suite to verify no broken tests
 - [x] Typecheck passes
 
