@@ -6,7 +6,6 @@ import { AdminCommentsController } from './comments/admin-comment.controller';
 import { AdminCollectionsController } from './collections/admin-collection.controller';
 import { AdminStripeController } from './stripe/admin-stripe.controller';
 import { AdminSupportsController } from './support/admin-support.controller';
-import { AdminArticlesController } from './articles/admin-article.controller';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { AdminUserService } from './users/admin-user.service';
@@ -18,7 +17,6 @@ import { AdminSupportService } from './support/admin-support.service';
 import { SeedService } from './seed.service';
 import { PrismaService } from '../../prisma.service';
 import { FileProcessingService } from '../../common/file-processing/file-processing.service';
-import { AdminArticleService } from './articles/admin-article.service';
 @Module({
   imports: [UsersModule],
   controllers: [
@@ -29,7 +27,6 @@ import { AdminArticleService } from './articles/admin-article.service';
     AdminCollectionsController,
     AdminStripeController,
     AdminSupportsController,
-    AdminArticlesController,
   ],
   providers: [
     AdminService,
@@ -39,7 +36,6 @@ import { AdminArticleService } from './articles/admin-article.service';
     AdminCollectionService,
     AdminStripeService,
     AdminSupportService,
-    AdminArticleService,
     SeedService,
     PrismaService,
     FileProcessingService,
@@ -52,7 +48,6 @@ import { AdminArticleService } from './articles/admin-article.service';
     AdminCollectionService,
     AdminStripeService,
     AdminSupportService,
-    AdminArticleService,
   ],
 })
 export class AdminModule {}

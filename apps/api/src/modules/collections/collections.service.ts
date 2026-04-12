@@ -21,7 +21,6 @@ const COLLECTABLE_RESOURCE_CONFIG: Record<
   CollectableResourceConfig
 > = {
   POST: { model: 'post', label: 'Post' },
-  ARTICLE: { model: 'article', label: 'Article' },
 };
 
 const DEFAULT_COLLECTION_SELECT = {

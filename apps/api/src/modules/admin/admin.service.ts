@@ -173,39 +173,14 @@ export class AdminService {
   }
 
   /**
-   * Get article statistics broken down by status and deletion rate
-   */
-  private async getArticleStats() {
-    const [base, draft, published, archived, scheduled] = await Promise.all([
-      this.getBaseContentCounts(this.prisma.article),
-      this.prisma.article.count({ where: { status: 'DRAFT', deleted: false } }),
-      this.prisma.article.count({
-        where: { status: 'PUBLISHED', deleted: false },
-      }),
-      this.prisma.article.count({
-        where: { status: 'ARCHIVED', deleted: false },
-      }),
-      this.prisma.article.count({
-        where: { status: 'SCHEDULED', deleted: false },
-      }),
-    ]);
-
-    return {
-      ...base,
-      byStatus: { draft, published, archived, scheduled },
-    };
-  }
-
-  /**
    * Get all dashboard stats (system metrics + user stats + post stats)
    */
   async getStats() {
-    const [systemStats, userStats, postStats, articleStats] = await Promise.all(
+    const [systemStats, userStats, postStats] = await Promise.all(
       [
         Promise.resolve(this.getSystemStats()),
         this.getUserStats(),
         this.getPostStats(),
-        this.getArticleStats(),
       ],
     );
 
@@ -213,7 +188,6 @@ export class AdminService {
       system: systemStats,
       users: userStats,
       posts: postStats,
-      articles: articleStats,
       timestamp: new Date().toISOString(),
     };
   }

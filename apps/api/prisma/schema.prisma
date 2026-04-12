@@ -15,11 +15,6 @@ datasource db {
   provider = "postgresql"
 }
 
-model Foo {
-  id   Int    @id @default(autoincrement())
-  name String
-}
-
 enum Role {
   USER
   ADMIN
@@ -36,7 +31,6 @@ enum UserStatus {
 enum ResourceType {
   POST
   COMMENT
-  ARTICLE
   // VIDEO
 }
 
@@ -89,7 +83,6 @@ model User {
   usernameHistory         UsernameHistory[]
   collections             Collection[]
   supportTicket           SupportTicket[]
-  articles                Article[]
   // OAuth identity fields
   googleId                String?                  @unique
   githubId                String?                  @unique
@@ -388,27 +381,4 @@ model SupportTicket {
 
   @@index([userId])
   @@index([status])
-}
-
-enum ArticleStatus {
-  DRAFT
-  PUBLISHED
-  ARCHIVED
-  SCHEDULED
-}
-
-model Article {
-  id        Int           @id @default(autoincrement())
-  title     String
-  content   String
-  imagePath String?
-  status    ArticleStatus @default(DRAFT)
-  creatorId Int
-  creator   User          @relation(fields: [creatorId], references: [id])
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  deleted   Boolean       @default(false)
-  deletedAt DateTime?
-  viewCount Int           @default(0)
-  likeCount Int           @default(0)
 }

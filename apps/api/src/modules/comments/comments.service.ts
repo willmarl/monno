@@ -20,7 +20,6 @@ const COMMENTABLE_RESOURCE_CONFIG: Record<
 > = {
   POST: { model: 'post', label: 'Post' },
   COMMENT: { model: 'comment', label: 'Comment' },
-  ARTICLE: { model: 'article', label: 'Article' },
 };
 
 const DEFAULT_COMMENT_SELECT = {
