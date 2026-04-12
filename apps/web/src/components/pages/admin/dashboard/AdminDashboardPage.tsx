@@ -4,7 +4,7 @@ import { useStats } from "@/features/admin/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UsersStatsWidget } from "./widgets/UsersStatsWidget";
 import { PostsStatsWidget } from "./widgets/PostsStatsWidget";
-import { ArticlesStatsWidget } from "./widgets/ArticlesStatsWidget";
+;
 import { SystemStatsWidget } from "./widgets/SystemStatsWidget";
 import { RecentActivityWidget } from "./widgets/RecentActivityWidget";
 
@@ -39,7 +39,7 @@ export function AdminDashboardPage() {
         <SystemStatsWidget data={data?.system} />
         <UsersStatsWidget data={data?.users} />
         <PostsStatsWidget data={data?.posts} />
-        <ArticlesStatsWidget data={data?.articles} />
+        {/* <ArticlesStatsWidget data={data?.articles} /> */}
         <RecentActivityWidget />
       </div>
     </div>

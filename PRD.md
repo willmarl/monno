@@ -66,8 +66,8 @@ Remove the article feature from the active codebase by moving all article-relate
 - [x] Remove article layout components
 - [x] Remove article navigation links
 - [x] Typecheck passes
-- [ ] Frontend tests pass
-- [ ] Verify frontend works correctly in browser
+- [x] Frontend tests pass
+- [x] Verify frontend works correctly in browser
 
 ### US-006: Remove article tests
 **Description:** As a developer, I want article tests removed so they don't interfere with test suite.
