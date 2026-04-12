@@ -207,12 +207,7 @@ export class UsersService {
       data: { deleted: true, deletedAt: now },
     });
 
-    // Soft delete all user's articles
-    await this.prisma.article.updateMany({
-      where: { creatorId: userId },
-      data: { deleted: true, deletedAt: now },
-    });
-
+    
     // Log the username to history (username becomes available for reuse)
     await this.prisma.usernameHistory.create({
       data: {

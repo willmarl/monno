@@ -12,4 +12,10 @@
 - Typecheck passes.
 - Learnings for future iterations:
   - Keep migration files in sync with schema changes; delete obsolete migrations to avoid clutter.
-  - Use `prisma db push` for test database sync.
+  - Use `prisma db push` for test database ## Iteration 5 - Remove article API endpoints from backend
+- Removed article endpoint handlers and references from backend code.
+- Updated PRD to mark US-004 complete.
+- Typecheck passes.
+- No backend tests failures.
+- Learned to update user service for article removal.
+---

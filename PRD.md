@@ -50,12 +50,12 @@ Remove the article feature from the active codebase by moving all article-relate
 **Description:** As a developer, I want article API endpoints removed from active backend so they're not accessible.
 
 **Acceptance Criteria:**
-- [ ] Remove article endpoint handlers from backend code
-- [ ] Remove article routes from main API file
-- [ ] Remove any article middleware or utilities
-- [ ] Update any remaining references in non-article code
+- [x] Remove article endpoint handlers from backend code
+- [x] Remove article routes from main API file
+- [x] Remove any article middleware or utilities
+- [x] Update any remaining references in non-article code
 - [x] Typecheck passes
-- [ ] Backend tests pass
+- [x] Backend tests pass
 
 ### US-005: Remove article frontend routes and pages
 **Description:** As a developer, I want article pages and routes removed from frontend so they're not accessible.
