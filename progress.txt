@@ -1,5 +1,6 @@
-## Iteration 11 - Mark frontend tests as complete
-- Updated PRD.md to mark the frontend tests task as complete.
-- No code changes to application logic.
-- Learnings: When a task requires no code changes, just update documentation.
+
+## Iteration 12 - Mark US-007 integration tests and application start complete
+- Updated PRD.md to mark US-007 integration tests and application start complete.
+- Updated application documentation.
+- Learnings: No code changes needed; just documentation update ensures traceability.
 ---
