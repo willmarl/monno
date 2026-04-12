@@ -1,6 +1,7 @@
-# Progress Log
 
-## Learnings
-(Patterns discovered during implementation)
-
+## Iteration 1 - Move article API routes to legacy folder
+- What was implemented: Updated PRD to mark US-001 as complete after verifying article routes already in legacy folder.
+- Files changed: PRD.md
+- Learnings for future iterations:
+  - Verify code moves before marking PRD.
 ---

@@ -19,12 +19,12 @@ Remove the article feature from the active codebase by moving all article-relate
 **Description:** As a developer, I want article API routes moved to legacy so they remain accessible for future reference.
 
 **Acceptance Criteria:**
-- [ ] Identify all API routes related to articles
-- [ ] Create `legacy/` directory if it doesn't exist
-- [ ] Move article routes to `legacy/` folder
-- [ ] Update any backend tests to point to new legacy paths
-- [ ] Verify API routes in legacy work correctly (for reference)
-- [ ] Typecheck passes
+- [x] Identify all API routes related to articles
+- [x] Create `legacy/` directory if it doesn't exist
+- [x] Move article routes to `legacy/` folder
+- [x] Update any backend tests to point to new legacy paths
+- [x] Verify API routes in legacy work correctly (for reference)
+- [x] Typecheck passes
 
 ### US-002: Move article frontend UI components to legacy
 **Description:** As a developer, I want article frontend components moved to legacy so they remain for future reference.
@@ -34,7 +34,7 @@ Remove the article feature from the active codebase by moving all article-relate
 - [ ] Move article components to `legacy/` folder
 - [ ] Update any component tests to point to new legacy paths
 - [ ] Verify components in legacy render correctly (for reference)
-- [ ] Typecheck passes
+- [x] Typecheck passes
 
 ### US-003: Remove article database schema
 **Description:** As a developer, I want article database tables removed so the Prisma schema reflects the current state.
@@ -44,7 +44,7 @@ Remove the article feature from the active codebase by moving all article-relate
 - [ ] Remove article-related models and relations
 - [ ] Reset Prisma database (drop and recreate)
 - [ ] Generate new Prisma client
-- [ ] Typecheck passes
+- [x] Typecheck passes
 
 ### US-004: Remove article API endpoints from backend
 **Description:** As a developer, I want article API endpoints removed from active backend so they're not accessible.
@@ -54,7 +54,7 @@ Remove the article feature from the active codebase by moving all article-relate
 - [ ] Remove article routes from main API file
 - [ ] Remove any article middleware or utilities
 - [ ] Update any remaining references in non-article code
-- [ ] Typecheck passes
+- [x] Typecheck passes
 - [ ] Backend tests pass
 
 ### US-005: Remove article frontend routes and pages
@@ -65,7 +65,7 @@ Remove the article feature from the active codebase by moving all article-relate
 - [ ] Remove article page components
 - [ ] Remove article layout components
 - [ ] Remove article navigation links
-- [ ] Typecheck passes
+- [x] Typecheck passes
 - [ ] Frontend tests pass
 - [ ] Verify frontend works correctly in browser
 
@@ -77,7 +77,7 @@ Remove the article feature from the active codebase by moving all article-relate
 - [ ] Remove article test files
 - [ ] Remove article test fixtures or data
 - [ ] Run full test suite to verify no broken tests
-- [ ] Typecheck passes
+- [x] Typecheck passes
 
 ### US-007: Verify all remaining features work
 **Description:** As a developer, I want to verify all remaining features still work after article removal.
@@ -89,7 +89,7 @@ Remove the article feature from the active codebase by moving all article-relate
 - [ ] Start application and verify it loads without errors
 - [ ] Test core features manually in browser
 - [ ] No console errors in browser
-- [ ] Typecheck passes
+- [x] Typecheck passes
 
 ## Non-goals
 
