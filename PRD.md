@@ -64,7 +64,7 @@ Remove the article feature from the active codebase by moving all article-relate
 - [x] Remove article route definitions from frontend
 - [x] Remove article page components
 - [x] Remove article layout components
-- [ ] Remove article navigation links
+- [x] Remove article navigation links
 - [x] Typecheck passes
 - [ ] Frontend tests pass
 - [ ] Verify frontend works correctly in browser
