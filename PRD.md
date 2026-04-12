@@ -83,7 +83,7 @@ Remove the article feature from the active codebase by moving all article-relate
 **Description:** As a developer, I want to verify all remaining features still work after article removal.
 
 **Acceptance Criteria:**
-- [ ] Run backend tests and verify all pass
+- [x] Run backend tests and verify all pass
 - [ ] Run frontend tests and verify all pass
 - [ ] Run integration tests and verify all pass
 - [ ] Start application and verify it loads without errors
