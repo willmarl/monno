@@ -20,7 +20,10 @@ export const metadata: Metadata = {
     default: "Monno",
     template: "%s | Monno",
   },
-  description: "Fullstack monorepo boilerplate app using nextjs + nesstjs",
+  description: "Fullstack monorepo boilerplate app using nextjs + nestjs",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
