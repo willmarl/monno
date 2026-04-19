@@ -4,7 +4,8 @@
       "Bash(node guide/cli-crud-builder.js --help)",
       "Bash(node -c guide/cli-crud-builder.js)",
       "Bash(ls -la /home/cat/repos/monno/*.md)",
-      "Bash(node /tmp/test-system-prompt.js)"
+      "Bash(node /tmp/test-system-prompt.js)",
+      "Bash(node guide/cli-crud-builder.js)"
     ],
     "additionalDirectories": [
       "/tmp"

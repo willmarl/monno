@@ -191,7 +191,10 @@ async function main() {
   const promptPath = path.join(process.cwd(), `PROMPT-${resource}.txt`);
   const briefPath = path.join(process.cwd(), `PROJECT-BRIEF-${resource}.md`);
   const progressPath = path.join(process.cwd(), `PROGRESS-${resource}.md`);
-  const systemPromptPath = path.join(process.cwd(), `SYSTEM-PROMPT-${resource}.txt`);
+  const systemPromptPath = path.join(
+    process.cwd(),
+    `SYSTEM-PROMPT-${resource}.txt`,
+  );
 
   fs.writeFileSync(promptPath, aiPrompt);
   fs.writeFileSync(briefPath, projectBrief);
@@ -227,9 +230,7 @@ async function main() {
   console.log(`  [Session 2 — Implementation]`);
   console.log(`  6. Use Claude Code with the system prompt (CRITICAL):`);
   console.log(`     \`\`\`bash`);
-  console.log(
-    `     claude-code --system-prompt SYSTEM-PROMPT-${resource}.txt`,
-  );
+  console.log(`     claude --system-prompt SYSTEM-PROMPT-${resource}.txt`);
   console.log(`     \`\`\``);
   console.log();
   console.log(`  7. In the Claude Code chat, share:`);
@@ -237,7 +238,9 @@ async function main() {
     `     @PROJECT-BRIEF-${resource}.md @PROGRESS-${resource}.md @guide/how-to-add-new-resource.md`,
   );
   console.log();
-  console.log(`  8. Then say: "Start implementation. Follow the guide and PROGRESS checklist."`);
+  console.log(
+    `  8. Then say: "Start implementation. Follow the guide and PROGRESS checklist."`,
+  );
   console.log();
   console.log(
     `     The system prompt will automatically remind AI to update PROGRESS as it completes each step.`,
@@ -248,7 +251,9 @@ async function main() {
     `     - AI will say "Checkpoint: We completed up to Part X, Step Y"`,
   );
   console.log(`     - Start a NEW session with SAME --system-prompt command`);
-  console.log(`     - Say: "We completed up to Part X, Step Y. Continue from Part X, Step Y+1."`);
+  console.log(
+    `     - Say: "We completed up to Part X, Step Y. Continue from Part X, Step Y+1."`,
+  );
   console.log();
   console.log(`  [Session 3 — Write Integration Tests]`);
   console.log(
@@ -671,7 +676,7 @@ function generateProgressFile(resource, config) {
 - [ ] Step 5: Handle loading and error states
 - [ ] Step 6: Test page navigation`;
 
-    if (hasResourceActions) {
+    if (config.resourceActions.length > 0) {
       frontendChecklist += `
 
 ### Part 15: Resource Actions UI`;
