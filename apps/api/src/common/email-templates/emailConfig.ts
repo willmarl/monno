@@ -245,8 +245,10 @@ export const getEmailFooter = (): string => {
     <div class="footer-divider">
       <p class="footer-text">© ${new Date().getFullYear()} ${emailConfig.appName}. All rights reserved.</p>
       <p class="footer-text">
-        Questions? <a href="mailto:${emailConfig.supportEmail}" style="color: #667eea; text-decoration: none;">${emailConfig.supportEmail}</a>
+        Questions? Use the contact form located at footer of page.     
       </p>
     </div>
   `;
 };
+// Alternative footer:
+// Questions? <a href="mailto:${emailConfig.supportEmail}" style="color: #667eea; text-decoration: none;">${emailConfig.supportEmail}</a>
