@@ -22,23 +22,23 @@ A full-stack CRUD boilerplate with auth. This is a mono repo that uses nestjs fo
 1. clone the repo
 2. `pnpm i`
 3. rename `.env.template` files (remove "template" from filename)
-4. fill in your env vars (look at setup.md for details)
+4. fill in your env vars (look at docs/setup.md for details)
 5. `pnpm run db:up` to start docker services
 6. `pnpm run db:migrate` to run database migrations
 7. `pnpm run dev` to start everything (or separate terminals per app)
 
 api docs at http://localhost:3001/docs
 
-integration tests available — see [setup.md](./setup.md) for test setup instructions and [tests.md](./tests.md) for current coverage details
+integration tests available — see [docs/setup.md](./docs/setup.md) for test setup instructions and [docs/tests.md](./docs/tests.md) for current coverage details
 
 ## documentation
 
-- [setup.md](./setup.md) - dev environment setup, building, and deployment
-- [features.md](./features.md) - feature overview and what's actually implemented
-- [screenshots.md](./screenshots.md) - visual overview of the app with embedded screenshots
-- [tests.md](./tests.md) - how to run tests and coverage status
-- [futureToDo.md](./futureToDo.md) - planned features for v2
-- [ai-tut.md](./ai-tut.md) - how to use AI to scaffold new CRUD resources (`pnpm run crud`)
+- [docs/setup.md](./docs/setup.md) - dev environment setup, building, and deployment
+- [docs/features.md](./docs/features.md) - feature overview and what's actually implemented
+- [docs/screenshots.md](./docs/screenshots.md) - visual overview of the app with embedded screenshots
+- [docs/tests.md](./docs/tests.md) - how to run tests and coverage status
+- [docs/futureToDo.md](./docs/futureToDo.md) - planned features for v2
+- [docs/ai-tut.md](./docs/ai-tut.md) - how to use AI to scaffold new CRUD resources (`pnpm run crud`)
 
 ## why this exists
 
