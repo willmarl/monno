@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { Suspense } from "react";
 import { User } from "@/features/users/types/user";
 
-export function SpecificPost({ user }: { user: User | undefined }) {
+export function PostDetail({ user }: { user: User | undefined }) {
   const params = useParams();
   const postId = Number(params.id);
   const { data, isLoading, error } = usePostById(postId);

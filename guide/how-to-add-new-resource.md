@@ -10801,11 +10801,47 @@ import { getServerUser } from "@/features/auth/server";
 import { {{resource}}Detail } from "@/components/pages/{{resource}}/{{resource}}Detail";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "{{resource}}",
-};
-export default async function page() {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/{{resource}}/${id}`,
+      {
+        credentials: "include",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch {{resource}}: ${response.status}`);
+    }
+
+    const jsonResponse = await response.json();
+    const {{resource}}Title =
+      jsonResponse?.data?.title || jsonResponse?.title || "{{resource}}";
+
+    return {
+      title: {{resource}}Title,
+    };
+  } catch (error) {
+    console.error("Error in generateMetadata for {{resource}}:", error);
+    return {
+      title: "{{resource}} Detail",
+    };
+  }
+}
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function page({ params }: PageProps) {
   const user = await getServerUser();
+  const { id } = await params;
 
   return <{{resource}}Detail user={user} />;
 }
@@ -10819,11 +10855,47 @@ import { getServerUser } from "@/features/auth/server";
 import { ArticleDetail } from "@/components/pages/article/ArticleDetail";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Articles",
-};
-export default async function page() {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/articles/${id}`,
+      {
+        credentials: "include",
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch article: ${response.status}`);
+    }
+
+    const jsonResponse = await response.json();
+    const articleTitle =
+      jsonResponse?.data?.title || jsonResponse?.title || "Article";
+
+    return {
+      title: articleTitle,
+    };
+  } catch (error) {
+    console.error("Error in generateMetadata for article:", error);
+    return {
+      title: "Article Detail",
+    };
+  }
+}
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function page({ params }: PageProps) {
   const user = await getServerUser();
+  const { id } = await params;
 
   return <ArticleDetail user={user} />;
 }
