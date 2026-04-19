@@ -85,7 +85,7 @@ Uses NestJS and contains
 - Geolocation tracking on sessions (IP, country, lat/lng)
 - Risk scoring system (detects new location & device logins)
 - Audit logging (admin action tracking with before/after changes)
-- Email templates with centralized styling (Resend)
+- Email templates with centralized styling (Resend) — see [apps/api/logos/README.md](./apps/api/logos/README.md) for email logo setup
 - Bull Board for job queue monitoring
 - Stripe API integration (minimal - syncs subscriptions/products/credits only, no feature unlocks)
 - Support ticket system (basic CRUD)

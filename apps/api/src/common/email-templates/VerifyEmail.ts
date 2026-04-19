@@ -3,6 +3,7 @@ import { getEmailHead, getEmailHeader, getEmailFooter } from './emailConfig';
 export interface VerifyEmailProps {
   userName: string;
   verificationLink: string;
+  logoUrl?: string;
 }
 
 export const verifyEmailTemplate = (props: VerifyEmailProps): string => `
@@ -12,7 +13,7 @@ export const verifyEmailTemplate = (props: VerifyEmailProps): string => `
   <body>
     <div class="container">
       <div class="box">
-        ${getEmailHeader()}
+        ${getEmailHeader(props.logoUrl)}
         <p class="heading">Verify Your Email</p>
         <p class="paragraph">Hi ${props.userName},</p>
         <p class="paragraph">

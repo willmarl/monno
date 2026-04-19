@@ -3,6 +3,7 @@ import { getEmailHead, getEmailHeader, getEmailFooter } from './emailConfig';
 export interface WelcomeEmailProps {
   userName: string;
   accountUrl: string;
+  logoUrl?: string;
 }
 
 export const welcomeEmailTemplate = (props: WelcomeEmailProps): string => `
@@ -12,7 +13,7 @@ export const welcomeEmailTemplate = (props: WelcomeEmailProps): string => `
   <body>
     <div class="container">
       <div class="box">
-        ${getEmailHeader()}
+        ${getEmailHeader(props.logoUrl)}
         <p class="heading">Welcome ${props.userName}! 🎉</p>
         <p class="paragraph">
           We're excited to have you on board. Your account has been successfully created and you're all set to start using our app!

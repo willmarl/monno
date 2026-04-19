@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { GeolocationService } from '../../../common/geolocation/geolocation.service';
 import { RiskScoringService } from '../../../common/risk-scoring/risk-scoring.service';
+import { LogoService } from '../../../common/logo/logo.service';
 import { suspiciousLoginTemplate } from '../../../common/email-templates';
 import { cookieConfig } from '../../../config/cookie.config';
 import type { User } from '../../../generated/prisma/client';
@@ -57,6 +58,7 @@ export class OauthService {
     private jwt: JwtService,
     private geolocationService: GeolocationService,
     private riskScoringService: RiskScoringService,
+    private logoService: LogoService,
     private http: HttpService,
   ) {}
 
@@ -449,6 +451,7 @@ export class OauthService {
     if (riskAssessment.riskScore >= 50 && user.email) {
       try {
         const deviceName = this.extractDeviceName(userAgent);
+        const logoUrl = this.logoService.getLogoUrl();
         const htmlContent = suspiciousLoginTemplate({
           userName: user.username,
           deviceName,
@@ -458,6 +461,7 @@ export class OauthService {
           ipAddress,
           timestamp: new Date().toLocaleString(),
           sessionsUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/me/sessions`,
+          logoUrl,
         });
 
         await this.queue.enqueueEmail(

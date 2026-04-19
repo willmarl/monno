@@ -11,6 +11,7 @@ import { RefreshTokenStrategy } from './strategies/refresh.strategy';
 import { GeolocationModule } from '../../common/geolocation/geolocation.module';
 import { RiskScoringModule } from '../../common/risk-scoring/risk-scoring.module';
 import { FileProcessingModule } from '../../common/file-processing/file-processing.module';
+import { EmailModule } from '../../common/email/email.module';
 import { QueueModule } from '../queue/queue.module';
 import { EmailVerificationService } from './email-verification.service';
 import { EmailVerificationController } from './email-verification.controller';
@@ -23,6 +24,7 @@ import { PasswordResetController } from './password-reset.controller';
     GeolocationModule,
     RiskScoringModule,
     FileProcessingModule,
+    EmailModule,
     QueueModule,
     JwtModule.register({}), // configure tokens in service
   ],

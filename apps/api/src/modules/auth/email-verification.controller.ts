@@ -54,7 +54,7 @@ export class EmailVerificationController {
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @Throttle({ default: rateLimitConfig.normal })
+  @Throttle({ default: rateLimitConfig.strict })
   @UseGuards(JwtAccessGuard)
   @Post('send-verification')
   async send(@Req() req: any) {

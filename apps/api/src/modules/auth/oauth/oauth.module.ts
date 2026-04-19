@@ -6,6 +6,7 @@ import { QueueModule } from '../../queue/queue.module';
 import { JwtModule } from '@nestjs/jwt';
 import { GeolocationModule } from '../../../common/geolocation/geolocation.module';
 import { RiskScoringModule } from '../../../common/risk-scoring/risk-scoring.module';
+import { EmailModule } from '../../../common/email/email.module';
 import { PrismaService } from '../../../prisma.service';
 
 @Module({
@@ -14,6 +15,7 @@ import { PrismaService } from '../../../prisma.service';
     QueueModule,
     GeolocationModule,
     RiskScoringModule,
+    EmailModule,
     JwtModule.register({
       secret: process.env.ACCESS_TOKEN_SECRET,
     }),

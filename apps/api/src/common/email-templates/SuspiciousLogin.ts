@@ -7,6 +7,7 @@ export interface SuspiciousLoginProps {
   ipAddress: string;
   timestamp: string;
   sessionsUrl: string;
+  logoUrl?: string;
 }
 
 export const suspiciousLoginTemplate = (
@@ -18,7 +19,7 @@ export const suspiciousLoginTemplate = (
   <body>
     <div class="container">
       <div class="box">
-        ${getEmailHeader()}
+        ${getEmailHeader(props.logoUrl)}
         <p class="heading" style="color: #d32f2f; margin-bottom: 20px;">🔐 Suspicious Login Attempt</p>
         <p class="paragraph">Hi ${props.userName},</p>
         <div class="alert-box">

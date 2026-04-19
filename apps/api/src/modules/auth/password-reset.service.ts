@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { randomBytes } from 'crypto';
 import { QueueService } from '../queue/queue.service';
+import { LogoService } from '../../common/logo/logo.service';
 import { resetPasswordTemplate } from '../../common/email-templates/ResetPassword';
 import * as bcrypt from 'bcrypt';
 
@@ -21,6 +22,7 @@ export class PasswordResetService {
   constructor(
     private prisma: PrismaService,
     private queueService: QueueService,
+    private logoService: LogoService,
   ) {}
 
   private generateToken() {
@@ -82,9 +84,11 @@ export class PasswordResetService {
 
     // Send via BullMQ worker
     try {
+      const logoUrl = this.logoService.getLogoUrl();
       const htmlContent = resetPasswordTemplate({
         userName: user.username,
         resetLink: resetUrl,
+        logoUrl,
       });
 
       await this.queueService.enqueueEmail(

@@ -9,8 +9,7 @@ export const emailConfig = {
   // App branding
   appName: 'Monno',
   appUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
-  faviconUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/favicon.ico`,
-  supportEmail: process.env.RESEND_FROM_EMAIL || 'support@monno.com',
+  supportEmail: process.env.RESEND_FROM_EMAIL || 'support@Monno.com',
 
   // Colors
   colors: {
@@ -199,6 +198,70 @@ export const emailConfig = {
       padding: 10px;
       border-radius: 4px;
     }
+
+    /* Dark Mode Support */
+    @media (prefers-color-scheme: dark) {
+      body {
+        color: #e5e5e5;
+        background-color: #1a1a1a;
+      }
+      .container {
+        background-color: #242424;
+      }
+      .header {
+        border-bottom-color: #5a67d8;
+      }
+      .logo {
+        color: #7c8ceb;
+      }
+      .heading {
+        color: #f0f0f0;
+      }
+      .subheading {
+        color: #e5e5e5;
+      }
+      .paragraph {
+        color: #b0b0b0;
+      }
+      .detail-label {
+        color: #e5e5e5;
+      }
+      .detail-value {
+        color: #b0b0b0;
+      }
+      .list-item {
+        color: #b0b0b0;
+      }
+      .hr {
+        border-top-color: #404040;
+      }
+      .footer-text {
+        color: #808080;
+      }
+      .footer-divider {
+        border-top-color: #404040;
+      }
+      .link-text {
+        color: #7c8ceb;
+        background-color: #333333;
+      }
+      .alert-box {
+        background-color: #4a3f1f;
+        border-color: #8b7a1a;
+      }
+      .alert-text {
+        color: #ffd699;
+      }
+      .warning-box {
+        background-color: #4a2c2c;
+        border-color: #8b3a3a;
+        color: #ff9999;
+      }
+      .info-box {
+        background-color: #303030;
+        border-color: #505050;
+      }
+    }
   `,
 };
 
@@ -221,7 +284,18 @@ export const getEmailHead = (additionalStyles = ''): string => {
 /**
  * Generate the email header with app branding and logo
  */
-export const getEmailHeader = (): string => {
+export const getEmailHeader = (logoUrl?: string): string => {
+  if (logoUrl) {
+    return `
+      <div class="header">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+          <img src="${logoUrl}" alt="Logo" style="width: 48px; height: 48px; object-fit: contain;" />
+          <p class="logo">${emailConfig.appName}</p>
+        </div>
+      </div>
+    `;
+  }
+
   return `
     <div class="header">
       <div style="text-align: center; margin-bottom: 16px;">
@@ -245,10 +319,8 @@ export const getEmailFooter = (): string => {
     <div class="footer-divider">
       <p class="footer-text">© ${new Date().getFullYear()} ${emailConfig.appName}. All rights reserved.</p>
       <p class="footer-text">
-        Questions? Use the contact form located at footer of page.     
+        Questions? <a href="mailto:${emailConfig.supportEmail}" style="color: #667eea; text-decoration: none;">${emailConfig.supportEmail}</a>
       </p>
     </div>
   `;
 };
-// Alternative footer:
-// Questions? <a href="mailto:${emailConfig.supportEmail}" style="color: #667eea; text-decoration: none;">${emailConfig.supportEmail}</a>

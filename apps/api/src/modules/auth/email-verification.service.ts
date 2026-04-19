@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../../prisma.service';
 import { randomBytes } from 'crypto';
 import { QueueService } from '../queue/queue.service';
+import { LogoService } from '../../common/logo/logo.service';
 import { verifyEmailTemplate } from '../../common/email-templates/VerifyEmail';
 
 // Helper functions (lightweight alternative to date-fns)
@@ -24,6 +25,7 @@ export class EmailVerificationService {
   constructor(
     private prisma: PrismaService,
     private queueService: QueueService,
+    private logoService: LogoService,
   ) {}
 
   private generateToken() {
@@ -69,9 +71,11 @@ export class EmailVerificationService {
 
     // Send via BullMQ worker
     try {
+      const logoUrl = this.logoService.getLogoUrl();
       const htmlContent = verifyEmailTemplate({
         userName: user.username,
         verificationLink: verifyUrl,
+        logoUrl,
       });
 
       await this.queueService.enqueueEmail(

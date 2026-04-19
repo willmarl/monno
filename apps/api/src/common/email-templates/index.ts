@@ -27,3 +27,7 @@ export {
   suspiciousLoginTemplate,
   type SuspiciousLoginProps,
 } from './SuspiciousLogin.js';
+export {
+  resetPasswordTemplate,
+  type ResetPasswordProps,
+} from './ResetPassword.js';

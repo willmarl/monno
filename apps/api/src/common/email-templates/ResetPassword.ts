@@ -1,12 +1,16 @@
 import { getEmailHead, getEmailHeader, getEmailFooter } from './emailConfig';
 
+export interface ResetPasswordProps {
+  userName: string;
+  resetLink: string;
+  logoUrl?: string;
+}
+
 export const resetPasswordTemplate = ({
   userName,
   resetLink,
-}: {
-  userName: string;
-  resetLink: string;
-}): string => {
+  logoUrl,
+}: ResetPasswordProps): string => {
   return `
     <!DOCTYPE html>
     <html>
@@ -14,7 +18,7 @@ export const resetPasswordTemplate = ({
       <body>
         <div class="container">
           <div class="box">
-            ${getEmailHeader()}
+            ${getEmailHeader(logoUrl)}
             <p class="heading">Reset Your Password</p>
             <p class="paragraph">Hi ${userName},</p>
             <p class="paragraph">We received a request to reset your password. If you didn't make this request, you can safely ignore this email.</p>
