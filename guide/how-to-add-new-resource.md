@@ -152,8 +152,7 @@ Go through this checklist with the human **before writing any code**. Do not pro
 - [ ] Should there be an **admin** variant? (admin service + controller)
 - [ ] Is there **file/media upload**?
   - [ ] If yes: what kind? Generic image? Video? Something more complex? Any processing (resize, format conversion, file size limit)?
-- [ ] **Pagination** for `findAll` — none (primitive), offset, cursor, or both?
-- [ ] **Pagination** for `findByUserId` — same question (can differ from above)
+- [ ] **Pagination** for `findAll` and `findByUserId` — none (primitive), offset, cursor, or both? (same strategy for both)
 - [ ] Should there be a **search** endpoint?
   - [ ] If yes: should there also be a **search suggest** (autocomplete) endpoint?
 - [ ] **Resource actions** — which of the following?

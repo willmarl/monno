@@ -240,13 +240,40 @@ FRONTEND:
 
 **Ask:** "Is this correct? Any changes before I create the Project Brief?"
 
-#### Step 7: Output Project Brief
+#### Step 7: Verify Progress File
+
+If the human used `pnpm run crud` to generate initial files, a `PROGRESS-{{resource}}.md` file was created with an adaptive checklist based on their feature selections.
+
+**Your job in this step:**
+
+1. Open `PROGRESS-{{resource}}.md`
+2. **Verify the "Selected Features" section matches what you discussed**
+   - Does the pagination type match? (offset, cursor, both, or none)
+   - Does the search selection match? (basic, none, with/without suggest)
+   - Does the admin level match? (none, read, write)
+   - Do the resource actions match? (likes, views, comments, collections)
+   - Does the frontend/pagination UI match?
+3. If anything is **wrong or changed during planning**, **update the feature summary** to match your agreed decisions
+4. Add the resource's **purpose statement** to the "Notes (fill in during Session 1)" section
+
+**Example feedback to human:**
+
+> I've reviewed the PROGRESS-{{resource}}.md file. Your selected features are:
+> - Offset pagination (findAll and findByUserId) ✓
+> - Search with autocomplete ✓  
+> - Admin read-only ✓
+> - Likes and comments (no views/collections) ✓
+> - Frontend with load-more pagination ✓
+>
+> All selections match our discussion. I've finalized the PROJECT-BRIEF-{{resource}}.md below.
+
+#### Step 8: Output Project Brief
 
 Once confirmed, create a `PROJECT-BRIEF-{{resource}}.md` file with the standardized template below. Give it to the human and say:
 
 > **Ready for Implementation**
 >
-> I've created the Project Brief. Please review it and share it with AI#2. AI#2 will use this to implement the full CRUD without needing to re-clarify anything.
+> I've created the Project Brief and verified PROGRESS-{{resource}}.md. Please review both and share them with AI#2. AI#2 will use the brief to implement the full CRUD and reference the progress file to skip unnecessary sections.
 
 ---
 
@@ -382,7 +409,9 @@ You are the **Implementation AI**. Your job is to read the Project Brief and mec
 #### Step 1: Load Context
 
 - Read the `PROJECT-BRIEF-{{resource}}.md` file
+- Read the `PROGRESS-{{resource}}.md` file (adaptive checklist based on feature selections)
 - Reference [how-to-add-new-resource.md](./how-to-add-new-resource.md)
+- **Use PROGRESS file to skip unnecessary sections** (e.g., if no admin requested, skip all admin steps)
 - Understand: All decisions are already made. Your job is execution.
 
 #### Step 2: Validate Schema
