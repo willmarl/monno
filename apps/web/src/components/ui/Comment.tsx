@@ -143,7 +143,10 @@ export function Comment({
   }
 
   function handleLike() {
-    like.mutate({ resourceType: RESOURCE_TYPES.COMMENT, resourceId: data.id });
+    like.mutateAsync({
+      resourceType: RESOURCE_TYPES.COMMENT,
+      resourceId: data.id,
+    });
   }
 
   return (

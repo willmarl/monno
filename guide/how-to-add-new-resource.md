@@ -14153,7 +14153,7 @@ import { RESOURCE_TYPES } from "@/types/resource";
 ...
 const like = useToggleLike();
 function handleLike() {
-  like.mutate({ resourceType: RESOURCE_TYPES.{{resource}}, resourceId: data.id });
+  like.mutateAsync({ resourceType: RESOURCE_TYPES.{{resource}}, resourceId: data.id });
 }
 ...
 <LikeButton
@@ -14269,7 +14269,10 @@ export function Article({
   });
 
   function handleLike() {
-    like.mutate({ resourceType: RESOURCE_TYPES.ARTICLE, resourceId: data.id });
+    like.mutateAsync({
+      resourceType: RESOURCE_TYPES.ARTICLE,
+      resourceId: data.id,
+    });
   }
 
   return (
@@ -14956,7 +14959,10 @@ export function Article({
   });
 
   function handleLike() {
-    like.mutate({ resourceType: RESOURCE_TYPES.ARTICLE, resourceId: data.id });
+    like.mutateAsync({
+      resourceType: RESOURCE_TYPES.ARTICLE,
+      resourceId: data.id,
+    });
   }
 
   return (

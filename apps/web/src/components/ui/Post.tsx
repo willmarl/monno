@@ -80,7 +80,10 @@ export function Post({
   }
 
   function handleLike() {
-    like.mutate({ resourceType: RESOURCE_TYPES.POST, resourceId: data.id });
+    like.mutateAsync({
+      resourceType: RESOURCE_TYPES.POST,
+      resourceId: data.id,
+    });
   }
 
   return (

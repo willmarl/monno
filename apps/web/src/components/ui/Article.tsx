@@ -101,7 +101,10 @@ export function Article({
   });
 
   function handleLike() {
-    like.mutate({ resourceType: RESOURCE_TYPES.ARTICLE, resourceId: data.id });
+    like.mutateAsync({
+      resourceType: RESOURCE_TYPES.ARTICLE,
+      resourceId: data.id,
+    });
   }
 
   return (
