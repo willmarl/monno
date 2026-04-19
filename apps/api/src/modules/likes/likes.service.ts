@@ -16,6 +16,7 @@ type ResourceConfig = {
 const LIKEABLE_RESOURCE_CONFIG: Record<LikeableResourceType, ResourceConfig> = {
   POST: { model: 'post', label: 'Post' },
   COMMENT: { model: 'comment', label: 'Comment' },
+  ARTICLE: { model: 'article', label: 'Article' },
 };
 
 @Injectable()

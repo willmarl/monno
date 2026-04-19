@@ -52,6 +52,7 @@ export async function setup() {
       "Subscription",
       "Session",
       "Post",
+      "Article",
       "User"
     RESTART IDENTITY CASCADE
   `);

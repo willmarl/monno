@@ -12,6 +12,7 @@ const VIEWABLE_RESOURCE_CONFIG: Record<
   ViewableResourceConfig
 > = {
   POST: { model: 'post', label: 'Post' },
+  ARTICLE: { model: 'article', label: 'Article' },
 };
 
 @Injectable()
@@ -26,7 +27,7 @@ export class ViewHandlerService {
   /**
    * Increment view count with spam prevention
    * Returns true if view was counted, false if spam detected
-   * @param resourceType - Type of resource (POST, VIDEO)
+   * @param resourceType - Type of resource (POST, VIDEO, ARTICLE)
    * @param resourceId - ID of the resource
    * @param userId - ID of the user (optional for anonymous views)
    * @param spamWindowMinutes - Time window to prevent duplicate views (default: 5 minutes)

@@ -4,7 +4,7 @@ export interface CursorPaginateArgs {
   model: any; // prisma.post
   limit: number;
   cursor?: number | null;
-  query: any; // model-specific includes, filters, WHERE (works with Post, User, Video, etc.)
+  query: any; // model-specific includes, filters, WHERE (works with Post, User, Video, Article, etc.)
 }
 
 export async function cursorPaginate<T>({
