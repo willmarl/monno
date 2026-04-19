@@ -16,6 +16,7 @@ interface Props<T> {
   layout?: "grid" | "flex" | "custom";
   gridClassName?: string;
   emptyMessage?: string;
+  autoHidePagination?: boolean;
 }
 
 const LAYOUT_CLASSES = {
@@ -36,6 +37,7 @@ export function PaginatedListInline<T extends { id: string | number }>({
   layout = "grid",
   gridClassName,
   emptyMessage = "No results found.",
+  autoHidePagination = false,
 }: Props<T>) {
   const containerClassName =
     gridClassName || LAYOUT_CLASSES[layout === "custom" ? "grid" : layout];
@@ -82,11 +84,13 @@ export function PaginatedListInline<T extends { id: string | number }>({
         ))}
       </div>
 
-      <PaginationControlsInline
-        currentPage={page}
-        totalPages={totalPages}
-        onPageChange={onPageChange}
-      />
+      {(!autoHidePagination || page > 1 || totalPages > page) && (
+        <PaginationControlsInline
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
+      )}
     </div>
   );
 }
