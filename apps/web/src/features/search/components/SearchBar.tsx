@@ -13,6 +13,7 @@ export interface SearchBarBaseProps<T> {
   queryParam?: string;
   basePath?: string;
   suggestionLimit?: number;
+  containerClassName?: string;
   renderSuggestion?: (suggestion: T) => {
     title: string;
     subtitle?: string;
@@ -66,6 +67,7 @@ export function SearchBar<T>({
   queryParam = "q",
   basePath = "/search",
   suggestionLimit = 5,
+  containerClassName,
   useSuggestions,
   renderSuggestion,
   onSuggestionSelect,
@@ -152,7 +154,9 @@ export function SearchBar<T>({
   }
 
   return (
-    <div className="relative w-full max-w-md z-40">
+    <div
+      className={`relative w-full max-w-md z-40 ${containerClassName || ""}`}
+    >
       <div className="flex items-center gap-2 w-full">
         <Input
           ref={inputRef}
