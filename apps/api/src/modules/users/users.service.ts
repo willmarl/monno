@@ -275,11 +275,21 @@ export class UsersService {
       // Use transaction to create user and default favorites collection atomically
       const result = await this.prisma.$transaction(async (tx) => {
         // Create user
+        // If email is provided, store it in both email and tempEmail
+        // email = current claimed email (for operations like password reset)
+        // tempEmail = pending verification (triggers resend button on frontend)
+        const createData: any = {
+          ...data,
+          password: hashed,
+        };
+
+        if (createData.email) {
+          createData.tempEmail = createData.email;
+          // email is already set from data
+        }
+
         const user = await tx.user.create({
-          data: {
-            ...data,
-            password: hashed,
-          },
+          data: createData,
           select: DEFAULT_ADMIN_USER_SELECT,
         });
 
@@ -294,6 +304,19 @@ export class UsersService {
 
         return user;
       });
+
+      // Send verification email if email was provided
+      if (data.email) {
+        try {
+          await this.emailVerification.sendVerificationEmail(result.id);
+        } catch (error) {
+          console.error(
+            '[UsersService] Failed to send verification email on signup:',
+            error instanceof Error ? error.message : 'Unknown error',
+          );
+          // Don't throw - user was created, just verification email delivery failed
+        }
+      }
 
       return result;
     } catch (error: any) {
