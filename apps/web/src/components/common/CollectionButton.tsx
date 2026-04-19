@@ -39,13 +39,12 @@ export function CollectionButton({
 
   return (
     <Button
-      size="sm"
       variant="ghost"
-      className="cursor-pointer h-8 w-8 p-0"
+      className="cursor-pointer flex items-center justify-center"
       onClick={handleClick}
       title="Add to collection"
     >
-      <FolderPlus className="h-4 w-4" />
+      <FolderPlus className="h-5 w-5" />
     </Button>
   );
 }
