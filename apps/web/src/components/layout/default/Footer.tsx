@@ -13,7 +13,7 @@ export default function Footer() {
         className="cursor-pointer hover:underline bg-transparent border-none p-0"
         onClick={() => {
           openModal({
-            title: "Create new user",
+            title: "Create support ticket",
             content: <CreateTicketModal />,
           });
         }}
