@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { UsersModule } from '../users/users.module';
 import { MediaModule } from '../media/media.module';
+import { FileProcessingModule } from '../../common/file-processing/file-processing.module';
 import { AdminUsersController } from './users/admin-user.controller';
 import { AdminPostsController } from './posts/admin-post.controller';
 import { AdminCommentsController } from './comments/admin-comment.controller';
@@ -20,7 +21,7 @@ import { SeedService } from './seed.service';
 import { PrismaService } from '../../prisma.service';
 import { AdminArticleService } from './articles/admin-article.service';
 @Module({
-  imports: [UsersModule, MediaModule],
+  imports: [UsersModule, MediaModule, FileProcessingModule],
   controllers: [
     AdminController,
     AdminUsersController,
