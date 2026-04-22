@@ -2303,7 +2303,35 @@ await this.prisma.article.updateMany({
 });
 ```
 
-## step 4 admin soft delete logic for admin-{{resource}}.service.ts
+## step 4 let user restore process know to also restore articles/{{resource}} upon account restore
+
+Open `modules/users/users.service.ts` and go to `restoreUserWithCascade` function.
+
+> IF EITHER FILE OR FUNCTION DOES NOT EXIST, STOP: do not proceed to next steps. Alert human that there is missing file or function.
+
+Add a restore block alongside the existing post restore:
+
+```ts
+// Restore all user's {{resource}}s
+await this.prisma.{{resource}}.updateMany({
+  where: { creatorId: userId },
+  data: { deleted: false, deletedAt: null },
+});
+```
+
+example:
+
+```ts
+// Restore all user's articles
+await this.prisma.article.updateMany({
+  where: { creatorId: userId },
+  data: { deleted: false, deletedAt: null },
+});
+```
+
+> Step 3 (delete) and step 3b (restore) must always be kept in sync — every resource in `softDeleteUserWithCascade` must also appear in `restoreUserWithCascade`.
+
+## step 5 admin soft delete logic for admin-{{resource}}.service.ts
 
 ```ts
 async remove(adminId: number, id: number, reason?: string) {
@@ -2373,7 +2401,7 @@ async remove(adminId: number, id: number, reason?: string) {
 }
 ```
 
-## step 5 admin soft delete endpoint for admin-{{resource}}.controller.ts
+## step 6 admin soft delete endpoint for admin-{{resource}}.controller.ts
 
 ```ts
 @Delete(':id')
@@ -2395,7 +2423,7 @@ remove(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
 }
 ```
 
-## step 6 admin restore logic for admin-{{resource}}.service.ts
+## step 7 admin restore logic for admin-{{resource}}.service.ts
 
 ```ts
 async restore(adminId: number, id: number) {
@@ -2467,7 +2495,7 @@ async restore(adminId: number, id: number) {
 }
 ```
 
-## step 7 admin restore endpoint for admin-{{resource}}.controller.ts
+## step 8 admin restore endpoint for admin-{{resource}}.controller.ts
 
 ```ts
 @Post(':id/restore')
@@ -2487,7 +2515,7 @@ restore(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
 }
 ```
 
-# part 7 | add stats for {{resource}} in admin
+# part 9 | add stats for {{resource}} in admin
 
 ## step 1 add to `admin.service.ts` get stats
 

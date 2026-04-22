@@ -120,6 +120,12 @@ export class UsersService {
       data: { deleted: false, deletedAt: null },
     });
 
+    // Restore all user's articles
+    await this.prisma.article.updateMany({
+      where: { creatorId: userId },
+      data: { deleted: false, deletedAt: null },
+    });
+
     // Restore original email if it was mangled on deletion.
     // tempEmail holds the original; check it's not taken by another user first.
     let restoredEmail: string | null | undefined;
