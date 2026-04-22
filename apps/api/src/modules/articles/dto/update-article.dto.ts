@@ -21,10 +21,6 @@ export class UpdateArticleDto {
   content?: string;
 
   @IsOptional()
-  @IsString()
-  imagePath?: string;
-
-  @IsOptional()
   @IsEnum(ArticleStatus)
   status?: ArticleStatus;
 }

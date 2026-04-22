@@ -22,6 +22,7 @@ export class QueueService implements OnModuleInit {
    */
   async onModuleInit() {
     await this.setupSessionCleanupJob();
+    await this.setupOrphanedMediaCleanupJob();
   }
 
   /**
@@ -61,10 +62,44 @@ export class QueueService implements OnModuleInit {
   }
 
   /**
+   * Setup recurring orphaned media cleanup job (runs daily at midnight)
+   */
+  private async setupOrphanedMediaCleanupJob() {
+    try {
+      const existingJobs = await this.jobsQueue.getRepeatableJobs();
+      const existing = existingJobs.find((j) => j.name === 'orphaned-media-cleanup');
+      if (existing) {
+        await this.jobsQueue.removeRepeatableByKey(existing.key);
+      }
+
+      await this.jobsQueue.add(
+        'orphaned-media-cleanup',
+        {},
+        {
+          repeat: { pattern: '0 0 * * *' }, // Daily at midnight
+          removeOnComplete: true,
+          removeOnFail: false,
+        },
+      );
+
+      this.logger.log('Orphaned media cleanup job scheduled (daily at midnight).');
+    } catch (error) {
+      this.logger.error('Failed to setup orphaned media cleanup job:', error);
+    }
+  }
+
+  /**
    * Enqueue a session cleanup job immediately (for testing)
    */
   async enqueueSessionCleanupNow(): Promise<void> {
     await this.jobsQueue.add('session-cleanup', {});
+  }
+
+  /**
+   * Enqueue an orphaned media cleanup job immediately (for testing/admin use)
+   */
+  async enqueueOrphanedMediaCleanupNow(): Promise<void> {
+    await this.jobsQueue.add('orphaned-media-cleanup', {});
   }
 
   /**

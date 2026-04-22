@@ -5,8 +5,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
 import { AdminService } from '../admin.service';
+import { MediaService } from '../../media/media.service';
 import { UpdateArticleDto } from '../../articles/dto/update-article.dto';
-import { FileProcessingService } from '../../../common/file-processing/file-processing.service';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 import { buildSearchWhere } from 'src/common/search/search.utils';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
@@ -22,12 +22,25 @@ import {
   ArticleSearchCursorDto,
   ArticleAvailability,
 } from '../../articles/dto/search-article.dto';
+import { FilePresetName } from '../../../common/file-processing/file-upload-presets';
 
 const DEFAULT_ARTICLE_SELECT = {
   id: true,
   title: true,
   content: true,
-  imagePath: true,
+  media: {
+    select: {
+      id: true,
+      original: true,
+      thumbnail: true,
+      mimeType: true,
+      sizeBytes: true,
+      sortOrder: true,
+      isPrimary: true,
+      createdAt: true,
+    },
+    orderBy: { sortOrder: 'asc' as const },
+  },
   status: true,
   createdAt: true,
   updatedAt: true,
@@ -40,12 +53,15 @@ const DEFAULT_ARTICLE_SELECT = {
   viewCount: true,
 };
 
+const ARTICLE_MEDIA_LIMIT = 3;
+const ARTICLE_MEDIA_PRESET: FilePresetName = 'mediaImage';
+
 @Injectable()
 export class AdminArticleService {
   constructor(
     private prisma: PrismaService,
     private adminService: AdminService,
-    private fileProcessing: FileProcessingService,
+    private mediaService: MediaService,
   ) {}
 
   async findById(id: number) {
@@ -101,49 +117,13 @@ export class AdminArticleService {
     };
   }
 
-  async update(
-    adminId: number,
-    id: number,
-    data: UpdateArticleDto,
-    file?: any,
-  ) {
+  async update(adminId: number, id: number, data: UpdateArticleDto) {
     const article = await this.prisma.article.findUnique({
       where: { id: id },
     });
 
     if (!article) {
       throw new NotFoundException('Article not found');
-    }
-
-    const userId = article.creatorId;
-
-    // If file is provided, process it using FileProcessingService
-    if (file) {
-      try {
-        // Get the current article to retrieve old image path
-        const article = await this.prisma.article.findUnique({
-          where: { id: id },
-          select: { imagePath: true },
-        });
-
-        // Delete old image if it exists
-        if (article?.imagePath) {
-          await this.fileProcessing.deleteFile(article.imagePath);
-        }
-
-        const imagePath = await this.fileProcessing.processFile(
-          file,
-          'articleImage',
-          userId,
-        );
-        data.imagePath = imagePath;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Failed to process image file';
-        throw new BadRequestException(errorMessage);
-      }
     }
 
     // Log the update
@@ -224,6 +204,106 @@ export class AdminArticleService {
     });
 
     return restored;
+  }
+
+  // --- Media ---
+
+  async addMediaBatch(
+    adminId: number,
+    articleId: number,
+    files: any[],
+    userId: number,
+  ) {
+    await this.mediaService.addMediaBatch({
+      resourceWhere: { articleId },
+      files,
+      userId,
+      maxCount: ARTICLE_MEDIA_LIMIT,
+      preset: ARTICLE_MEDIA_PRESET,
+    });
+
+    await this.adminService.log({
+      adminId,
+      action: 'ARTICLE_MEDIA_ADDED',
+      resource: 'ARTICLE',
+      resourceId: articleId.toString(),
+      description: `Admin added ${files.length} media file(s) to article ${articleId}`,
+    });
+  }
+
+  async replaceMedia(
+    adminId: number,
+    articleId: number,
+    mediaId: number,
+    file: any,
+    userId: number,
+  ) {
+    const media = await this.mediaService.getMediaOrThrow(mediaId);
+    if (media.articleId !== articleId)
+      throw new NotFoundException('Media not found');
+
+    const result = await this.mediaService.replaceMedia(
+      mediaId,
+      file,
+      userId,
+      ARTICLE_MEDIA_PRESET,
+    );
+
+    await this.adminService.log({
+      adminId,
+      action: 'ARTICLE_MEDIA_REPLACED',
+      resource: 'ARTICLE',
+      resourceId: articleId.toString(),
+      description: `Admin replaced media ${mediaId} on article ${articleId}`,
+    });
+
+    return result;
+  }
+
+  async removeMedia(adminId: number, articleId: number, mediaId: number) {
+    const media = await this.mediaService.getMediaOrThrow(mediaId);
+    if (media.articleId !== articleId)
+      throw new NotFoundException('Media not found');
+
+    await this.mediaService.removeMedia(mediaId);
+
+    await this.adminService.log({
+      adminId,
+      action: 'ARTICLE_MEDIA_REMOVED',
+      resource: 'ARTICLE',
+      resourceId: articleId.toString(),
+      description: `Admin removed media ${mediaId} from article ${articleId}`,
+    });
+  }
+
+  async setPrimary(adminId: number, articleId: number, mediaId: number) {
+    const media = await this.mediaService.getMediaOrThrow(mediaId);
+    if (media.articleId !== articleId)
+      throw new NotFoundException('Media not found');
+
+    const result = await this.mediaService.setPrimary({ articleId }, mediaId);
+
+    await this.adminService.log({
+      adminId,
+      action: 'ARTICLE_MEDIA_PRIMARY_SET',
+      resource: 'ARTICLE',
+      resourceId: articleId.toString(),
+      description: `Admin set media ${mediaId} as primary on article ${articleId}`,
+    });
+
+    return result;
+  }
+
+  async reorderMedia(adminId: number, articleId: number, ids: number[]) {
+    await this.mediaService.reorderMedia({ articleId }, ids);
+
+    await this.adminService.log({
+      adminId,
+      action: 'ARTICLE_MEDIA_REORDERED',
+      resource: 'ARTICLE',
+      resourceId: articleId.toString(),
+      description: `Admin reordered media on article ${articleId}`,
+    });
   }
 
   async searchAll(searchDto: ArticleSearchDto) {

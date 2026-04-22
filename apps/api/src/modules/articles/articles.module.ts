@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { ArticlesService } from './articles.service';
 import { ArticlesController } from './articles.controller';
 import { PrismaService } from '../../prisma.service';
-import { FileProcessingModule } from '../../common/file-processing/file-processing.module';
+import { MediaModule } from '../media/media.module';
 
 @Module({
-  imports: [FileProcessingModule],
+  imports: [MediaModule],
   controllers: [ArticlesController],
   providers: [ArticlesService, PrismaService],
 })

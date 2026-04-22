@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { FileProcessor } from './file-processor.interface';
 import { StorageBackend } from './storage-backend.interface';
 import { ImageProcessor } from './processors/image.processor';
+import { RawFileProcessor } from './processors/raw-file.processor';
 import { LocalStorageBackend } from './backends/local-storage.backend';
 import { S3StorageBackend } from './backends/s3-storage.backend';
 import { FileUploadConfig } from './file-upload-config.type';
@@ -10,7 +11,10 @@ import { uploadLocation } from './upload-location';
 
 @Injectable()
 export class FileProcessingService {
-  private processors: FileProcessor[] = [new ImageProcessor()];
+  private processors: FileProcessor[] = [
+    new ImageProcessor(),
+    new RawFileProcessor(), // permanent fallback — always last
+  ];
   private storageBackend: StorageBackend;
 
   constructor() {

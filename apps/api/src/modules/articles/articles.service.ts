@@ -1,16 +1,12 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
-import { FileProcessingService } from '../../common/file-processing/file-processing.service';
+import { MediaService } from '../media/media.service';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
-import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
+import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 import {
   ArticleSearchDto,
@@ -18,12 +14,12 @@ import {
 } from './dto/search-article.dto';
 import { buildSearchWhere } from 'src/common/search/search.utils';
 import { enhanceWithLikes } from 'src/common/likes/enhance-with-likes';
+import { FilePresetName } from '../../common/file-processing/file-upload-presets';
 
 const DEFAULT_ARTICLE_SELECT = {
   id: true,
   title: true,
   content: true,
-  imagePath: true,
   status: true,
   createdAt: true,
   updatedAt: true,
@@ -34,34 +30,31 @@ const DEFAULT_ARTICLE_SELECT = {
   deletedAt: true,
   likeCount: true,
   viewCount: true,
+  media: {
+    select: {
+      id: true,
+      original: true,
+      thumbnail: true,
+      mimeType: true,
+      sizeBytes: true,
+      sortOrder: true,
+      isPrimary: true,
+      createdAt: true,
+    },
+    orderBy: { sortOrder: 'asc' as const },
+  },
 };
 
+const ARTICLE_MEDIA_LIMIT = 3;
+const ARTICLE_MEDIA_PRESET: FilePresetName = 'mediaImage';
 @Injectable()
 export class ArticlesService {
   constructor(
     private prisma: PrismaService,
-    private fileProcessing: FileProcessingService,
+    private mediaService: MediaService,
   ) {}
 
-  async create(data: CreateArticleDto, userId: number, file?: any) {
-    // If file is provided, process it using FileProcessingService
-    if (file) {
-      try {
-        const imagePath = await this.fileProcessing.processFile(
-          file,
-          'articleImage',
-          userId,
-        );
-        data.imagePath = imagePath;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Failed to process image file';
-        throw new BadRequestException(errorMessage);
-      }
-    }
-
+  async create(data: CreateArticleDto, userId: number) {
     return this.prisma.article.create({
       data: {
         ...data,
@@ -320,44 +313,11 @@ export class ArticlesService {
     return { items: enhancedItems, nextCursor };
   }
 
-  async update(id: number, data: UpdateArticleDto, file?: any) {
-    const article = await this.prisma.article.findUnique({
-      where: { id: id },
-    });
+  async update(id: number, data: UpdateArticleDto) {
+    const article = await this.prisma.article.findUnique({ where: { id } });
 
     if (!article) {
       throw new NotFoundException('Article not found');
-    }
-
-    const userId = article.creatorId;
-
-    // If file is provided, process it using FileProcessingService
-    if (file) {
-      try {
-        // Get the current article to retrieve old image path
-        const article = await this.prisma.article.findUnique({
-          where: { id: id },
-          select: { imagePath: true },
-        });
-
-        // Delete old image if it exists
-        if (article?.imagePath) {
-          await this.fileProcessing.deleteFile(article.imagePath);
-        }
-
-        const imagePath = await this.fileProcessing.processFile(
-          file,
-          'articleImage',
-          userId,
-        );
-        data.imagePath = imagePath;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Failed to process image file';
-        throw new BadRequestException(errorMessage);
-      }
     }
 
     return this.prisma.article.update({
@@ -365,6 +325,56 @@ export class ArticlesService {
       data,
       select: DEFAULT_ARTICLE_SELECT,
     });
+  }
+
+  // --- Media delegation ---
+
+  async addMediaBatch(articleId: number, files: any[], userId: number) {
+    return this.mediaService.addMediaBatch({
+      resourceWhere: { articleId },
+      files,
+      userId,
+      maxCount: ARTICLE_MEDIA_LIMIT,
+      preset: ARTICLE_MEDIA_PRESET,
+    });
+  }
+
+  async replaceMedia(
+    articleId: number,
+    mediaId: number,
+    file: any,
+    userId: number,
+  ) {
+    const media = await this.mediaService.getMediaOrThrow(mediaId);
+    if (media.articleId !== articleId) {
+      throw new NotFoundException('Media not found');
+    }
+    return this.mediaService.replaceMedia(
+      mediaId,
+      file,
+      userId,
+      ARTICLE_MEDIA_PRESET,
+    );
+  }
+
+  async removeMedia(articleId: number, mediaId: number) {
+    const media = await this.mediaService.getMediaOrThrow(mediaId);
+    if (media.articleId !== articleId) {
+      throw new NotFoundException('Media not found');
+    }
+    return this.mediaService.removeMedia(mediaId);
+  }
+
+  async setPrimary(articleId: number, mediaId: number) {
+    const media = await this.mediaService.getMediaOrThrow(mediaId);
+    if (media.articleId !== articleId) {
+      throw new NotFoundException('Media not found');
+    }
+    return this.mediaService.setPrimary({ articleId }, mediaId);
+  }
+
+  async reorderMedia(articleId: number, ids: number[]) {
+    return this.mediaService.reorderMedia({ articleId }, ids);
   }
 
   async remove(id: number) {

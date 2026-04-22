@@ -13,6 +13,8 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  UploadedFiles,
+  BadRequestException,
 } from '@nestjs/common';
 
 import { ArticlesService } from './articles.service';
@@ -24,34 +26,23 @@ import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { CreatorGuard } from 'src/common/guards/creator.guard';
 import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import {
   ArticleSearchDto,
   ArticleSearchCursorDto,
 } from './dto/search-article.dto';
+import { ReorderMediaDto } from './dto/reorder-media.dto';
 
 @Controller('articles')
 export class ArticlesController {
   constructor(private readonly articlesService: ArticlesService) {}
-  @Post()
-  @UseInterceptors(FileInterceptor('image'))
-  @UseGuards(JwtAccessGuard)
-  create(
-    @Req() req,
-    @Body() body: CreateArticleDto,
-    @UploadedFile() file?: any,
-  ) {
-    const userId = req.user.sub;
-    return this.articlesService.create(body, userId, file);
-  }
 
-  // commented out as its redundant now
-  // @UseGuards(JwtAccessOptionalGuard)
-  // @Get()
-  // findAll(@Query() pag: PaginationDto, @Req() req) {
-  //   const userId = req.user?.sub ? req.user.sub : undefined;
-  //   return this.articlesService.findAll(pag, userId);
-  // }
+  @Post()
+  @UseGuards(JwtAccessGuard)
+  create(@Req() req, @Body() body: CreateArticleDto) {
+    const userId = req.user.sub;
+    return this.articlesService.create(body, userId);
+  }
 
   @UseGuards(JwtAccessOptionalGuard)
   @Get()
@@ -59,14 +50,6 @@ export class ArticlesController {
     const currentUserId = req.user?.sub;
     return this.articlesService.searchAll(searchDto, currentUserId);
   }
-
-  // commented out as its redundant now
-  // @UseGuards(JwtAccessOptionalGuard)
-  // @Get('cursor')
-  // findAllCursor(@Query() pag: CursorPaginationDto, @Req() req) {
-  //   const userId = req.user?.sub ? req.user.sub : undefined;
-  //   return this.articlesService.findAllCursor(pag, userId);
-  // }
 
   @UseGuards(JwtAccessOptionalGuard)
   @Get('cursor')
@@ -144,15 +127,12 @@ export class ArticlesController {
 
   @UseGuards(JwtAccessGuard, CreatorGuard)
   @ProtectedResource('article')
-  @UseInterceptors(FileInterceptor('image'))
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Req() req: any,
     @Body() dto: UpdateArticleDto,
-    @UploadedFile() file?: any,
   ) {
-    return this.articlesService.update(id, dto, file);
+    return this.articlesService.update(id, dto);
   }
 
   @UseGuards(JwtAccessGuard, CreatorGuard)
@@ -161,5 +141,65 @@ export class ArticlesController {
   @HttpCode(204)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.articlesService.remove(id);
+  }
+
+  // --- Media sub-routes ---
+  // Note: literal routes (reorder) are declared before parameterized (:mediaId)
+
+  @UseGuards(JwtAccessGuard, CreatorGuard)
+  @ProtectedResource('article')
+  @UseInterceptors(FilesInterceptor('files', 10))
+  @Post(':id/media')
+  addMedia(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req,
+    @UploadedFiles() files: any[],
+  ) {
+    if (!files?.length) throw new BadRequestException('At least one file required');
+    return this.articlesService.addMediaBatch(id, files, req.user.sub);
+  }
+
+  @UseGuards(JwtAccessGuard, CreatorGuard)
+  @ProtectedResource('article')
+  @Patch(':id/media/reorder')
+  reorderMedia(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ReorderMediaDto,
+  ) {
+    return this.articlesService.reorderMedia(id, dto.ids);
+  }
+
+  @UseGuards(JwtAccessGuard, CreatorGuard)
+  @ProtectedResource('article')
+  @Patch(':id/media/:mediaId/primary')
+  setPrimary(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('mediaId', ParseIntPipe) mediaId: number,
+  ) {
+    return this.articlesService.setPrimary(id, mediaId);
+  }
+
+  @UseGuards(JwtAccessGuard, CreatorGuard)
+  @ProtectedResource('article')
+  @UseInterceptors(FileInterceptor('file'))
+  @Patch(':id/media/:mediaId')
+  replaceMedia(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('mediaId', ParseIntPipe) mediaId: number,
+    @Req() req,
+    @UploadedFile() file: any,
+  ) {
+    return this.articlesService.replaceMedia(id, mediaId, file, req.user.sub);
+  }
+
+  @UseGuards(JwtAccessGuard, CreatorGuard)
+  @ProtectedResource('article')
+  @Delete(':id/media/:mediaId')
+  @HttpCode(204)
+  removeMedia(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('mediaId', ParseIntPipe) mediaId: number,
+  ) {
+    return this.articlesService.removeMedia(id, mediaId);
   }
 }

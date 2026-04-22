@@ -264,6 +264,21 @@ pnpm add -D @types/json2csv
 
 ---
 
+## How this interacts with MediaService
+
+If you're using `MediaService` (the multi-file guide) and add a new processor here, MediaService picks it up automatically — no changes needed there.
+
+`MediaService.detectPreset` maps incoming MIMEs to presets:
+- `image/*` → `mediaImage`
+- `video/*` → `mediaVideo`
+- anything else → `mediaDocument`
+
+`FileProcessingService` then finds the right processor via `canHandle`. So a new `TiffProcessor` that handles `image/tiff` would be used automatically for any tiff uploaded through MediaService.
+
+The only time you need to also touch `MediaService` is if you want a **specific MIME type routed to a different preset** (e.g. `image/gif` → a `mediaImageGif` preset with no resize). In that case update `detectPreset` in `apps/api/src/modules/media/media.service.ts` to add that branch before the generic `image/*` fallback.
+
+---
+
 ## Summary: The Pattern
 
 | Step             | What You Do                                                                     |

@@ -21,8 +21,38 @@ export const FILE_PRESETS = {
     },
   },
 
-  //   The presets below are rough examples. they have no processor so upload will store it raw.
-  //   These are more so to act as guide/reference. Should remove or update to make them more sophisticated
+  // Generic media image — used by MediaService for any resource (articles, posts, etc.)
+  mediaImage: {
+    maxSize: 5 * 1024 * 1024, // 5 MB
+    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+    uploadPath: 'media/images',
+    processingOptions: {
+      resize: { width: 1000, height: 1000, fit: 'inside' as const },
+      format: 'webp' as const,
+      quality: 85,
+    },
+  },
+
+  // Generic media video — stored raw via RawFileProcessor
+  mediaVideo: {
+    maxSize: 50 * 1024 * 1024, // 50 MB
+    allowedMimeTypes: ['video/mp4', 'video/webm'],
+    uploadPath: 'media/videos',
+  },
+
+  // Generic media document — Excel, CSV, PDF stored raw via RawFileProcessor
+  mediaDocument: {
+    maxSize: 20 * 1024 * 1024, // 20 MB
+    allowedMimeTypes: [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // xlsx
+      'application/vnd.ms-excel', // xls
+      'text/csv',
+      'application/pdf',
+    ],
+    uploadPath: 'media/documents',
+  },
+
+  // Legacy / resource-specific presets kept for backward compatibility
   postImage: {
     maxSize: 5 * 1024 * 1024, // 5 MB
     allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
@@ -34,27 +64,10 @@ export const FILE_PRESETS = {
     },
   },
 
-  articleImage: {
-    maxSize: 5 * 1024 * 1024, // 5 MB
-    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
-    uploadPath: 'articles/images',
-    processingOptions: {
-      resize: { width: 1000, height: 1000, fit: 'inside' as const },
-      format: 'webp' as const,
-      quality: 85,
-    },
-  },
-
-  video: {
-    maxSize: 50 * 1024 * 1024, // 50 MB
-    allowedMimeTypes: ['video/mp4', 'video/webm'],
-    uploadPath: 'videos',
-  },
-
   document: {
     maxSize: 10 * 1024 * 1024, // 10 MB
     allowedMimeTypes: ['application/pdf'],
-    uploadPath: 'documents',
+    uploadPath: 'media/documents',
   },
 } as const satisfies Record<string, FileUploadConfig>;
 

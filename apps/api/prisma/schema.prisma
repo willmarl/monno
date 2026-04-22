@@ -401,7 +401,6 @@ model Article {
   id        Int           @id @default(autoincrement())
   title     String
   content   String
-  imagePath String?
   status    ArticleStatus @default(DRAFT)
   creatorId Int
   creator   User          @relation(fields: [creatorId], references: [id])
@@ -411,4 +410,24 @@ model Article {
   deletedAt DateTime?
   viewCount Int           @default(0)
   likeCount Int           @default(0)
+  media     Media[]
+}
+
+model Media {
+  id        Int      @id @default(autoincrement())
+  original  String   // stored URL
+  thumbnail String?  // reserved for LQ version — null for now, added later via guide pattern
+  mimeType  String   // frontend branches on this: image/webp → <img>, video/mp4 → <video>, etc.
+  sizeBytes Int?
+  width     Int?
+  height    Int?
+  sortOrder Int      @default(0)
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId Int?
+
+  @@index([articleId])
+  @@index([articleId, sortOrder])
 }

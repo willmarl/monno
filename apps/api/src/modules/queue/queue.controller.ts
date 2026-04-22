@@ -30,6 +30,24 @@ export class QueueController {
     return { message: 'Session cleanup job enqueued' };
   }
 
+  @Post('cleanup-orphaned-media-now')
+  @ApiOperation({
+    summary: 'Trigger orphaned media cleanup immediately',
+    description:
+      'Enqueues a job to delete media files from soft-deleted articles past the retention period',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Orphaned media cleanup job successfully enqueued',
+    schema: {
+      example: { message: 'Orphaned media cleanup job enqueued' },
+    },
+  })
+  async triggerOrphanedMediaCleanup() {
+    await this.queueService.enqueueOrphanedMediaCleanupNow();
+    return { message: 'Orphaned media cleanup job enqueued' };
+  }
+
   @Post('demo')
   @ApiOperation({
     summary: 'Trigger demo job',

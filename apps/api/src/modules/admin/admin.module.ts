@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { UsersModule } from '../users/users.module';
+import { MediaModule } from '../media/media.module';
 import { AdminUsersController } from './users/admin-user.controller';
 import { AdminPostsController } from './posts/admin-post.controller';
 import { AdminCommentsController } from './comments/admin-comment.controller';
@@ -17,10 +18,9 @@ import { AdminStripeService } from './stripe/admin-stripe.service';
 import { AdminSupportService } from './support/admin-support.service';
 import { SeedService } from './seed.service';
 import { PrismaService } from '../../prisma.service';
-import { FileProcessingService } from '../../common/file-processing/file-processing.service';
 import { AdminArticleService } from './articles/admin-article.service';
 @Module({
-  imports: [UsersModule],
+  imports: [UsersModule, MediaModule],
   controllers: [
     AdminController,
     AdminUsersController,
@@ -42,7 +42,6 @@ import { AdminArticleService } from './articles/admin-article.service';
     AdminArticleService,
     SeedService,
     PrismaService,
-    FileProcessingService,
   ],
   exports: [
     AdminService,

@@ -13,13 +13,16 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  UploadedFiles,
+  BadRequestException,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { JwtAccessGuard } from '../../auth/guards/jwt-access.guard';
 import { Roles } from '../../../decorators/roles.decorator';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { AdminArticleService } from './admin-article.service';
 import { UpdateArticleDto } from '../../articles/dto/update-article.dto';
+import { ReorderMediaDto } from '../../articles/dto/reorder-media.dto';
 import { PaginationDto } from '../../../common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { ArticleSearchDto } from '../../articles/dto/search-article.dto';
@@ -57,15 +60,13 @@ export class AdminArticlesController {
   }
 
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('image'))
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateArticleDto,
     @Req() req: any,
-    @UploadedFile() file?: any,
   ) {
     const adminId = req.user?.sub;
-    return this.adminArticleService.update(adminId, id, body, file);
+    return this.adminArticleService.update(adminId, id, body);
   }
 
   @Delete(':id')
@@ -79,5 +80,63 @@ export class AdminArticlesController {
   restore(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
     const adminId = req.user?.sub;
     return this.adminArticleService.restore(adminId, id);
+  }
+
+  // --- Media sub-routes ---
+  // Note: literal routes (reorder) declared before parameterized (:mediaId)
+
+  @UseInterceptors(FilesInterceptor('files', 10))
+  @Post(':id/media')
+  addMedia(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+    @UploadedFiles() files: any[],
+  ) {
+    if (!files?.length) throw new BadRequestException('At least one file required');
+    const adminId = req.user?.sub;
+    return this.adminArticleService.addMediaBatch(adminId, id, files, adminId);
+  }
+
+  @Patch(':id/media/reorder')
+  reorderMedia(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+    @Body() dto: ReorderMediaDto,
+  ) {
+    const adminId = req.user?.sub;
+    return this.adminArticleService.reorderMedia(adminId, id, dto.ids);
+  }
+
+  @Patch(':id/media/:mediaId/primary')
+  setPrimary(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('mediaId', ParseIntPipe) mediaId: number,
+    @Req() req: any,
+  ) {
+    const adminId = req.user?.sub;
+    return this.adminArticleService.setPrimary(adminId, id, mediaId);
+  }
+
+  @UseInterceptors(FileInterceptor('file'))
+  @Patch(':id/media/:mediaId')
+  replaceMedia(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('mediaId', ParseIntPipe) mediaId: number,
+    @Req() req: any,
+    @UploadedFile() file: any,
+  ) {
+    const adminId = req.user?.sub;
+    return this.adminArticleService.replaceMedia(adminId, id, mediaId, file, adminId);
+  }
+
+  @Delete(':id/media/:mediaId')
+  @HttpCode(204)
+  removeMedia(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('mediaId', ParseIntPipe) mediaId: number,
+    @Req() req: any,
+  ) {
+    const adminId = req.user?.sub;
+    return this.adminArticleService.removeMedia(adminId, id, mediaId);
   }
 }
