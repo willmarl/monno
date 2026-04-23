@@ -1,4 +1,6 @@
 import { PaginatedResponse } from "@/types/pagination";
+import type { ArticleMedia } from "@/features/articles/types/article";
+export type { ArticleMedia };
 
 export const ARTICLE_STATUSES = [
   "DRAFT",
@@ -17,7 +19,7 @@ export interface Article {
   id: number;
   title: string;
   content: string;
-  imagePath?: string | null;
+  media: ArticleMedia[];
   creator: Creator;
   createdAt: string;
   updatedAt: string;

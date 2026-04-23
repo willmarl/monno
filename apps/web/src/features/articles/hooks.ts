@@ -14,6 +14,11 @@ import {
   deleteArticle,
   fetchArticleLikedByUser,
   fetchArticleLikedByUserCursor,
+  addArticleMedia,
+  removeArticleMedia,
+  replaceArticleMedia,
+  setArticleMediaPrimary,
+  reorderArticleMedia,
 } from "./api";
 import { CreateArticleInput } from "./types/article";
 
@@ -166,12 +171,11 @@ export function useCreateArticle() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ data, file }: { data: CreateArticleInput; file?: File }) =>
-      createArticle(data, file),
+    mutationFn: (data: CreateArticleInput) => createArticle(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["articles"] });
     },
-    throwOnError: false, // Don't throw errors, let component handle them
+    throwOnError: false,
   });
 }
 
@@ -182,17 +186,76 @@ export function useUpdateArticle() {
     mutationFn: ({
       id,
       data,
-      file,
     }: {
       id: number;
       data: Parameters<typeof updateArticle>[1];
-      file?: File;
-    }) => updateArticle(id, data, file),
+    }) => updateArticle(id, data),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ["articles"] });
       qc.invalidateQueries({ queryKey: ["article", id] });
     },
-    throwOnError: false, // Don't throw errors, let component handle them
+    throwOnError: false,
+  });
+}
+
+export function useAddArticleMedia(articleId: number) {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (files: File[]) => addArticleMedia(articleId, files),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["article", articleId] });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useRemoveArticleMedia(articleId: number) {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (mediaId: number) => removeArticleMedia(articleId, mediaId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["article", articleId] });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useReplaceArticleMedia(articleId: number) {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ mediaId, file }: { mediaId: number; file: File }) =>
+      replaceArticleMedia(articleId, mediaId, file),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["article", articleId] });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useSetArticleMediaPrimary(articleId: number) {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (mediaId: number) => setArticleMediaPrimary(articleId, mediaId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["article", articleId] });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useReorderArticleMedia(articleId: number) {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: number[]) => reorderArticleMedia(articleId, ids),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["article", articleId] });
+    },
+    throwOnError: false,
   });
 }
 

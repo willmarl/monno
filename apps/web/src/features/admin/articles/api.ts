@@ -1,7 +1,7 @@
 import { fetcher } from "@/lib/fetcher";
-import { toFormData } from "@/lib/utils/form-data";
 import type {
   Article,
+  ArticleMedia,
   ArticlesList,
   UpdateArticleInput,
 } from "./types/article";
@@ -59,24 +59,27 @@ export const fetchAdminArticleById = (id: number) =>
   fetcher<Article>(`/admin/articles/${id}`);
 
 // PATCH /admin/articles/:id
-export const updateAdminArticle = (
-  id: number,
-  data: UpdateArticleInput,
-  file?: File,
-) => {
-  // Use FormData if file is provided, otherwise JSON
-  if (file) {
-    return fetcher<Article>(`/admin/articles/${id}`, {
-      method: "PATCH",
-      body: toFormData(data, file),
-    });
-  }
+export const updateAdminArticle = (id: number, data: UpdateArticleInput) =>
+  fetcher<Article>(`/admin/articles/${id}`, { method: "PATCH", json: data });
 
-  return fetcher<Article>(`/admin/articles/${id}`, {
-    method: "PATCH",
-    json: data,
-  });
+// POST /admin/articles/:id/media
+export const addAdminArticleMedia = (articleId: number, files: File[]) => {
+  const body = new FormData();
+  files.forEach((f) => body.append("files", f));
+  return fetcher<ArticleMedia[]>(`/admin/articles/${articleId}/media`, { method: "POST", body });
 };
+
+// DELETE /admin/articles/:id/media/:mediaId
+export const removeAdminArticleMedia = (articleId: number, mediaId: number) =>
+  fetcher<void>(`/admin/articles/${articleId}/media/${mediaId}`, { method: "DELETE" });
+
+// PATCH /admin/articles/:id/media/:mediaId/primary
+export const setAdminArticleMediaPrimary = (articleId: number, mediaId: number) =>
+  fetcher<void>(`/admin/articles/${articleId}/media/${mediaId}/primary`, { method: "PATCH" });
+
+// PATCH /admin/articles/:id/media/reorder
+export const reorderAdminArticleMedia = (articleId: number, ids: number[]) =>
+  fetcher<void>(`/admin/articles/${articleId}/media/reorder`, { method: "PATCH", json: { ids } });
 
 // DELETE /admin/articles/:id
 export const deleteAdminArticle = (id: number) =>

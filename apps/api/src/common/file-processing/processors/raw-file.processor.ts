@@ -1,6 +1,7 @@
 import { FileProcessor } from '../file-processor.interface';
 import { StorageBackend } from '../storage-backend.interface';
 import { ProcessingOptions } from '../file-upload-config.type';
+import { generateFilename } from '../generate-filename';
 
 /**
  * Permanent fallback processor — saves any file as-is with no transformation.
@@ -24,7 +25,7 @@ export class RawFileProcessor implements FileProcessor {
     _options?: ProcessingOptions,
   ): Promise<string> {
     const ext = file.originalname?.split('.').pop() ?? 'bin';
-    const filename = `${userId}-${Date.now()}.${ext}`;
+    const filename = generateFilename(userId, ext);
     return storageBackend.saveFile(file.buffer, fileType, filename);
   }
 }

@@ -1,7 +1,7 @@
 import { fetcher } from "@/lib/fetcher";
-import { toFormData } from "@/lib/utils/form-data";
 import type {
   Article,
+  ArticleMedia,
   ArticlesList,
   ArticleListCursor,
   CreateArticleInput,
@@ -138,45 +138,61 @@ export const fetchArticlesByUserIdCursor = ({
   });
 
 // POST /articles
-export const createArticle = (data: CreateArticleInput, file?: File) => {
-  // Use FormData if file is provided, otherwise JSON
-  if (file) {
-    return fetcher<Article>("/articles", {
-      method: "POST",
-      body: toFormData(data, file),
-    });
-  }
-
-  return fetcher<Article>("/articles", {
-    method: "POST",
-    json: data,
-  });
-};
+export const createArticle = (data: CreateArticleInput) =>
+  fetcher<Article>("/articles", { method: "POST", json: data });
 
 // PATCH /articles/:id
-export const updateArticle = (
-  id: number,
-  data: UpdateArticleInput,
-  file?: File,
-) => {
-  // Use FormData if file is provided, otherwise JSON
-  if (file) {
-    return fetcher<Article>(`/articles/${id}`, {
-      method: "PATCH",
-      body: toFormData(data, file),
-    });
-  }
-
-  return fetcher<Article>(`/articles/${id}`, {
-    method: "PATCH",
-    json: data,
-  });
-};
+export const updateArticle = (id: number, data: UpdateArticleInput) =>
+  fetcher<Article>(`/articles/${id}`, { method: "PATCH", json: data });
 
 // DELETE /articles/:id
 export const deleteArticle = (id: number) =>
-  fetcher<void>(`/articles/${id}`, {
+  fetcher<void>(`/articles/${id}`, { method: "DELETE" });
+
+// --- Media ---
+
+// POST /articles/:id/media  (multipart, key: "files")
+export const addArticleMedia = (articleId: number, files: File[]) => {
+  const body = new FormData();
+  files.forEach((f) => body.append("files", f));
+  return fetcher<ArticleMedia[]>(`/articles/${articleId}/media`, {
+    method: "POST",
+    body,
+  });
+};
+
+// DELETE /articles/:id/media/:mediaId
+export const removeArticleMedia = (articleId: number, mediaId: number) =>
+  fetcher<void>(`/articles/${articleId}/media/${mediaId}`, {
     method: "DELETE",
+  });
+
+// PATCH /articles/:id/media/:mediaId  (multipart, key: "file")
+export const replaceArticleMedia = (
+  articleId: number,
+  mediaId: number,
+  file: File,
+) => {
+  const body = new FormData();
+  body.append("file", file);
+  return fetcher<ArticleMedia>(`/articles/${articleId}/media/${mediaId}`, {
+    method: "PATCH",
+    body,
+  });
+};
+
+// PATCH /articles/:id/media/:mediaId/primary
+export const setArticleMediaPrimary = (articleId: number, mediaId: number) =>
+  fetcher<ArticleMedia>(
+    `/articles/${articleId}/media/${mediaId}/primary`,
+    { method: "PATCH" },
+  );
+
+// PATCH /articles/:id/media/reorder
+export const reorderArticleMedia = (articleId: number, ids: number[]) =>
+  fetcher<void>(`/articles/${articleId}/media/reorder`, {
+    method: "PATCH",
+    json: { ids },
   });
 
 // GET /articles/liked/:userId?limit=10&offset=0

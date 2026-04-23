@@ -7,14 +7,20 @@ import {
   adminUpdateArticleSchema,
   AdminUpdateArticleInput,
 } from "../schemas/adminUpdateArticle.schema";
-import { useAdminUpdateArticle } from "../hooks";
+import {
+  useAdminUpdateArticle,
+  useAddAdminArticleMedia,
+  useRemoveAdminArticleMedia,
+  useSetAdminArticleMediaPrimary,
+  useReorderAdminArticleMedia,
+} from "../hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { Article, ARTICLE_STATUSES } from "../types/article";
+import { Article, ArticleMedia, ARTICLE_STATUSES } from "../types/article";
 import { Textarea } from "@/components/ui/textarea";
-import { FileDropzone } from "@/components/ui/file-dropzone";
+import { MediaManager, UnifiedMediaItem, ALLOWED_IMAGE_TYPES } from "@/components/ui/MediaManager";
 import {
   Select,
   SelectContent,
@@ -22,8 +28,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 
-interface InlineUpdateArticleFormProps {
+const MAX_FILES = 3;
+
+function toUnified(m: ArticleMedia): UnifiedMediaItem {
+  return {
+    kind: "existing",
+    localId: `e-${m.id}`,
+    id: m.id,
+    original: m.original,
+    thumbnail: m.thumbnail,
+    mimeType: m.mimeType,
+    isPrimary: m.isPrimary,
+    pendingRemoval: false,
+  };
+}
+
+interface AdminInlineEditArticleFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   onError?: (error: any) => void;
@@ -37,9 +59,12 @@ export function AdminInlineEditArticleForm({
   onError,
   isAlwaysOpen = false,
   articleData,
-}: InlineUpdateArticleFormProps) {
+}: AdminInlineEditArticleFormProps) {
+  const sortedMedia = [...articleData.media].sort((a, b) => a.sortOrder - b.sortOrder);
+
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [items, setItems] = useState<UnifiedMediaItem[]>(() => sortedMedia.map(toUnified));
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<AdminUpdateArticleInput>({
     resolver: zodResolver(adminUpdateArticleSchema),
@@ -52,27 +77,126 @@ export function AdminInlineEditArticleForm({
   });
 
   const updateArticleMutation = useAdminUpdateArticle();
+  const addMedia = useAddAdminArticleMedia(articleData.id);
+  const removeMedia = useRemoveAdminArticleMedia(articleData.id);
+  const setPrimary = useSetAdminArticleMediaPrimary(articleData.id);
+  const reorderMedia = useReorderAdminArticleMedia(articleData.id);
 
   const { isValid } = form.formState;
 
-  const handleSubmit = (data: AdminUpdateArticleInput) => {
-    updateArticleMutation.mutate(
-      { id: articleData.id, data, file: selectedFile ?? undefined },
-      {
-        onSuccess: () => {
-          form.reset();
-          setSelectedFile(null);
-          if (!isAlwaysOpen) {
-            setIsOpen(false);
-          }
-          onSuccess?.();
-        },
-        onError: (err) => {
-          onError?.(err);
-        },
-      },
+  function handleFilesDropped(files: File[]) {
+    const newItems: UnifiedMediaItem[] = files.map((f) => ({
+      kind: "queued",
+      localId: crypto.randomUUID(),
+      file: f,
+      preview: URL.createObjectURL(f),
+      isPrimary: false,
+    }));
+    setItems((prev) =>
+      [...prev, ...newItems].slice(
+        0,
+        MAX_FILES + prev.filter((i) => i.kind === "existing" && i.pendingRemoval).length
+      )
     );
-  };
+  }
+
+  function handleRemove(localId: string) {
+    setItems((prev) =>
+      prev.flatMap((i) => {
+        if (i.localId !== localId) return [i];
+        if (i.kind === "queued") { URL.revokeObjectURL(i.preview); return []; }
+        return [{ ...i, pendingRemoval: true, isPrimary: false }];
+      })
+    );
+  }
+
+  function handleUndoRemove(localId: string) {
+    setItems((prev) =>
+      prev.map((i) =>
+        i.localId === localId && i.kind === "existing" ? { ...i, pendingRemoval: false } : i
+      )
+    );
+  }
+
+  function handleSetPrimary(localId: string) {
+    setItems((prev) => prev.map((i) => ({ ...i, isPrimary: i.localId === localId })));
+  }
+
+  async function handleSubmit(data: AdminUpdateArticleInput) {
+    const invalid = items.filter(
+      (i) => i.kind === "queued" && !ALLOWED_IMAGE_TYPES.includes(i.file.type as any)
+    );
+    if (invalid.length > 0) {
+      toast.error("Some files have unsupported types. Remove them before submitting.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await updateArticleMutation.mutateAsync({ id: articleData.id, data });
+
+      const toDelete = items.filter(
+        (i): i is Extract<UnifiedMediaItem, { kind: "existing" }> =>
+          i.kind === "existing" && i.pendingRemoval
+      );
+      const activeItems = items.filter((i) => !(i.kind === "existing" && i.pendingRemoval));
+      const queuedItems = activeItems.filter(
+        (i): i is Extract<UnifiedMediaItem, { kind: "queued" }> => i.kind === "queued"
+      );
+      const existingActive = activeItems.filter(
+        (i): i is Extract<UnifiedMediaItem, { kind: "existing" }> => i.kind === "existing"
+      );
+
+      for (const item of toDelete) {
+        await removeMedia.mutateAsync(item.id);
+      }
+
+      let uploadedMedia: ArticleMedia[] = [];
+      if (queuedItems.length > 0) {
+        uploadedMedia = await addMedia.mutateAsync(queuedItems.map((i) => i.file));
+      }
+
+      const localIdToRealId = new Map<string, number>();
+      existingActive.forEach((i) => localIdToRealId.set(i.localId, i.id));
+      queuedItems.forEach((item, idx) => {
+        if (uploadedMedia[idx]) localIdToRealId.set(item.localId, uploadedMedia[idx].id);
+      });
+
+      const finalIds = activeItems
+        .map((i) => localIdToRealId.get(i.localId))
+        .filter((id): id is number => id !== undefined);
+
+      if (finalIds.length > 1) {
+        const originalActiveIds = sortedMedia
+          .filter((m) => !toDelete.some((d) => d.id === m.id))
+          .map((m) => m.id);
+        const existingNewOrder = existingActive.map((i) => i.id);
+        const orderChanged = JSON.stringify(originalActiveIds) !== JSON.stringify(existingNewOrder);
+        if (orderChanged || uploadedMedia.length > 0) {
+          await reorderMedia.mutateAsync(finalIds);
+        }
+      }
+
+      const primaryItem = activeItems.find((i) => i.isPrimary);
+      const originalPrimaryId = sortedMedia.find((m) => m.isPrimary)?.id;
+      const newPrimaryId = primaryItem ? localIdToRealId.get(primaryItem.localId) : undefined;
+      if (newPrimaryId !== undefined && newPrimaryId !== originalPrimaryId) {
+        await setPrimary.mutateAsync(newPrimaryId);
+      }
+
+      items.filter((i) => i.kind === "queued").forEach((i) => {
+        if (i.kind === "queued") URL.revokeObjectURL(i.preview);
+      });
+
+      setIsSubmitting(false);
+      form.reset();
+      if (!isAlwaysOpen) setIsOpen(false);
+      onSuccess?.();
+    } catch (err: any) {
+      onError?.(err);
+      setIsSubmitting(false);
+    }
+  }
 
   if (!isAlwaysOpen && !isOpen) {
     return (
@@ -84,64 +208,47 @@ export function AdminInlineEditArticleForm({
 
   return (
     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-      {/* title */}
       <div className="space-y-2">
-        <Label htmlFor="inline-title" className="text-sm">
-          Title
-        </Label>
+        <Label htmlFor="admin-inline-title" className="text-sm">Title</Label>
         <Input
-          id="inline-title"
+          id="admin-inline-title"
           type="text"
           placeholder="title"
-          disabled={updateArticleMutation.isPending}
+          disabled={isSubmitting}
           {...form.register("title")}
         />
         {form.formState.errors.title && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.title.message}
-          </p>
+          <p className="text-xs text-red-500">{form.formState.errors.title.message}</p>
         )}
       </div>
 
-      {/* content */}
       <div className="space-y-2">
-        <Label htmlFor="inline-content" className="text-sm">
-          Content
-        </Label>
+        <Label htmlFor="admin-inline-content" className="text-sm">Content</Label>
         <Textarea
-          id="inline-content"
+          id="admin-inline-content"
           placeholder="content"
-          disabled={updateArticleMutation.isPending}
+          disabled={isSubmitting}
           {...form.register("content")}
         />
         {form.formState.errors.content && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.content.message}
-          </p>
+          <p className="text-xs text-red-500">{form.formState.errors.content.message}</p>
         )}
       </div>
 
-      {/* status */}
       <div className="space-y-2">
-        <Label htmlFor="inline-status" className="text-sm">
-          Status
-        </Label>
+        <Label htmlFor="admin-inline-status" className="text-sm">Status</Label>
         <Controller
           name="status"
           control={form.control}
           render={({ field }) => (
             <Select value={field.value || ""} onValueChange={field.onChange}>
-              <SelectTrigger
-                id="inline-status"
-                disabled={updateArticleMutation.isPending}
-              >
+              <SelectTrigger id="admin-inline-status" disabled={isSubmitting}>
                 <SelectValue placeholder="Select a status" />
               </SelectTrigger>
               <SelectContent>
                 {ARTICLE_STATUSES.map((status) => (
                   <SelectItem key={status} value={status}>
-                    {status.charAt(0).toUpperCase() +
-                      status.slice(1).toLowerCase()}
+                    {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -149,25 +256,24 @@ export function AdminInlineEditArticleForm({
           )}
         />
         {form.formState.errors.status && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.status.message}
-          </p>
+          <p className="text-xs text-red-500">{form.formState.errors.status.message}</p>
         )}
       </div>
 
-      {/* file upload */}
       <div className="space-y-2">
-        <Label className="text-sm">Featured Image (Optional)</Label>
-        <FileDropzone
-          preset="articleImage"
-          onFileSelect={setSelectedFile}
-          disabled={updateArticleMutation.isPending}
-          preview
-          currentImageUrl={articleData.imagePath ?? undefined}
+        <Label className="text-sm">Media</Label>
+        <MediaManager
+          items={items}
+          maxCount={MAX_FILES}
+          isBusy={false}
+          onFilesDropped={handleFilesDropped}
+          onRemove={handleRemove}
+          onUndoRemove={handleUndoRemove}
+          onSetPrimary={handleSetPrimary}
+          onReorder={setItems}
         />
       </div>
 
-      {/* Action Buttons */}
       <div className="flex gap-3 pt-2">
         <Button
           type="button"
@@ -175,14 +281,11 @@ export function AdminInlineEditArticleForm({
           size="sm"
           className="cursor-pointer"
           onClick={() => {
-            if (!isAlwaysOpen) {
-              setIsOpen(false);
-            }
+            if (!isAlwaysOpen) setIsOpen(false);
             form.reset();
-            setSelectedFile(null);
             onCancel?.();
           }}
-          disabled={updateArticleMutation.isPending}
+          disabled={isSubmitting}
         >
           {isAlwaysOpen ? "Reset" : "Cancel"}
         </Button>
@@ -190,12 +293,10 @@ export function AdminInlineEditArticleForm({
           type="submit"
           size="sm"
           className="cursor-pointer"
-          disabled={updateArticleMutation.isPending || !isValid}
+          disabled={isSubmitting || !isValid}
         >
-          {updateArticleMutation.isPending && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
-          {updateArticleMutation.isPending ? "Updating..." : "Update article"}
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSubmitting ? "Updating..." : "Update article"}
         </Button>
       </div>
     </form>

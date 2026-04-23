@@ -8,12 +8,12 @@ import { ConfirmModal } from "../modal/ConfirmModal";
 import { useModal } from "../providers/ModalProvider";
 import { useDeleteArticle } from "@/features/articles/hooks";
 import { toast } from "sonner";
-import { InlineEditArticleForm } from "@/features/articles/components/InlineEditArticleForm";
+import { EditArticleModal } from "@/features/articles/components/modal/EditArticleModal";
 import { LikeButton } from "../common/LikeButton";
 import { useToggleLike } from "@/features/likes/hooks";
 import { RESOURCE_TYPES } from "@/types/resource";
 import { CollectionButton } from "../common/CollectionButton";
-import { AppImage } from "./AppImage";
+import { MediaGallery } from "./MediaGallery";
 
 export function Article({
   data,
@@ -51,7 +51,7 @@ export function Article({
             onClick={() => {
               openModal({
                 title: "edit Article",
-                content: <InlineEditArticleForm articleData={data} />,
+                content: <EditArticleModal data={data} />,
               });
             }}
             title="edit article"
@@ -129,22 +129,29 @@ export function Article({
         </div>
         {modifyArticle(isOwner)}
       </div>
-      {data?.imagePath && (
-        <div className="w-full h-48 md:h-64 rounded-md overflow-hidden my-3 bg-muted">
-          <AppImage
-            src={data.imagePath}
-            alt={data.title}
-            className="w-full h-full object-cover"
-            expandable
-          />
-        </div>
-      )}
-      <p
-        className={`text-xs md:text-sm text-foreground my-3 ${truncateContent ? "line-clamp-3" : ""}`}
-        style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
-      >
-        {data?.content}
-      </p>
+      <div className="flex gap-4 my-3">
+        {/* Media column */}
+        {data?.media?.length > 0 && (
+          <div className="shrink-0 w-48 md:w-64">
+            <MediaGallery
+              images={data.media
+                .sort((a, b) => a.sortOrder - b.sortOrder)
+                .map((m) => ({ src: m.original, alt: data.title }))}
+              initialIndex={data.media.findIndex((m) => m.isPrimary) ?? 0}
+              className="h-48 md:h-64 rounded-md bg-muted"
+              thumbnails
+              expandable
+            />
+          </div>
+        )}
+        {/* Content column */}
+        <p
+          className={`flex-1 text-xs md:text-sm text-foreground ${truncateContent ? "line-clamp-3" : ""}`}
+          style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
+        >
+          {data?.content}
+        </p>
+      </div>
       <div className="flex items-center justify-between gap-2 mt-3 min-w-0">
         <div
           className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity min-w-0"

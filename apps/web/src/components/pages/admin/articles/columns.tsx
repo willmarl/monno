@@ -68,18 +68,18 @@ export const columns: ColumnDef<Article>[] = [
       />
     ),
   },
-  // omit me if no image
   {
-    accessorKey: "imagePath",
+    accessorKey: "media",
     header: "Image",
     cell: ({ row }) => {
       const article = row.original;
-      if (!article.imagePath) {
+      const primary = article.media.find((m) => m.isPrimary) ?? article.media[0];
+      if (!primary) {
         return <div className="text-xs text-muted-foreground">No image</div>;
       }
       return (
         <AppImage
-          src={article.imagePath}
+          src={primary.thumbnail ?? primary.original}
           alt={article.title}
           className="h-16 w-16 rounded object-cover cursor-pointer hover:opacity-80 transition-opacity"
           expandable

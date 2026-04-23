@@ -16,6 +16,7 @@
 import { FileProcessor } from '../file-processor.interface';
 import { StorageBackend } from '../storage-backend.interface';
 import { ProcessingOptions } from '../file-upload-config.type';
+import { generateFilename } from '../generate-filename';
 // import ffmpeg from 'fluent-ffmpeg';
 // import { Readable } from 'stream';
 // import { tmpdir } from 'os';
@@ -44,7 +45,7 @@ export class VideoProcessor implements FileProcessor {
     storageBackend: StorageBackend,
     options?: ProcessingOptions,
   ): Promise<string> {
-    const filename = `${userId}-${Date.now()}.mp4`;
+    const filename = generateFilename(userId, 'mp4');
 
     // ──────────────────────────────────────────────
     // STEP 1: Write buffer to a temp file

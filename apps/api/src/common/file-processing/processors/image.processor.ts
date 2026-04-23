@@ -1,6 +1,7 @@
 import { FileProcessor } from '../file-processor.interface';
 import { StorageBackend } from '../storage-backend.interface';
 import { ProcessingOptions } from '../file-upload-config.type';
+import { generateFilename } from '../generate-filename';
 import sharp from 'sharp';
 
 /** Default processing options when none are provided */
@@ -44,7 +45,7 @@ export class ImageProcessor implements FileProcessor {
     const resize = options?.resize ?? DEFAULT_OPTIONS.resize;
 
     const ext = FORMAT_EXTENSIONS[format] ?? 'jpg';
-    const filename = `${userId}-${Date.now()}.${ext}`;
+    const filename = generateFilename(userId, ext);
 
     // Build sharp pipeline
     let pipeline = sharp(file.buffer);

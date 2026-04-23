@@ -1,12 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   adminUpdateArticleSchema,
   AdminUpdateArticleInput,
 } from "../schemas/adminUpdateArticle.schema";
-import { useAdminUpdateArticle } from "../hooks";
+import {
+  useAdminUpdateArticle,
+  useAddAdminArticleMedia,
+  useRemoveAdminArticleMedia,
+  useSetAdminArticleMediaPrimary,
+  useReorderAdminArticleMedia,
+} from "../hooks";
 import {
   Form,
   FormField,
@@ -26,18 +33,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { FileDropzone } from "@/components/ui/file-dropzone";
-import { Article, ARTICLE_STATUSES } from "../types/article";
+import { MediaManager, UnifiedMediaItem } from "@/components/ui/MediaManager";
+import { Article, ArticleMedia, ARTICLE_STATUSES } from "../types/article";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Loader2 } from "lucide-react";
+import { ALLOWED_IMAGE_TYPES } from "@/components/ui/MediaManager";
 
-export function AdminEditArticleForm({
-  articleData,
-}: {
-  articleData: Article;
-}) {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+const MAX_FILES = 3;
+
+function toUnified(m: ArticleMedia): UnifiedMediaItem {
+  return {
+    kind: "existing",
+    localId: `e-${m.id}`,
+    id: m.id,
+    original: m.original,
+    thumbnail: m.thumbnail,
+    mimeType: m.mimeType,
+    isPrimary: m.isPrimary,
+    pendingRemoval: false,
+  };
+}
+
+export function AdminEditArticleForm({ articleData }: { articleData: Article }) {
+  const sortedMedia = [...articleData.media].sort((a, b) => a.sortOrder - b.sortOrder);
+
+  const [items, setItems] = useState<UnifiedMediaItem[]>(() => sortedMedia.map(toUnified));
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<AdminUpdateArticleInput>({
     resolver: zodResolver(adminUpdateArticleSchema),
@@ -49,125 +71,211 @@ export function AdminEditArticleForm({
     },
   });
 
-  const {
-    formState: { isValid },
-  } = form;
+  const { formState: { isValid } } = form;
   const router = useRouter();
   const updateArticleMutation = useAdminUpdateArticle();
+  const addMedia = useAddAdminArticleMedia(articleData.id);
+  const removeMedia = useRemoveAdminArticleMedia(articleData.id);
+  const setPrimary = useSetAdminArticleMediaPrimary(articleData.id);
+  const reorderMedia = useReorderAdminArticleMedia(articleData.id);
 
-  function onSubmit(data: AdminUpdateArticleInput) {
-    updateArticleMutation.mutate(
-      {
-        id: articleData.id,
-        data: data,
-        file: selectedFile ?? undefined,
-      },
-      {
-        onSuccess: (response) => {
-          toast.success("Article updated");
-          router.push(`/article/${response.id}`);
-        },
-        onError: (error) => {
-          toast.error(`Error updating article. ${error.message}`);
-        },
-      },
+  function handleFilesDropped(files: File[]) {
+    const newItems: UnifiedMediaItem[] = files.map((f) => ({
+      kind: "queued",
+      localId: crypto.randomUUID(),
+      file: f,
+      preview: URL.createObjectURL(f),
+      isPrimary: false,
+    }));
+    setItems((prev) => [...prev, ...newItems].slice(0, MAX_FILES + prev.filter(i => i.kind === "existing" && i.pendingRemoval).length));
+  }
+
+  function handleRemove(localId: string) {
+    setItems((prev) =>
+      prev.flatMap((i) => {
+        if (i.localId !== localId) return [i];
+        if (i.kind === "queued") { URL.revokeObjectURL(i.preview); return []; }
+        return [{ ...i, pendingRemoval: true, isPrimary: false }];
+      })
     );
   }
 
+  function handleUndoRemove(localId: string) {
+    setItems((prev) =>
+      prev.map((i) =>
+        i.localId === localId && i.kind === "existing" ? { ...i, pendingRemoval: false } : i
+      )
+    );
+  }
+
+  function handleSetPrimary(localId: string) {
+    setItems((prev) => prev.map((i) => ({ ...i, isPrimary: i.localId === localId })));
+  }
+
+  async function onSubmit(data: AdminUpdateArticleInput) {
+    const invalid = items.filter(
+      (i) => i.kind === "queued" && !ALLOWED_IMAGE_TYPES.includes(i.file.type as any)
+    );
+    if (invalid.length > 0) {
+      toast.error("Some files have unsupported types. Remove them before submitting.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await updateArticleMutation.mutateAsync({ id: articleData.id, data });
+
+      const toDelete = items.filter(
+        (i): i is Extract<UnifiedMediaItem, { kind: "existing" }> =>
+          i.kind === "existing" && i.pendingRemoval
+      );
+      const activeItems = items.filter((i) => !(i.kind === "existing" && i.pendingRemoval));
+      const queuedItems = activeItems.filter(
+        (i): i is Extract<UnifiedMediaItem, { kind: "queued" }> => i.kind === "queued"
+      );
+      const existingActive = activeItems.filter(
+        (i): i is Extract<UnifiedMediaItem, { kind: "existing" }> => i.kind === "existing"
+      );
+
+      for (const item of toDelete) {
+        await removeMedia.mutateAsync(item.id);
+      }
+
+      let uploadedMedia: ArticleMedia[] = [];
+      if (queuedItems.length > 0) {
+        uploadedMedia = await addMedia.mutateAsync(queuedItems.map((i) => i.file));
+      }
+
+      const localIdToRealId = new Map<string, number>();
+      existingActive.forEach((i) => localIdToRealId.set(i.localId, i.id));
+      queuedItems.forEach((item, idx) => {
+        if (uploadedMedia[idx]) localIdToRealId.set(item.localId, uploadedMedia[idx].id);
+      });
+
+      const finalIds = activeItems
+        .map((i) => localIdToRealId.get(i.localId))
+        .filter((id): id is number => id !== undefined);
+
+      if (finalIds.length > 1) {
+        const originalActiveIds = sortedMedia
+          .filter((m) => !toDelete.some((d) => d.id === m.id))
+          .map((m) => m.id);
+        const existingNewOrder = existingActive.map((i) => i.id);
+        const orderChanged = JSON.stringify(originalActiveIds) !== JSON.stringify(existingNewOrder);
+        if (orderChanged || uploadedMedia.length > 0) {
+          await reorderMedia.mutateAsync(finalIds);
+        }
+      }
+
+      const primaryItem = activeItems.find((i) => i.isPrimary);
+      const originalPrimaryId = sortedMedia.find((m) => m.isPrimary)?.id;
+      const newPrimaryId = primaryItem ? localIdToRealId.get(primaryItem.localId) : undefined;
+      if (newPrimaryId !== undefined && newPrimaryId !== originalPrimaryId) {
+        await setPrimary.mutateAsync(newPrimaryId);
+      }
+
+      items.filter((i) => i.kind === "queued").forEach((i) => {
+        if (i.kind === "queued") URL.revokeObjectURL(i.preview);
+      });
+      toast.success("Article updated");
+      router.push(`/article/${articleData.id}`);
+    } catch (error: any) {
+      toast.error(`Error updating article. ${error?.message ?? "Unknown error"}`);
+      setIsSubmitting(false);
+    }
+  }
+
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6 w-full max-w-sm"
-      >
-        {/* title */}
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-
-              <FormControl>
-                <Input placeholder="title" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* content */}
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Content</FormLabel>
-
-              <FormControl>
-                <Textarea placeholder="content" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* status */}
-        <div className="space-y-2">
-          <Label htmlFor="inline-status" className="text-sm">
-            Status
-          </Label>
-          <Controller
-            name="status"
-            control={form.control}
-            render={({ field }) => (
-              <Select value={field.value || ""} onValueChange={field.onChange}>
-                <SelectTrigger
-                  id="inline-status"
-                  disabled={updateArticleMutation.isPending}
-                >
-                  <SelectValue placeholder="Select a status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ARTICLE_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status.charAt(0).toUpperCase() +
-                        status.slice(1).toLowerCase()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {form.formState.errors.status && (
-            <p className="text-xs text-red-500">
-              {form.formState.errors.status.message}
-            </p>
-          )}
+    <div className="relative">
+      {isSubmitting && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 rounded-lg">
+          <div className="flex flex-col items-center gap-2 bg-card p-6 rounded-lg">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <p className="text-sm text-muted-foreground">Saving changes...</p>
+          </div>
         </div>
+      )}
 
-        {/* file upload */}
-        <div className="space-y-2">
-          <Label className="text-sm">Featured Image (Optional)</Label>
-          <FileDropzone
-            preset="articleImage"
-            onFileSelect={setSelectedFile}
-            disabled={updateArticleMutation.isPending}
-            preview
-            currentImageUrl={articleData.imagePath ?? undefined}
-          />
-        </div>
+      <div className={`space-y-6 w-full max-w-sm ${isSubmitting ? "opacity-50 pointer-events-none" : ""}`}>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl><Input placeholder="title" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <Button
-          type="submit"
-          className="w-full cursor-pointer"
-          disabled={updateArticleMutation.isPending || !isValid}
-        >
-          {updateArticleMutation.isPending ? "Updating..." : "Update article"}
-        </Button>
-      </form>
-    </Form>
+            <FormField
+              control={form.control}
+              name="content"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Content</FormLabel>
+                  <FormControl><Textarea placeholder="content" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="space-y-2">
+              <Label htmlFor="admin-edit-status" className="text-sm">Status</Label>
+              <Controller
+                name="status"
+                control={form.control}
+                render={({ field }) => (
+                  <Select value={field.value || ""} onValueChange={field.onChange}>
+                    <SelectTrigger id="admin-edit-status" disabled={isSubmitting}>
+                      <SelectValue placeholder="Select a status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ARTICLE_STATUSES.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {form.formState.errors.status && (
+                <p className="text-xs text-red-500">{form.formState.errors.status.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm">Media</Label>
+              <MediaManager
+                items={items}
+                maxCount={MAX_FILES}
+                isBusy={false}
+                onFilesDropped={handleFilesDropped}
+                onRemove={handleRemove}
+                onUndoRemove={handleUndoRemove}
+                onSetPrimary={handleSetPrimary}
+                onReorder={setItems}
+              />
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full cursor-pointer"
+              disabled={isSubmitting || !isValid}
+            >
+              {isSubmitting ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</>
+              ) : (
+                "Update article"
+              )}
+            </Button>
+          </form>
+        </Form>
+      </div>
+    </div>
   );
 }

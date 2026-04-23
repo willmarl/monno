@@ -12,6 +12,7 @@ type ModalVariant = "default" | "naked";
 
 type ModalState = {
   isOpen: boolean;
+  instanceKey: number;
   title?: string;
   content?: ReactNode;
   variant?: ModalVariant;
@@ -31,6 +32,7 @@ const ModalContext = createContext<ModalContextType | null>(null);
 export function ModalProvider({ children }: { children: ReactNode }) {
   const [modal, setModal] = useState<ModalState>({
     isOpen: false,
+    instanceKey: 0,
     title: "",
     content: null,
   });
@@ -40,12 +42,13 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     content: ReactNode;
     variant?: ModalVariant;
   }) => {
-    setModal({
+    setModal((prev) => ({
       isOpen: true,
+      instanceKey: prev.instanceKey + 1,
       title: options.title,
       content: options.content,
       variant: options.variant ?? "default",
-    });
+    }));
   };
 
   const closeModal = () => {
@@ -58,12 +61,12 @@ export function ModalProvider({ children }: { children: ReactNode }) {
 
       <Dialog open={modal.isOpen} onOpenChange={closeModal}>
         {modal.variant === "naked" ? (
-          <DialogContent className="bg-transparent border-none shadow-none p-0 max-w-screen-lg w-auto">
+          <DialogContent className="bg-transparent border-none shadow-none p-0 w-fit max-w-[90vw] flex items-center justify-center gap-0 [&>button]:hidden">
             <DialogTitle className="sr-only">{modal.title}</DialogTitle>
             <DialogDescription className="sr-only">
               Modal dialog
             </DialogDescription>
-            {modal.content}
+            <div key={modal.instanceKey}>{modal.content}</div>
           </DialogContent>
         ) : (
           <DialogContent>
@@ -71,7 +74,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
             <DialogDescription className="sr-only">
               Modal dialog
             </DialogDescription>
-            <div className="mt-4 p-1 max-h-[calc(100vh-200px)] overflow-y-auto">
+            <div key={modal.instanceKey} className="mt-4 p-1 max-h-[calc(100vh-200px)] overflow-y-auto">
               {modal.content}
             </div>
           </DialogContent>

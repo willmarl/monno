@@ -6,6 +6,10 @@ import {
   updateAdminArticle,
   deleteAdminArticle,
   restoreAdminArticle,
+  addAdminArticleMedia,
+  removeAdminArticleMedia,
+  setAdminArticleMediaPrimary,
+  reorderAdminArticleMedia,
 } from "./api";
 
 // commented out as its redundant now. replaced by search
@@ -70,20 +74,51 @@ export function useAdminUpdateArticle() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-      file,
-    }: {
-      id: number;
-      data: Parameters<typeof updateAdminArticle>[1];
-      file?: File;
-    }) => updateAdminArticle(id, data, file),
+    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof updateAdminArticle>[1] }) =>
+      updateAdminArticle(id, data),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ["admin-articles"] });
       qc.invalidateQueries({ queryKey: ["admin-article", id] });
     },
     throwOnError: false,
+  });
+}
+
+export function useAddAdminArticleMedia(articleId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (files: File[]) => addAdminArticleMedia(articleId, files),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-article", articleId] });
+      qc.invalidateQueries({ queryKey: ["admin-articles"] });
+    },
+  });
+}
+
+export function useRemoveAdminArticleMedia(articleId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (mediaId: number) => removeAdminArticleMedia(articleId, mediaId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-article", articleId] });
+      qc.invalidateQueries({ queryKey: ["admin-articles"] });
+    },
+  });
+}
+
+export function useSetAdminArticleMediaPrimary(articleId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (mediaId: number) => setAdminArticleMediaPrimary(articleId, mediaId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-article", articleId] }),
+  });
+}
+
+export function useReorderAdminArticleMedia(articleId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: number[]) => reorderAdminArticleMedia(articleId, ids),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-article", articleId] }),
   });
 }
 

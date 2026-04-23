@@ -22,7 +22,7 @@ export function ArticleSearchBar() {
         renderSuggestion={(article) => ({
           title: article.title,
           subtitle: article.content.substring(0, 60) + "...",
-          image: article.imagePath ?? undefined,
+          image: article.media.find((m) => m.isPrimary)?.thumbnail ?? article.media[0]?.original ?? undefined,
         })}
         onNavigateTo={(article) => `article/${article.id}`}
       />

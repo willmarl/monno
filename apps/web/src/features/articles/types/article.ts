@@ -13,11 +13,23 @@ interface Creator {
   username: string;
   avatarPath: string;
 }
+
+export interface ArticleMedia {
+  id: number;
+  original: string;
+  thumbnail: string | null;
+  mimeType: string;
+  sizeBytes: number | null;
+  sortOrder: number;
+  isPrimary: boolean;
+  createdAt: string;
+}
+
 export interface Article {
   id: number;
   title: string;
   content: string;
-  imagePath?: string | null;
+  media: ArticleMedia[];
   creator: Creator;
   createdAt: string;
   updatedAt: string;
