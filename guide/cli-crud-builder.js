@@ -73,9 +73,9 @@ async function main() {
   const fileUpload = await select({
     message: "File/media upload?",
     choices: [
-      { name: "No upload", value: "none" },
-      { name: "Image only (cover, avatar, etc.)", value: "image" },
-      { name: "Complex media (refer to guide)", value: "complex" },
+      { name: "None", value: "none" },
+      { name: "Simple single file upload", value: "simple" },
+      { name: "Complex multi-file upload", value: "complex" },
     ],
   });
 
@@ -397,9 +397,13 @@ function generateProgressFile(resource, config) {
   - [ ] Create controller endpoint
   - [ ] Test with curl/Postman`;
 
-    if (config.fileUpload !== "none") {
+    if (config.fileUpload === "simple") {
       steps += `
-  - [ ] Add file upload handling`;
+  - [ ] Add single file upload handling (FileInterceptor + FileProcessingService)`;
+    }
+    if (config.fileUpload === "complex") {
+      steps += `
+  - [ ] Create endpoint is text-only — media handled via sub-routes (see Part 6)`;
     }
 
     steps += `
@@ -448,9 +452,13 @@ function generateProgressFile(resource, config) {
 - [ ] **Update:**
   - [ ] Add service method
   - [ ] Add controller endpoint`;
-    if (config.fileUpload !== "none") {
+    if (config.fileUpload === "simple") {
       steps += `
-  - [ ] Add file upload handling`;
+  - [ ] Add file replacement handling (delete old file + upload new)`;
+    }
+    if (config.fileUpload === "complex") {
+      steps += `
+  - [ ] Update endpoint is text-only — media managed via sub-routes (see Part 6)`;
     }
 
     steps += `
@@ -487,14 +495,28 @@ function generateProgressFile(resource, config) {
     }
 
     // Part 6: File Upload
-    if (config.fileUpload !== "none") {
+    if (config.fileUpload === "simple") {
       steps += `
 
-### Part 6: File Upload
-- [ ] Set up file storage configuration
-- [ ] Add upload validation
-- [ ] Handle file deletion on update
+### Part 6: File Upload (simple — single file)
+- [ ] Add preset to file-upload-presets.ts
+- [ ] Add FileProcessingModule to module.ts
+- [ ] Add FileProcessingService to service constructor
+- [ ] Add FileInterceptor to create/update endpoints
+- [ ] Handle file deletion on update (delete old before saving new)
 - [ ] Handle file deletion on soft delete`;
+    }
+    if (config.fileUpload === "complex") {
+      steps += `
+
+### Part 6: File Upload (complex — multi-file via MediaService)
+- [ ] Add MediaModule to module.ts
+- [ ] Add MediaService to service constructor
+- [ ] Add media sub-routes to controller (POST/PATCH/DELETE /:id/media/...)
+- [ ] Add reorder-media.dto.ts
+- [ ] Add service delegation methods (addMediaBatch, replaceMedia, removeMedia, setPrimary, reorderMedia)
+- [ ] If admin: add same media sub-routes + audit logging to admin controller/service
+- [ ] Test media endpoints (add, replace, delete, reorder, set primary)`;
     }
 
     // Part 7: Admin Functionality
@@ -570,9 +592,13 @@ function generateProgressFile(resource, config) {
       steps += `
 - [ ] Test search functionality`;
     }
-    if (config.fileUpload !== "none") {
+    if (config.fileUpload === "simple") {
       steps += `
-- [ ] Test file upload`;
+- [ ] Test single file upload on create and update`;
+    }
+    if (config.fileUpload === "complex") {
+      steps += `
+- [ ] Test media sub-endpoints (add, replace, delete, reorder, set primary)`;
     }
     if (config.admin !== "none") {
       steps += `
@@ -609,9 +635,13 @@ function generateProgressFile(resource, config) {
 ### Part 11: Create Form
 - [ ] Step 1: Create Zod schema for create form
 - [ ] Step 2: Create form component`;
-    if (config.fileUpload !== "none") {
+    if (config.fileUpload === "simple") {
       frontendChecklist += `
-- [ ] Step 3: Add file upload handling`;
+- [ ] Step 3: Add single file input + pass file to useCreate hook`;
+    }
+    if (config.fileUpload === "complex") {
+      frontendChecklist += `
+- [ ] Step 3: Add MediaManager + media-utils (UnifiedMediaItem state, validateQueuedFiles, applyCreateMediaChanges)`;
     }
     frontendChecklist += `
 - [ ] Step 4: Create inline create form variant
@@ -625,9 +655,14 @@ function generateProgressFile(resource, config) {
 - [ ] Step 1: Create Zod schema for update form
 - [ ] Step 2: Create form component
 - [ ] Step 3: Populate form with existing data`;
-    if (config.fileUpload !== "none") {
+    if (config.fileUpload === "simple") {
       frontendChecklist += `
-- [ ] Step 4: Add file upload/replace handling`;
+- [ ] Step 4: Add file replace input + pass file to useUpdate hook`;
+    }
+    if (config.fileUpload === "complex") {
+      frontendChecklist += `
+- [ ] Step 4: Add MediaManager + media-utils (toUnified, createMediaHandlers, applyMediaChanges)
+- [ ] Step 4b: Create InlineEdit variant with isAlwaysOpen prop (used in modals)`;
     }
     frontendChecklist += `
 - [ ] Step 5: Create inline edit form variant
@@ -761,9 +796,14 @@ function generateProgressFile(resource, config) {
       frontendChecklist += `
 - [ ] Test search functionality`;
     }
-    if (config.fileUpload !== "none") {
+    if (config.fileUpload === "simple") {
       frontendChecklist += `
-- [ ] Test file upload`;
+- [ ] Test single file upload/replace in create and edit forms`;
+    }
+    if (config.fileUpload === "complex") {
+      frontendChecklist += `
+- [ ] Test media add, remove, undo-remove, reorder, set-primary in edit forms
+- [ ] Test MediaGallery display (thumbnail strip, click to expand, arrow navigation)`;
     }
     if (config.resourceActions.length > 0) {
       frontendChecklist += `
@@ -922,8 +962,8 @@ model ${resource} {
 
 ### File/Media Upload
 - [${config.fileUpload === "none" ? "x" : " "}] No upload
-- [${config.fileUpload === "image" ? "x" : " "}] Image upload
-- [${config.fileUpload === "complex" ? "x" : " "}] Complex media (separate guide)
+- [${config.fileUpload === "simple" ? "x" : " "}] Simple single file upload
+- [${config.fileUpload === "complex" ? "x" : " "}] Complex multi-file upload (separate guide)
 
 ### Search
 - [${config.search === "none" ? "x" : " "}] No search

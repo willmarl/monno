@@ -6,7 +6,9 @@
       "Bash(ls -la /home/cat/repos/monno/*.md)",
       "Bash(node /tmp/test-system-prompt.js)",
       "Bash(node guide/cli-crud-builder.js)",
-      "Bash(node -e \"const {PrismaClient} = require\\('./src/generated/prisma'\\); const p = new PrismaClient\\(\\); console.log\\(Object.keys\\(p\\).filter\\(k => !k.startsWith\\('_'\\)\\)\\)\")"
+      "Bash(node -e \"const {PrismaClient} = require\\('./src/generated/prisma'\\); const p = new PrismaClient\\(\\); console.log\\(Object.keys\\(p\\).filter\\(k => !k.startsWith\\('_'\\)\\)\\)\")",
+      "Bash(npx tsc *)",
+      "Bash(awk -F: '$2 > 5560')"
     ],
     "additionalDirectories": [
       "/tmp"

@@ -25,7 +25,6 @@ model {{resource}} {
   id        Int      @id @default(autoincrement())
   title     String
   content   String
-  imagePath     String?
   status    {{resource}}Status @default(DRAFT)
   creatorId Int
   creator User @relation(fields: [creatorId], references: [id])
@@ -63,7 +62,6 @@ model Article {
   id        Int      @id @default(autoincrement())
   title     String
   content   String
-  imagePath     String?
   status    ArticleStatus @default(DRAFT)
   creatorId Int
   creator User @relation(fields: [creatorId], references: [id])
@@ -76,6 +74,38 @@ model Article {
 }
 ```
 
+Note depending if human request simple single file upload, or complex multi file upload, schema will differ.
+If its simple single file upload then resource will have this addition in model:
+
+> replace 'Article' with correct {{resource}} name
+
+```prisma
+model Article {
+  ...
+  imagePath     String?
+}
+```
+
+If its complex multi file upload then resource will have this addition in model:
+
+> replace 'Article' with correct {{resource}} name
+
+```prisma
+model Article {
+  ...
+  media     Media[]
+}
+
+model Media {
+  ...
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId Int?
+
+  @@index([articleId])
+  @@index([articleId, sortOrder])
+}
+```
+
 This guide is meant for making new CRUD resource type/module using the current infrastructure that has auth, users, and guards already made. This guide is not meant for sophisticated measures such as cascading business logic, subscription/billing, microservices, and other super advance stuff.
 If human has not provided you context of the schema model. stop, don't proceed to do any steps. ask for model context.
 
@@ -83,7 +113,19 @@ Note anytime im using example, im referencing Article. Adapt appropriately for e
 
 The example 'Article' I use is suppose to cover a good amount of scenarios. I don't expect most new resource to have media or enum of status so in examples if new source doesn't have need for enum or media upload can ignore that part of code.
 
-if media upload is not simple like image refer to [how-to-do-file-upload.md](./how-to-do-file-upload.md)
+## File Upload Path Reference
+
+Every section in this guide that differs by upload type is labelled with one of these tags. **Check your selection once here, then follow the matching tag throughout.**
+
+| Tag               | When to follow                                                                            |
+| ----------------- | ----------------------------------------------------------------------------------------- |
+| `[PATH: none]`    | fileUpload is "none" — no file upload at all                                              |
+| `[PATH: simple]`  | fileUpload is "simple" — single file per resource (`filePath`/`imagePath` field on model) |
+| `[PATH: complex]` | fileUpload is "complex" — multi-file array via separate `Media` model and `MediaService`  |
+
+When you see a step split into `a / b / c`, pick only the sub-step that matches your path and skip the others.
+
+---
 
 **Adapting from the human's schema**: When the human provides their actual schema, use it as the source of truth for field names, types, and structure. The Article example in this guide is just a template — replace fields accordingly:
 
@@ -242,34 +284,66 @@ for example:
 
 ## Step 2 Add PrismaService to the {{resource}}.module.ts
 
-> ⚠️ Only include `FileProcessingModule` in imports if human requested file/media upload. Otherwise remove it.
+### Step 2a — [PATH: none] No file upload
 
 ```ts
 import { Module } from '@nestjs/common';
 import { {{resource}}Service } from './{{resource}}.service';
 import { {{resource}}Controller } from './{{resource}}.controller';
 import { PrismaService } from '../../prisma.service';
-import { FileProcessingModule } from '../../common/file-processing/file-processing.module'; // remove if no file upload
 
 @Module({
-  imports: [FileProcessingModule], // remove if no file upload
   controllers: [{{resource}}Controller],
   providers: [{{resource}}Service, PrismaService],
 })
 export class {{resource}}Module {}
 ```
 
-example:
+### Step 2b — [PATH: simple] Single file upload
+
+```ts
+import { Module } from '@nestjs/common';
+import { {{resource}}Service } from './{{resource}}.service';
+import { {{resource}}Controller } from './{{resource}}.controller';
+import { PrismaService } from '../../prisma.service';
+import { FileProcessingModule } from '../../common/file-processing/file-processing.module';
+
+@Module({
+  imports: [FileProcessingModule],
+  controllers: [{{resource}}Controller],
+  providers: [{{resource}}Service, PrismaService],
+})
+export class {{resource}}Module {}
+```
+
+### Step 2c — [PATH: complex] Multi-file (MediaModule)
+
+```ts
+import { Module } from '@nestjs/common';
+import { {{resource}}Service } from './{{resource}}.service';
+import { {{resource}}Controller } from './{{resource}}.controller';
+import { PrismaService } from '../../prisma.service';
+import { MediaModule } from '../media/media.module';
+
+@Module({
+  imports: [MediaModule],
+  controllers: [{{resource}}Controller],
+  providers: [{{resource}}Service, PrismaService],
+})
+export class {{resource}}Module {}
+```
+
+example (complex — articles):
 
 ```ts
 import { Module } from "@nestjs/common";
 import { ArticlesService } from "./articles.service";
 import { ArticlesController } from "./articles.controller";
 import { PrismaService } from "../../prisma.service";
-import { FileProcessingModule } from "../../common/file-processing/file-processing.module"; // remove if no file upload
+import { MediaModule } from "../media/media.module";
 
 @Module({
-  imports: [FileProcessingModule], // remove if no file upload
+  imports: [MediaModule],
   controllers: [ArticlesController],
   providers: [ArticlesService, PrismaService],
 })
@@ -284,7 +358,11 @@ for this step you will most definitely need to clarify with human what the valid
 
 You will also most definitely not need to make validations for all properties of schema like for creator/owner/author nor updated/created/deletedAt as it will most likely be handled automatically by prisma/postgres or by code in service file.
 
-One final thing, validation for media like images is special as that usually implies a file upload component on frontend so you will be dealing with Multipart form or binary/file body. But I would say most the time you can omit the media part.
+**[PATH: none]** — No file fields in DTOs at all. Skip any `imagePath` / `filePath` / `mediaPath` references below.
+
+**[PATH: simple]** — Add an optional `@IsString() imagePath?: string` field to both create and update DTOs (shown in examples below).
+
+**[PATH: complex]** — Do NOT add any file fields to DTOs. Media is managed via separate sub-endpoints (`POST /:id/media`, etc.) handled in Part 3c. DTOs remain text-only.
 
 `create-{{resource}}.dto.ts`
 
@@ -498,9 +576,31 @@ import { AdminArticleService } from './articles/admin-article.service';
 
 ### step 1 prepare service.ts using template
 
-here is the general template you'd want to use whenever init creating service.ts, even if you don't think you'll be using all the imported data, leave import lines in anyways.
+> ⚠️ Remove `buildSearchWhere` if human did NOT request search. Remove offset imports if human did NOT request offset pagination. Remove cursor imports if human did NOT request cursor pagination.
 
-> ⚠️ Remove `FileProcessingService` import and constructor injection if human did NOT request file upload. Remove `buildSearchWhere` import if human did NOT request search. Remove offset imports if human did NOT request offset pagination. Remove cursor imports if human did NOT request cursor pagination.
+#### Step 1a — [PATH: none] No file upload
+
+```ts
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../prisma.service';
+import { Create{{resource}}Dto } from './dto/create-{{resource}}.dto';
+import { Update{{resource}}Dto } from './dto/update-{{resource}}.dto';
+import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import { buildSearchWhere } from 'src/common/search/search.utils'; // remove if no search
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto'; // remove if no offset pagination
+import { offsetPaginate } from 'src/common/pagination/offset-pagination'; // remove if no offset pagination
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination
+import { cursorPaginate } from 'src/common/pagination/cursor-pagination'; // remove if no cursor pagination
+
+@Injectable()
+export class {{resource}}Service {
+  constructor(private prisma: PrismaService) {}
+
+  // insert CRUD here
+}
+```
+
+#### Step 1b — [PATH: simple] Single file upload
 
 ```ts
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
@@ -508,7 +608,7 @@ import { PrismaService } from '../../prisma.service';
 import { Create{{resource}}Dto } from './dto/create-{{resource}}.dto';
 import { Update{{resource}}Dto } from './dto/update-{{resource}}.dto';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
-import { FileProcessingService } from '../../common/file-processing/file-processing.service'; // remove if no file upload
+import { FileProcessingService } from '../../common/file-processing/file-processing.service';
 import { buildSearchWhere } from 'src/common/search/search.utils'; // remove if no search
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto'; // remove if no offset pagination
 import { offsetPaginate } from 'src/common/pagination/offset-pagination'; // remove if no offset pagination
@@ -519,51 +619,90 @@ import { cursorPaginate } from 'src/common/pagination/cursor-pagination'; // rem
 export class {{resource}}Service {
   constructor(
     private prisma: PrismaService,
-    private fileProcessing: FileProcessingService, // remove if no file upload
+    private fileProcessing: FileProcessingService,
   ) {}
 
-  ...
   // insert CRUD here
 }
 ```
 
-example:
+#### Step 1c — [PATH: complex] Multi-file (MediaService)
 
 ```ts
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
-import { CreateArticleDto } from './dto/create-article.dto';
-import { UpdateArticleDto } from './dto/update-article.dto';
+import { Create{{resource}}Dto } from './dto/create-{{resource}}.dto';
+import { Update{{resource}}Dto } from './dto/update-{{resource}}.dto';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
-import { FileProcessingService } from '../../common/file-processing/file-processing.service'; // remove if no file upload
+import { MediaService } from '../media/media.service';
+import { FilePresetName } from '../../common/file-processing/file-upload-presets';
 import { buildSearchWhere } from 'src/common/search/search.utils'; // remove if no search
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto'; // remove if no offset pagination
 import { offsetPaginate } from 'src/common/pagination/offset-pagination'; // remove if no offset pagination
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination'; // remove if no cursor pagination
 
+const {{RESOURCE_UPPER}}_MEDIA_LIMIT = 3; // adjust to your needs
+const {{RESOURCE_UPPER}}_MEDIA_PRESET: FilePresetName = 'mediaImage'; // adjust preset name
+
+@Injectable()
+export class {{resource}}Service {
+  constructor(
+    private prisma: PrismaService,
+    private mediaService: MediaService,
+  ) {}
+
+  // insert CRUD here
+}
+```
+
+example (complex — articles):
+
+```ts
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../../prisma.service";
+import { CreateArticleDto } from "./dto/create-article.dto";
+import { UpdateArticleDto } from "./dto/update-article.dto";
+import { AlreadyDeletedException } from "src/common/exceptions/already-deleted.exception";
+import { MediaService } from "../media/media.service";
+import { FilePresetName } from "../../common/file-processing/file-upload-presets";
+import { buildSearchWhere } from "src/common/search/search.utils";
+import { PaginationDto } from "src/common/pagination/dto/pagination.dto";
+import { offsetPaginate } from "src/common/pagination/offset-pagination";
+import { CursorPaginationDto } from "src/common/pagination/dto/cursor-pagination.dto";
+import { cursorPaginate } from "src/common/pagination/cursor-pagination";
+
+const ARTICLE_MEDIA_LIMIT = 3;
+const ARTICLE_MEDIA_PRESET: FilePresetName = "mediaImage";
+
 @Injectable()
 export class ArticlesService {
   constructor(
     private prisma: PrismaService,
-    private fileProcessing: FileProcessingService, // remove if no file upload
+    private mediaService: MediaService,
   ) {}
 
-  ...
-  // insert CRUD here. future steps will instruct how. please wait.
+  // insert CRUD here
 }
 ```
 
 ### step 2 make shared return
 
-add this variable just before `@Injectable()`. will be reused a lot.
+Add this variable just before `@Injectable()`. Will be reused across all queries.
+
+**[PATH: none]** — No image/media field in select.
+
+**[PATH: simple]** — Add `imagePath: true` (or whatever your field is named).
+
+**[PATH: complex]** — Add a nested `media` select block with `orderBy: { sortOrder: 'asc' }` instead of `imagePath`.
 
 ```ts
+// [PATH: none / simple] — use imagePath: true only for simple path, omit for none
 const DEFAULT_{{resource}}_SELECT = {
   id: true,
   title: true,
   content: true,
-  imagePath: true,
+  imagePath: true,  // [PATH: simple] only — remove for none
   status: true,
   createdAt: true,
   updatedAt: true,
@@ -575,14 +714,56 @@ const DEFAULT_{{resource}}_SELECT = {
 };
 ```
 
-example:
+```ts
+// [PATH: complex] — replace imagePath with media block
+const DEFAULT_{{resource}}_SELECT = {
+  id: true,
+  title: true,
+  content: true,
+  media: {
+    select: {
+      id: true,
+      original: true,
+      thumbnail: true,
+      mimeType: true,
+      sizeBytes: true,
+      sortOrder: true,
+      isPrimary: true,
+      createdAt: true,
+    },
+    orderBy: { sortOrder: 'asc' as const },
+  },
+  status: true,
+  createdAt: true,
+  updatedAt: true,
+  creator: {
+    select: { id: true, username: true, avatarPath: true },
+  },
+  deleted: true,
+  deletedAt: true,
+};
+```
+
+example (complex — articles):
 
 ```ts
 const DEFAULT_ARTICLE_SELECT = {
   id: true,
   title: true,
   content: true,
-  imagePath: true,
+  media: {
+    select: {
+      id: true,
+      original: true,
+      thumbnail: true,
+      mimeType: true,
+      sizeBytes: true,
+      sortOrder: true,
+      isPrimary: true,
+      createdAt: true,
+    },
+    orderBy: { sortOrder: "asc" as const },
+  },
   status: true,
   createdAt: true,
   updatedAt: true,
@@ -596,83 +777,95 @@ const DEFAULT_ARTICLE_SELECT = {
 
 ### step 3 prepare controller.ts using template
 
-here is the general template you'd want to use whenever init creating service.ts, even if you don't think you'll be using all the imported data, leave import lines in anyways.
+> ⚠️ Remove `PaginationDto` if no offset pagination. Remove `CursorPaginationDto` if no cursor pagination.
 
-> ⚠️ Remove `UseInterceptors`, `UploadedFile`, and `FileInterceptor` imports if human did NOT request file upload. Remove `PaginationDto` import if human did NOT request offset pagination. Remove `CursorPaginationDto` import if human did NOT request cursor pagination.
+#### Step 3a — [PATH: none] No file upload
 
 ```ts
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Patch,
-  Delete,
-  Req,
-  UseGuards,
-  HttpCode,
-  ParseIntPipe,
-  Query,
-  UseInterceptors, // remove if no file upload
-  UploadedFile // remove if no file upload
+  Controller, Get, Post, Body, Param, Patch, Delete,
+  Req, UseGuards, HttpCode, ParseIntPipe, Query,
 } from '@nestjs/common';
-
 import { {{resource}}Service } from './{{resource}}.service';
 import { Create{{resource}}Dto } from './dto/create-{{resource}}.dto';
 import { Update{{resource}}Dto } from './dto/update-{{resource}}.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { JwtAccessOptionalGuard } from '../auth/guards/jwt-access-optional.guard';
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto'; // remove if no offset pagination
-import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination (already was)
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination
 import { CreatorGuard } from 'src/common/guards/creator.guard';
 import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
-import { FileInterceptor } from '@nestjs/platform-express'; // remove if no file upload
 
 @Controller('{{resource}}')
 export class {{resource}}Controller {
   constructor(private readonly {{resource}}Service: {{resource}}Service) {}
-  ...
   // insert CRUD here. future steps will instruct how. please wait.
 }
 ```
 
-example:
+#### Step 3b — [PATH: simple] Single file upload
 
 ```ts
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Patch,
-  Delete,
-  Req,
-  UseGuards,
-  HttpCode,
-  ParseIntPipe,
-  Query,
-  UseInterceptors,
-  UploadedFile
+  Controller, Get, Post, Body, Param, Patch, Delete,
+  Req, UseGuards, HttpCode, ParseIntPipe, Query,
+  UseInterceptors, UploadedFile,
 } from '@nestjs/common';
-
-import { ArticlesService } from './articles.service';
-import { CreateArticleDto } from './dto/create-article.dto';
-import { UpdateArticleDto } from './dto/update-article.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { {{resource}}Service } from './{{resource}}.service';
+import { Create{{resource}}Dto } from './dto/create-{{resource}}.dto';
+import { Update{{resource}}Dto } from './dto/update-{{resource}}.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { JwtAccessOptionalGuard } from '../auth/guards/jwt-access-optional.guard';
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto'; // remove if no offset pagination
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination
 import { CreatorGuard } from 'src/common/guards/creator.guard';
 import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
-import { FileInterceptor } from '@nestjs/platform-express'; // remove if no file upload
 
-@Controller('articles')
-export class ArticlesController {
-  constructor(private readonly articlesService: ArticlesService) {}
-  ...
+@Controller('{{resource}}')
+export class {{resource}}Controller {
+  constructor(private readonly {{resource}}Service: {{resource}}Service) {}
   // insert CRUD here. future steps will instruct how. please wait.
+}
+```
+
+#### Step 3c — [PATH: complex] Multi-file (media sub-routes)
+
+```ts
+import {
+  Controller, Get, Post, Body, Param, Patch, Delete,
+  Req, UseGuards, HttpCode, ParseIntPipe, Query,
+  UseInterceptors, UploadedFile, UploadedFiles, BadRequestException,
+} from '@nestjs/common';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { {{resource}}Service } from './{{resource}}.service';
+import { Create{{resource}}Dto } from './dto/create-{{resource}}.dto';
+import { Update{{resource}}Dto } from './dto/update-{{resource}}.dto';
+import { ReorderMediaDto } from './dto/reorder-media.dto';
+import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
+import { JwtAccessOptionalGuard } from '../auth/guards/jwt-access-optional.guard';
+import { PaginationDto } from '../../common/pagination/dto/pagination.dto'; // remove if no offset pagination
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination
+import { CreatorGuard } from 'src/common/guards/creator.guard';
+import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
+
+@Controller('{{resource}}')
+export class {{resource}}Controller {
+  constructor(private readonly {{resource}}Service: {{resource}}Service) {}
+  // insert CRUD here. future steps will instruct how. please wait.
+}
+```
+
+Also create `dto/reorder-media.dto.ts` for [PATH: complex]:
+
+```ts
+import { IsArray, IsInt, ArrayNotEmpty } from "class-validator";
+
+export class ReorderMediaDto {
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsInt({ each: true })
+  ids!: number[];
 }
 ```
 
@@ -680,16 +873,15 @@ export class ArticlesController {
 
 > ⚠️ SKIP THIS ENTIRE STEP (and all admin steps) unless human explicitly requested admin.
 
-here is the general template you'd want to use whenever init creating admin service, even if you don't think you'll be using all the imported data, leave import lines in anyways.
+> ⚠️ Remove `buildSearchWhere` if human did NOT request search. Remove offset imports if human did NOT request offset pagination. Remove cursor imports if human did NOT request cursor pagination.
 
-> ⚠️ Within this file: remove `FileProcessingService` import and injection if human did NOT request file upload. Remove `buildSearchWhere` if human did NOT request search. Remove offset imports if human did NOT request offset pagination. Remove cursor imports if human did NOT request cursor pagination.
+#### Step 4a — [PATH: none] No file upload
 
 ```ts
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
 import { AdminService } from '../admin.service';
 import { Update{{resource}}Dto } from '../../{{resource}}/dto/update-{{resource}}.dto';
-import { FileProcessingService } from '../../../common/file-processing/file-processing.service'; // remove if no file upload
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 import { buildSearchWhere } from 'src/common/search/search.utils'; // remove if no search
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto'; // remove if no offset pagination
@@ -702,34 +894,29 @@ export class Admin{{resource}}Service {
   constructor(
     private prisma: PrismaService,
     private adminService: AdminService,
-    private fileProcessing: FileProcessingService, // remove if no file upload
   ) {}
 
   // insert CRUD here. future steps will instruct how. please wait.
 }
 ```
 
-example :
+#### Step 4b — [PATH: simple] Single file upload
 
 ```ts
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from "@nestjs/common";
-import { PrismaService } from "../../../prisma.service";
-import { AdminService } from "../admin.service";
-import { UpdateArticleDto } from "../../articles/dto/update-article.dto";
-import { FileProcessingService } from "../../../common/file-processing/file-processing.service";
-import { AlreadyDeletedException } from "src/common/exceptions/already-deleted.exception";
-import { buildSearchWhere } from "src/common/search/search.utils";
-import { PaginationDto } from "src/common/pagination/dto/pagination.dto";
-import { offsetPaginate } from "src/common/pagination/offset-pagination";
-import { CursorPaginationDto } from "src/common/pagination/dto/cursor-pagination.dto";
-import { cursorPaginate } from "src/common/pagination/cursor-pagination";
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '../../../prisma.service';
+import { AdminService } from '../admin.service';
+import { Update{{resource}}Dto } from '../../{{resource}}/dto/update-{{resource}}.dto';
+import { FileProcessingService } from '../../../common/file-processing/file-processing.service';
+import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import { buildSearchWhere } from 'src/common/search/search.utils'; // remove if no search
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto'; // remove if no offset pagination
+import { offsetPaginate } from 'src/common/pagination/offset-pagination'; // remove if no offset pagination
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination
+import { cursorPaginate } from 'src/common/pagination/cursor-pagination'; // remove if no cursor pagination
 
 @Injectable()
-export class AdminArticleService {
+export class Admin{{resource}}Service {
   constructor(
     private prisma: PrismaService,
     private adminService: AdminService,
@@ -740,17 +927,63 @@ export class AdminArticleService {
 }
 ```
 
-### step 5 make shared return
-
-add this variable just before `@Injectable()`. will be reused a lot.
-the reason why there is different select const variable for admin and normal service.ts is incase you want normal to show minimal/non-sensitive data and admin to show all data.
+#### Step 4c — [PATH: complex] Multi-file (MediaService)
 
 ```ts
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../../prisma.service';
+import { AdminService } from '../admin.service';
+import { Update{{resource}}Dto } from '../../{{resource}}/dto/update-{{resource}}.dto';
+import { MediaService } from '../../media/media.service';
+import { FilePresetName } from '../../../common/file-processing/file-upload-presets';
+import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import { buildSearchWhere } from 'src/common/search/search.utils'; // remove if no search
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto'; // remove if no offset pagination
+import { offsetPaginate } from 'src/common/pagination/offset-pagination'; // remove if no offset pagination
+import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto'; // remove if no cursor pagination
+import { cursorPaginate } from 'src/common/pagination/cursor-pagination'; // remove if no cursor pagination
+
+const {{RESOURCE_UPPER}}_MEDIA_LIMIT = 3;
+const {{RESOURCE_UPPER}}_MEDIA_PRESET: FilePresetName = 'mediaImage';
+
+@Injectable()
+export class Admin{{resource}}Service {
+  constructor(
+    private prisma: PrismaService,
+    private adminService: AdminService,
+    private mediaService: MediaService,
+  ) {}
+
+  // insert CRUD here. future steps will instruct how. please wait.
+}
+```
+
+Also update `admin.module.ts` for [PATH: complex] — import `MediaModule` instead of providing `FileProcessingService` directly:
+
+```ts
+@Module({
+  imports: [UsersModule, MediaModule],
+  ...
+})
+```
+
+### step 5 make shared return (admin)
+
+Add this variable just before `@Injectable()`. There is a separate select for admin vs normal service so admin can expose more fields (e.g. `deleted`, `deletedAt`).
+
+Same path rules apply as step 2 — follow your path:
+
+**[PATH: none / simple]** — use `imagePath: true` for simple, omit for none.
+
+**[PATH: complex]** — use nested `media` block, no `imagePath`.
+
+```ts
+// [PATH: none / simple]
 const DEFAULT_{{resource}}_SELECT = {
   id: true,
   title: true,
   content: true,
-  imagePath: true,
+  imagePath: true,  // [PATH: simple] only
   status: true,
   createdAt: true,
   updatedAt: true,
@@ -762,14 +995,25 @@ const DEFAULT_{{resource}}_SELECT = {
 };
 ```
 
-example:
-
 ```ts
-const DEFAULT_ARTICLE_SELECT = {
+// [PATH: complex]
+const DEFAULT_{{resource}}_SELECT = {
   id: true,
   title: true,
   content: true,
-  imagePath: true,
+  media: {
+    select: {
+      id: true,
+      original: true,
+      thumbnail: true,
+      mimeType: true,
+      sizeBytes: true,
+      sortOrder: true,
+      isPrimary: true,
+      createdAt: true,
+    },
+    orderBy: { sortOrder: 'asc' as const },
+  },
   status: true,
   createdAt: true,
   updatedAt: true,
@@ -915,141 +1159,177 @@ example:
 
 ## Adding file upload to create
 
-> ⚠️ SKIP THIS ENTIRE SECTION unless human explicitly requested file/media upload.
+### [PATH: none] — No changes to create
 
-### step 1 add preset for what type of file to accept for upload inside file-upload-presets.ts
+> ⚠️ **[PATH: none]** only. Skip this entire section if fileUpload is "simple" or "complex".
 
-human will most likely need to come in here and tailor towards their vision especially if its something complex like video processing. Should prompt human to look at [how-to-do-file-upload.md](./how-to-do-file-upload.md). Nevertheless just broadly complete this step for MVP.
+Create endpoint and service method are text-only. Nothing to add here.
 
-if human asks for complex media upload, put a pin on it and just have simple image upload for placeholder. Remind human to work on their complex media upload vision until CRUD guide is acceptable.
+---
 
-```ts
-export const FILE_PRESETS = {
-// ...existing presets...
+### [PATH: simple] — Single file on create
 
-{{resource}}Image: {
-  maxSize: 5 * 1024 * 1024, // 5 MB
-  allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
-  uploadPath: '{{resource}}/images',
-  processingOptions: {
-    resize: { width: 1000, height: 1000, fit: 'inside' as const },
-    format: 'webp' as const,
-    quality: 85,
-  },
-},
-} as const satisfies Record<string, FileUploadConfig>;
-```
+> ⚠️ **[PATH: simple]** only. Skip if fileUpload is "none" or "complex".
 
-example:
+#### step 1 add preset in file-upload-presets.ts
 
 ```ts
 export const FILE_PRESETS = {
   // ...existing presets...
 
-  articleImage: {
+  {{resource}}Image: {
     maxSize: 5 * 1024 * 1024, // 5 MB
-    allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
-    uploadPath: "articles/images",
+    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+    uploadPath: '{{resource}}/images',
     processingOptions: {
-      resize: { width: 1000, height: 1000, fit: "inside" as const },
-      format: "webp" as const,
+      resize: { width: 1000, height: 1000, fit: 'inside' as const },
+      format: 'webp' as const,
       quality: 85,
     },
   },
 } as const satisfies Record<string, FileUploadConfig>;
 ```
 
-### step 2 add file logic service.ts
+#### step 2 update create in service.ts
 
 ```ts
 async create(data: Create{{resource}}Dto, userId: number, file?: any) {
-    // If file is provided, process it using FileProcessingService
-    if (file) {
-      try {
-        const imagePath = await this.fileProcessing.processFile(
-          file,
-          '{{resource}}Image',
-          userId,
-        );
-        data.imagePath = imagePath;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Failed to process image file';
-        throw new BadRequestException(errorMessage);
-      }
+  if (file) {
+    try {
+      const imagePath = await this.fileProcessing.processFile(file, '{{resource}}Image', userId);
+      data.imagePath = imagePath;
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : 'Failed to process file');
     }
-
-    return this.prisma.{{resource}}.create({
-      data: {
-        ...data,
-        creatorId: userId,
-      },
-    });
   }
+  return this.prisma.{{resource}}.create({
+    data: { ...data, creatorId: userId },
+    select: DEFAULT_{{resource}}_SELECT,
+  });
+}
 ```
 
-example:
-
-```ts
-async create(data: CreateArticleDto, userId: number, file?: any) {
-    // If file is provided, process it using FileProcessingService
-    if (file) {
-      try {
-        const imagePath = await this.fileProcessing.processFile(
-          file,
-          'articleImage',
-          userId,
-        );
-        data.imagePath = imagePath;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Failed to process image file';
-        throw new BadRequestException(errorMessage);
-      }
-    }
-
-    return this.prisma.article.create({
-      data: {
-        ...data,
-        creatorId: userId,
-      },
-    });
-  }
-```
-
-### step 3 add file argument and interceptor controller.ts
+#### step 3 update create endpoint in controller.ts
 
 ```ts
 @Post()
-@UseInterceptors(FileInterceptor({{ field name used in multipart form data }}))
+@UseInterceptors(FileInterceptor('file'))
 @UseGuards(JwtAccessGuard)
-create(
-  @Req() req,
-  @Body() body: Create{{resource}}Dto,
-  @UploadedFile() file?: any,
-) {
+create(@Req() req, @Body() body: Create{{resource}}Dto, @UploadedFile() file?: any) {
   const userId = req.user.sub;
   return this.{{resource}}Service.create(body, userId, file);
 }
 ```
 
-example:
+---
+
+### [PATH: complex] — Media sub-routes (create stays text-only, add media endpoints)
+
+> ⚠️ **[PATH: complex]** only. Skip if fileUpload is "none" or "simple".
+
+The `POST /{{resource}}` create endpoint does NOT handle files. After creating, the client uploads media separately via sub-routes.
+
+**Create endpoint is unchanged (text-only)** — already covered in step 2 above.
+
+Add these media sub-routes to the controller. **Declare `reorder` before `/:mediaId`** to prevent NestJS treating "reorder" as a param:
 
 ```ts
-@Post()
-@UseInterceptors(FileInterceptor('image'))
-@UseGuards(JwtAccessGuard)
-create(
+// POST /{{resource}}/:id/media — upload one or more files
+@UseGuards(JwtAccessGuard, CreatorGuard)
+@ProtectedResource('{{resource}}')
+@UseInterceptors(FilesInterceptor('files', 10))
+@Post(':id/media')
+addMedia(
+  @Param('id', ParseIntPipe) id: number,
   @Req() req,
-  @Body() body: CreateArticleDto,
-  @UploadedFile() file?: any,
+  @UploadedFiles() files: any[],
 ) {
-  const userId = req.user.sub;
-  return this.articlesService.create(body, userId, file);
+  if (!files?.length) throw new BadRequestException('At least one file required');
+  return this.{{resource}}Service.addMediaBatch(id, files, req.user.sub);
+}
+
+// PATCH /{{resource}}/:id/media/reorder
+@UseGuards(JwtAccessGuard, CreatorGuard)
+@ProtectedResource('{{resource}}')
+@Patch(':id/media/reorder')
+reorderMedia(
+  @Param('id', ParseIntPipe) id: number,
+  @Body() dto: ReorderMediaDto,
+) {
+  return this.{{resource}}Service.reorderMedia(id, dto.ids);
+}
+
+// PATCH /{{resource}}/:id/media/:mediaId/primary
+@UseGuards(JwtAccessGuard, CreatorGuard)
+@ProtectedResource('{{resource}}')
+@Patch(':id/media/:mediaId/primary')
+setPrimary(
+  @Param('id', ParseIntPipe) id: number,
+  @Param('mediaId', ParseIntPipe) mediaId: number,
+) {
+  return this.{{resource}}Service.setPrimary(id, mediaId);
+}
+
+// PATCH /{{resource}}/:id/media/:mediaId — replace one file
+@UseGuards(JwtAccessGuard, CreatorGuard)
+@ProtectedResource('{{resource}}')
+@UseInterceptors(FileInterceptor('file'))
+@Patch(':id/media/:mediaId')
+replaceMedia(
+  @Param('id', ParseIntPipe) id: number,
+  @Param('mediaId', ParseIntPipe) mediaId: number,
+  @Req() req,
+  @UploadedFile() file: any,
+) {
+  return this.{{resource}}Service.replaceMedia(id, mediaId, file, req.user.sub);
+}
+
+// DELETE /{{resource}}/:id/media/:mediaId
+@UseGuards(JwtAccessGuard, CreatorGuard)
+@ProtectedResource('{{resource}}')
+@Delete(':id/media/:mediaId')
+@HttpCode(204)
+removeMedia(
+  @Param('id', ParseIntPipe) id: number,
+  @Param('mediaId', ParseIntPipe) mediaId: number,
+) {
+  return this.{{resource}}Service.removeMedia(id, mediaId);
+}
+```
+
+Add the corresponding service delegation methods:
+
+```ts
+async addMediaBatch(resourceId: number, files: any[], userId: number) {
+  return this.mediaService.addMediaBatch({
+    resourceWhere: { {{resource}}Id: resourceId },
+    files,
+    userId,
+    maxCount: {{RESOURCE_UPPER}}_MEDIA_LIMIT,
+    preset: {{RESOURCE_UPPER}}_MEDIA_PRESET,
+  });
+}
+
+async replaceMedia(resourceId: number, mediaId: number, file: any, userId: number) {
+  const media = await this.mediaService.getMediaOrThrow(mediaId);
+  if (media.{{resource}}Id !== resourceId) throw new NotFoundException('Media not found');
+  return this.mediaService.replaceMedia(mediaId, file, userId, {{RESOURCE_UPPER}}_MEDIA_PRESET);
+}
+
+async removeMedia(resourceId: number, mediaId: number) {
+  const media = await this.mediaService.getMediaOrThrow(mediaId);
+  if (media.{{resource}}Id !== resourceId) throw new NotFoundException('Media not found');
+  return this.mediaService.removeMedia(mediaId);
+}
+
+async setPrimary(resourceId: number, mediaId: number) {
+  const media = await this.mediaService.getMediaOrThrow(mediaId);
+  if (media.{{resource}}Id !== resourceId) throw new NotFoundException('Media not found');
+  return this.mediaService.setPrimary({ {{resource}}Id: resourceId }, mediaId);
+}
+
+async reorderMedia(resourceId: number, ids: number[]) {
+  return this.mediaService.reorderMedia({ {{resource}}Id: resourceId }, ids);
 }
 ```
 
@@ -1897,281 +2177,91 @@ update(
 
 ## Adding file upload to update
 
-> ⚠️ SKIP THIS ENTIRE SECTION unless human explicitly requested file/media upload.
+### [PATH: none] — No changes to update
 
-### step 1 add file logic service.ts
+> ⚠️ **[PATH: none]** only. Skip this section if fileUpload is "simple" or "complex".
+
+Update endpoint is text-only. Nothing to add here.
+
+---
+
+### [PATH: simple] — Single file replacement on update
+
+> ⚠️ **[PATH: simple]** only. Skip if fileUpload is "none" or "complex".
+
+#### step 1 update service.ts
 
 ```ts
 async update(id: number, data: Update{{resource}}Dto, file?: any) {
-    const {{resource}} = await this.prisma.{{resource}}.findUnique({
-      where: { id: id },
-    });
+  const {{resource}} = await this.prisma.{{resource}}.findUnique({ where: { id } });
+  if (!{{resource}}) throw new NotFoundException('{{resource}} not found');
 
-    if (!{{resource}}) {
-      throw new NotFoundException('{{resource}} not found');
-    }
-
-    const userId = {{resource}}.creatorId;
-
-    // If file is provided, process it using FileProcessingService
-    if (file) {
-      try {
-        // Get the current {{resource}} to retrieve old image path
-        const {{resource}} = await this.prisma.{{resource}}.findUnique({
-          where: { id: id },
-          select: { imagePath: true },
-        });
-
-        // Delete old image if it exists
-        if ({{resource}}?.imagePath) {
-          await this.fileProcessing.deleteFile({{resource}}.imagePath);
-        }
-
-        const imagePath = await this.fileProcessing.processFile(
-          file,
-          '{{resource}}Image',
-          userId,
-        );
-        data.imagePath = imagePath;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Failed to process image file';
-        throw new BadRequestException(errorMessage);
+  if (file) {
+    try {
+      if ({{resource}}.imagePath) {
+        await this.fileProcessing.deleteFile({{resource}}.imagePath);
       }
+      data.imagePath = await this.fileProcessing.processFile(file, '{{resource}}Image', {{resource}}.creatorId);
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : 'Failed to process file');
     }
-
-    return this.prisma.{{resource}}.update({
-      where: { id },
-      data,
-      select: DEFAULT_{{resource}}_SELECT,
-    });
   }
+
+  return this.prisma.{{resource}}.update({ where: { id }, data, select: DEFAULT_{{resource}}_SELECT });
+}
 ```
 
-example:
-
-```ts
-async update(id: number, data: UpdateArticleDto, file?: any) {
-    const article = await this.prisma.article.findUnique({
-      where: { id: id },
-    });
-
-    if (!article) {
-      throw new NotFoundException('Article not found');
-    }
-
-    const userId = article.creatorId;
-
-    // If file is provided, process it using FileProcessingService
-    if (file) {
-      try {
-        // Get the current article to retrieve old image path
-        const article = await this.prisma.article.findUnique({
-          where: { id: id },
-          select: { imagePath: true },
-        });
-
-        // Delete old image if it exists
-        if (article?.imagePath) {
-          await this.fileProcessing.deleteFile(article.imagePath);
-        }
-
-        const imagePath = await this.fileProcessing.processFile(
-          file,
-          'articleImage',
-          userId,
-        );
-        data.imagePath = imagePath;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Failed to process image file';
-        throw new BadRequestException(errorMessage);
-      }
-    }
-
-    return this.prisma.article.update({
-      where: { id },
-      data,
-      select: DEFAULT_ARTICLE_SELECT,
-    });
-  }
-```
-
-### step 2 add file argument and interceptor controller.ts
+#### step 2 update controller.ts
 
 ```ts
 @UseGuards(JwtAccessGuard, CreatorGuard)
 @ProtectedResource('{{resource}}')
-@UseInterceptors(FileInterceptor({{ field name used in multipart form data }})))
+@UseInterceptors(FileInterceptor('file'))
 @Patch(':id')
 update(
   @Param('id', ParseIntPipe) id: number,
-  @Req() req: any,
   @Body() dto: Update{{resource}}Dto,
   @UploadedFile() file?: any,
 ) {
-  return this.{{resource}}sService.update(id, dto, file);
+  return this.{{resource}}Service.update(id, dto, file);
 }
 ```
 
-example:
+#### step 3 update admin-{{resource}}.service.ts
 
 ```ts
-@UseGuards(JwtAccessGuard, CreatorGuard)
-@ProtectedResource('article')
-@UseInterceptors(FileInterceptor('image'))
-@Patch(':id')
-update(
-  @Param('id', ParseIntPipe) id: number,
-  @Req() req: any,
-  @Body() dto: UpdateArticleDto,
-  @UploadedFile() file?: any,
-) {
-  return this.articlesService.update(id, dto, file);
-}
-```
+async update(adminId: number, id: number, data: Update{{resource}}Dto, file?: any) {
+  const {{resource}} = await this.prisma.{{resource}}.findUnique({ where: { id } });
+  if (!{{resource}}) throw new NotFoundException('{{resource}} not found');
 
-### step 3 add admin file logic admin-{{resource}}.service.ts
-
-```ts
-async update(
-  adminId: number,
-  id: number,
-  data: Update{{resource}}Dto,
-  file?: any,
-) {
-  const {{resource}} = await this.prisma.{{resource}}.findUnique({
-    where: { id: id },
-  });
-
-  if (!{{resource}}) {
-    throw new NotFoundException('{{resource}} not found');
-  }
-
-  const userId = {{resource}}.creatorId;
-
-  // If file is provided, process it using FileProcessingService
   if (file) {
     try {
-      // Get the current {{resource}} to retrieve old image path
-      const {{resource}} = await this.prisma.{{resource}}.findUnique({
-        where: { id: id },
-        select: { imagePath: true },
-      });
-
-      // Delete old image if it exists
-      if ({{resource}}?.imagePath) {
+      if ({{resource}}.imagePath) {
         await this.fileProcessing.deleteFile({{resource}}.imagePath);
       }
-
-      const imagePath = await this.fileProcessing.processFile(
-        file,
-        '{{resource}}Image',
-        userId,
-      );
-      data.imagePath = imagePath;
+      data.imagePath = await this.fileProcessing.processFile(file, '{{resource}}Image', {{resource}}.creatorId);
     } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Failed to process image file';
-      throw new BadRequestException(errorMessage);
+      throw new BadRequestException(error instanceof Error ? error.message : 'Failed to process file');
     }
   }
 
-  // Log the update
   await this.adminService.log({
     adminId,
-    action: '{{resource}}_UPDATED',
-    resource: '{{resource}}',
+    action: '{{RESOURCE_UPPER}}_UPDATED',
+    resource: '{{RESOURCE_UPPER}}',
     resourceId: id.toString(),
-    targetId: {{resource}}.creatorId,
-    description: `Admin updated {{resource}} "${{{resource}}.title}"`,
+    description: `Admin updated {{resource}} ${id}`,
   });
 
-  return this.prisma.{{resource}}.update({
-    where: { id },
-    data,
-    select: DEFAULT_{{resource}}_SELECT,
-  });
+  return this.prisma.{{resource}}.update({ where: { id }, data, select: DEFAULT_{{resource}}_SELECT });
 }
 ```
 
-example :
-
-```ts
-async update(
-  adminId: number,
-  id: number,
-  data: UpdateArticleDto,
-  file?: any,
-) {
-  const article = await this.prisma.article.findUnique({
-    where: { id: id },
-  });
-
-  if (!article) {
-    throw new NotFoundException('Article not found');
-  }
-
-  const userId = article.creatorId;
-
-  // If file is provided, process it using FileProcessingService
-  if (file) {
-    try {
-      // Get the current article to retrieve old image path
-      const article = await this.prisma.article.findUnique({
-        where: { id: id },
-        select: { imagePath: true },
-      });
-
-      // Delete old image if it exists
-      if (article?.imagePath) {
-        await this.fileProcessing.deleteFile(article.imagePath);
-      }
-
-      const imagePath = await this.fileProcessing.processFile(
-        file,
-        'articleImage',
-        userId,
-      );
-      data.imagePath = imagePath;
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Failed to process image file';
-      throw new BadRequestException(errorMessage);
-    }
-  }
-
-  // Log the update
-  await this.adminService.log({
-    adminId,
-    action: 'ARTICLE_UPDATED',
-    resource: 'ARTICLE',
-    resourceId: id.toString(),
-    targetId: article.creatorId,
-    description: `Admin updated article "${article.title}"`,
-  });
-
-  return this.prisma.article.update({
-    where: { id },
-    data,
-    select: DEFAULT_ARTICLE_SELECT,
-  });
-}
-```
-
-### step 4 add admin file argument and interceptor admin-{{resource}}.controller.ts
+#### step 4 update admin-{{resource}}.controller.ts
 
 ```ts
 @Patch(':id')
-@UseInterceptors(FileInterceptor({{ field name used in multipart form data }}))
+@UseInterceptors(FileInterceptor('file'))
 update(
   @Param('id', ParseIntPipe) id: number,
   @Body() body: Update{{resource}}Dto,
@@ -2183,19 +2273,46 @@ update(
 }
 ```
 
-example :
+---
+
+### [PATH: complex] — Update is text-only; media managed via sub-routes
+
+> ⚠️ **[PATH: complex]** only. Skip if fileUpload is "none" or "simple".
+
+The `PATCH /{{resource}}/:id` endpoint only updates text fields. Media is added/replaced/removed via the sub-routes added in Part 3c. No changes needed here.
+
+For admin, also add the same media sub-routes to `admin-{{resource}}.controller.ts` and `admin-{{resource}}.service.ts` (same delegation pattern as Part 3c, adding admin audit logging on each method):
 
 ```ts
-@Patch(':id')
-@UseInterceptors(FileInterceptor('image'))
-update(
-  @Param('id', ParseIntPipe) id: number,
-  @Body() body: UpdateArticleDto,
-  @Req() req: any,
-  @UploadedFile() file?: any,
-) {
-  const adminId = req.user?.sub;
-  return this.adminArticleService.update(adminId, id, body, file);
+// admin-{{resource}}.service.ts — media delegation with audit log
+async addMediaBatch(adminId: number, resourceId: number, files: any[], userId: number) {
+  await this.mediaService.addMediaBatch({
+    resourceWhere: { {{resource}}Id: resourceId },
+    files, userId,
+    maxCount: {{RESOURCE_UPPER}}_MEDIA_LIMIT,
+    preset: {{RESOURCE_UPPER}}_MEDIA_PRESET,
+  });
+  await this.adminService.log({ adminId, action: '{{RESOURCE_UPPER}}_MEDIA_ADDED', resource: '{{RESOURCE_UPPER}}', resourceId: resourceId.toString(), description: `Admin added ${files.length} media file(s)` });
+}
+
+async removeMedia(adminId: number, resourceId: number, mediaId: number) {
+  const media = await this.mediaService.getMediaOrThrow(mediaId);
+  if (media.{{resource}}Id !== resourceId) throw new NotFoundException('Media not found');
+  await this.mediaService.removeMedia(mediaId);
+  await this.adminService.log({ adminId, action: '{{RESOURCE_UPPER}}_MEDIA_REMOVED', resource: '{{RESOURCE_UPPER}}', resourceId: resourceId.toString(), description: `Admin removed media ${mediaId}` });
+}
+
+async setPrimary(adminId: number, resourceId: number, mediaId: number) {
+  const media = await this.mediaService.getMediaOrThrow(mediaId);
+  if (media.{{resource}}Id !== resourceId) throw new NotFoundException('Media not found');
+  const result = await this.mediaService.setPrimary({ {{resource}}Id: resourceId }, mediaId);
+  await this.adminService.log({ adminId, action: '{{RESOURCE_UPPER}}_MEDIA_PRIMARY_SET', resource: '{{RESOURCE_UPPER}}', resourceId: resourceId.toString(), description: `Admin set media ${mediaId} as primary` });
+  return result;
+}
+
+async reorderMedia(adminId: number, resourceId: number, ids: number[]) {
+  await this.mediaService.reorderMedia({ {{resource}}Id: resourceId }, ids);
+  await this.adminService.log({ adminId, action: '{{RESOURCE_UPPER}}_MEDIA_REORDERED', resource: '{{RESOURCE_UPPER}}', resourceId: resourceId.toString(), description: `Admin reordered media` });
 }
 ```
 
@@ -2723,6 +2840,49 @@ ex: PATCH `http://localhost:3000/articles/<id>`
 DELETE `http://localhost:3000/{{resource}}/<id>`
 ex: DELETE `http://localhost:3000/articles/<id>`
 
+### [PATH: complex] Media sub-endpoints
+
+> ⚠️ **[PATH: complex]** only. Skip if fileUpload is "none" or "simple".
+
+**Add media** (one or more files, multipart key: `files`)
+POST `{{base_URL}}/{{resource}}/<id>/media`
+ex: POST `{{base_URL}}/articles/<articleId>/media`
+
+```multipart/form-data
+files: image1.png
+files: image2.jpg
+```
+
+**Replace a media item** (single file, multipart key: `file`)
+PATCH `{{base_URL}}/{{resource}}/<id>/media/<mediaId>`
+ex: PATCH `{{base_URL}}/articles/<articleId>/media/<mediaId>`
+
+```multipart/form-data
+file: newImage.png
+```
+
+**Delete a media item**
+DELETE `{{base_URL}}/{{resource}}/<id>/media/<mediaId>`
+ex: DELETE `{{base_URL}}/articles/<articleId>/media/<mediaId>`
+
+**Reorder media**
+PATCH `{{base_URL}}/{{resource}}/<id>/media/reorder`
+ex: PATCH `{{base_URL}}/articles/<articleId>/media/reorder`
+
+```json
+{
+  "ids": [3, 2, 1]
+}
+```
+
+**Set primary media**
+PATCH `{{base_URL}}/{{resource}}/<id>/media/<mediaId>/primary`
+ex: PATCH `{{base_URL}}/articles/<articleId>/media/<mediaId>/primary`
+
+```json
+{}
+```
+
 ## admin endpoints/summary
 
 **Read all**
@@ -2762,6 +2922,48 @@ ex: DELETE `http://localhost:3000/admin/articles/<id>`
 **Restore**
 POST `http://localhost:3000/admin/{{resource}}/<id>/restore`
 ex: POST `http://localhost:3000/admin/articles/<id>/restore`
+
+### [PATH: complex] Admin media sub-endpoints
+
+> ⚠️ **[PATH: complex]** only. Skip if fileUpload is "none" or "simple".
+
+**Add media**
+POST `{{base_URL}}/admin/{{resource}}/<id>/media`
+ex: POST `{{base_URL}}/admin/articles/<articleId>/media`
+
+```multipart/form-data
+files: image1.png
+```
+
+**Replace a media item**
+PATCH `{{base_URL}}/admin/{{resource}}/<id>/media/<mediaId>`
+ex: PATCH `{{base_URL}}/admin/articles/<articleId>/media/<mediaId>`
+
+```multipart/form-data
+file: newImage.png
+```
+
+**Delete a media item**
+DELETE `{{base_URL}}/admin/{{resource}}/<id>/media/<mediaId>`
+ex: DELETE `{{base_URL}}/admin/articles/<articleId>/media/<mediaId>`
+
+**Reorder media**
+PATCH `{{base_URL}}/admin/{{resource}}/<id>/media/reorder`
+ex: PATCH `{{base_URL}}/admin/articles/<articleId>/media/reorder`
+
+```json
+{
+  "ids": [3, 2, 1]
+}
+```
+
+**Set primary media**
+PATCH `{{base_URL}}/admin/{{resource}}/<id>/media/<mediaId>/primary`
+ex: PATCH `{{base_URL}}/admin/articles/<articleId>/media/<mediaId>/primary`
+
+```json
+{}
+```
 
 # part 9 | basic search engine
 
@@ -5500,11 +5702,46 @@ interface Creator {
   username: string;
   avatarPath: string;
 }
+// [PATH: none] — no media fields
+export interface Article {
+  id: number;
+  title: string;
+  content: string;
+  creator: Creator;
+  createdAt: string;
+  updatedAt: string;
+  status: ArticleStatus;
+}
+
+// [PATH: simple] — add imagePath field
 export interface Article {
   id: number;
   title: string;
   content: string;
   imagePath?: string | null;
+  creator: Creator;
+  createdAt: string;
+  updatedAt: string;
+  status: ArticleStatus;
+}
+
+// [PATH: complex] — add ArticleMedia interface + media array
+export interface ArticleMedia {
+  id: number;
+  original: string;
+  thumbnail: string | null;
+  mimeType: string;
+  sizeBytes: number | null;
+  sortOrder: number;
+  isPrimary: boolean;
+  createdAt: string;
+}
+
+export interface Article {
+  id: number;
+  title: string;
+  content: string;
+  media: ArticleMedia[];
   creator: Creator;
   createdAt: string;
   updatedAt: string;
@@ -5550,11 +5787,36 @@ interface Creator {
   username: string;
   avatarPath: string;
 }
+
+// [PATH: simple] only
 export interface {{resource}} {
   id: number;
   title: string;
   content: string;
   imagePath?: string | null;
+  creator: Creator;
+  createdAt: string;
+  updatedAt: string;
+  status: {{resource}}Status;
+}
+
+// [PATH: complex] only — use this instead
+export interface {{resource}}Media {
+  id: number;
+  original: string;
+  thumbnail: string | null;
+  mimeType: string;
+  sizeBytes: number | null;
+  sortOrder: number;
+  isPrimary: boolean;
+  createdAt: string;
+}
+
+export interface {{resource}} {
+  id: number;
+  title: string;
+  content: string;
+  media: {{resource}}Media[];
   creator: Creator;
   createdAt: string;
   updatedAt: string;
@@ -5601,11 +5863,28 @@ interface Creator {
   username: string;
   avatarPath: string;
 }
+// [PATH: simple] — add imagePath
 export interface Article {
   id: number;
   title: string;
   content: string;
   imagePath?: string | null;
+  creator: Creator;
+  createdAt: string;
+  updatedAt: string;
+  status: ArticleStatus;
+  deleted: boolean;
+  deletedAt: string;
+}
+
+// [PATH: complex] — re-export ArticleMedia from regular types, use media array
+// import type { ArticleMedia } from "@/features/articles/types/article";
+// export type { ArticleMedia };
+export interface Article {
+  id: number;
+  title: string;
+  content: string;
+  media: ArticleMedia[];
   creator: Creator;
   createdAt: string;
   updatedAt: string;
@@ -5647,11 +5926,29 @@ interface Creator {
   username: string;
   avatarPath: string;
 }
+
+// [PATH: simple] only
 export interface {{resource}} {
   id: number;
   title: string;
   content: string;
   imagePath?: string | null;
+  creator: Creator;
+  createdAt: string;
+  updatedAt: string;
+  status: {{resource}}Status;
+  deleted: boolean;
+  deletedAt: string;
+}
+
+// [PATH: complex] only — re-export the media type from regular types to avoid duplication
+// import type { {{resource}}Media } from "@/features/{{resource}}/types/{{resource}}";
+// export type { {{resource}}Media };
+export interface {{resource}} {
+  id: number;
+  title: string;
+  content: string;
+  media: {{resource}}Media[];
   creator: Creator;
   createdAt: string;
   updatedAt: string;
@@ -5857,90 +6154,76 @@ export const deleteArticle = (id: number) =>
   });
 ```
 
-## step 4 if needing file upload
+## step 4 — file upload additions to api.ts
 
-replace create and update
+### [PATH: none] — No changes to api.ts
+
+> ⚠️ **[PATH: none]** only. Skip if fileUpload is "simple" or "complex".
+
+Nothing to add. Create and update stay JSON-only.
+
+---
+
+### [PATH: simple] — Replace create/update with FormData versions
+
+> ⚠️ **[PATH: simple]** only. Skip if fileUpload is "none" or "complex".
 
 ```ts
 import { toFormData } from "@/lib/utils/form-data";
-...
+
 // POST /{{resource}}
 export const create{{resource}} = (data: Create{{resource}}Input, file?: File) => {
-  // Use FormData if file is provided, otherwise JSON
   if (file) {
-    return fetcher<{{resource}}>("/{{resource}}", {
-      method: "POST",
-      body: toFormData(data, file),
-    });
+    return fetcher<{{resource}}>("/{{resource}}", { method: "POST", body: toFormData(data, file) });
   }
-
-  return fetcher<{{resource}}>("/{{resource}}", {
-    method: "POST",
-    json: data,
-  });
+  return fetcher<{{resource}}>("/{{resource}}", { method: "POST", json: data });
 };
 
 // PATCH /{{resource}}/:id
-export const update{{resource}} = (
-  id: number,
-  data: Update{{resource}}Input,
-  file?: File,
-) => {
-  // Use FormData if file is provided, otherwise JSON
+export const update{{resource}} = (id: number, data: Update{{resource}}Input, file?: File) => {
   if (file) {
-    return fetcher<{{resource}}>(`/{{resource}}/${id}`, {
-      method: "PATCH",
-      body: toFormData(data, file),
-    });
+    return fetcher<{{resource}}>(`/{{resource}}/${id}`, { method: "PATCH", body: toFormData(data, file) });
   }
-
-  return fetcher<{{resource}}>(`/{{resource}}/${id}`, {
-    method: "PATCH",
-    json: data,
-  });
+  return fetcher<{{resource}}>(`/{{resource}}/${id}`, { method: "PATCH", json: data });
 };
 ```
 
-example:
+---
+
+### [PATH: complex] — Add media sub-route functions
+
+> ⚠️ **[PATH: complex]** only. Skip if fileUpload is "none" or "simple".
+
+Create and update stay JSON-only. Add these media functions:
 
 ```ts
-import { toFormData } from "@/lib/utils/form-data";
-...
-// POST /articles
-export const createArticle = (data: CreateArticleInput, file?: File) => {
-  // Use FormData if file is provided, otherwise JSON
-  if (file) {
-    return fetcher<Article>("/articles", {
-      method: "POST",
-      body: toFormData(data, file),
-    });
-  }
+import type { {{resource}}Media } from "./types/{{resource}}";
 
-  return fetcher<Article>("/articles", {
-    method: "POST",
-    json: data,
-  });
+// POST /{{resource}}/:id/media  (multipart, key: "files")
+export const add{{resource}}Media = (resourceId: number, files: File[]) => {
+  const body = new FormData();
+  files.forEach((f) => body.append("files", f));
+  return fetcher<{{resource}}Media[]>(`/{{resource}}/${resourceId}/media`, { method: "POST", body });
 };
 
-// PATCH /articles/:id
-export const updateArticle = (
-  id: number,
-  data: UpdateArticleInput,
-  file?: File,
-) => {
-  // Use FormData if file is provided, otherwise JSON
-  if (file) {
-    return fetcher<Article>(`/articles/${id}`, {
-      method: "PATCH",
-      body: toFormData(data, file),
-    });
-  }
+// DELETE /{{resource}}/:id/media/:mediaId
+export const remove{{resource}}Media = (resourceId: number, mediaId: number) =>
+  fetcher<void>(`/{{resource}}/${resourceId}/media/${mediaId}`, { method: "DELETE" });
 
-  return fetcher<Article>(`/articles/${id}`, {
-    method: "PATCH",
-    json: data,
-  });
+// PATCH /{{resource}}/:id/media/:mediaId  (multipart, key: "file")
+export const replace{{resource}}Media = (resourceId: number, mediaId: number, file: File) => {
+  const body = new FormData();
+  body.append("file", file);
+  return fetcher<{{resource}}Media>(`/{{resource}}/${resourceId}/media/${mediaId}`, { method: "PATCH", body });
 };
+
+// PATCH /{{resource}}/:id/media/:mediaId/primary
+export const set{{resource}}MediaPrimary = (resourceId: number, mediaId: number) =>
+  fetcher<{{resource}}Media>(`/{{resource}}/${resourceId}/media/${mediaId}/primary`, { method: "PATCH" });
+
+// PATCH /{{resource}}/:id/media/reorder
+export const reorder{{resource}}Media = (resourceId: number, ids: number[]) =>
+  fetcher<void>(`/{{resource}}/${resourceId}/media/reorder`, { method: "PATCH", json: { ids } });
 ```
 
 ## step 5 converting endpoints to `features/admin/articles/api.ts`
@@ -6038,35 +6321,64 @@ export const restoreAdminArticle = (id: number) =>
   });
 ```
 
-## step 6 if admin needing file upload
+## step 6 — file upload additions to admin api.ts
 
-replace update
+### [PATH: none] — No changes
+
+> ⚠️ **[PATH: none]** only. Skip if fileUpload is "simple" or "complex".
+
+Nothing to add.
+
+---
+
+### [PATH: simple] — Replace update with FormData version
+
+> ⚠️ **[PATH: simple]** only. Skip if fileUpload is "none" or "complex".
 
 ```ts
 import { toFormData } from "@/lib/utils/form-data";
-...
-// PATCH /admin/{{resource}}/:id
-export const updateAdmin{{resource}} = (
-  id: number,
-  data: Update{{resource}}Input,
-  file?: File,
-) => {
-  // Use FormData if file is provided, otherwise JSON
-  if (file) {
-    return fetcher<{{resource}}>(`/admin/{{resource}}/${id}`, {
-      method: "PATCH",
-      body: toFormData(data, file),
-    });
-  }
 
-  return fetcher<{{resource}}>(`/admin/{{resource}}/${id}`, {
-    method: "PATCH",
-    json: data,
-  });
+// PATCH /admin/{{resource}}/:id
+export const updateAdmin{{resource}} = (id: number, data: Update{{resource}}Input, file?: File) => {
+  if (file) {
+    return fetcher<{{resource}}>(`/admin/{{resource}}/${id}`, { method: "PATCH", body: toFormData(data, file) });
+  }
+  return fetcher<{{resource}}>(`/admin/{{resource}}/${id}`, { method: "PATCH", json: data });
 };
 ```
 
-example:
+---
+
+### [PATH: complex] — Add admin media sub-route functions
+
+> ⚠️ **[PATH: complex]** only. Skip if fileUpload is "none" or "simple".
+
+Update stays JSON-only. Add the same media functions pointing to `/admin/{{resource}}/:id/media`:
+
+```ts
+import type { {{resource}}Media } from "./types/{{resource}}";
+
+// POST /admin/{{resource}}/:id/media
+export const addAdmin{{resource}}Media = (resourceId: number, files: File[]) => {
+  const body = new FormData();
+  files.forEach((f) => body.append("files", f));
+  return fetcher<{{resource}}Media[]>(`/admin/{{resource}}/${resourceId}/media`, { method: "POST", body });
+};
+
+// DELETE /admin/{{resource}}/:id/media/:mediaId
+export const removeAdmin{{resource}}Media = (resourceId: number, mediaId: number) =>
+  fetcher<void>(`/admin/{{resource}}/${resourceId}/media/${mediaId}`, { method: "DELETE" });
+
+// PATCH /admin/{{resource}}/:id/media/:mediaId/primary
+export const setAdmin{{resource}}MediaPrimary = (resourceId: number, mediaId: number) =>
+  fetcher<{{resource}}Media>(`/admin/{{resource}}/${resourceId}/media/${mediaId}/primary`, { method: "PATCH" });
+
+// PATCH /admin/{{resource}}/:id/media/reorder
+export const reorderAdmin{{resource}}Media = (resourceId: number, ids: number[]) =>
+  fetcher<void>(`/admin/{{resource}}/${resourceId}/media/reorder`, { method: "PATCH", json: { ids } });
+```
+
+example (admin articles — complex path):
 
 ```ts
 import { toFormData } from "@/lib/utils/form-data";
@@ -6341,87 +6653,103 @@ export function useDeleteArticle() {
 }
 ```
 
-## step 8 if needing file upload
+## step 8 — file upload additions to hooks.ts
 
-replace create and update
+### [PATH: none] — No changes
+
+> ⚠️ **[PATH: none]** only. Skip if fileUpload is "simple" or "complex".
+
+Nothing to add.
+
+---
+
+### [PATH: simple] — Replace useCreate/useUpdate to pass file
+
+> ⚠️ **[PATH: simple]** only. Skip if fileUpload is "none" or "complex".
 
 ```ts
-import { Create{{resource}}Input } from "./types/{{resource}}";
-...
 export function useCreate{{resource}}() {
   const qc = useQueryClient();
-
   return useMutation({
     mutationFn: ({ data, file }: { data: Create{{resource}}Input; file?: File }) =>
       create{{resource}}(data, file),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["{{resource}}"] });
-    },
-    throwOnError: false, // Don't throw errors, let component handle them
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["{{resource}}"] }); },
+    throwOnError: false,
   });
 }
 
 export function useUpdate{{resource}}() {
   const qc = useQueryClient();
-
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-      file,
-    }: {
-      id: number;
-      data: Parameters<typeof update{{resource}}>[1];
-      file?: File;
-    }) => update{{resource}}(id, data, file),
+    mutationFn: ({ id, data, file }: { id: number; data: Parameters<typeof update{{resource}}>[1]; file?: File }) =>
+      update{{resource}}(id, data, file),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ["{{resource}}"] });
       qc.invalidateQueries({ queryKey: ["{{resource}}", id] });
     },
-    throwOnError: false, // Don't throw errors, let component handle them
+    throwOnError: false,
   });
 }
 ```
 
-example:
+---
+
+### [PATH: complex] — Add media mutation hooks
+
+> ⚠️ **[PATH: complex]** only. Skip if fileUpload is "none" or "simple".
+
+useCreate/useUpdate stay unchanged. Add these media hooks:
 
 ```ts
-import { CreateArticleInput } from "./types/article";
-...
-export function useCreateArticle() {
-  const qc = useQueryClient();
+import {
+  add{{resource}}Media,
+  remove{{resource}}Media,
+  set{{resource}}MediaPrimary,
+  reorder{{resource}}Media,
+} from "./api";
 
+export function useAdd{{resource}}Media(resourceId: number) {
+  const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ data, file }: { data: CreateArticleInput; file?: File }) =>
-      createArticle(data, file),
+    mutationFn: (files: File[]) => add{{resource}}Media(resourceId, files),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["articles"] });
+      qc.invalidateQueries({ queryKey: ["{{resource}}", resourceId] });
     },
-    throwOnError: false, // Don't throw errors, let component handle them
   });
 }
 
-export function useUpdateArticle() {
+export function useRemove{{resource}}Media(resourceId: number) {
   const qc = useQueryClient();
-
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-      file,
-    }: {
-      id: number;
-      data: Parameters<typeof updateArticle>[1];
-      file?: File;
-    }) => updateArticle(id, data, file),
-    onSuccess: (_, { id }) => {
-      qc.invalidateQueries({ queryKey: ["articles"] });
-      qc.invalidateQueries({ queryKey: ["article", id] });
+    mutationFn: (mediaId: number) => remove{{resource}}Media(resourceId, mediaId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["{{resource}}", resourceId] });
     },
-    throwOnError: false, // Don't throw errors, let component handle them
+  });
+}
+
+export function useSet{{resource}}MediaPrimary(resourceId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (mediaId: number) => set{{resource}}MediaPrimary(resourceId, mediaId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["{{resource}}", resourceId] });
+    },
+  });
+}
+
+export function useReorder{{resource}}Media(resourceId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: number[]) => reorder{{resource}}Media(resourceId, ids),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["{{resource}}", resourceId] });
+    },
   });
 }
 ```
+
+For admin hooks.ts, add the same pattern using `addAdmin{{resource}}Media`, `removeAdmin{{resource}}Media`, etc., and invalidate `["admin-{{resource}}"]` queries.
 
 ## step 9 make `features/admin/{{resource}}/hooks.ts`
 
@@ -6668,6 +6996,12 @@ export type CreateArticleInput = z.infer<typeof createArticleSchema>;
 ```
 
 ## step 2 create form component
+
+**[PATH: none]** — Form is text-only. No media state, no MediaManager.
+
+**[PATH: simple]** — Add a file input (e.g. `<input type="file">` or `AppImage` picker). Pass `file` alongside form data to `useCreate{{resource}}`.
+
+**[PATH: complex]** — Use `MediaManager` + `media-utils.ts` utilities. Form state holds `UnifiedMediaItem[]`. On submit: create resource first (text-only), then call `applyCreateMediaChanges` with the queued files. See the Article `CreateArticleForm` as the reference implementation — it has the exact pattern to follow.
 
 `web/src/features/{{resource}}/components/Create{{resource}}Form.tsx`
 
@@ -7728,6 +8062,12 @@ export type AdminUpdateArticleInput = z.infer<typeof adminUpdateArticleSchema>;
 
 ## step 3 edit form component
 
+**[PATH: none]** — Form is text-only. No media state, no MediaManager.
+
+**[PATH: simple]** — See step 4 below to add file upload to the edit form.
+
+**[PATH: complex]** — Use `MediaManager` + `media-utils.ts` utilities. Form state holds `UnifiedMediaItem[]` initialized from `sortedMedia.map(toUnified)`. On submit: update text fields first, then call `applyMediaChanges` with the queued/pending operations. See Article `EditArticleForm` as the reference implementation. Also create `InlineEdit{{resource}}Form` variant using `isAlwaysOpen` prop — used in modals.
+
 `web/src/features/{{resource}}/components/Edit{{resource}}Form.tsx`
 
 ```tsx
@@ -8147,6 +8487,12 @@ example:
 ```
 
 ## step 5 admin edit form component
+
+**[PATH: none]** — Text-only form. No media state.
+
+**[PATH: simple]** — See step 6 below to add file upload.
+
+**[PATH: complex]** — Same pattern as regular `Edit{{resource}}Form` but uses admin hooks (`useAddAdmin{{resource}}Media`, `useRemoveAdmin{{resource}}Media`, etc.). Admin service methods additionally call `this.adminService.log(...)`. Also create `AdminInline{{resource}}Form` variant with `isAlwaysOpen` prop for use in the admin table's action modal.
 
 `web/src/features/admin/{{resource}}/components/AdminEdit{{resource}}Form.tsx`
 
@@ -9743,7 +10089,11 @@ import { useModal } from "../providers/ModalProvider";
 import { useDelete{{resource}} } from "@/features/{{resource}}/hooks";
 import { toast } from "sonner";
 import { InlineEdit{{resource}}Form } from "@/features/{{resource}}/components/InlineEdit{{resource}}Form";
-import { AppImage } from "./AppImage"; // omit if schema doesn't have media image
+// [PATH: none] — omit both imports below
+// [PATH: simple] — import AppImage
+import { AppImage } from "./AppImage";
+// [PATH: complex] — import MediaGallery instead
+import { MediaGallery } from "./MediaGallery";
 
 export function {{resource}}({
   data,
@@ -9851,7 +10201,9 @@ export function {{resource}}({
         </div>
         {modify{{resource}}(isOwner)}
       </div>
-      {/* omit me if doing image */}
+      {/* [PATH: none] — omit this block entirely */}
+
+      {/* [PATH: simple] — single image */}
       {data?.imagePath && (
         <div className="w-full h-48 md:h-64 rounded-md overflow-hidden my-3 bg-muted">
           <AppImage
@@ -9862,7 +10214,22 @@ export function {{resource}}({
           />
         </div>
       )}
-      {/* EoF omit */}
+
+      {/* [PATH: complex] — multi-file gallery with thumbnail strip, click to expand */}
+      {data?.media?.length > 0 && (
+        <div className="shrink-0 w-48 md:w-64 my-3">
+          <MediaGallery
+            images={data.media
+              .sort((a, b) => a.sortOrder - b.sortOrder)
+              .map((m) => ({ src: m.thumbnail ?? m.original, alt: data.title }))}
+            initialIndex={data.media.findIndex((m) => m.isPrimary) ?? 0}
+            className="h-48 md:h-64 rounded-md bg-muted"
+            thumbnails
+            expandable
+          />
+        </div>
+      )}
+      {/* EoF media block */}
       <p
         className={`text-xs md:text-sm text-foreground my-3 ${truncateContent ? "line-clamp-3" : ""}`}
         style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
@@ -10020,7 +10387,9 @@ export function Article({
         </div>
         {modifyArticle(isOwner)}
       </div>
-      {/* omit me if doing image */}
+      {/* [PATH: none] — omit this block entirely */}
+
+      {/* [PATH: simple] — single image */}
       {data?.imagePath && (
         <div className="w-full h-48 md:h-64 rounded-md overflow-hidden my-3 bg-muted">
           <AppImage
@@ -10031,7 +10400,22 @@ export function Article({
           />
         </div>
       )}
-      {/* EoF omit */}
+
+      {/* [PATH: complex] — multi-file gallery with thumbnail strip, click to expand */}
+      {data?.media?.length > 0 && (
+        <div className="shrink-0 w-48 md:w-64 my-3">
+          <MediaGallery
+            images={data.media
+              .sort((a, b) => a.sortOrder - b.sortOrder)
+              .map((m) => ({ src: m.thumbnail ?? m.original, alt: data.title }))}
+            initialIndex={data.media.findIndex((m) => m.isPrimary) ?? 0}
+            className="h-48 md:h-64 rounded-md bg-muted"
+            thumbnails
+            expandable
+          />
+        </div>
+      )}
+      {/* EoF media block */}
       <p
         className={`text-xs md:text-sm text-foreground my-3 ${truncateContent ? "line-clamp-3" : ""}`}
         style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
@@ -11103,7 +11487,8 @@ import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 import { formatDate } from "@/lib/utils/date";
 import { AdminEdit{{resource}}Modal } from "@/features/admin/{{resource}}/components/modal/AdminEdit{{resource}}Modal";
 import { useModal } from "@/components/providers/ModalProvider";
-import { AppImage } from "@/components/ui/AppImage"; // omit me if not using image
+// [PATH: simple] only: import { AppImage } from "@/components/ui/AppImage";
+// [PATH: complex] only: import { MediaGallery } from "@/components/ui/MediaGallery";
 
 export const columns: ColumnDef<{{resource}}>[] = [
   {
@@ -11143,7 +11528,8 @@ export const columns: ColumnDef<{{resource}}>[] = [
       />
     ),
   },
-  // omit me if no image
+  // [PATH: none] — omit this column entirely
+  // [PATH: simple] — use AppImage with imagePath
   {
     accessorKey: "imagePath",
     header: "Image",
@@ -11159,6 +11545,31 @@ export const columns: ColumnDef<{{resource}}>[] = [
           className="h-16 w-16 rounded object-cover cursor-pointer hover:opacity-80 transition-opacity"
           expandable
         />
+      );
+    },
+  },
+  // [PATH: complex] — use MediaGallery with count badge; replace the column above with this:
+  {
+    accessorKey: "media",
+    header: "Image",
+    cell: ({ row }) => {
+      const {{resource}} = row.original;
+      if (!{{resource}}.media.length) {
+        return <div className="text-xs text-muted-foreground">No image</div>;
+      }
+      const sorted = [...{{resource}}.media].sort((a, b) => a.sortOrder - b.sortOrder);
+      return (
+        <div className="relative inline-block">
+          <MediaGallery
+            images={sorted.map((m) => ({ src: m.thumbnail ?? m.original, alt: {{resource}}.title }))}
+            className="h-16 w-16 rounded"
+          />
+          {sorted.length > 1 && (
+            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] font-semibold leading-none px-1.5 py-0.5 rounded-full pointer-events-none">
+              {sorted.length}
+            </span>
+          )}
+        </div>
       );
     },
   },
@@ -11373,7 +11784,8 @@ export const columns: ColumnDef<Article>[] = [
       />
     ),
   },
-  // omit me if no image
+  // [PATH: none] — omit this column
+  // [PATH: simple] — use this AppImage column
   {
     accessorKey: "imagePath",
     header: "Image",
@@ -11389,6 +11801,31 @@ export const columns: ColumnDef<Article>[] = [
           className="h-16 w-16 rounded object-cover cursor-pointer hover:opacity-80 transition-opacity"
           expandable
         />
+      );
+    },
+  },
+  // [PATH: complex] — replace the column above with this MediaGallery + count badge version
+  {
+    accessorKey: "media",
+    header: "Image",
+    cell: ({ row }) => {
+      const article = row.original;
+      if (!article.media.length) {
+        return <div className="text-xs text-muted-foreground">No image</div>;
+      }
+      const sorted = [...article.media].sort((a, b) => a.sortOrder - b.sortOrder);
+      return (
+        <div className="relative inline-block">
+          <MediaGallery
+            images={sorted.map((m) => ({ src: m.thumbnail ?? m.original, alt: article.title }))}
+            className="h-16 w-16 rounded"
+          />
+          {sorted.length > 1 && (
+            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] font-semibold leading-none px-1.5 py-0.5 rounded-full pointer-events-none">
+              {sorted.length}
+            </span>
+          )}
+        </div>
       );
     },
   },
