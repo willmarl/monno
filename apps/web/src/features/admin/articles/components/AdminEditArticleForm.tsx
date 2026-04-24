@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   adminUpdateArticleSchema,
@@ -14,6 +15,7 @@ import {
   useSetAdminArticleMediaPrimary,
   useReorderAdminArticleMedia,
 } from "../hooks";
+import { Article, ARTICLE_STATUSES } from "../types/article";
 import {
   Form,
   FormField,
@@ -40,17 +42,23 @@ import {
   createMediaHandlers,
   applyMediaChanges,
 } from "@/components/ui/media-utils";
-import { Article, ARTICLE_STATUSES } from "../types/article";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const MAX_FILES = 3;
 
-export function AdminEditArticleForm({ articleData }: { articleData: Article }) {
-  const sortedMedia = [...articleData.media].sort((a, b) => a.sortOrder - b.sortOrder);
+export function AdminEditArticleForm({
+  articleData,
+}: {
+  articleData: Article;
+}) {
+  const sortedMedia = [...articleData.media].sort(
+    (a, b) => a.sortOrder - b.sortOrder,
+  );
 
-  const [items, setItems] = useState<UnifiedMediaItem[]>(() => sortedMedia.map(toUnified));
+  const [items, setItems] = useState<UnifiedMediaItem[]>(() =>
+    sortedMedia.map(toUnified),
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<AdminUpdateArticleInput>({
@@ -63,20 +71,28 @@ export function AdminEditArticleForm({ articleData }: { articleData: Article }) 
     },
   });
 
-  const { formState: { isValid } } = form;
+  const {
+    formState: { isValid },
+  } = form;
   const router = useRouter();
+  const {
+    handleFilesDropped,
+    handleRemove,
+    handleUndoRemove,
+    handleSetPrimary,
+  } = createMediaHandlers(setItems, MAX_FILES);
+
   const updateArticleMutation = useAdminUpdateArticle();
   const addMedia = useAddAdminArticleMedia(articleData.id);
   const removeMedia = useRemoveAdminArticleMedia(articleData.id);
   const setPrimary = useSetAdminArticleMediaPrimary(articleData.id);
   const reorderMedia = useReorderAdminArticleMedia(articleData.id);
 
-  const { handleFilesDropped, handleRemove, handleUndoRemove, handleSetPrimary } =
-    createMediaHandlers(setItems, MAX_FILES);
-
   async function onSubmit(data: AdminUpdateArticleInput) {
     if (!validateQueuedFiles(items)) {
-      toast.error("Some files have unsupported types. Remove them before submitting.");
+      toast.error(
+        "Some files have unsupported types. Remove them before submitting.",
+      );
       return;
     }
     setIsSubmitting(true);
@@ -93,7 +109,9 @@ export function AdminEditArticleForm({ articleData }: { articleData: Article }) 
       toast.success("Article updated");
       router.push(`/article/${articleData.id}`);
     } catch (error: any) {
-      toast.error(`Error updating article. ${error?.message ?? "Unknown error"}`);
+      toast.error(
+        `Error updating article. ${error?.message ?? "Unknown error"}`,
+      );
       setIsSubmitting(false);
     }
   }
@@ -109,47 +127,65 @@ export function AdminEditArticleForm({ articleData }: { articleData: Article }) 
         </div>
       )}
 
-      <div className={`space-y-6 w-full max-w-sm ${isSubmitting ? "opacity-50 pointer-events-none" : ""}`}>
+      <div
+        className={`space-y-6 w-full max-w-sm ${isSubmitting ? "opacity-50 pointer-events-none" : ""}`}
+      >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* title */}
             <FormField
               control={form.control}
               name="title"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Title</FormLabel>
-                  <FormControl><Input placeholder="title" {...field} /></FormControl>
+                  <FormControl>
+                    <Input placeholder="title" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
+            {/* content */}
             <FormField
               control={form.control}
               name="content"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Content</FormLabel>
-                  <FormControl><Textarea placeholder="content" {...field} /></FormControl>
+                  <FormControl>
+                    <Textarea placeholder="content" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
+            {/* status */}
             <div className="space-y-2">
-              <Label htmlFor="admin-edit-status" className="text-sm">Status</Label>
+              <Label htmlFor="admin-edit-status" className="text-sm">
+                Status
+              </Label>
               <Controller
                 name="status"
                 control={form.control}
                 render={({ field }) => (
-                  <Select value={field.value || ""} onValueChange={field.onChange}>
-                    <SelectTrigger id="admin-edit-status" disabled={isSubmitting}>
+                  <Select
+                    value={field.value || ""}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger
+                      id="admin-edit-status"
+                      disabled={isSubmitting}
+                    >
                       <SelectValue placeholder="Select a status" />
                     </SelectTrigger>
                     <SelectContent>
                       {ARTICLE_STATUSES.map((status) => (
                         <SelectItem key={status} value={status}>
-                          {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
+                          {status.charAt(0).toUpperCase() +
+                            status.slice(1).toLowerCase()}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -157,10 +193,13 @@ export function AdminEditArticleForm({ articleData }: { articleData: Article }) 
                 )}
               />
               {form.formState.errors.status && (
-                <p className="text-xs text-red-500">{form.formState.errors.status.message}</p>
+                <p className="text-xs text-red-500">
+                  {form.formState.errors.status.message}
+                </p>
               )}
             </div>
 
+            {/* file upload */}
             <div className="space-y-2">
               <Label className="text-sm">Media</Label>
               <MediaManager
@@ -181,7 +220,10 @@ export function AdminEditArticleForm({ articleData }: { articleData: Article }) 
               disabled={isSubmitting || !isValid}
             >
               {isSubmitting ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</>
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
               ) : (
                 "Update article"
               )}

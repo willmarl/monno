@@ -10,10 +10,10 @@ import {
 } from "../schemas/createArticle.schema";
 import { useCreateArticle } from "../hooks";
 import { addArticleMedia, setArticleMediaPrimary } from "../api";
+import { ARTICLE_STATUSES } from "../types/article";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -29,7 +29,7 @@ import {
   createMediaHandlers,
   applyCreateMediaChanges,
 } from "@/components/ui/media-utils";
-import { ARTICLE_STATUSES } from "../types/article";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const MAX_FILES = 3;
@@ -62,11 +62,11 @@ export function InlineCreateArticleForm({
   });
 
   const router = useRouter();
-  const createArticleMutation = useCreateArticle();
-  const { isValid } = form.formState;
-
   const { handleFilesDropped, handleRemove, handleSetPrimary } =
     createMediaHandlers(setItems, MAX_FILES);
+
+  const createArticleMutation = useCreateArticle();
+  const { isValid } = form.formState;
 
   function handleReset() {
     revokeQueuedPreviews(items);
@@ -76,7 +76,9 @@ export function InlineCreateArticleForm({
 
   async function handleSubmit(data: CreateArticleInput) {
     if (!validateQueuedFiles(items)) {
-      toast.error("Some files have unsupported types. Remove them before submitting.");
+      toast.error(
+        "Some files have unsupported types. Remove them before submitting.",
+      );
       return;
     }
     setIsSubmitting(true);
@@ -107,8 +109,11 @@ export function InlineCreateArticleForm({
 
   return (
     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      {/* title */}
       <div className="space-y-2">
-        <Label htmlFor="inline-title" className="text-sm">Title</Label>
+        <Label htmlFor="inline-title" className="text-sm">
+          Title
+        </Label>
         <Input
           id="inline-title"
           type="text"
@@ -117,12 +122,17 @@ export function InlineCreateArticleForm({
           {...form.register("title")}
         />
         {form.formState.errors.title && (
-          <p className="text-xs text-red-500">{form.formState.errors.title.message}</p>
+          <p className="text-xs text-red-500">
+            {form.formState.errors.title.message}
+          </p>
         )}
       </div>
 
+      {/* content */}
       <div className="space-y-2">
-        <Label htmlFor="inline-content" className="text-sm">Content</Label>
+        <Label htmlFor="inline-content" className="text-sm">
+          Content
+        </Label>
         <Textarea
           id="inline-content"
           placeholder="content"
@@ -130,12 +140,17 @@ export function InlineCreateArticleForm({
           {...form.register("content")}
         />
         {form.formState.errors.content && (
-          <p className="text-xs text-red-500">{form.formState.errors.content.message}</p>
+          <p className="text-xs text-red-500">
+            {form.formState.errors.content.message}
+          </p>
         )}
       </div>
 
+      {/* status */}
       <div className="space-y-2">
-        <Label htmlFor="inline-status" className="text-sm">Status</Label>
+        <Label htmlFor="inline-status" className="text-sm">
+          Status
+        </Label>
         <Controller
           name="status"
           control={form.control}
@@ -147,7 +162,8 @@ export function InlineCreateArticleForm({
               <SelectContent>
                 {ARTICLE_STATUSES.map((status) => (
                   <SelectItem key={status} value={status}>
-                    {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
+                    {status.charAt(0).toUpperCase() +
+                      status.slice(1).toLowerCase()}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -155,10 +171,13 @@ export function InlineCreateArticleForm({
           )}
         />
         {form.formState.errors.status && (
-          <p className="text-xs text-red-500">{form.formState.errors.status.message}</p>
+          <p className="text-xs text-red-500">
+            {form.formState.errors.status.message}
+          </p>
         )}
       </div>
 
+      {/* file upload */}
       <div className="space-y-2">
         <Label className="text-sm">Media (optional)</Label>
         <MediaManager

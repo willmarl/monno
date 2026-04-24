@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   updateArticleSchema,
@@ -14,6 +15,7 @@ import {
   useSetArticleMediaPrimary,
   useReorderArticleMedia,
 } from "../hooks";
+import { Article, ARTICLE_STATUSES } from "../types/article";
 import {
   Form,
   FormField,
@@ -40,20 +42,18 @@ import {
   createMediaHandlers,
   applyMediaChanges,
 } from "@/components/ui/media-utils";
-import { Article, ARTICLE_STATUSES } from "../types/article";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const MAX_FILES = 3;
 
 export function EditArticleForm({ articleData }: { articleData: Article }) {
   const sortedMedia = [...articleData.media].sort(
-    (a, b) => a.sortOrder - b.sortOrder
+    (a, b) => a.sortOrder - b.sortOrder,
   );
 
   const [items, setItems] = useState<UnifiedMediaItem[]>(() =>
-    sortedMedia.map(toUnified)
+    sortedMedia.map(toUnified),
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -67,20 +67,28 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
     },
   });
 
-  const { formState: { isValid } } = form;
+  const {
+    formState: { isValid },
+  } = form;
   const router = useRouter();
+  const {
+    handleFilesDropped,
+    handleRemove,
+    handleUndoRemove,
+    handleSetPrimary,
+  } = createMediaHandlers(setItems, MAX_FILES);
+
   const updateArticleMutation = useUpdateArticle();
   const addMedia = useAddArticleMedia(articleData.id);
   const removeMedia = useRemoveArticleMedia(articleData.id);
   const setPrimary = useSetArticleMediaPrimary(articleData.id);
   const reorderMedia = useReorderArticleMedia(articleData.id);
 
-  const { handleFilesDropped, handleRemove, handleUndoRemove, handleSetPrimary } =
-    createMediaHandlers(setItems, MAX_FILES);
-
   async function onSubmit(data: UpdateArticleInput) {
     if (!validateQueuedFiles(items)) {
-      toast.error("Some files have unsupported types. Remove them before submitting.");
+      toast.error(
+        "Some files have unsupported types. Remove them before submitting.",
+      );
       return;
     }
     setIsSubmitting(true);
@@ -97,7 +105,9 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
       toast.success("Article updated");
       router.push(`/article/${articleData.id}`);
     } catch (error: any) {
-      toast.error(`Error updating article. ${error?.message ?? "Unknown error"}`);
+      toast.error(
+        `Error updating article. ${error?.message ?? "Unknown error"}`,
+      );
       setIsSubmitting(false);
     }
   }
@@ -118,6 +128,7 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* title */}
             <FormField
               control={form.control}
               name="title"
@@ -132,6 +143,7 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
               )}
             />
 
+            {/* content */}
             <FormField
               control={form.control}
               name="content"
@@ -146,6 +158,7 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
               )}
             />
 
+            {/* status */}
             <div className="space-y-2">
               <Label htmlFor="edit-status" className="text-sm">
                 Status
@@ -154,7 +167,10 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
                 name="status"
                 control={form.control}
                 render={({ field }) => (
-                  <Select value={field.value || ""} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value || ""}
+                    onValueChange={field.onChange}
+                  >
                     <SelectTrigger id="edit-status" disabled={isSubmitting}>
                       <SelectValue placeholder="Select a status" />
                     </SelectTrigger>
@@ -176,6 +192,7 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
               )}
             </div>
 
+            {/* file upload */}
             <div className="space-y-2">
               <Label className="text-sm">Media</Label>
               <MediaManager

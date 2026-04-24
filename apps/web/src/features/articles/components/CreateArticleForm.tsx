@@ -10,6 +10,7 @@ import {
 } from "../schemas/createArticle.schema";
 import { useCreateArticle } from "../hooks";
 import { addArticleMedia, setArticleMediaPrimary } from "../api";
+import { ARTICLE_STATUSES } from "../types/article";
 import {
   Form,
   FormField,
@@ -35,7 +36,6 @@ import {
   createMediaHandlers,
   applyCreateMediaChanges,
 } from "@/components/ui/media-utils";
-import { ARTICLE_STATUSES } from "../types/article";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -45,6 +45,8 @@ export function CreateArticleForm() {
   const [items, setItems] = useState<UnifiedMediaItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const { handleFilesDropped, handleRemove, handleSetPrimary } =
+    createMediaHandlers(setItems, MAX_FILES);
 
   const form = useForm<CreateArticleInput>({
     resolver: zodResolver(createArticleSchema),
@@ -56,15 +58,16 @@ export function CreateArticleForm() {
     },
   });
 
-  const { formState: { isValid } } = form;
+  const {
+    formState: { isValid },
+  } = form;
   const createArticleMutation = useCreateArticle();
-
-  const { handleFilesDropped, handleRemove, handleSetPrimary } =
-    createMediaHandlers(setItems, MAX_FILES);
 
   async function onSubmit(data: CreateArticleInput) {
     if (!validateQueuedFiles(items)) {
-      toast.error("Some files have unsupported types. Remove them before submitting.");
+      toast.error(
+        "Some files have unsupported types. Remove them before submitting.",
+      );
       return;
     }
     setIsSubmitting(true);
@@ -99,6 +102,7 @@ export function CreateArticleForm() {
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* title */}
             <FormField
               control={form.control}
               name="title"
@@ -113,6 +117,7 @@ export function CreateArticleForm() {
               )}
             />
 
+            {/* content */}
             <FormField
               control={form.control}
               name="content"
@@ -127,6 +132,7 @@ export function CreateArticleForm() {
               )}
             />
 
+            {/* status */}
             <div className="space-y-2">
               <Label htmlFor="create-status" className="text-sm">
                 Status
@@ -135,7 +141,10 @@ export function CreateArticleForm() {
                 name="status"
                 control={form.control}
                 render={({ field }) => (
-                  <Select value={field.value || ""} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value || ""}
+                    onValueChange={field.onChange}
+                  >
                     <SelectTrigger id="create-status" disabled={isSubmitting}>
                       <SelectValue placeholder="Select a status" />
                     </SelectTrigger>
@@ -157,6 +166,7 @@ export function CreateArticleForm() {
               )}
             </div>
 
+            {/* file upload */}
             <div className="space-y-2">
               <Label className="text-sm">Media (optional)</Label>
               <MediaManager
