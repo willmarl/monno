@@ -18,9 +18,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { Article, ArticleMedia, ARTICLE_STATUSES } from "../types/article";
+import { Article, ARTICLE_STATUSES } from "../types/article";
 import { Textarea } from "@/components/ui/textarea";
-import { MediaManager, UnifiedMediaItem, ALLOWED_IMAGE_TYPES } from "@/components/ui/MediaManager";
+import { MediaManager, UnifiedMediaItem } from "@/components/ui/MediaManager";
+import {
+  toUnified,
+  validateQueuedFiles,
+  createMediaHandlers,
+  applyMediaChanges,
+} from "@/components/ui/media-utils";
 import {
   Select,
   SelectContent,
@@ -31,19 +37,6 @@ import {
 import { toast } from "sonner";
 
 const MAX_FILES = 3;
-
-function toUnified(m: ArticleMedia): UnifiedMediaItem {
-  return {
-    kind: "existing",
-    localId: `e-${m.id}`,
-    id: m.id,
-    original: m.original,
-    thumbnail: m.thumbnail,
-    mimeType: m.mimeType,
-    isPrimary: m.isPrimary,
-    pendingRemoval: false,
-  };
-}
 
 interface AdminInlineEditArticleFormProps {
   onSuccess?: () => void;
@@ -84,110 +77,25 @@ export function AdminInlineEditArticleForm({
 
   const { isValid } = form.formState;
 
-  function handleFilesDropped(files: File[]) {
-    const newItems: UnifiedMediaItem[] = files.map((f) => ({
-      kind: "queued",
-      localId: crypto.randomUUID(),
-      file: f,
-      preview: URL.createObjectURL(f),
-      isPrimary: false,
-    }));
-    setItems((prev) =>
-      [...prev, ...newItems].slice(
-        0,
-        MAX_FILES + prev.filter((i) => i.kind === "existing" && i.pendingRemoval).length
-      )
-    );
-  }
-
-  function handleRemove(localId: string) {
-    setItems((prev) =>
-      prev.flatMap((i) => {
-        if (i.localId !== localId) return [i];
-        if (i.kind === "queued") { URL.revokeObjectURL(i.preview); return []; }
-        return [{ ...i, pendingRemoval: true, isPrimary: false }];
-      })
-    );
-  }
-
-  function handleUndoRemove(localId: string) {
-    setItems((prev) =>
-      prev.map((i) =>
-        i.localId === localId && i.kind === "existing" ? { ...i, pendingRemoval: false } : i
-      )
-    );
-  }
-
-  function handleSetPrimary(localId: string) {
-    setItems((prev) => prev.map((i) => ({ ...i, isPrimary: i.localId === localId })));
-  }
+  const { handleFilesDropped, handleRemove, handleUndoRemove, handleSetPrimary } =
+    createMediaHandlers(setItems, MAX_FILES);
 
   async function handleSubmit(data: AdminUpdateArticleInput) {
-    const invalid = items.filter(
-      (i) => i.kind === "queued" && !ALLOWED_IMAGE_TYPES.includes(i.file.type as any)
-    );
-    if (invalid.length > 0) {
+    if (!validateQueuedFiles(items)) {
       toast.error("Some files have unsupported types. Remove them before submitting.");
       return;
     }
-
     setIsSubmitting(true);
     try {
       await updateArticleMutation.mutateAsync({ id: articleData.id, data });
-
-      const toDelete = items.filter(
-        (i): i is Extract<UnifiedMediaItem, { kind: "existing" }> =>
-          i.kind === "existing" && i.pendingRemoval
-      );
-      const activeItems = items.filter((i) => !(i.kind === "existing" && i.pendingRemoval));
-      const queuedItems = activeItems.filter(
-        (i): i is Extract<UnifiedMediaItem, { kind: "queued" }> => i.kind === "queued"
-      );
-      const existingActive = activeItems.filter(
-        (i): i is Extract<UnifiedMediaItem, { kind: "existing" }> => i.kind === "existing"
-      );
-
-      for (const item of toDelete) {
-        await removeMedia.mutateAsync(item.id);
-      }
-
-      let uploadedMedia: ArticleMedia[] = [];
-      if (queuedItems.length > 0) {
-        uploadedMedia = await addMedia.mutateAsync(queuedItems.map((i) => i.file));
-      }
-
-      const localIdToRealId = new Map<string, number>();
-      existingActive.forEach((i) => localIdToRealId.set(i.localId, i.id));
-      queuedItems.forEach((item, idx) => {
-        if (uploadedMedia[idx]) localIdToRealId.set(item.localId, uploadedMedia[idx].id);
+      await applyMediaChanges({
+        items,
+        sortedMedia,
+        addFn: (files) => addMedia.mutateAsync(files),
+        removeFn: (id) => removeMedia.mutateAsync(id),
+        setPrimaryFn: (id) => setPrimary.mutateAsync(id),
+        reorderFn: (ids) => reorderMedia.mutateAsync(ids),
       });
-
-      const finalIds = activeItems
-        .map((i) => localIdToRealId.get(i.localId))
-        .filter((id): id is number => id !== undefined);
-
-      if (finalIds.length > 1) {
-        const originalActiveIds = sortedMedia
-          .filter((m) => !toDelete.some((d) => d.id === m.id))
-          .map((m) => m.id);
-        const existingNewOrder = existingActive.map((i) => i.id);
-        const orderChanged = JSON.stringify(originalActiveIds) !== JSON.stringify(existingNewOrder);
-        if (orderChanged || uploadedMedia.length > 0) {
-          await reorderMedia.mutateAsync(finalIds);
-        }
-      }
-
-      const primaryItem = activeItems.find((i) => i.isPrimary);
-      const originalPrimaryId = sortedMedia.find((m) => m.isPrimary)?.id;
-      const newPrimaryId = primaryItem ? localIdToRealId.get(primaryItem.localId) : undefined;
-      if (newPrimaryId !== undefined && newPrimaryId !== originalPrimaryId) {
-        await setPrimary.mutateAsync(newPrimaryId);
-      }
-
-      items.filter((i) => i.kind === "queued").forEach((i) => {
-        if (i.kind === "queued") URL.revokeObjectURL(i.preview);
-      });
-
       setIsSubmitting(false);
       form.reset();
       if (!isAlwaysOpen) setIsOpen(false);

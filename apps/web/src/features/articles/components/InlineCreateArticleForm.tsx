@@ -22,7 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MediaManager, UnifiedMediaItem, ALLOWED_IMAGE_TYPES } from "@/components/ui/MediaManager";
+import { MediaManager, UnifiedMediaItem } from "@/components/ui/MediaManager";
+import {
+  validateQueuedFiles,
+  revokeQueuedPreviews,
+  createMediaHandlers,
+  applyCreateMediaChanges,
+} from "@/components/ui/media-utils";
 import { ARTICLE_STATUSES } from "../types/article";
 import { toast } from "sonner";
 
@@ -59,65 +65,27 @@ export function InlineCreateArticleForm({
   const createArticleMutation = useCreateArticle();
   const { isValid } = form.formState;
 
-  function handleFilesDropped(files: File[]) {
-    const newItems: UnifiedMediaItem[] = files.map((f) => ({
-      kind: "queued",
-      localId: crypto.randomUUID(),
-      file: f,
-      preview: URL.createObjectURL(f),
-      isPrimary: false,
-    }));
-    setItems((prev) => [...prev, ...newItems].slice(0, MAX_FILES));
-  }
-
-  function handleRemove(localId: string) {
-    setItems((prev) => {
-      const item = prev.find((i) => i.localId === localId);
-      if (item?.kind === "queued") URL.revokeObjectURL(item.preview);
-      return prev.filter((i) => i.localId !== localId);
-    });
-  }
-
-  function handleSetPrimary(localId: string) {
-    setItems((prev) =>
-      prev.map((i) => ({ ...i, isPrimary: i.localId === localId }))
-    );
-  }
+  const { handleFilesDropped, handleRemove, handleSetPrimary } =
+    createMediaHandlers(setItems, MAX_FILES);
 
   function handleReset() {
-    items.forEach((i) => {
-      if (i.kind === "queued") URL.revokeObjectURL(i.preview);
-    });
+    revokeQueuedPreviews(items);
     setItems([]);
     form.reset();
   }
 
   async function handleSubmit(data: CreateArticleInput) {
-    const invalid = items.filter(
-      (i) => i.kind === "queued" && !ALLOWED_IMAGE_TYPES.includes(i.file.type as any)
-    );
-    if (invalid.length > 0) {
+    if (!validateQueuedFiles(items)) {
       toast.error("Some files have unsupported types. Remove them before submitting.");
       return;
     }
-
     setIsSubmitting(true);
     try {
       const article = await createArticleMutation.mutateAsync(data);
-
-      if (items.length > 0) {
-        const uploaded = await addArticleMedia(
-          article.id,
-          items.map((i) => (i.kind === "queued" ? i.file : null!)).filter(Boolean)
-        );
-        const primaryIdx = items.findIndex((i) => i.isPrimary);
-        if (primaryIdx >= 0 && uploaded[primaryIdx]) {
-          await setArticleMediaPrimary(article.id, uploaded[primaryIdx].id);
-        }
-      }
-
-      items.forEach((i) => {
-        if (i.kind === "queued") URL.revokeObjectURL(i.preview);
+      await applyCreateMediaChanges({
+        items,
+        addFn: (files) => addArticleMedia(article.id, files),
+        setPrimaryFn: (mediaId) => setArticleMediaPrimary(article.id, mediaId),
       });
       handleReset();
       if (!isAlwaysOpen) setIsOpen(false);
@@ -139,7 +107,6 @@ export function InlineCreateArticleForm({
 
   return (
     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-      {/* title */}
       <div className="space-y-2">
         <Label htmlFor="inline-title" className="text-sm">Title</Label>
         <Input
@@ -154,7 +121,6 @@ export function InlineCreateArticleForm({
         )}
       </div>
 
-      {/* content */}
       <div className="space-y-2">
         <Label htmlFor="inline-content" className="text-sm">Content</Label>
         <Textarea
@@ -168,7 +134,6 @@ export function InlineCreateArticleForm({
         )}
       </div>
 
-      {/* status */}
       <div className="space-y-2">
         <Label htmlFor="inline-status" className="text-sm">Status</Label>
         <Controller
@@ -194,7 +159,6 @@ export function InlineCreateArticleForm({
         )}
       </div>
 
-      {/* Media */}
       <div className="space-y-2">
         <Label className="text-sm">Media (optional)</Label>
         <MediaManager
@@ -208,7 +172,6 @@ export function InlineCreateArticleForm({
         />
       </div>
 
-      {/* Action Buttons */}
       <div className="flex gap-3 pt-2">
         <Button
           type="button"

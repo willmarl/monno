@@ -18,7 +18,7 @@ import {
 import { ColumnDef } from "@tanstack/react-table";
 import { Article } from "@/features/admin/articles/types/article";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { AppImage } from "@/components/ui/AppImage";
+import { MediaGallery } from "@/components/ui/MediaGallery";
 import {
   useAdminDeleteArticle,
   useAdminRestoreArticle,
@@ -73,17 +73,22 @@ export const columns: ColumnDef<Article>[] = [
     header: "Image",
     cell: ({ row }) => {
       const article = row.original;
-      const primary = article.media.find((m) => m.isPrimary) ?? article.media[0];
-      if (!primary) {
+      if (!article.media.length) {
         return <div className="text-xs text-muted-foreground">No image</div>;
       }
+      const sorted = [...article.media].sort((a, b) => a.sortOrder - b.sortOrder);
       return (
-        <AppImage
-          src={primary.thumbnail ?? primary.original}
-          alt={article.title}
-          className="h-16 w-16 rounded object-cover cursor-pointer hover:opacity-80 transition-opacity"
-          expandable
-        />
+        <div className="relative inline-block">
+          <MediaGallery
+            images={sorted.map((m) => ({ src: m.thumbnail ?? m.original, alt: article.title }))}
+            className="h-16 w-16 rounded"
+          />
+          {sorted.length > 1 && (
+            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] font-semibold leading-none px-1.5 py-0.5 rounded-full pointer-events-none">
+              {sorted.length}
+            </span>
+          )}
+        </div>
       );
     },
   },

@@ -34,25 +34,18 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { MediaManager, UnifiedMediaItem } from "@/components/ui/MediaManager";
-import { Article, ArticleMedia, ARTICLE_STATUSES } from "../types/article";
+import {
+  toUnified,
+  validateQueuedFiles,
+  createMediaHandlers,
+  applyMediaChanges,
+} from "@/components/ui/media-utils";
+import { Article, ARTICLE_STATUSES } from "../types/article";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 const MAX_FILES = 3;
-
-function toUnified(m: ArticleMedia): UnifiedMediaItem {
-  return {
-    kind: "existing",
-    localId: `e-${m.id}`,
-    id: m.id,
-    original: m.original,
-    thumbnail: m.thumbnail,
-    mimeType: m.mimeType,
-    isPrimary: m.isPrimary,
-    pendingRemoval: false,
-  };
-}
 
 export function EditArticleForm({ articleData }: { articleData: Article }) {
   const sortedMedia = [...articleData.media].sort(
@@ -82,115 +75,25 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
   const setPrimary = useSetArticleMediaPrimary(articleData.id);
   const reorderMedia = useReorderArticleMedia(articleData.id);
 
-  function handleFilesDropped(files: File[]) {
-    const newItems: UnifiedMediaItem[] = files.map((f) => ({
-      kind: "queued",
-      localId: crypto.randomUUID(),
-      file: f,
-      preview: URL.createObjectURL(f),
-      isPrimary: false,
-    }));
-    setItems((prev) => [...prev, ...newItems].slice(0, MAX_FILES + prev.filter(i => i.kind === "existing" && i.pendingRemoval).length));
-  }
-
-  function handleRemove(localId: string) {
-    setItems((prev) =>
-      prev.flatMap((i) => {
-        if (i.localId !== localId) return [i];
-        if (i.kind === "queued") {
-          URL.revokeObjectURL(i.preview);
-          return [];
-        }
-        return [{ ...i, pendingRemoval: true, isPrimary: false }];
-      })
-    );
-  }
-
-  function handleUndoRemove(localId: string) {
-    setItems((prev) =>
-      prev.map((i) =>
-        i.localId === localId && i.kind === "existing"
-          ? { ...i, pendingRemoval: false }
-          : i
-      )
-    );
-  }
-
-  function handleSetPrimary(localId: string) {
-    setItems((prev) =>
-      prev.map((i) => ({ ...i, isPrimary: i.localId === localId }))
-    );
-  }
+  const { handleFilesDropped, handleRemove, handleUndoRemove, handleSetPrimary } =
+    createMediaHandlers(setItems, MAX_FILES);
 
   async function onSubmit(data: UpdateArticleInput) {
+    if (!validateQueuedFiles(items)) {
+      toast.error("Some files have unsupported types. Remove them before submitting.");
+      return;
+    }
     setIsSubmitting(true);
     try {
       await updateArticleMutation.mutateAsync({ id: articleData.id, data });
-
-      const toDelete = items.filter(
-        (i): i is Extract<UnifiedMediaItem, { kind: "existing" }> =>
-          i.kind === "existing" && i.pendingRemoval
-      );
-      const activeItems = items.filter(
-        (i) => !(i.kind === "existing" && i.pendingRemoval)
-      );
-      const queuedItems = activeItems.filter(
-        (i): i is Extract<UnifiedMediaItem, { kind: "queued" }> =>
-          i.kind === "queued"
-      );
-      const existingActive = activeItems.filter(
-        (i): i is Extract<UnifiedMediaItem, { kind: "existing" }> =>
-          i.kind === "existing"
-      );
-
-      for (const item of toDelete) {
-        await removeMedia.mutateAsync(item.id);
-      }
-
-      let uploadedMedia: ArticleMedia[] = [];
-      if (queuedItems.length > 0) {
-        uploadedMedia = await addMedia.mutateAsync(
-          queuedItems.map((i) => i.file)
-        );
-      }
-
-      // Map localIds to real IDs for ordering and primary
-      const localIdToRealId = new Map<string, number>();
-      existingActive.forEach((i) => localIdToRealId.set(i.localId, i.id));
-      queuedItems.forEach((item, idx) => {
-        if (uploadedMedia[idx]) localIdToRealId.set(item.localId, uploadedMedia[idx].id);
+      await applyMediaChanges({
+        items,
+        sortedMedia,
+        addFn: (files) => addMedia.mutateAsync(files),
+        removeFn: (id) => removeMedia.mutateAsync(id),
+        setPrimaryFn: (id) => setPrimary.mutateAsync(id),
+        reorderFn: (ids) => reorderMedia.mutateAsync(ids),
       });
-
-      const finalIds = activeItems
-        .map((i) => localIdToRealId.get(i.localId))
-        .filter((id): id is number => id !== undefined);
-
-      if (finalIds.length > 1) {
-        const originalActiveIds = sortedMedia
-          .filter((m) => !toDelete.some((d) => d.id === m.id))
-          .map((m) => m.id);
-        const existingNewOrder = existingActive.map((i) => i.id);
-        const orderChanged =
-          JSON.stringify(originalActiveIds) !== JSON.stringify(existingNewOrder);
-        if (orderChanged || uploadedMedia.length > 0) {
-          await reorderMedia.mutateAsync(finalIds);
-        }
-      }
-
-      const primaryItem = activeItems.find((i) => i.isPrimary);
-      const originalPrimaryId = sortedMedia.find((m) => m.isPrimary)?.id;
-      const newPrimaryId = primaryItem
-        ? localIdToRealId.get(primaryItem.localId)
-        : undefined;
-      if (newPrimaryId !== undefined && newPrimaryId !== originalPrimaryId) {
-        await setPrimary.mutateAsync(newPrimaryId);
-      }
-
-      items
-        .filter((i) => i.kind === "queued")
-        .forEach((i) => {
-          if (i.kind === "queued") URL.revokeObjectURL(i.preview);
-        });
       toast.success("Article updated");
       router.push(`/article/${articleData.id}`);
     } catch (error: any) {
@@ -215,7 +118,6 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* title */}
             <FormField
               control={form.control}
               name="title"
@@ -230,7 +132,6 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
               )}
             />
 
-            {/* content */}
             <FormField
               control={form.control}
               name="content"
@@ -245,7 +146,6 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
               )}
             />
 
-            {/* status */}
             <div className="space-y-2">
               <Label htmlFor="edit-status" className="text-sm">
                 Status
@@ -276,7 +176,6 @@ export function EditArticleForm({ articleData }: { articleData: Article }) {
               )}
             </div>
 
-            {/* Media */}
             <div className="space-y-2">
               <Label className="text-sm">Media</Label>
               <MediaManager

@@ -29,7 +29,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { MediaManager, UnifiedMediaItem, ALLOWED_IMAGE_TYPES } from "@/components/ui/MediaManager";
+import { MediaManager, UnifiedMediaItem } from "@/components/ui/MediaManager";
+import {
+  validateQueuedFiles,
+  createMediaHandlers,
+  applyCreateMediaChanges,
+} from "@/components/ui/media-utils";
 import { ARTICLE_STATUSES } from "../types/article";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -54,57 +59,21 @@ export function CreateArticleForm() {
   const { formState: { isValid } } = form;
   const createArticleMutation = useCreateArticle();
 
-  function handleFilesDropped(files: File[]) {
-    const newItems: UnifiedMediaItem[] = files.map((f) => ({
-      kind: "queued",
-      localId: crypto.randomUUID(),
-      file: f,
-      preview: URL.createObjectURL(f),
-      isPrimary: false,
-    }));
-    setItems((prev) => [...prev, ...newItems].slice(0, MAX_FILES));
-  }
-
-  function handleRemove(localId: string) {
-    setItems((prev) => {
-      const item = prev.find((i) => i.localId === localId);
-      if (item?.kind === "queued") URL.revokeObjectURL(item.preview);
-      return prev.filter((i) => i.localId !== localId);
-    });
-  }
-
-  function handleSetPrimary(localId: string) {
-    setItems((prev) =>
-      prev.map((i) => ({ ...i, isPrimary: i.localId === localId }))
-    );
-  }
+  const { handleFilesDropped, handleRemove, handleSetPrimary } =
+    createMediaHandlers(setItems, MAX_FILES);
 
   async function onSubmit(data: CreateArticleInput) {
-    const invalid = items.filter(
-      (i) => i.kind === "queued" && !ALLOWED_IMAGE_TYPES.includes(i.file.type as any)
-    );
-    if (invalid.length > 0) {
+    if (!validateQueuedFiles(items)) {
       toast.error("Some files have unsupported types. Remove them before submitting.");
       return;
     }
-
     setIsSubmitting(true);
     try {
       const article = await createArticleMutation.mutateAsync(data);
-
-      if (items.length > 0) {
-        const uploaded = await addArticleMedia(
-          article.id,
-          items.map((i) => (i.kind === "queued" ? i.file : null!)).filter(Boolean)
-        );
-        const primaryIdx = items.findIndex((i) => i.isPrimary);
-        if (primaryIdx >= 0 && uploaded[primaryIdx]) {
-          await setArticleMediaPrimary(article.id, uploaded[primaryIdx].id);
-        }
-      }
-
-      items.forEach((i) => {
-        if (i.kind === "queued") URL.revokeObjectURL(i.preview);
+      await applyCreateMediaChanges({
+        items,
+        addFn: (files) => addArticleMedia(article.id, files),
+        setPrimaryFn: (mediaId) => setArticleMediaPrimary(article.id, mediaId),
       });
       toast.success("Article created");
       router.push(`/article/${article.id}`);
@@ -130,7 +99,6 @@ export function CreateArticleForm() {
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* title */}
             <FormField
               control={form.control}
               name="title"
@@ -145,7 +113,6 @@ export function CreateArticleForm() {
               )}
             />
 
-            {/* content */}
             <FormField
               control={form.control}
               name="content"
@@ -160,7 +127,6 @@ export function CreateArticleForm() {
               )}
             />
 
-            {/* status */}
             <div className="space-y-2">
               <Label htmlFor="create-status" className="text-sm">
                 Status
@@ -191,7 +157,6 @@ export function CreateArticleForm() {
               )}
             </div>
 
-            {/* Media */}
             <div className="space-y-2">
               <Label className="text-sm">Media (optional)</Label>
               <MediaManager

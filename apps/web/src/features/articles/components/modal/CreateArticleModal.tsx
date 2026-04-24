@@ -17,7 +17,7 @@ export function CreateArticleModal() {
       onError={() => {
         toast.error("Error trying to make article");
       }}
-      isAlwaysOpen={false}
+      isAlwaysOpen={true}
     />
   );
 }
