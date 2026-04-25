@@ -41,3 +41,7 @@
 **Testing**
 
 - Integration tests (e.g., "can't delete another person's post") with vitest + supertest
+
+**Refactor**
+
+- Remove `Create/EditFoo` as `InlineCreate/EditFoo` can basically already do non-inline functionality. Need to go through out guide and repo and make all form use Inline and drop the name "Inline".
