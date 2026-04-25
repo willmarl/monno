@@ -29,6 +29,7 @@ import { RolesGuard } from '../../../common/guards/roles.guard';
 import { AdminUserService } from './admin-user.service';
 import { UsersService } from '../../users/users.service';
 import { CreateUserDto } from '../../users/dto/create-user.dto';
+import { CreateUserAdminDto } from '../dto/create-user-admin.dto';
 import { UpdateUserAdminDto } from '../dto/update-user-admin.dto';
 import { UploadedFile } from '@nestjs/common';
 import {
@@ -88,7 +89,7 @@ export class AdminUsersController {
 
   @ApiOperation({ summary: 'Create a new user (admin only)' })
   @ApiBearerAuth()
-  @ApiBody({ type: CreateUserDto })
+  @ApiBody({ type: CreateUserAdminDto })
   @ApiResponse({
     status: 201,
     description: 'User created successfully',
@@ -97,8 +98,8 @@ export class AdminUsersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @Post()
-  create(@Body() body: CreateUserDto) {
-    return this.usersService.create(body);
+  create(@Body() body: CreateUserAdminDto) {
+    return this.usersService.create(body as CreateUserDto);
   }
 
   @ApiOperation({ summary: 'Update a user (admin only)' })
