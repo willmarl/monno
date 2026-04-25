@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 interface InlineCreateTicketFormProps {
   onSuccess?: () => void;
@@ -96,9 +97,8 @@ export function InlineCreateTicketForm({
         <Label htmlFor="inline-message" className="text-sm">
           Message
         </Label>
-        <Input
+        <Textarea
           id="inline-message"
-          type="text"
           placeholder="message"
           disabled={createTicketMutation.isPending}
           {...form.register("message")}

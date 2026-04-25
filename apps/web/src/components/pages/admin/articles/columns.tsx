@@ -68,6 +68,7 @@ export const columns: ColumnDef<Article>[] = [
       />
     ),
   },
+  // If not using image then omit image column
   {
     accessorKey: "media",
     header: "Image",
@@ -76,11 +77,16 @@ export const columns: ColumnDef<Article>[] = [
       if (!article.media.length) {
         return <div className="text-xs text-muted-foreground">No image</div>;
       }
-      const sorted = [...article.media].sort((a, b) => a.sortOrder - b.sortOrder);
+      const sorted = [...article.media].sort(
+        (a, b) => a.sortOrder - b.sortOrder,
+      );
       return (
         <div className="relative inline-block">
           <MediaGallery
-            images={sorted.map((m) => ({ src: m.thumbnail ?? m.original, alt: article.title }))}
+            images={sorted.map((m) => ({
+              src: m.thumbnail ?? m.original,
+              alt: article.title,
+            }))}
             className="h-16 w-16 rounded"
           />
           {sorted.length > 1 && (
@@ -92,7 +98,7 @@ export const columns: ColumnDef<Article>[] = [
       );
     },
   },
-  // EoF Omit
+  // EoL Omit
   {
     accessorKey: "content",
     header: ({ column }) => <SortableHeader column={column} label="Content" />,

@@ -45,7 +45,7 @@ export function ArticlePage({ user, searchParams }: ArticlePageProps) {
             >
               Create Article
             </Button>
-            {/* EoF test */}
+            {/* EoL test */}
           </div>
         ) : (
           ""

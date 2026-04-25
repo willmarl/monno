@@ -8,7 +8,7 @@ Browse all application screenshots below to see the features and UI in action.
 
 ### Login
 
-![Login Screen](./screenshots/Login.jpg)
+![Login Screen](../screenshots/Login.jpg)
 
 ---
 
@@ -16,11 +16,11 @@ Browse all application screenshots below to see the features and UI in action.
 
 ### Admin Dashboard
 
-![Admin Dashboard](./screenshots/Admin-Dashboard.jpg)
+![Admin Dashboard](../screenshots/Admin-Dashboard.jpg)
 
 ### Users Admin Dashboard
 
-![Users Admin Dashboard](./screenshots/Users-Admin-Dashboard.jpg)
+![Users Admin Dashboard](../screenshots/Users-Admin-Dashboard.jpg)
 
 ---
 
@@ -28,19 +28,19 @@ Browse all application screenshots below to see the features and UI in action.
 
 ### Posts Feed
 
-![Posts Feed](./screenshots/Posts.jpg)
+![Posts Feed](../screenshots/Posts.jpg)
 
 ### Create Post
 
-![Create Post](./screenshots/Create.jpg)
+![Create Post](../screenshots/Create.jpg)
 
 ### Single Post View
 
-![Post View](./screenshots/Post.jpg)
+![Post View](../screenshots/Post.jpg)
 
 ### Search Posts
 
-![Search Posts](./screenshots/Search-posts.jpg)
+![Search Posts](../screenshots/Search-posts.jpg)
 
 ---
 
@@ -48,11 +48,11 @@ Browse all application screenshots below to see the features and UI in action.
 
 ### Profile
 
-![User Profile](./screenshots/Profile.jpg)
+![User Profile](../screenshots/Profile.jpg)
 
 ### Search Users
 
-![Search Users](./screenshots/Search-users.jpg)
+![Search Users](../screenshots/Search-users.jpg)
 
 ---
 
@@ -60,11 +60,11 @@ Browse all application screenshots below to see the features and UI in action.
 
 ### Collections
 
-![Collections](./screenshots/Collections.jpg)
+![Collections](../screenshots/Collections.jpg)
 
 ### Comments
 
-![Comments](./screenshots/Comment.jpg)
+![Comments](../screenshots/Comment.jpg)
 
 ---
 
@@ -72,8 +72,20 @@ Browse all application screenshots below to see the features and UI in action.
 
 ### Settings
 
-![Settings](./screenshots/Settings.jpg)
+![Settings](../screenshots/Settings.jpg)
 
 ### Dark Mode
 
-![Dark Mode](./screenshots/Dark-Mode.jpg)
+![Dark Mode](../screenshots/Dark-Mode.jpg)
+
+---
+
+## File upload
+
+### Single file upload
+
+![Single File Upload](../screenshots/Single-File-Upload.jpg)
+
+### Multi file upload
+
+![Multi File Upload](../screenshots/Multi-File-Upload.jpg)

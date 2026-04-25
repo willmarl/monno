@@ -10137,7 +10137,7 @@ export function {{resource}}({
           >
             edit inline
           </Button>
-          {/* EoF test */}
+          {/* EoL test */}
           <Button
             size="sm"
             className="cursor-pointer transition-transform hover:scale-110 h-8 w-8 p-0"
@@ -10229,7 +10229,7 @@ export function {{resource}}({
           />
         </div>
       )}
-      {/* EoF media block */}
+      {/* EoL media block */}
       <p
         className={`text-xs md:text-sm text-foreground my-3 ${truncateContent ? "line-clamp-3" : ""}`}
         style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
@@ -10278,7 +10278,7 @@ import { ConfirmModal } from "../modal/ConfirmModal";
 import { useModal } from "../providers/ModalProvider";
 import { useDeleteArticle } from "@/features/articles/hooks";
 import { toast } from "sonner";
-import { InlineEditArticleForm } from "@/features/articles/components/InlineEditArticleForm";
+import { EditArticleModal } from "@/features/articles/components/modal/EditArticleModal";
 import { AppImage } from "./AppImage"; // omit if schema doesn't have media image
 
 export function Article({
@@ -10316,14 +10316,14 @@ export function Article({
             onClick={() => {
               openModal({
                 title: "edit Article",
-                content: <InlineEditArticleForm articleData={data} />,
+                content: <EditArticleModal data={data} />,
               });
             }}
             title="edit article"
           >
             edit inline
           </Button>
-          {/* EoF test */}
+          {/* EoL test */}
           <Button
             size="sm"
             className="cursor-pointer transition-transform hover:scale-110 h-8 w-8 p-0"
@@ -10407,7 +10407,10 @@ export function Article({
           <MediaGallery
             images={data.media
               .sort((a, b) => a.sortOrder - b.sortOrder)
-              .map((m) => ({ src: m.thumbnail ?? m.original, alt: data.title }))}
+              .map((m) => ({
+                src: m.thumbnail ?? m.original,
+                alt: data.title,
+              }))}
             initialIndex={data.media.findIndex((m) => m.isPrimary) ?? 0}
             className="h-48 md:h-64 rounded-md bg-muted"
             thumbnails
@@ -10415,7 +10418,7 @@ export function Article({
           />
         </div>
       )}
-      {/* EoF media block */}
+      {/* EoL media block */}
       <p
         className={`text-xs md:text-sm text-foreground my-3 ${truncateContent ? "line-clamp-3" : ""}`}
         style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
@@ -10774,7 +10777,7 @@ export function {{resource}}Page() {
         >
           Create {{resource}}
         </Button>
-        {/* EoF test */}
+        {/* EoL test */}
       </div>
       <Paginated{{resource}} />
       {/* <Cursor{{resource}} /> */}
@@ -10825,7 +10828,7 @@ export function ArticlePage() {
         >
           Create Article
         </Button>
-        {/* EoF test */}
+        {/* EoL test */}
       </div>
       <PaginatedArticles />
       {/* <CursorArticles /> */}
@@ -11573,7 +11576,7 @@ export const columns: ColumnDef<{{resource}}>[] = [
       );
     },
   },
-  // EoF Omit
+  // EoL Omit
   {
     accessorKey: "content",
     header: ({ column }) => <SortableHeader column={column} label="Content" />,
@@ -11813,11 +11816,16 @@ export const columns: ColumnDef<Article>[] = [
       if (!article.media.length) {
         return <div className="text-xs text-muted-foreground">No image</div>;
       }
-      const sorted = [...article.media].sort((a, b) => a.sortOrder - b.sortOrder);
+      const sorted = [...article.media].sort(
+        (a, b) => a.sortOrder - b.sortOrder,
+      );
       return (
         <div className="relative inline-block">
           <MediaGallery
-            images={sorted.map((m) => ({ src: m.thumbnail ?? m.original, alt: article.title }))}
+            images={sorted.map((m) => ({
+              src: m.thumbnail ?? m.original,
+              alt: article.title,
+            }))}
             className="h-16 w-16 rounded"
           />
           {sorted.length > 1 && (
@@ -11829,7 +11837,7 @@ export const columns: ColumnDef<Article>[] = [
       );
     },
   },
-  // EoF Omit
+  // EoL Omit
   {
     accessorKey: "content",
     header: ({ column }) => <SortableHeader column={column} label="Content" />,
@@ -13790,7 +13798,7 @@ export function ArticlePage({ user, searchParams }: ArticlePageProps) {
             >
               Create Article
             </Button>
-            {/* EoF test */}
+            {/* EoL test */}
           </div>
         ) : (
           ""
@@ -14714,7 +14722,7 @@ import { ConfirmModal } from "../modal/ConfirmModal";
 import { useModal } from "../providers/ModalProvider";
 import { useDeleteArticle } from "@/features/articles/hooks";
 import { toast } from "sonner";
-import { InlineEditArticleForm } from "@/features/articles/components/InlineEditArticleForm";
+import { EditArticleModal } from "@/features/articles/components/modal/EditArticleModal";
 import { LikeButton } from "../common/LikeButton";
 import { useToggleLike } from "@/features/likes/hooks";
 import { RESOURCE_TYPES } from "@/types/resource";
@@ -14755,14 +14763,14 @@ export function Article({
             onClick={() => {
               openModal({
                 title: "edit Article",
-                content: <InlineEditArticleForm articleData={data} />,
+                content: <EditArticleModal data={data} />,
               });
             }}
             title="edit article"
           >
             edit inline
           </Button>
-          {/* EoF test */}
+          {/* EoL test */}
           <Button
             size="sm"
             className="cursor-pointer transition-transform hover:scale-110 h-8 w-8 p-0"
@@ -15403,7 +15411,7 @@ import { ConfirmModal } from "../modal/ConfirmModal";
 import { useModal } from "../providers/ModalProvider";
 import { useDeleteArticle } from "@/features/articles/hooks";
 import { toast } from "sonner";
-import { InlineEditArticleForm } from "@/features/articles/components/InlineEditArticleForm";
+import { EditArticleModal } from "@/features/articles/components/modal/EditArticleModal";
 import { LikeButton } from "../common/LikeButton";
 import { useToggleLike } from "@/features/likes/hooks";
 import { RESOURCE_TYPES } from "@/types/resource";
@@ -15445,14 +15453,14 @@ export function Article({
             onClick={() => {
               openModal({
                 title: "edit Article",
-                content: <InlineEditArticleForm articleData={data} />,
+                content: <EditArticleModal data={data} />,
               });
             }}
             title="edit article"
           >
             edit inline
           </Button>
-          {/* EoF test */}
+          {/* EoL test */}
           <Button
             size="sm"
             className="cursor-pointer transition-transform hover:scale-110 h-8 w-8 p-0"

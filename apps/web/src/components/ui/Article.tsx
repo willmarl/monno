@@ -58,7 +58,7 @@ export function Article({
           >
             edit inline
           </Button>
-          {/* EoF test */}
+          {/* EoL test */}
           <Button
             size="sm"
             className="cursor-pointer transition-transform hover:scale-110 h-8 w-8 p-0"
