@@ -101,30 +101,35 @@ function ModalCarousel({
         )}
       </div>
 
-      {/* Dot indicators */}
+      {/* Thumbnail strip */}
       {images.length > 1 && (
-        <div className="flex gap-1.5">
-          {images.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setIdx(i)}
-              aria-label={`Go to image ${i + 1}`}
-              className={cn(
-                "cursor-pointer h-1.5 rounded-full transition-all",
-                i === idx
-                  ? "w-4 bg-white"
-                  : "w-1.5 bg-white/40 hover:bg-white/70",
-              )}
-            />
-          ))}
+        <div className="flex flex-col gap-2 items-center">
+          <div className="flex gap-1.5 overflow-x-auto max-w-[70vw] justify-center px-2">
+            {images.map((img, i) => (
+              <button
+                key={img.src}
+                onClick={() => setIdx(i)}
+                aria-label={`Go to image ${i + 1}`}
+                className={cn(
+                  "cursor-pointer h-12 w-12 shrink-0 overflow-hidden rounded border-2 transition-all",
+                  i === idx
+                    ? "border-white opacity-100 ring-1 ring-white"
+                    : "border-white/30 opacity-60 hover:opacity-90",
+                )}
+              >
+                <img
+                  src={img.src}
+                  alt={img.alt ?? ""}
+                  className="h-full w-full object-cover"
+                  draggable={false}
+                />
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-white/50">
+            {idx + 1} / {images.length}
+          </p>
         </div>
-      )}
-
-      {/* Counter */}
-      {images.length > 1 && (
-        <p className="text-xs text-white/50">
-          {idx + 1} / {images.length}
-        </p>
       )}
     </div>
   );
