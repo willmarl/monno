@@ -48,7 +48,11 @@ export default function RegisterForm() {
     };
     registerMutation.mutate(payload, {
       onError: (err) => {
-        toast.error(String(err));
+        const errorMessage = String(err);
+        form.setError("root", {
+          message: errorMessage,
+        });
+        toast.error(errorMessage);
       },
     });
 
@@ -65,17 +69,26 @@ export default function RegisterForm() {
       <div className="text-center space-y-3">
         <div className="flex justify-center">
           <img
-            src="/favicon.ico"
-            alt="Monno"
+            src="/favicon.svg"
+            alt="Invare"
             className="w-12 h-12 rounded-lg"
           />
         </div>
-        <h1 className="text-2xl font-bold text-foreground">Monno</h1>
+        <h1 className="text-2xl font-bold text-foreground">Invare</h1>
         <p className="text-sm text-muted-foreground">Create your account</p>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          {/* Error alert */}
+          {form.formState.errors.root && (
+            <div className="bg-destructive/10 border border-destructive/30 rounded-md p-3">
+              <p className="text-sm text-destructive font-medium">
+                {form.formState.errors.root.message}
+              </p>
+            </div>
+          )}
+
           {/* username */}
           <FormField
             control={form.control}
