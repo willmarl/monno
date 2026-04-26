@@ -6,6 +6,7 @@
 - Email notifications for account status changes (banned, restored, deleted, etc)
 - Make roles (mod) and status (banned, suspended) functional instead of being a placeholder
 - Email rate limiting / request tracking (prevent spam on forgot password, verify email, etc) to run up resend API cost
+- Make inputting password required to delete account
 
 **Admin Dashboard**
 
@@ -45,3 +46,7 @@
 **Refactor**
 
 - Remove `Create/EditFoo` as `InlineCreate/EditFoo` can basically already do non-inline functionality. Need to go through out guide and repo and make all form use Inline and drop the name "Inline".
+
+**Guides**
+
+- Instructions for AI on how to make new email job
