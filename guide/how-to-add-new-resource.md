@@ -2632,7 +2632,7 @@ restore(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
 }
 ```
 
-# part 9 | add stats for {{resource}} in admin
+# part 7 | add stats for {{resource}} in admin
 
 ## step 1 add to `admin.service.ts` get stats
 
