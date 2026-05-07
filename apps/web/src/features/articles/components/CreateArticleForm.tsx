@@ -100,9 +100,12 @@ export function CreateArticleForm({
       });
       handleReset();
       if (!isAlwaysOpen) setIsOpen(false);
+      // redirect here — form owns this because only the form has the new article's ID
       router.push(`/article/${article.id}`);
+      // onSuccess is for caller extras only (e.g. show a toast, close a modal)
       onSuccess?.();
     } catch (err: any) {
+      // no toast here — caller handles error feedback via onError
       onError?.(err);
       setIsSubmitting(false);
     }

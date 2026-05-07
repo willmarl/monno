@@ -7083,9 +7083,12 @@ export function Create{{resource}}Form({
       const {{resource}} = await create{{resource}}Mutation.mutateAsync(data);
       handleReset();
       if (!isAlwaysOpen) setIsOpen(false);
+      // redirect here — form owns this because only the form has the new item's ID
       router.push(`/{{resource}}/${{{resource}}.id}`);
+      // onSuccess is for caller extras only (e.g. show a toast, close a modal)
       onSuccess?.();
     } catch (err: any) {
+      // no toast here — caller handles error feedback via onError
       onError?.(err);
       setIsSubmitting(false);
     }
@@ -7305,9 +7308,12 @@ export function CreateArticleForm({
       });
       handleReset();
       if (!isAlwaysOpen) setIsOpen(false);
+      // redirect here — form owns this because only the form has the new article's ID
       router.push(`/article/${article.id}`);
+      // onSuccess is for caller extras only (e.g. show a toast, close a modal)
       onSuccess?.();
     } catch (err: any) {
+      // no toast here — caller handles error feedback via onError
       onError?.(err);
       setIsSubmitting(false);
     }
@@ -7642,8 +7648,10 @@ export function Edit{{resource}}Form({
       setIsSubmitting(false);
       form.reset();
       if (!isAlwaysOpen) setIsOpen(false);
+      // caller already has the item's ID — redirect and toast go in onSuccess
       onSuccess?.();
     } catch (err: any) {
+      // no toast here — caller handles error feedback via onError
       onError?.(err);
       setIsSubmitting(false);
     }
@@ -7876,6 +7884,8 @@ interface AdminEdit{{resource}}FormProps {
   {{resource}}Data: {{resource}};
 }
 
+// keep separate from Edit{{resource}}Form intentionally —
+// admin-only fields (e.g. shadowBanned, verified) will diverge later and merging back is painful
 export function AdminEdit{{resource}}Form({
   onSuccess,
   onCancel,
@@ -7906,8 +7916,10 @@ export function AdminEdit{{resource}}Form({
       setIsSubmitting(false);
       form.reset();
       if (!isAlwaysOpen) setIsOpen(false);
+      // caller already has the item's ID — redirect and toast go in onSuccess
       onSuccess?.();
     } catch (err: any) {
+      // no toast here — caller handles error feedback via onError
       onError?.(err);
       setIsSubmitting(false);
     }

@@ -116,8 +116,10 @@ export function EditArticleForm({
       setIsSubmitting(false);
       form.reset();
       if (!isAlwaysOpen) setIsOpen(false);
+      // caller already has the item's ID — redirect and toast go in onSuccess
       onSuccess?.();
     } catch (err: any) {
+      // no toast here — caller handles error feedback via onError
       onError?.(err);
       setIsSubmitting(false);
     }
