@@ -6999,416 +6999,13 @@ export type CreateArticleInput = z.infer<typeof createArticleSchema>;
 
 **[PATH: none]** — Form is text-only. No media state, no MediaManager.
 
-**[PATH: simple]** — Add a file input (e.g. `<input type="file">` or `AppImage` picker). Pass `file` alongside form data to `useCreate{{resource}}`.
+**[PATH: simple]** — Add a file input (e.g. `<input type="file">` or `AppImage` picker). Pass `file` alongside form data to `useCreate{{resource}}`. See step 3 below.
 
-**[PATH: complex]** — Use `MediaManager` + `media-utils.ts` utilities. Form state holds `UnifiedMediaItem[]`. On submit: create resource first (text-only), then call `applyCreateMediaChanges` with the queued files. See the Article `CreateArticleForm` as the reference implementation — it has the exact pattern to follow.
+**[PATH: complex]** — Use `MediaManager` + `media-utils.ts` utilities. Form state holds `UnifiedMediaItem[]`. On submit: create resource first (text-only), then call `applyCreateMediaChanges` with the queued files. See the Article `CreateArticleForm` as the reference implementation.
+
+> **Create form redirect rule:** The form redirects to the new item after creation — it must, because only the form has the new item's ID. Do not put the redirect in `onSuccess`. Use `onSuccess` only for caller extras: success toast on a page, closing a modal, etc. `isAlwaysOpen=true` renders the form directly; `false` renders a toggle button.
 
 `web/src/features/{{resource}}/components/Create{{resource}}Form.tsx`
-
-```tsx
-"use client";
-
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  create{{resource}}Schema,
-  Create{{resource}}Input,
-} from "../schemas/create{{resource}}.schema";
-import { useCreate{{resource}} } from "../hooks";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { {{resource}}_STATUSES } from "../types/{{resource}}";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-
-export function Create{{resource}}Form() {
-  const form = useForm<Create{{resource}}Input>({
-    resolver: zodResolver(create{{resource}}Schema),
-    mode: "onChange",
-    defaultValues: {
-      title: "",
-      content: "",
-      status: "DRAFT",
-    },
-  });
-
-  const {
-    formState: { isValid },
-  } = form;
-  const router = useRouter();
-  const create{{resource}}Mutation = useCreate{{resource}}();
-
-  function onSubmit(data: Create{{resource}}Input) {
-    const payload = {
-      ...data,
-    };
-    create{{resource}}Mutation.mutate(payload, {
-      onSuccess: (response) => {
-        toast.success("{{resource}} created");
-        router.push(`/{{resource}}/${response.id}`);
-      },
-      onError: (error) => {
-        toast.error(`Error creating {{resource}}. ${error.message}`);
-      },
-    });
-  }
-
-  return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6 w-full max-w-sm"
-      >
-        {/* title */}
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-
-              <FormControl>
-                <Input placeholder="title" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* content */}
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Content</FormLabel>
-
-              <FormControl>
-                <Textarea placeholder="content" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* status */}
-        <div className="space-y-2">
-          <Label htmlFor="inline-status" className="text-sm">
-            Status
-          </Label>
-          <Controller
-            name="status"
-            control={form.control}
-            render={({ field }) => (
-              <Select value={field.value || ""} onValueChange={field.onChange}>
-                <SelectTrigger
-                  id="inline-status"
-                  disabled={create{{resource}}Mutation.isPending}
-                >
-                  <SelectValue placeholder="Select a status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {{{resource}}_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status.charAt(0).toUpperCase() +
-                        status.slice(1).toLowerCase()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {form.formState.errors.status && (
-            <p className="text-xs text-red-500">
-              {form.formState.errors.status.message}
-            </p>
-          )}
-        </div>
-
-        <Button
-          type="submit"
-          className="w-full cursor-pointer"
-          disabled={create{{resource}}Mutation.isPending || !isValid}
-        >
-          {create{{resource}}Mutation.isPending ? "Creating..." : "Create {{resource}}"}
-        </Button>
-      </form>
-    </Form>
-  );
-}
-```
-
-example:
-`web/src/features/articles/components/CreateArticleForm.tsx`
-
-```tsx
-"use client";
-
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  createArticleSchema,
-  CreateArticleInput,
-} from "../schemas/createArticle.schema";
-import { useCreateArticle } from "../hooks";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { ARTICLE_STATUSES } from "../types/article";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-
-export function CreateArticleForm() {
-  const form = useForm<CreateArticleInput>({
-    resolver: zodResolver(createArticleSchema),
-    mode: "onChange",
-    defaultValues: {
-      title: "",
-      content: "",
-      status: "DRAFT",
-    },
-  });
-
-  const {
-    formState: { isValid },
-  } = form;
-  const router = useRouter();
-  const createArticleMutation = useCreateArticle();
-
-  function onSubmit(data: CreateArticleInput) {
-    const payload = {
-      ...data,
-    };
-    createArticleMutation.mutate(payload, {
-      onSuccess: (response) => {
-        toast.success("Article created");
-        router.push(`/article/${response.id}`);
-      },
-      onError: (error) => {
-        toast.error(`Error creating article. ${error.message}`);
-      },
-    });
-  }
-
-  return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6 w-full max-w-sm"
-      >
-        {/* title */}
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-
-              <FormControl>
-                <Input placeholder="title" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* content */}
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Content</FormLabel>
-
-              <FormControl>
-                <Textarea placeholder="content" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* status */}
-        <div className="space-y-2">
-          <Label htmlFor="inline-status" className="text-sm">
-            Status
-          </Label>
-          <Controller
-            name="status"
-            control={form.control}
-            render={({ field }) => (
-              <Select value={field.value || ""} onValueChange={field.onChange}>
-                <SelectTrigger
-                  id="inline-status"
-                  disabled={createArticleMutation.isPending}
-                >
-                  <SelectValue placeholder="Select a status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ARTICLE_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status.charAt(0).toUpperCase() +
-                        status.slice(1).toLowerCase()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {form.formState.errors.status && (
-            <p className="text-xs text-red-500">
-              {form.formState.errors.status.message}
-            </p>
-          )}
-        </div>
-
-        <Button
-          type="submit"
-          className="w-full cursor-pointer"
-          disabled={createArticleMutation.isPending || !isValid}
-        >
-          {createArticleMutation.isPending ? "Creating..." : "Create article"}
-        </Button>
-      </form>
-    </Form>
-  );
-}
-```
-
-## step 3 create form with file upload
-
-need to add:
-
-- A: `fileDropzone` and `useState` import
-- B: file state variable
-- C: change onSubmit function
-- D: input for file upload
-
-A:
-
-```tsx
-import { FileDropzone } from "@/components/ui/file-dropzone";
-import { useState } from "react";
-```
-
-B:
-
-```tsx
-const [selectedFile, setSelectedFile] = useState<File | null>(null);
-```
-
-C:
-
-```tsx
-function onSubmit(data: Create{{resource}}Input) {
-  create{{resource}}Mutation.mutate(
-    { data, file: selectedFile ?? undefined },
-    {
-      onSuccess: (response) => {
-        toast.success("{{resource}} created");
-        router.push(`/{{resource}}/${response?.id}`);
-      },
-      onError: (error) => {
-        toast.error(`Error creating {{resource}}. ${error.message}`);
-      },
-    },
-  );
-}
-```
-
-example:
-
-```tsx
-function onSubmit(data: CreateArticleInput) {
-  createArticleMutation.mutate(
-    { data, file: selectedFile ?? undefined },
-    {
-      onSuccess: (response) => {
-        toast.success("Article created");
-        router.push(`/article/${response?.id}`);
-      },
-      onError: (error) => {
-        toast.error(`Error creating article. ${error.message}`);
-      },
-    },
-  );
-}
-```
-
-D:
-
-```tsx
-{
-  /* file upload */
-}
-<div className="space-y-2">
-  <Label className="text-sm">Featured Image (Optional)</Label>
-  <FileDropzone
-    preset="articleImage"
-    onFileSelect={setSelectedFile}
-    disabled={createArticleMutation.isPending}
-    preview
-  />
-</div>;
-```
-
-example:
-
-```tsx
-{
-  /* file upload */
-}
-<div className="space-y-2">
-  <Label className="text-sm">Featured Image (Optional)</Label>
-  <FileDropzone
-    preset="{{resource}}Image"
-    onFileSelect={setSelectedFile}
-    disabled={create{{resource}}Mutation.isPending}
-    preview
-  />
-</div>;
-```
-
-## step 4 inline create form
-
-`web/src/features/{{resource}}/components/InlineCreate{{resource}}Form.tsx`
 
 ```tsx
 "use client";
@@ -7434,21 +7031,34 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { {{resource}}_STATUSES } from "../types/{{resource}}";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
-interface InlineCreate{{resource}}FormProps {
+/**
+ * Form for creating {{resource}} resources.
+ *
+ * Redirects to the new item after creation (form handles this — it needs the new ID).
+ * onSuccess is for caller extras only: show a success toast, close a modal, etc.
+ * onError receives the thrown error for caller-level handling.
+ *
+ * isAlwaysOpen=false renders a toggle button; true renders the form directly.
+ */
+interface Create{{resource}}FormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   onError?: (error: any) => void;
   isAlwaysOpen?: boolean;
 }
 
-export function InlineCreate{{resource}}Form({
+export function Create{{resource}}Form({
   onSuccess,
   onCancel,
   onError,
   isAlwaysOpen = false,
-}: InlineCreate{{resource}}FormProps) {
+}: Create{{resource}}FormProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   const form = useForm<Create{{resource}}Input>({
     resolver: zodResolver(create{{resource}}Schema),
@@ -7461,23 +7071,25 @@ export function InlineCreate{{resource}}Form({
   });
 
   const create{{resource}}Mutation = useCreate{{resource}}();
-
   const { isValid } = form.formState;
 
-  const handleSubmit = (data: Create{{resource}}Input) => {
-    create{{resource}}Mutation.mutate(data, {
-      onSuccess: () => {
-        form.reset();
-        if (!isAlwaysOpen) {
-          setIsOpen(false);
-        }
-        onSuccess?.();
-      },
-      onError: (err) => {
-        onError?.(err);
-      },
-    });
-  };
+  function handleReset() {
+    form.reset();
+  }
+
+  async function handleSubmit(data: Create{{resource}}Input) {
+    setIsSubmitting(true);
+    try {
+      const {{resource}} = await create{{resource}}Mutation.mutateAsync(data);
+      handleReset();
+      if (!isAlwaysOpen) setIsOpen(false);
+      router.push(`/{{resource}}/${{{resource}}.id}`);
+      onSuccess?.();
+    } catch (err: any) {
+      onError?.(err);
+      setIsSubmitting(false);
+    }
+  }
 
   if (!isAlwaysOpen && !isOpen) {
     return (
@@ -7491,14 +7103,14 @@ export function InlineCreate{{resource}}Form({
     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
       {/* title */}
       <div className="space-y-2">
-        <Label htmlFor="inline-title" className="text-sm">
+        <Label htmlFor="create-title" className="text-sm">
           Title
         </Label>
         <Input
-          id="inline-title"
+          id="create-title"
           type="text"
           placeholder="title"
-          disabled={create{{resource}}Mutation.isPending}
+          disabled={isSubmitting}
           {...form.register("title")}
         />
         {form.formState.errors.title && (
@@ -7510,13 +7122,13 @@ export function InlineCreate{{resource}}Form({
 
       {/* content */}
       <div className="space-y-2">
-        <Label htmlFor="inline-content" className="text-sm">
+        <Label htmlFor="create-content" className="text-sm">
           Content
         </Label>
         <Textarea
-          id="inline-content"
+          id="create-content"
           placeholder="content"
-          disabled={create{{resource}}Mutation.isPending}
+          disabled={isSubmitting}
           {...form.register("content")}
         />
         {form.formState.errors.content && (
@@ -7528,7 +7140,7 @@ export function InlineCreate{{resource}}Form({
 
       {/* status */}
       <div className="space-y-2">
-        <Label htmlFor="inline-status" className="text-sm">
+        <Label htmlFor="create-status" className="text-sm">
           Status
         </Label>
         <Controller
@@ -7536,10 +7148,7 @@ export function InlineCreate{{resource}}Form({
           control={form.control}
           render={({ field }) => (
             <Select value={field.value || ""} onValueChange={field.onChange}>
-              <SelectTrigger
-                id="inline-status"
-                disabled={create{{resource}}Mutation.isPending}
-              >
+              <SelectTrigger id="create-status" disabled={isSubmitting}>
                 <SelectValue placeholder="Select a status" />
               </SelectTrigger>
               <SelectContent>
@@ -7560,7 +7169,6 @@ export function InlineCreate{{resource}}Form({
         )}
       </div>
 
-      {/* Action Buttons */}
       <div className="flex gap-3 pt-2">
         <Button
           type="button"
@@ -7568,13 +7176,11 @@ export function InlineCreate{{resource}}Form({
           size="sm"
           className="cursor-pointer"
           onClick={() => {
-            if (!isAlwaysOpen) {
-              setIsOpen(false);
-            }
-            form.reset();
+            if (!isAlwaysOpen) setIsOpen(false);
+            handleReset();
             onCancel?.();
           }}
-          disabled={create{{resource}}Mutation.isPending}
+          disabled={isSubmitting}
         >
           {isAlwaysOpen ? "Reset" : "Cancel"}
         </Button>
@@ -7582,12 +7188,10 @@ export function InlineCreate{{resource}}Form({
           type="submit"
           size="sm"
           className="cursor-pointer"
-          disabled={create{{resource}}Mutation.isPending || !isValid}
+          disabled={isSubmitting || !isValid}
         >
-          {create{{resource}}Mutation.isPending && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
-          {create{{resource}}Mutation.isPending ? "Creating..." : "Create {{resource}}"}
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSubmitting ? "Creating..." : "Create {{resource}}"}
         </Button>
       </div>
     </form>
@@ -7596,23 +7200,25 @@ export function InlineCreate{{resource}}Form({
 ```
 
 example:
-`web/src/features/articles/components/InlineCreateArticleForm.tsx`
+`web/src/features/articles/components/CreateArticleForm.tsx`
 
 ```tsx
 "use client";
 
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createArticleSchema,
   CreateArticleInput,
 } from "../schemas/createArticle.schema";
 import { useCreateArticle } from "../hooks";
+import { addArticleMedia, setArticleMediaPrimary } from "../api";
+import { ARTICLE_STATUSES } from "../types/article";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -7621,22 +7227,43 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ARTICLE_STATUSES } from "../types/article";
+import { MediaManager, UnifiedMediaItem } from "@/components/ui/MediaManager";
+import {
+  validateQueuedFiles,
+  revokeQueuedPreviews,
+  createMediaHandlers,
+  applyCreateMediaChanges,
+} from "@/components/ui/media-utils";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
-interface InlineCreateArticleFormProps {
+const MAX_FILES = 3;
+
+interface CreateArticleFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   onError?: (error: any) => void;
   isAlwaysOpen?: boolean;
 }
 
-export function InlineCreateArticleForm({
+/**
+ * Form for creating articles with optional media upload.
+ *
+ * Redirects to the new article after creation (form handles this — it needs the new ID).
+ * onSuccess is for caller extras only: show a success toast, close a modal, etc.
+ * onError receives the thrown error for caller-level handling.
+ *
+ * isAlwaysOpen=false renders a toggle button; true renders the form directly.
+ */
+export function CreateArticleForm({
   onSuccess,
   onCancel,
   onError,
   isAlwaysOpen = false,
-}: InlineCreateArticleFormProps) {
+}: CreateArticleFormProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [items, setItems] = useState<UnifiedMediaItem[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<CreateArticleInput>({
     resolver: zodResolver(createArticleSchema),
@@ -7648,24 +7275,43 @@ export function InlineCreateArticleForm({
     },
   });
 
-  const createArticleMutation = useCreateArticle();
+  const router = useRouter();
+  const { handleFilesDropped, handleRemove, handleSetPrimary } =
+    createMediaHandlers(setItems, MAX_FILES);
 
+  const createArticleMutation = useCreateArticle();
   const { isValid } = form.formState;
 
-  const handleSubmit = (data: CreateArticleInput) => {
-    createArticleMutation.mutate(data, {
-      onSuccess: () => {
-        form.reset();
-        if (!isAlwaysOpen) {
-          setIsOpen(false);
-        }
-        onSuccess?.();
-      },
-      onError: (err) => {
-        onError?.(err);
-      },
-    });
-  };
+  function handleReset() {
+    revokeQueuedPreviews(items);
+    setItems([]);
+    form.reset();
+  }
+
+  async function handleSubmit(data: CreateArticleInput) {
+    if (!validateQueuedFiles(items)) {
+      toast.error(
+        "Some files have unsupported types. Remove them before submitting.",
+      );
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const article = await createArticleMutation.mutateAsync(data);
+      await applyCreateMediaChanges({
+        items,
+        addFn: (files) => addArticleMedia(article.id, files),
+        setPrimaryFn: (mediaId) => setArticleMediaPrimary(article.id, mediaId),
+      });
+      handleReset();
+      if (!isAlwaysOpen) setIsOpen(false);
+      router.push(`/article/${article.id}`);
+      onSuccess?.();
+    } catch (err: any) {
+      onError?.(err);
+      setIsSubmitting(false);
+    }
+  }
 
   if (!isAlwaysOpen && !isOpen) {
     return (
@@ -7677,78 +7323,7 @@ export function InlineCreateArticleForm({
 
   return (
     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-      {/* title */}
-      <div className="space-y-2">
-        <Label htmlFor="inline-title" className="text-sm">
-          Title
-        </Label>
-        <Input
-          id="inline-title"
-          type="text"
-          placeholder="title"
-          disabled={createArticleMutation.isPending}
-          {...form.register("title")}
-        />
-        {form.formState.errors.title && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.title.message}
-          </p>
-        )}
-      </div>
-
-      {/* content */}
-      <div className="space-y-2">
-        <Label htmlFor="inline-content" className="text-sm">
-          Content
-        </Label>
-        <Textarea
-          id="inline-content"
-          placeholder="content"
-          disabled={createArticleMutation.isPending}
-          {...form.register("content")}
-        />
-        {form.formState.errors.content && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.content.message}
-          </p>
-        )}
-      </div>
-
-      {/* status */}
-      <div className="space-y-2">
-        <Label htmlFor="inline-status" className="text-sm">
-          Status
-        </Label>
-        <Controller
-          name="status"
-          control={form.control}
-          render={({ field }) => (
-            <Select value={field.value || ""} onValueChange={field.onChange}>
-              <SelectTrigger
-                id="inline-status"
-                disabled={createArticleMutation.isPending}
-              >
-                <SelectValue placeholder="Select a status" />
-              </SelectTrigger>
-              <SelectContent>
-                {ARTICLE_STATUSES.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status.charAt(0).toUpperCase() +
-                      status.slice(1).toLowerCase()}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        />
-        {form.formState.errors.status && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.status.message}
-          </p>
-        )}
-      </div>
-
-      {/* Action Buttons */}
+      {/* ... form fields ... */}
       <div className="flex gap-3 pt-2">
         <Button
           type="button"
@@ -7756,13 +7331,11 @@ export function InlineCreateArticleForm({
           size="sm"
           className="cursor-pointer"
           onClick={() => {
-            if (!isAlwaysOpen) {
-              setIsOpen(false);
-            }
-            form.reset();
+            if (!isAlwaysOpen) setIsOpen(false);
+            handleReset();
             onCancel?.();
           }}
-          disabled={createArticleMutation.isPending}
+          disabled={isSubmitting}
         >
           {isAlwaysOpen ? "Reset" : "Cancel"}
         </Button>
@@ -7770,12 +7343,10 @@ export function InlineCreateArticleForm({
           type="submit"
           size="sm"
           className="cursor-pointer"
-          disabled={createArticleMutation.isPending || !isValid}
+          disabled={isSubmitting || !isValid}
         >
-          {createArticleMutation.isPending && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
-          {createArticleMutation.isPending ? "Creating..." : "Create article"}
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSubmitting ? "Creating..." : "Create article"}
         </Button>
       </div>
     </form>
@@ -7783,20 +7354,21 @@ export function InlineCreateArticleForm({
 }
 ```
 
-## step 5 inline create form with file upload
+## step 3 create form with file upload
 
-need to add:
+[PATH: simple] — need to add:
 
-- A: `fileDropzone` import
+- A: `FileDropzone` and `useState` import
 - B: file state variable
-- C: change handleSubmit function
+- C: update `handleSubmit` to pass file
 - D: input for file upload
-- E: clear file on reset button in action buttons
+- E: clear file on reset
 
 A:
 
 ```tsx
 import { FileDropzone } from "@/components/ui/file-dropzone";
+import { useState } from "react";
 ```
 
 B:
@@ -7808,133 +7380,58 @@ const [selectedFile, setSelectedFile] = useState<File | null>(null);
 C:
 
 ```tsx
-const handleSubmit = (data: Create{{resource}}Input) => {
-  create{{resource}}Mutation.mutate(
-    { data, file: selectedFile ?? undefined },
-    {
-      onSuccess: () => {
-        form.reset();
-        setSelectedFile(null);
-        if (!isAlwaysOpen) {
-          setIsOpen(false);
-        }
-        onSuccess?.();
-      },
-      onError: (err) => {
-        onError?.(err);
-      },
-    },
-  );
-};
-```
-
-example:
-
-```tsx
-const handleSubmit = (data: CreateArticleInput) => {
-  createArticleMutation.mutate(
-    { data, file: selectedFile ?? undefined },
-    {
-      onSuccess: () => {
-        form.reset();
-        setSelectedFile(null);
-        if (!isAlwaysOpen) {
-          setIsOpen(false);
-        }
-        onSuccess?.();
-      },
-      onError: (err) => {
-        onError?.(err);
-      },
-    },
-  );
-};
+async function handleSubmit(data: Create{{resource}}Input) {
+  setIsSubmitting(true);
+  try {
+    await create{{resource}}Mutation.mutateAsync({ data, file: selectedFile ?? undefined });
+    handleReset();
+    if (!isAlwaysOpen) setIsOpen(false);
+    onSuccess?.();
+  } catch (err: any) {
+    onError?.(err);
+    setIsSubmitting(false);
+  }
+}
 ```
 
 D:
 
 ```tsx
-{
-  /* file upload */
-}
+{/* file upload */}
 <div className="space-y-2">
   <Label className="text-sm">Featured Image (Optional)</Label>
   <FileDropzone
     preset="{{resource}}Image"
     onFileSelect={setSelectedFile}
-    disabled={create{{resource}}Mutation.isPending}
+    disabled={isSubmitting}
     preview
   />
-</div>;
+</div>
 ```
 
-example:
+E — add `setSelectedFile(null)` to `handleReset`:
 
 ```tsx
-{
-  /* file upload */
+function handleReset() {
+  setSelectedFile(null);
+  form.reset();
 }
-<div className="space-y-2">
-  <Label className="text-sm">Featured Image (Optional)</Label>
-  <FileDropzone
-    preset="articleImage"
-    onFileSelect={setSelectedFile}
-    disabled={createArticleMutation.isPending}
-    preview
-  />
-</div>;
 ```
 
-E:
+## step 4 ~~inline create form~~ (removed — merged into step 2)
 
-```tsx
-{/* Action Buttons */}
-<div className="flex gap-3 pt-2">
-  <Button
-    type="button"
-    variant="outline"
-    size="sm"
-    className="cursor-pointer"
-    onClick={() => {
-      if (!isAlwaysOpen) {
-        setIsOpen(false);
-      }
-      form.reset();
-      setSelectedFile(null);
-      onCancel?.();
-    }}
-    disabled={create{{resource}}Mutation.isPending}
-  >
-```
+> `InlineCreate{{resource}}Form` no longer exists as a separate file. `Create{{resource}}Form` (step 2) handles both page and modal/inline use cases via `isAlwaysOpen`. Use `Create{{resource}}Form` everywhere.
 
-example:
+## step 5 ~~inline create form with file upload~~ (removed — merged into step 3)
 
-```tsx
-{/* Action Buttons */}
-<div className="flex gap-3 pt-2">
-  <Button
-    type="button"
-    variant="outline"
-    size="sm"
-    className="cursor-pointer"
-    onClick={() => {
-      if (!isAlwaysOpen) {
-        setIsOpen(false);
-      }
-      form.reset();
-      setSelectedFile(null);
-      onCancel?.();
-    }}
-    disabled={createArticleMutation.isPending}
-  >
-```
+> File upload for the inline/modal create case is handled by step 3. No separate inline variant needed.
 
 ## step 6 modal for create
 
 `web/src/features/{{resource}}/components/modal/Create{{resource}}Modal.tsx`
 
 ```tsx
-import { InlineCreate{{resource}}Form } from "../InlineCreate{{resource}}Form";
+import { Create{{resource}}Form } from "../Create{{resource}}Form";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 
@@ -7942,7 +7439,7 @@ export function Create{{resource}}Modal() {
   const { closeModal } = useModal();
 
   return (
-    <InlineCreate{{resource}}Form
+    <Create{{resource}}Form
       onSuccess={() => {
         toast.success("Successfully made {{resource}}");
         closeModal();
@@ -7953,7 +7450,7 @@ export function Create{{resource}}Modal() {
       onError={() => {
         toast.error("Error trying to make {{resource}}");
       }}
-      isAlwaysOpen={false}
+      isAlwaysOpen={true}
     />
   );
 }
@@ -7963,7 +7460,7 @@ example:
 `web/src/features/articles/components/modal/CreateArticleModal.tsx`
 
 ```tsx
-import { InlineCreateArticleForm } from "../InlineCreateArticleForm";
+import { CreateArticleForm } from "../CreateArticleForm";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 
@@ -7971,7 +7468,7 @@ export function CreateArticleModal() {
   const { closeModal } = useModal();
 
   return (
-    <InlineCreateArticleForm
+    <CreateArticleForm
       onSuccess={() => {
         toast.success("Successfully made article");
         closeModal();
@@ -7982,7 +7479,7 @@ export function CreateArticleModal() {
       onError={() => {
         toast.error("Error trying to make article");
       }}
-      isAlwaysOpen={false}
+      isAlwaysOpen={true}
     />
   );
 }
@@ -8064,15 +7561,18 @@ export type AdminUpdateArticleInput = z.infer<typeof adminUpdateArticleSchema>;
 
 **[PATH: none]** — Form is text-only. No media state, no MediaManager.
 
-**[PATH: simple]** — See step 4 below to add file upload to the edit form.
+**[PATH: simple]** — See step 4 below to add file upload.
 
-**[PATH: complex]** — Use `MediaManager` + `media-utils.ts` utilities. Form state holds `UnifiedMediaItem[]` initialized from `sortedMedia.map(toUnified)`. On submit: update text fields first, then call `applyMediaChanges` with the queued/pending operations. See Article `EditArticleForm` as the reference implementation. Also create `InlineEdit{{resource}}Form` variant using `isAlwaysOpen` prop — used in modals.
+**[PATH: complex]** — Use `MediaManager` + `media-utils.ts` utilities. Form state holds `UnifiedMediaItem[]` initialized from `sortedMedia.map(toUnified)`. On submit: update text fields first, then call `applyMediaChanges`. See Article `EditArticleForm` as the reference implementation.
+
+> **Edit form redirect rule:** The form calls `onSuccess?.()` — do not put a redirect inside the form. The caller already has the item's ID. Page: push to detail route. Modal: close modal + toast. `isAlwaysOpen=true` renders the form directly; `false` renders a toggle button.
 
 `web/src/features/{{resource}}/components/Edit{{resource}}Form.tsx`
 
 ```tsx
 "use client";
 
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -8080,16 +7580,10 @@ import {
   Update{{resource}}Input,
 } from "../schemas/update{{resource}}.schema";
 import { useUpdate{{resource}} } from "../hooks";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -8098,12 +7592,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { {{resource}}, {{resource}}_STATUSES } from "../types/{{resource}}";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
-export function Edit{{resource}}Form({ {{resource}}Data }: { {{resource}}Data: {{resource}} }) {
+/**
+ * Form for editing {{resource}} resources.
+ *
+ * Handles form submission. Importer must handle:
+ * - Success toast via onSuccess callback
+ * - Navigation/redirect via onSuccess callback (if on a page)
+ *
+ * When isAlwaysOpen=false, renders as toggle button. When true, renders form directly.
+ */
+interface Edit{{resource}}FormProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+  onError?: (error: any) => void;
+  isAlwaysOpen?: boolean;
+  {{resource}}Data: {{resource}};
+}
+
+export function Edit{{resource}}Form({
+  onSuccess,
+  onCancel,
+  onError,
+  isAlwaysOpen = false,
+  {{resource}}Data,
+}: Edit{{resource}}FormProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const form = useForm<Update{{resource}}Input>({
     resolver: zodResolver(update{{resource}}Schema),
     mode: "onChange",
@@ -8114,113 +7632,127 @@ export function Edit{{resource}}Form({ {{resource}}Data }: { {{resource}}Data: {
     },
   });
 
-  const {
-    formState: { isValid },
-  } = form;
-  const router = useRouter();
   const update{{resource}}Mutation = useUpdate{{resource}}();
+  const { isValid } = form.formState;
 
-  function onSubmit(data: Update{{resource}}Input) {
-    update{{resource}}Mutation.mutate(
-      {
-        id: {{resource}}Data.id,
-        data: data,
-      },
-      {
-        onSuccess: (response) => {
-          toast.success("{{resource}} updated");
-          router.push(`/{{resource}}/${response.id}`);
-        },
-        onError: (error) => {
-          toast.error(`Error updating {{resource}}. ${error.message}`);
-        },
-      },
+  async function handleSubmit(data: Update{{resource}}Input) {
+    setIsSubmitting(true);
+    try {
+      await update{{resource}}Mutation.mutateAsync({ id: {{resource}}Data.id, data });
+      setIsSubmitting(false);
+      form.reset();
+      if (!isAlwaysOpen) setIsOpen(false);
+      onSuccess?.();
+    } catch (err: any) {
+      onError?.(err);
+      setIsSubmitting(false);
+    }
+  }
+
+  if (!isAlwaysOpen && !isOpen) {
+    return (
+      <Button onClick={() => setIsOpen(true)} variant="outline">
+        Edit {{resource}}
+      </Button>
     );
   }
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6 w-full max-w-sm"
-      >
-        {/* title */}
-        <FormField
+    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      {/* title */}
+      <div className="space-y-2">
+        <Label htmlFor="edit-title" className="text-sm">
+          Title
+        </Label>
+        <Input
+          id="edit-title"
+          type="text"
+          placeholder="title"
+          disabled={isSubmitting}
+          {...form.register("title")}
+        />
+        {form.formState.errors.title && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.title.message}
+          </p>
+        )}
+      </div>
+
+      {/* content */}
+      <div className="space-y-2">
+        <Label htmlFor="edit-content" className="text-sm">
+          Content
+        </Label>
+        <Textarea
+          id="edit-content"
+          placeholder="content"
+          disabled={isSubmitting}
+          {...form.register("content")}
+        />
+        {form.formState.errors.content && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.content.message}
+          </p>
+        )}
+      </div>
+
+      {/* status */}
+      <div className="space-y-2">
+        <Label htmlFor="edit-status" className="text-sm">
+          Status
+        </Label>
+        <Controller
+          name="status"
           control={form.control}
-          name="title"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-
-              <FormControl>
-                <Input placeholder="title" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
+            <Select value={field.value || ""} onValueChange={field.onChange}>
+              <SelectTrigger id="edit-status" disabled={isSubmitting}>
+                <SelectValue placeholder="Select a status" />
+              </SelectTrigger>
+              <SelectContent>
+                {{{resource}}_STATUSES.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status.charAt(0).toUpperCase() +
+                      status.slice(1).toLowerCase()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
         />
+        {form.formState.errors.status && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.status.message}
+          </p>
+        )}
+      </div>
 
-        {/* content */}
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Content</FormLabel>
-
-              <FormControl>
-                <Textarea placeholder="content" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* status */}
-        <div className="space-y-2">
-          <Label htmlFor="inline-status" className="text-sm">
-            Status
-          </Label>
-          <Controller
-            name="status"
-            control={form.control}
-            render={({ field }) => (
-              <Select value={field.value || ""} onValueChange={field.onChange}>
-                <SelectTrigger
-                  id="inline-status"
-                  disabled={update{{resource}}Mutation.isPending}
-                >
-                  <SelectValue placeholder="Select a status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {{{resource}}_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status.charAt(0).toUpperCase() +
-                        status.slice(1).toLowerCase()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {form.formState.errors.status && (
-            <p className="text-xs text-red-500">
-              {form.formState.errors.status.message}
-            </p>
-          )}
-        </div>
-
+      <div className="flex gap-3 pt-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="cursor-pointer"
+          onClick={() => {
+            if (!isAlwaysOpen) setIsOpen(false);
+            form.reset();
+            onCancel?.();
+          }}
+          disabled={isSubmitting}
+        >
+          {isAlwaysOpen ? "Reset" : "Cancel"}
+        </Button>
         <Button
           type="submit"
-          className="w-full cursor-pointer"
-          disabled={update{{resource}}Mutation.isPending || !isValid}
+          size="sm"
+          className="cursor-pointer"
+          disabled={isSubmitting || !isValid}
         >
-          {update{{resource}}Mutation.isPending ? "Updating..." : "Update {{resource}}"}
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSubmitting ? "Updating..." : "Update {{resource}}"}
         </Button>
-      </form>
-    </Form>
+      </div>
+    </form>
   );
 }
 ```
@@ -8228,174 +7760,21 @@ export function Edit{{resource}}Form({ {{resource}}Data }: { {{resource}}Data: {
 example:
 `web/src/features/articles/components/EditArticleForm.tsx`
 
-```tsx
-"use client";
-
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  updateArticleSchema,
-  UpdateArticleInput,
-} from "../schemas/updateArticle.schema";
-import { useUpdateArticle } from "../hooks";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Article, ARTICLE_STATUSES } from "../types/article";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-
-export function EditArticleForm({ articleData }: { articleData: Article }) {
-  const form = useForm<UpdateArticleInput>({
-    resolver: zodResolver(updateArticleSchema),
-    mode: "onChange",
-    defaultValues: {
-      title: articleData.title,
-      content: articleData.content,
-      status: articleData.status,
-    },
-  });
-
-  const {
-    formState: { isValid },
-  } = form;
-  const router = useRouter();
-  const updateArticleMutation = useUpdateArticle();
-
-  function onSubmit(data: UpdateArticleInput) {
-    updateArticleMutation.mutate(
-      {
-        id: articleData.id,
-        data: data,
-      },
-      {
-        onSuccess: (response) => {
-          toast.success("Article updated");
-          router.push(`/article/${response.id}`);
-        },
-        onError: (error) => {
-          toast.error(`Error updating article. ${error.message}`);
-        },
-      },
-    );
-  }
-
-  return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6 w-full max-w-sm"
-      >
-        {/* title */}
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-
-              <FormControl>
-                <Input placeholder="title" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* content */}
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Content</FormLabel>
-
-              <FormControl>
-                <Textarea placeholder="content" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* status */}
-        <div className="space-y-2">
-          <Label htmlFor="inline-status" className="text-sm">
-            Status
-          </Label>
-          <Controller
-            name="status"
-            control={form.control}
-            render={({ field }) => (
-              <Select value={field.value || ""} onValueChange={field.onChange}>
-                <SelectTrigger
-                  id="inline-status"
-                  disabled={updateArticleMutation.isPending}
-                >
-                  <SelectValue placeholder="Select a status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ARTICLE_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status.charAt(0).toUpperCase() +
-                        status.slice(1).toLowerCase()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {form.formState.errors.status && (
-            <p className="text-xs text-red-500">
-              {form.formState.errors.status.message}
-            </p>
-          )}
-        </div>
-
-        <Button
-          type="submit"
-          className="w-full cursor-pointer"
-          disabled={updateArticleMutation.isPending || !isValid}
-        >
-          {updateArticleMutation.isPending ? "Updating..." : "Update article"}
-        </Button>
-      </form>
-    </Form>
-  );
-}
-```
+See the actual file — it follows the same pattern with `isAlwaysOpen`, callback props, async/await submission, and `applyMediaChanges` for the [PATH: complex] media handling.
 
 ## step 4 edit form component with file upload
 
-need to add:
+[PATH: simple] — need to add:
 
-- A: `fileDropzone` and `useState` import
+- A: `FileDropzone` import (useState already imported from step 3)
 - B: file state variable
-- C: change onSubmit function
+- C: update `handleSubmit` to pass file
 - D: input for file upload
-  A:
+
+A:
 
 ```tsx
 import { FileDropzone } from "@/components/ui/file-dropzone";
-import { useState } from "react";
 ```
 
 B:
@@ -8407,83 +7786,39 @@ const [selectedFile, setSelectedFile] = useState<File | null>(null);
 C:
 
 ```tsx
-function onSubmit(data: Update{{resource}}Input) {
-  update{{resource}}Mutation.mutate(
-    {
+async function handleSubmit(data: Update{{resource}}Input) {
+  setIsSubmitting(true);
+  try {
+    await update{{resource}}Mutation.mutateAsync({
       id: {{resource}}Data.id,
-      data: data,
+      data,
       file: selectedFile ?? undefined,
-    },
-    {
-      onSuccess: (response) => {
-        toast.success("{{resource}} updated");
-        router.push(`/{{resource}}/${response.id}`);
-      },
-      onError: (error) => {
-        toast.error(`Error updating {{resource}}. ${error.message}`);
-      },
-    },
-  );
-}
-```
-
-example:
-
-```tsx
-function onSubmit(data: UpdateArticleInput) {
-  updateArticleMutation.mutate(
-    {
-      id: articleData.id,
-      data: data,
-      file: selectedFile ?? undefined,
-    },
-    {
-      onSuccess: (response) => {
-        toast.success("Article updated");
-        router.push(`/article/${response.id}`);
-      },
-      onError: (error) => {
-        toast.error(`Error updating article. ${error.message}`);
-      },
-    },
-  );
+    });
+    setIsSubmitting(false);
+    form.reset();
+    if (!isAlwaysOpen) setIsOpen(false);
+    onSuccess?.();
+  } catch (err: any) {
+    onError?.(err);
+    setIsSubmitting(false);
+  }
 }
 ```
 
 D:
 
 ```tsx
-{
-  /* file upload */
-}
+{/* file upload */}
 <div className="space-y-2">
   <Label className="text-sm">Featured Image (Optional)</Label>
   <FileDropzone
     preset="{{resource}}Image"
     onFileSelect={setSelectedFile}
-    disabled={update{{resource}}Mutation.isPending}
+    disabled={isSubmitting}
     preview
     currentImageUrl={{{resource}}Data.imagePath ?? undefined}
   />
-</div>;
-```
-
-example:
-
-```tsx
-{
-  /* file upload */
-}
-<div className="space-y-2">
-  <Label className="text-sm">Featured Image (Optional)</Label>
-  <FileDropzone
-    preset="articleImage"
-    onFileSelect={setSelectedFile}
-    disabled={updateArticleMutation.isPending}
-    preview
-    currentImageUrl={articleData.imagePath ?? undefined}
-  />
-</div>;
+</div>
 ```
 
 ## step 5 admin edit form component
@@ -8492,13 +7827,16 @@ example:
 
 **[PATH: simple]** — See step 6 below to add file upload.
 
-**[PATH: complex]** — Same pattern as regular `Edit{{resource}}Form` but uses admin hooks (`useAddAdmin{{resource}}Media`, `useRemoveAdmin{{resource}}Media`, etc.). Admin service methods additionally call `this.adminService.log(...)`. Also create `AdminInline{{resource}}Form` variant with `isAlwaysOpen` prop for use in the admin table's action modal.
+**[PATH: complex]** — Same pattern as `Edit{{resource}}Form` but uses admin hooks (`useAddAdmin{{resource}}Media`, `useRemoveAdmin{{resource}}Media`, etc.). Admin service methods additionally call `this.adminService.log(...)`. No separate `AdminInlineEdit{{resource}}Form` — the same component handles modals via `isAlwaysOpen`.
+
+> **Admin edit form redirect rule:** Same as user `Edit{{resource}}Form` — call `onSuccess?.()`, do not redirect inside the form. Modal: close + toast. Admin page: push to detail if needed.
 
 `web/src/features/admin/{{resource}}/components/AdminEdit{{resource}}Form.tsx`
 
 ```tsx
 "use client";
 
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -8506,16 +7844,10 @@ import {
   AdminUpdate{{resource}}Input,
 } from "../schemas/adminUpdate{{resource}}.schema";
 import { useAdminUpdate{{resource}} } from "../hooks";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -8524,16 +7856,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { {{resource}}, {{resource}}_STATUSES } from "../types/{{resource}}";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+
+/**
+ * Admin form for editing {{resource}} resources.
+ *
+ * Handles form submission. Importer must handle:
+ * - Success toast via onSuccess callback
+ * - Navigation/redirect via onSuccess callback (if needed)
+ *
+ * When isAlwaysOpen=false, renders as toggle button. When true, renders form directly.
+ */
+interface AdminEdit{{resource}}FormProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+  onError?: (error: any) => void;
+  isAlwaysOpen?: boolean;
+  {{resource}}Data: {{resource}};
+}
 
 export function AdminEdit{{resource}}Form({
+  onSuccess,
+  onCancel,
+  onError,
+  isAlwaysOpen = false,
   {{resource}}Data,
-}: {
-  {{resource}}Data: {{resource}};
-}) {
+}: AdminEdit{{resource}}FormProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const form = useForm<AdminUpdate{{resource}}Input>({
     resolver: zodResolver(adminUpdate{{resource}}Schema),
     mode: "onChange",
@@ -8544,113 +7896,127 @@ export function AdminEdit{{resource}}Form({
     },
   });
 
-  const {
-    formState: { isValid },
-  } = form;
-  const router = useRouter();
   const update{{resource}}Mutation = useAdminUpdate{{resource}}();
+  const { isValid } = form.formState;
 
-  function onSubmit(data: AdminUpdate{{resource}}Input) {
-    update{{resource}}Mutation.mutate(
-      {
-        id: {{resource}}Data.id,
-        data: data,
-      },
-      {
-        onSuccess: (response) => {
-          toast.success("{{resource}} updated");
-          router.push(`/{{resource}}/${response.id}`);
-        },
-        onError: (error) => {
-          toast.error(`Error updating {{resource}}. ${error.message}`);
-        },
-      },
+  async function handleSubmit(data: AdminUpdate{{resource}}Input) {
+    setIsSubmitting(true);
+    try {
+      await update{{resource}}Mutation.mutateAsync({ id: {{resource}}Data.id, data });
+      setIsSubmitting(false);
+      form.reset();
+      if (!isAlwaysOpen) setIsOpen(false);
+      onSuccess?.();
+    } catch (err: any) {
+      onError?.(err);
+      setIsSubmitting(false);
+    }
+  }
+
+  if (!isAlwaysOpen && !isOpen) {
+    return (
+      <Button onClick={() => setIsOpen(true)} variant="outline">
+        Edit {{resource}}
+      </Button>
     );
   }
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6 w-full max-w-sm"
-      >
-        {/* title */}
-        <FormField
+    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      {/* title */}
+      <div className="space-y-2">
+        <Label htmlFor="admin-edit-title" className="text-sm">
+          Title
+        </Label>
+        <Input
+          id="admin-edit-title"
+          type="text"
+          placeholder="title"
+          disabled={isSubmitting}
+          {...form.register("title")}
+        />
+        {form.formState.errors.title && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.title.message}
+          </p>
+        )}
+      </div>
+
+      {/* content */}
+      <div className="space-y-2">
+        <Label htmlFor="admin-edit-content" className="text-sm">
+          Content
+        </Label>
+        <Textarea
+          id="admin-edit-content"
+          placeholder="content"
+          disabled={isSubmitting}
+          {...form.register("content")}
+        />
+        {form.formState.errors.content && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.content.message}
+          </p>
+        )}
+      </div>
+
+      {/* status */}
+      <div className="space-y-2">
+        <Label htmlFor="admin-edit-status" className="text-sm">
+          Status
+        </Label>
+        <Controller
+          name="status"
           control={form.control}
-          name="title"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-
-              <FormControl>
-                <Input placeholder="title" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
+            <Select value={field.value || ""} onValueChange={field.onChange}>
+              <SelectTrigger id="admin-edit-status" disabled={isSubmitting}>
+                <SelectValue placeholder="Select a status" />
+              </SelectTrigger>
+              <SelectContent>
+                {{{resource}}_STATUSES.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status.charAt(0).toUpperCase() +
+                      status.slice(1).toLowerCase()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
         />
+        {form.formState.errors.status && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.status.message}
+          </p>
+        )}
+      </div>
 
-        {/* content */}
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Content</FormLabel>
-
-              <FormControl>
-                <Textarea placeholder="content" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* status */}
-        <div className="space-y-2">
-          <Label htmlFor="inline-status" className="text-sm">
-            Status
-          </Label>
-          <Controller
-            name="status"
-            control={form.control}
-            render={({ field }) => (
-              <Select value={field.value || ""} onValueChange={field.onChange}>
-                <SelectTrigger
-                  id="inline-status"
-                  disabled={update{{resource}}Mutation.isPending}
-                >
-                  <SelectValue placeholder="Select a status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {{{resource}}_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status.charAt(0).toUpperCase() +
-                        status.slice(1).toLowerCase()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {form.formState.errors.status && (
-            <p className="text-xs text-red-500">
-              {form.formState.errors.status.message}
-            </p>
-          )}
-        </div>
-
+      <div className="flex gap-3 pt-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="cursor-pointer"
+          onClick={() => {
+            if (!isAlwaysOpen) setIsOpen(false);
+            form.reset();
+            onCancel?.();
+          }}
+          disabled={isSubmitting}
+        >
+          {isAlwaysOpen ? "Reset" : "Cancel"}
+        </Button>
         <Button
           type="submit"
-          className="w-full cursor-pointer"
-          disabled={update{{resource}}Mutation.isPending || !isValid}
+          size="sm"
+          className="cursor-pointer"
+          disabled={isSubmitting || !isValid}
         >
-          {update{{resource}}Mutation.isPending ? "Updating..." : "Update {{resource}}"}
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSubmitting ? "Updating..." : "Update {{resource}}"}
         </Button>
-      </form>
-    </Form>
+      </div>
+    </form>
   );
 }
 ```
@@ -8658,179 +8024,21 @@ export function AdminEdit{{resource}}Form({
 example:
 `web/src/features/admin/articles/components/AdminEditArticleForm.tsx`
 
-```tsx
-"use client";
-
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  adminUpdateArticleSchema,
-  AdminUpdateArticleInput,
-} from "../schemas/adminUpdateArticle.schema";
-import { useAdminUpdateArticle } from "../hooks";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Article, ARTICLE_STATUSES } from "../types/article";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-
-export function AdminEditArticleForm({
-  articleData,
-}: {
-  articleData: Article;
-}) {
-  const form = useForm<AdminUpdateArticleInput>({
-    resolver: zodResolver(adminUpdateArticleSchema),
-    mode: "onChange",
-    defaultValues: {
-      title: articleData.title,
-      content: articleData.content,
-      status: articleData.status,
-    },
-  });
-
-  const {
-    formState: { isValid },
-  } = form;
-  const router = useRouter();
-  const updateArticleMutation = useAdminUpdateArticle();
-
-  function onSubmit(data: AdminUpdateArticleInput) {
-    updateArticleMutation.mutate(
-      {
-        id: articleData.id,
-        data: data,
-      },
-      {
-        onSuccess: (response) => {
-          toast.success("Article updated");
-          router.push(`/article/${response.id}`);
-        },
-        onError: (error) => {
-          toast.error(`Error updating article. ${error.message}`);
-        },
-      },
-    );
-  }
-
-  return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6 w-full max-w-sm"
-      >
-        {/* title */}
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-
-              <FormControl>
-                <Input placeholder="title" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* content */}
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Content</FormLabel>
-
-              <FormControl>
-                <Textarea placeholder="content" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* status */}
-        <div className="space-y-2">
-          <Label htmlFor="inline-status" className="text-sm">
-            Status
-          </Label>
-          <Controller
-            name="status"
-            control={form.control}
-            render={({ field }) => (
-              <Select value={field.value || ""} onValueChange={field.onChange}>
-                <SelectTrigger
-                  id="inline-status"
-                  disabled={updateArticleMutation.isPending}
-                >
-                  <SelectValue placeholder="Select a status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ARTICLE_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status.charAt(0).toUpperCase() +
-                        status.slice(1).toLowerCase()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {form.formState.errors.status && (
-            <p className="text-xs text-red-500">
-              {form.formState.errors.status.message}
-            </p>
-          )}
-        </div>
-
-        <Button
-          type="submit"
-          className="w-full cursor-pointer"
-          disabled={updateArticleMutation.isPending || !isValid}
-        >
-          {updateArticleMutation.isPending ? "Updating..." : "Update article"}
-        </Button>
-      </form>
-    </Form>
-  );
-}
-```
+See the actual file — it follows the same pattern with `isAlwaysOpen`, callback props, and `applyMediaChanges` for [PATH: complex].
 
 ## step 6 admin edit form component with file upload
 
-need to add:
+[PATH: simple] — need to add:
 
-- A: `fileDropzone` and `useState` import
+- A: `FileDropzone` import (useState already imported from step 5)
 - B: file state variable
-- C: change onSubmit function
+- C: update `handleSubmit` to pass file
 - D: input for file upload
 
 A:
 
 ```tsx
 import { FileDropzone } from "@/components/ui/file-dropzone";
-import { useState } from "react";
 ```
 
 B:
@@ -8842,1115 +8050,63 @@ const [selectedFile, setSelectedFile] = useState<File | null>(null);
 C:
 
 ```tsx
-function onSubmit(data: AdminUpdate{{resource}}Input) {
-  update{{resource}}Mutation.mutate(
-    {
+async function handleSubmit(data: AdminUpdate{{resource}}Input) {
+  setIsSubmitting(true);
+  try {
+    await update{{resource}}Mutation.mutateAsync({
       id: {{resource}}Data.id,
-      data: data,
+      data,
       file: selectedFile ?? undefined,
-    },
-    {
-      onSuccess: (response) => {
-        toast.success("{{resource}} updated");
-        router.push(`/{{resource}}/${response.id}`);
-      },
-      onError: (error) => {
-        toast.error(`Error updating {{resource}}. ${error.message}`);
-      },
-    },
-  );
-}
-```
-
-example:
-
-```tsx
-function onSubmit(data: AdminUpdateArticleInput) {
-  updateArticleMutation.mutate(
-    {
-      id: articleData.id,
-      data: data,
-      file: selectedFile ?? undefined,
-    },
-    {
-      onSuccess: (response) => {
-        toast.success("Article updated");
-        router.push(`/article/${response.id}`);
-      },
-      onError: (error) => {
-        toast.error(`Error updating article. ${error.message}`);
-      },
-    },
-  );
+    });
+    setIsSubmitting(false);
+    form.reset();
+    if (!isAlwaysOpen) setIsOpen(false);
+    onSuccess?.();
+  } catch (err: any) {
+    onError?.(err);
+    setIsSubmitting(false);
+  }
 }
 ```
 
 D:
 
 ```tsx
-{
-  /* file upload */
-}
+{/* file upload */}
 <div className="space-y-2">
   <Label className="text-sm">Featured Image (Optional)</Label>
   <FileDropzone
     preset="{{resource}}Image"
     onFileSelect={setSelectedFile}
-    disabled={update{{resource}}Mutation.isPending}
+    disabled={isSubmitting}
     preview
     currentImageUrl={{{resource}}Data.imagePath ?? undefined}
   />
-</div>;
+</div>
 ```
 
-example:
+## step 7 ~~inline edit form~~ (removed — merged into step 3)
 
-```tsx
-{
-  /* file upload */
-}
-<div className="space-y-2">
-  <Label className="text-sm">Featured Image (Optional)</Label>
-  <FileDropzone
-    preset="articleImage"
-    onFileSelect={setSelectedFile}
-    disabled={updateArticleMutation.isPending}
-    preview
-    currentImageUrl={articleData.imagePath ?? undefined}
-  />
-</div>;
-```
+> `InlineEdit{{resource}}Form` no longer exists as a separate file. `Edit{{resource}}Form` (step 3) handles both page and modal/inline use cases via `isAlwaysOpen`. Use `Edit{{resource}}Form` everywhere.
 
-## step 7 inline edit form
+## step 8 ~~inline edit form with file upload~~ (removed — merged into step 4)
 
-`web/src/features/{{resource}}/components/InlineEdit{{resource}}Form.tsx`
+> File upload for the inline/modal edit case is handled by step 4. No separate inline variant needed.
 
-```tsx
-"use client";
+## step 9 ~~admin inline edit form~~ (removed — merged into step 5)
 
-import { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  update{{resource}}Schema,
-  Update{{resource}}Input,
-} from "../schemas/update{{resource}}.schema";
-import { useUpdate{{resource}} } from "../hooks";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
-import { {{resource}}, {{resource}}_STATUSES } from "../types/{{resource}}";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+> `AdminInlineEdit{{resource}}Form` no longer exists as a separate file. `AdminEdit{{resource}}Form` (step 5) handles both admin page and modal use cases via `isAlwaysOpen`. Use `AdminEdit{{resource}}Form` everywhere.
 
-interface InlineUpdate{{resource}}FormProps {
-  onSuccess?: () => void;
-  onCancel?: () => void;
-  onError?: (error: any) => void;
-  isAlwaysOpen?: boolean;
-  {{resource}}Data: {{resource}};
-}
+## step 10 ~~admin inline edit form with file upload~~ (removed — merged into step 6)
 
-export function InlineEdit{{resource}}Form({
-  onSuccess,
-  onCancel,
-  onError,
-  isAlwaysOpen = false,
-  {{resource}}Data,
-}: InlineUpdate{{resource}}FormProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const form = useForm<Update{{resource}}Input>({
-    resolver: zodResolver(update{{resource}}Schema),
-    mode: "onChange",
-    defaultValues: {
-      title: {{resource}}Data.title,
-      content: {{resource}}Data.content,
-      status: {{resource}}Data.status,
-    },
-  });
-
-  const update{{resource}}Mutation = useUpdate{{resource}}();
-
-  const { isValid } = form.formState;
-
-  const handleSubmit = (data: Update{{resource}}Input) => {
-    update{{resource}}Mutation.mutate(
-      { id: {{resource}}Data.id, data },
-      {
-        onSuccess: () => {
-          form.reset();
-          if (!isAlwaysOpen) {
-            setIsOpen(false);
-          }
-          onSuccess?.();
-        },
-        onError: (err) => {
-          onError?.(err);
-        },
-      },
-    );
-  };
-
-  if (!isAlwaysOpen && !isOpen) {
-    return (
-      <Button onClick={() => setIsOpen(true)} variant="outline">
-        Edit {{resource}}
-      </Button>
-    );
-  }
-
-  return (
-    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-      {/* title */}
-      <div className="space-y-2">
-        <Label htmlFor="inline-title" className="text-sm">
-          Title
-        </Label>
-        <Input
-          id="inline-title"
-          type="text"
-          placeholder="title"
-          disabled={update{{resource}}Mutation.isPending}
-          {...form.register("title")}
-        />
-        {form.formState.errors.title && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.title.message}
-          </p>
-        )}
-      </div>
-
-      {/* content */}
-      <div className="space-y-2">
-        <Label htmlFor="inline-content" className="text-sm">
-          Content
-        </Label>
-        <Textarea
-          id="inline-content"
-          placeholder="content"
-          disabled={update{{resource}}Mutation.isPending}
-          {...form.register("content")}
-        />
-        {form.formState.errors.content && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.content.message}
-          </p>
-        )}
-      </div>
-
-      {/* status */}
-      <div className="space-y-2">
-        <Label htmlFor="inline-status" className="text-sm">
-          Status
-        </Label>
-        <Controller
-          name="status"
-          control={form.control}
-          render={({ field }) => (
-            <Select value={field.value || ""} onValueChange={field.onChange}>
-              <SelectTrigger
-                id="inline-status"
-                disabled={update{{resource}}Mutation.isPending}
-              >
-                <SelectValue placeholder="Select a status" />
-              </SelectTrigger>
-              <SelectContent>
-                {{{resource}}_STATUSES.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status.charAt(0).toUpperCase() +
-                      status.slice(1).toLowerCase()}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        />
-        {form.formState.errors.status && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.status.message}
-          </p>
-        )}
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-3 pt-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="cursor-pointer"
-          onClick={() => {
-            if (!isAlwaysOpen) {
-              setIsOpen(false);
-            }
-            form.reset();
-            onCancel?.();
-          }}
-          disabled={update{{resource}}Mutation.isPending}
-        >
-          {isAlwaysOpen ? "Reset" : "Cancel"}
-        </Button>
-        <Button
-          type="submit"
-          size="sm"
-          className="cursor-pointer"
-          disabled={update{{resource}}Mutation.isPending || !isValid}
-        >
-          {update{{resource}}Mutation.isPending && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
-          {update{{resource}}Mutation.isPending ? "Updating..." : "Update {{resource}}"}
-        </Button>
-      </div>
-    </form>
-  );
-}
-```
-
-example:
-`web/src/features/articles/components/InlineEditArticleForm.tsx`
-
-```tsx
-"use client";
-
-import { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  updateArticleSchema,
-  UpdateArticleInput,
-} from "../schemas/updateArticle.schema";
-import { useUpdateArticle } from "../hooks";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
-import { Article, ARTICLE_STATUSES } from "../types/article";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-interface InlineUpdateArticleFormProps {
-  onSuccess?: () => void;
-  onCancel?: () => void;
-  onError?: (error: any) => void;
-  isAlwaysOpen?: boolean;
-  articleData: Article;
-}
-
-export function InlineEditArticleForm({
-  onSuccess,
-  onCancel,
-  onError,
-  isAlwaysOpen = false,
-  articleData,
-}: InlineUpdateArticleFormProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const form = useForm<UpdateArticleInput>({
-    resolver: zodResolver(updateArticleSchema),
-    mode: "onChange",
-    defaultValues: {
-      title: articleData.title,
-      content: articleData.content,
-      status: articleData.status,
-    },
-  });
-
-  const updateArticleMutation = useUpdateArticle();
-
-  const { isValid } = form.formState;
-
-  const handleSubmit = (data: UpdateArticleInput) => {
-    updateArticleMutation.mutate(
-      { id: articleData.id, data },
-      {
-        onSuccess: () => {
-          form.reset();
-          if (!isAlwaysOpen) {
-            setIsOpen(false);
-          }
-          onSuccess?.();
-        },
-        onError: (err) => {
-          onError?.(err);
-        },
-      },
-    );
-  };
-
-  if (!isAlwaysOpen && !isOpen) {
-    return (
-      <Button onClick={() => setIsOpen(true)} variant="outline">
-        Edit Article
-      </Button>
-    );
-  }
-
-  return (
-    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-      {/* title */}
-      <div className="space-y-2">
-        <Label htmlFor="inline-title" className="text-sm">
-          Title
-        </Label>
-        <Input
-          id="inline-title"
-          type="text"
-          placeholder="title"
-          disabled={updateArticleMutation.isPending}
-          {...form.register("title")}
-        />
-        {form.formState.errors.title && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.title.message}
-          </p>
-        )}
-      </div>
-
-      {/* content */}
-      <div className="space-y-2">
-        <Label htmlFor="inline-content" className="text-sm">
-          Content
-        </Label>
-        <Textarea
-          id="inline-content"
-          placeholder="content"
-          disabled={updateArticleMutation.isPending}
-          {...form.register("content")}
-        />
-        {form.formState.errors.content && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.content.message}
-          </p>
-        )}
-      </div>
-
-      {/* status */}
-      <div className="space-y-2">
-        <Label htmlFor="inline-status" className="text-sm">
-          Status
-        </Label>
-        <Controller
-          name="status"
-          control={form.control}
-          render={({ field }) => (
-            <Select value={field.value || ""} onValueChange={field.onChange}>
-              <SelectTrigger
-                id="inline-status"
-                disabled={updateArticleMutation.isPending}
-              >
-                <SelectValue placeholder="Select a status" />
-              </SelectTrigger>
-              <SelectContent>
-                {ARTICLE_STATUSES.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status.charAt(0).toUpperCase() +
-                      status.slice(1).toLowerCase()}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        />
-        {form.formState.errors.status && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.status.message}
-          </p>
-        )}
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-3 pt-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="cursor-pointer"
-          onClick={() => {
-            if (!isAlwaysOpen) {
-              setIsOpen(false);
-            }
-            form.reset();
-            onCancel?.();
-          }}
-          disabled={updateArticleMutation.isPending}
-        >
-          {isAlwaysOpen ? "Reset" : "Cancel"}
-        </Button>
-        <Button
-          type="submit"
-          size="sm"
-          className="cursor-pointer"
-          disabled={updateArticleMutation.isPending || !isValid}
-        >
-          {updateArticleMutation.isPending && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
-          {updateArticleMutation.isPending ? "Updating..." : "Update article"}
-        </Button>
-      </div>
-    </form>
-  );
-}
-```
-
-## step 8 inline edit form with file upload
-
-need to add:
-
-- A: `fileDropzone` import
-- B: file state variable
-- C: change handleSubmit function
-- D: input for file upload
-- E: clear file on reset button in action buttons
-
-A:
-
-```tsx
-import { FileDropzone } from "@/components/ui/file-dropzone";
-```
-
-B:
-
-```tsx
-const [selectedFile, setSelectedFile] = useState<File | null>(null);
-```
-
-C:
-
-```tsx
-const handleSubmit = (data: UpdateArticleInput) => {
-  updateArticleMutation.mutate(
-    { id: articleData.id, data, file: selectedFile ?? undefined },
-    {
-      onSuccess: () => {
-        form.reset();
-        setSelectedFile(null);
-        if (!isAlwaysOpen) {
-          setIsOpen(false);
-        }
-        onSuccess?.();
-      },
-      onError: (err) => {
-        onError?.(err);
-      },
-    },
-  );
-};
-```
-
-D:
-
-```tsx
-{
-  /* file upload */
-}
-<div className="space-y-2">
-  <Label className="text-sm">Featured Image (Optional)</Label>
-  <FileDropzone
-    preset="{{resource}}Image"
-    onFileSelect={setSelectedFile}
-    disabled={update{{resource}}Mutation.isPending}
-    preview
-    currentImageUrl={{{resource}}Data.imagePath ?? undefined}
-  />
-</div>;
-```
-
-example:
-
-```tsx
-{
-  /* file upload */
-}
-<div className="space-y-2">
-  <Label className="text-sm">Featured Image (Optional)</Label>
-  <FileDropzone
-    preset="articleImage"
-    onFileSelect={setSelectedFile}
-    disabled={updateArticleMutation.isPending}
-    preview
-    currentImageUrl={articleData.imagePath ?? undefined}
-  />
-</div>;
-```
-
-E:
-
-```tsx
-{/* Action Buttons */}
-<div className="flex gap-3 pt-2">
-  <Button
-    type="button"
-    variant="outline"
-    size="sm"
-    className="cursor-pointer"
-    onClick={() => {
-      if (!isAlwaysOpen) {
-        setIsOpen(false);
-      }
-      form.reset();
-      setSelectedFile(null);
-      onCancel?.();
-    }}
-    disabled={update{{resource}}Mutation.isPending}
-  >
-```
-
-example:
-
-```tsx
-{/* Action Buttons */}
-<div className="flex gap-3 pt-2">
-  <Button
-    type="button"
-    variant="outline"
-    size="sm"
-    className="cursor-pointer"
-    onClick={() => {
-      if (!isAlwaysOpen) {
-        setIsOpen(false);
-      }
-      form.reset();
-      setSelectedFile(null);
-      onCancel?.();
-    }}
-    disabled={updateArticleMutation.isPending}
-  >
-```
-
-## step 9 admin inline edit form
-
-`web/src/features/admin/{{resource}}/components/AdminInlineEdit{{resource}}Form.tsx`
-
-```ts
-"use client";
-
-import { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  adminUpdate{{resource}}Schema,
-  AdminUpdate{{resource}}Input,
-} from "../schemas/adminUpdate{{resource}}.schema";
-import { useAdminUpdate{{resource}} } from "../hooks";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
-import { {{resource}}, {{resource}}_STATUSES } from "../types/{{resource}}";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-interface InlineUpdate{{resource}}FormProps {
-  onSuccess?: () => void;
-  onCancel?: () => void;
-  onError?: (error: any) => void;
-  isAlwaysOpen?: boolean;
-  {{resource}}Data: {{resource}};
-}
-
-export function AdminInlineEdit{{resource}}Form({
-  onSuccess,
-  onCancel,
-  onError,
-  isAlwaysOpen = false,
-  {{resource}}Data,
-}: InlineUpdate{{resource}}FormProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const form = useForm<AdminUpdate{{resource}}Input>({
-    resolver: zodResolver(adminUpdate{{resource}}Schema),
-    mode: "onChange",
-    defaultValues: {
-      title: {{resource}}Data.title,
-      content: {{resource}}Data.content,
-      status: {{resource}}Data.status,
-    },
-  });
-
-  const update{{resource}}Mutation = useAdminUpdate{{resource}}();
-
-  const { isValid } = form.formState;
-
-  const handleSubmit = (data: AdminUpdate{{resource}}Input) => {
-    update{{resource}}Mutation.mutate(
-      { id: {{resource}}Data.id, data },
-      {
-        onSuccess: () => {
-          form.reset();
-          if (!isAlwaysOpen) {
-            setIsOpen(false);
-          }
-          onSuccess?.();
-        },
-        onError: (err) => {
-          onError?.(err);
-        },
-      },
-    );
-  };
-
-  if (!isAlwaysOpen && !isOpen) {
-    return (
-      <Button onClick={() => setIsOpen(true)} variant="outline">
-        Edit {{resource}}
-      </Button>
-    );
-  }
-
-  return (
-    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-      {/* title */}
-      <div className="space-y-2">
-        <Label htmlFor="inline-title" className="text-sm">
-          Title
-        </Label>
-        <Input
-          id="inline-title"
-          type="text"
-          placeholder="title"
-          disabled={update{{resource}}Mutation.isPending}
-          {...form.register("title")}
-        />
-        {form.formState.errors.title && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.title.message}
-          </p>
-        )}
-      </div>
-
-      {/* content */}
-      <div className="space-y-2">
-        <Label htmlFor="inline-content" className="text-sm">
-          Content
-        </Label>
-        <Textarea
-          id="inline-content"
-          placeholder="content"
-          disabled={update{{resource}}Mutation.isPending}
-          {...form.register("content")}
-        />
-        {form.formState.errors.content && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.content.message}
-          </p>
-        )}
-      </div>
-
-      {/* status */}
-      <div className="space-y-2">
-        <Label htmlFor="inline-status" className="text-sm">
-          Status
-        </Label>
-        <Controller
-          name="status"
-          control={form.control}
-          render={({ field }) => (
-            <Select value={field.value || ""} onValueChange={field.onChange}>
-              <SelectTrigger
-                id="inline-status"
-                disabled={update{{resource}}Mutation.isPending}
-              >
-                <SelectValue placeholder="Select a status" />
-              </SelectTrigger>
-              <SelectContent>
-                {{{resource}}_STATUSES.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status.charAt(0).toUpperCase() +
-                      status.slice(1).toLowerCase()}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        />
-        {form.formState.errors.status && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.status.message}
-          </p>
-        )}
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-3 pt-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="cursor-pointer"
-          onClick={() => {
-            if (!isAlwaysOpen) {
-              setIsOpen(false);
-            }
-            form.reset();
-            onCancel?.();
-          }}
-          disabled={update{{resource}}Mutation.isPending}
-        >
-          {isAlwaysOpen ? "Reset" : "Cancel"}
-        </Button>
-        <Button
-          type="submit"
-          size="sm"
-          className="cursor-pointer"
-          disabled={update{{resource}}Mutation.isPending || !isValid}
-        >
-          {update{{resource}}Mutation.isPending && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
-          {update{{resource}}Mutation.isPending ? "Updating..." : "Update {{resource}}"}
-        </Button>
-      </div>
-    </form>
-  );
-}
-```
-
-example:
-`web/src/features/admin/articles/components/AdminInlineEditArticleForm.tsx`
-
-```ts
-"use client";
-
-import { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  adminUpdateArticleSchema,
-  AdminUpdateArticleInput,
-} from "../schemas/adminUpdateArticle.schema";
-import { useAdminUpdateArticle } from "../hooks";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
-import { Article, ARTICLE_STATUSES } from "../types/article";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-interface InlineUpdateArticleFormProps {
-  onSuccess?: () => void;
-  onCancel?: () => void;
-  onError?: (error: any) => void;
-  isAlwaysOpen?: boolean;
-  articleData: Article;
-}
-
-export function AdminInlineEditArticleForm({
-  onSuccess,
-  onCancel,
-  onError,
-  isAlwaysOpen = false,
-  articleData,
-}: InlineUpdateArticleFormProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const form = useForm<AdminUpdateArticleInput>({
-    resolver: zodResolver(adminUpdateArticleSchema),
-    mode: "onChange",
-    defaultValues: {
-      title: articleData.title,
-      content: articleData.content,
-      status: articleData.status,
-    },
-  });
-
-  const updateArticleMutation = useAdminUpdateArticle();
-
-  const { isValid } = form.formState;
-
-  const handleSubmit = (data: AdminUpdateArticleInput) => {
-    updateArticleMutation.mutate(
-      { id: articleData.id, data },
-      {
-        onSuccess: () => {
-          form.reset();
-          if (!isAlwaysOpen) {
-            setIsOpen(false);
-          }
-          onSuccess?.();
-        },
-        onError: (err) => {
-          onError?.(err);
-        },
-      },
-    );
-  };
-
-  if (!isAlwaysOpen && !isOpen) {
-    return (
-      <Button onClick={() => setIsOpen(true)} variant="outline">
-        Edit Article
-      </Button>
-    );
-  }
-
-  return (
-    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-      {/* title */}
-      <div className="space-y-2">
-        <Label htmlFor="inline-title" className="text-sm">
-          Title
-        </Label>
-        <Input
-          id="inline-title"
-          type="text"
-          placeholder="title"
-          disabled={updateArticleMutation.isPending}
-          {...form.register("title")}
-        />
-        {form.formState.errors.title && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.title.message}
-          </p>
-        )}
-      </div>
-
-      {/* content */}
-      <div className="space-y-2">
-        <Label htmlFor="inline-content" className="text-sm">
-          Content
-        </Label>
-        <Textarea
-          id="inline-content"
-          placeholder="content"
-          disabled={updateArticleMutation.isPending}
-          {...form.register("content")}
-        />
-        {form.formState.errors.content && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.content.message}
-          </p>
-        )}
-      </div>
-
-      {/* status */}
-      <div className="space-y-2">
-        <Label htmlFor="inline-status" className="text-sm">
-          Status
-        </Label>
-        <Controller
-          name="status"
-          control={form.control}
-          render={({ field }) => (
-            <Select value={field.value || ""} onValueChange={field.onChange}>
-              <SelectTrigger
-                id="inline-status"
-                disabled={updateArticleMutation.isPending}
-              >
-                <SelectValue placeholder="Select a status" />
-              </SelectTrigger>
-              <SelectContent>
-                {ARTICLE_STATUSES.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status.charAt(0).toUpperCase() +
-                      status.slice(1).toLowerCase()}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        />
-        {form.formState.errors.status && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.status.message}
-          </p>
-        )}
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-3 pt-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="cursor-pointer"
-          onClick={() => {
-            if (!isAlwaysOpen) {
-              setIsOpen(false);
-            }
-            form.reset();
-            onCancel?.();
-          }}
-          disabled={updateArticleMutation.isPending}
-        >
-          {isAlwaysOpen ? "Reset" : "Cancel"}
-        </Button>
-        <Button
-          type="submit"
-          size="sm"
-          className="cursor-pointer"
-          disabled={updateArticleMutation.isPending || !isValid}
-        >
-          {updateArticleMutation.isPending && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
-          {updateArticleMutation.isPending ? "Updating..." : "Update article"}
-        </Button>
-      </div>
-    </form>
-  );
-}
-```
-
-## step 10 admin inline edit form with file upload
-
-need to add:
-
-- A: `fileDropzone` import
-- B: file state variable
-- C: change handleSubmit function
-- D: input for file upload
-- E: clear file on reset button in action buttons
-
-A:
-
-```tsx
-import { FileDropzone } from "@/components/ui/file-dropzone";
-```
-
-B:
-
-```tsx
-const [selectedFile, setSelectedFile] = useState<File | null>(null);
-```
-
-C:
-
-```tsx
-const handleSubmit = (data: AdminUpdateArticleInput) => {
-  updateArticleMutation.mutate(
-    { id: articleData.id, data, file: selectedFile ?? undefined },
-    {
-      onSuccess: () => {
-        form.reset();
-        setSelectedFile(null);
-        if (!isAlwaysOpen) {
-          setIsOpen(false);
-        }
-        onSuccess?.();
-      },
-      onError: (err) => {
-        onError?.(err);
-      },
-    },
-  );
-};
-```
-
-D:
-
-```tsx
-{
-  /* file upload */
-}
-<div className="space-y-2">
-  <Label className="text-sm">Featured Image (Optional)</Label>
-  <FileDropzone
-    preset="{{resource}}Image"
-    onFileSelect={setSelectedFile}
-    disabled={update{{resource}}Mutation.isPending}
-    preview
-    currentImageUrl={{{resource}}Data.imagePath ?? undefined}
-  />
-</div>;
-```
-
-example:
-
-```tsx
-{
-  /* file upload */
-}
-<div className="space-y-2">
-  <Label className="text-sm">Featured Image (Optional)</Label>
-  <FileDropzone
-    preset="articleImage"
-    onFileSelect={setSelectedFile}
-    disabled={updateArticleMutation.isPending}
-    preview
-    currentImageUrl={articleData.imagePath ?? undefined}
-  />
-</div>;
-```
-
-E:
-
-```tsx
-{/* Action Buttons */}
-<div className="flex gap-3 pt-2">
-  <Button
-    type="button"
-    variant="outline"
-    size="sm"
-    className="cursor-pointer"
-    onClick={() => {
-      if (!isAlwaysOpen) {
-        setIsOpen(false);
-      }
-      form.reset();
-      setSelectedFile(null);
-      onCancel?.();
-    }}
-    disabled={update{{resource}}Mutation.isPending}
-  >
-```
-
-example:
-
-```tsx
-{/* Action Buttons */}
-<div className="flex gap-3 pt-2">
-  <Button
-    type="button"
-    variant="outline"
-    size="sm"
-    className="cursor-pointer"
-    onClick={() => {
-      if (!isAlwaysOpen) {
-        setIsOpen(false);
-      }
-      form.reset();
-      setSelectedFile(null);
-      onCancel?.();
-    }}
-    disabled={updateArticleMutation.isPending}
-  >
-```
+> File upload for the admin inline/modal edit case is handled by step 6. No separate inline variant needed.
 
 ## step 11 modal for edit
 
 `web/features/{{resource}}/components/modal/Edit{{resource}}Modal.tsx`
 
 ```tsx
-import { InlineEdit{{resource}}Form } from "../InlineEdit{{resource}}Form";
+import { Edit{{resource}}Form } from "../Edit{{resource}}Form";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 import { {{resource}} } from "../../types/{{resource}}";
@@ -9959,7 +8115,7 @@ export function Edit{{resource}}Modal({ data }: { data: {{resource}} }) {
   const { closeModal } = useModal();
 
   return (
-    <InlineEdit{{resource}}Form
+    <Edit{{resource}}Form
       {{resource}}Data={data}
       onSuccess={() => {
         toast.success("Successfully edited {{resource}}");
@@ -9981,7 +8137,7 @@ example:
 `web/features/articles/components/modal/EditArticleModal.tsx`
 
 ```tsx
-import { InlineEditArticleForm } from "../InlineEditArticleForm";
+import { EditArticleForm } from "../EditArticleForm";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 import { Article } from "../../types/article";
@@ -9990,7 +8146,7 @@ export function EditArticleModal({ data }: { data: Article }) {
   const { closeModal } = useModal();
 
   return (
-    <InlineEditArticleForm
+    <EditArticleForm
       articleData={data}
       onSuccess={() => {
         toast.success("Successfully edited article");
@@ -10013,7 +8169,7 @@ export function EditArticleModal({ data }: { data: Article }) {
 `web/src/features/admin/{{resource}}/components/modal/AdminEdit{{resource}}Modal.tsx`
 
 ```ts
-import { AdminInlineEdit{{resource}}Form } from "../AdminInlineEdit{{resource}}Form";
+import { AdminEdit{{resource}}Form } from "../AdminEdit{{resource}}Form";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 import { {{resource}} } from "../../types/{{resource}}";
@@ -10022,7 +8178,7 @@ export function AdminEdit{{resource}}Modal({ data }: { data: {{resource}} }) {
   const { closeModal } = useModal();
 
   return (
-    <AdminInlineEdit{{resource}}Form
+    <AdminEdit{{resource}}Form
       {{resource}}Data={data}
       onSuccess={() => {
         toast.success("Successfully edited {{resource}}");
@@ -10044,7 +8200,7 @@ example:
 `web/src/features/admin/articles/components/modal/AdminEditArticleModal.tsx`
 
 ```ts
-import { AdminInlineEditArticleForm } from "../AdminInlineEditArticleForm";
+import { AdminEditArticleForm } from "../AdminEditArticleForm";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 import { Article } from "../../types/article";
@@ -10053,7 +8209,7 @@ export function AdminEditArticleModal({ data }: { data: Article }) {
   const { closeModal } = useModal();
 
   return (
-    <AdminInlineEditArticleForm
+    <AdminEditArticleForm
       articleData={data}
       onSuccess={() => {
         toast.success("Successfully edited article");
@@ -10088,7 +8244,7 @@ import { ConfirmModal } from "../modal/ConfirmModal";
 import { useModal } from "../providers/ModalProvider";
 import { useDelete{{resource}} } from "@/features/{{resource}}/hooks";
 import { toast } from "sonner";
-import { InlineEdit{{resource}}Form } from "@/features/{{resource}}/components/InlineEdit{{resource}}Form";
+import { Edit{{resource}}Form } from "@/features/{{resource}}/components/Edit{{resource}}Form";
 // [PATH: none] — omit both imports below
 // [PATH: simple] — import AppImage
 import { AppImage } from "./AppImage";
@@ -10130,7 +8286,7 @@ export function {{resource}}({
             onClick={() => {
               openModal({
                 title: "edit {{resource}}",
-                content: <InlineEdit{{resource}}Form {{resource}}Data={data} />,
+                content: <Edit{{resource}}Form {{resource}}Data={data} isAlwaysOpen />,
               });
             }}
             title="edit {{resource}}"
@@ -10886,13 +9042,19 @@ export default function page() {
 `web/src/components/pages/{{resource}}/Create{{resource}}Page.tsx`
 
 ```tsx
+"use client";
+
 import { Create{{resource}}Form } from "@/features/{{resource}}/components/Create{{resource}}Form";
 import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export function Create{{resource}}Page() {
   return (
     <Card className="p-8 w-full max-w-md mx-auto">
-      <Create{{resource}}Form />
+      <Create{{resource}}Form
+        isAlwaysOpen
+        onSuccess={() => toast.success("{{resource}} created")}
+      />
     </Card>
   );
 }
@@ -10902,13 +9064,19 @@ example:
 `web/src/components/pages/article/CreateArticlePage.tsx`
 
 ```tsx
+"use client";
+
 import { CreateArticleForm } from "@/features/articles/components/CreateArticleForm";
 import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export function CreateArticlePage() {
   return (
     <Card className="p-8 w-full max-w-md mx-auto">
-      <CreateArticleForm />
+      <CreateArticleForm
+        isAlwaysOpen
+        onSuccess={() => toast.success("Article created")}
+      />
     </Card>
   );
 }
@@ -11009,7 +9177,11 @@ export function Edit{{resource}}Page() {
 
   return (
     <Card className="p-8 w-full max-w-md mx-auto">
-      <Edit{{resource}}Form {{resource}}Data={{{resource}}} />
+      <Edit{{resource}}Form
+        isAlwaysOpen
+        {{resource}}Data={{{resource}}}
+        onSuccess={() => router.push(`/{{resource}}/${{{resource}}.id}`)}
+      />
     </Card>
   );
 }
@@ -11068,7 +9240,11 @@ export function EditArticlePage() {
 
   return (
     <Card className="p-8 w-full max-w-md mx-auto">
-      <EditArticleForm articleData={article} />
+      <EditArticleForm
+        isAlwaysOpen
+        articleData={article}
+        onSuccess={() => router.push(`/article/${article.id}`)}
+      />
     </Card>
   );
 }

@@ -1,4 +1,4 @@
-import { InlineCreateArticleForm } from "../InlineCreateArticleForm";
+import { CreateArticleForm } from "../CreateArticleForm";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 
@@ -6,7 +6,7 @@ export function CreateArticleModal() {
   const { closeModal } = useModal();
 
   return (
-    <InlineCreateArticleForm
+    <CreateArticleForm
       onSuccess={() => {
         toast.success("Successfully made article");
         closeModal();

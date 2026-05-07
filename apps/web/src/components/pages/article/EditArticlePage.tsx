@@ -47,7 +47,11 @@ export function EditArticlePage() {
 
   return (
     <Card className="p-8 w-full max-w-md mx-auto">
-      <EditArticleForm articleData={article} />
+      <EditArticleForm
+        isAlwaysOpen
+        articleData={article}
+        onSuccess={() => router.push(`/article/${article.id}`)}
+      />
     </Card>
   );
 }

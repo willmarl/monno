@@ -1,4 +1,4 @@
-import { AdminInlineEditArticleForm } from "../AdminInlineEditArticleForm";
+import { AdminEditArticleForm } from "../AdminEditArticleForm";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 import { Article } from "../../types/article";
@@ -7,7 +7,7 @@ export function AdminEditArticleModal({ data }: { data: Article }) {
   const { closeModal } = useModal();
 
   return (
-    <AdminInlineEditArticleForm
+    <AdminEditArticleForm
       articleData={data}
       onSuccess={() => {
         toast.success("Successfully edited article");
