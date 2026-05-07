@@ -1,0 +1,13 @@
+{
+  "resource": "Blog",
+  "pagination": "offset",
+  "search": "basic",
+  "fileUpload": "none",
+  "admin": "write",
+  "resourceActions": [],
+  "frontend": true,
+  "paginationUI": [
+    "numbered"
+  ],
+  "profileIntegration": true
+}

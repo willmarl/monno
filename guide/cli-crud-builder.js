@@ -201,11 +201,16 @@ async function main() {
   fs.writeFileSync(progressPath, progressFile);
   fs.writeFileSync(systemPromptPath, systemPrompt);
 
+  // Persist config for validator
+  const configPath = path.join(process.cwd(), `CONFIG-${resource}.json`);
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
   log.title("✨ Done!");
   log.success(`Saved PROMPT-${resource}.txt`);
   log.success(`Saved PROJECT-BRIEF-${resource}.md`);
   log.success(`Saved PROGRESS-${resource}.md`);
   log.success(`Saved SYSTEM-PROMPT-${resource}.txt`);
+  log.success(`Saved CONFIG-${resource}.json`);
   console.log();
   console.log(`Next steps:`);
   console.log();

@@ -1,0 +1,19 @@
+{
+  "resource": "Article",
+  "pagination": "both",
+  "search": "basic",
+  "fileUpload": "complex",
+  "admin": "write",
+  "resourceActions": [
+    "likes",
+    "views",
+    "comments",
+    "collections"
+  ],
+  "frontend": true,
+  "paginationUI": [
+    "numbered",
+    "cursor"
+  ],
+  "profileIntegration": true
+}
