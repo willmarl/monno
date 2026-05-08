@@ -13,7 +13,8 @@
     "deploy:env": "bash ./scripts/deploy-env.sh",
     "deploy:vm": "bash ./scripts/deploy-vm.sh",
     "crud": "node guide/cli-crud-builder.js",
-    "validate-resource": "node guide/validate-resource.js"
+    "validate-resource": "node guide/validate-resource.js",
+    "ai-api-test": "node guide/ai-api-test.js"
   },
   "devDependencies": {
     "@inquirer/prompts": "^8.4.0",
