@@ -43,9 +43,10 @@
 
 - Integration tests (e.g., "can't delete another person's post") with vitest + supertest
 
-**Refactor**
+**Template**
 
-- Remove `Create/EditFoo` as `InlineCreate/EditFoo` can basically already do non-inline functionality. Need to go through out guide and repo and make all form use Inline and drop the name "Inline".
+- make variant of create and edit forms with no media, simple file upload, complex multimedia. Will help AI for code reference
+- add admin create to guide
 
 **Guides**
 
