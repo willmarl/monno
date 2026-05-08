@@ -59,11 +59,11 @@ export default function LoginForm() {
         <div className="flex justify-center">
           <img
             src="/favicon.svg"
-            alt="Invare"
+            alt="Monno"
             className="w-12 h-12 rounded-lg"
           />
         </div>
-        <h1 className="text-2xl font-bold text-foreground">Invare</h1>
+        <h1 className="text-2xl font-bold text-foreground">Monno</h1>
         <p className="text-sm text-muted-foreground">Log in to your account</p>
       </div>
 

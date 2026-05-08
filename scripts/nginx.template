@@ -30,8 +30,8 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    error_log /var/log/nginx/invare_error.log;
-    access_log /var/log/nginx/invare_access.log;
+    error_log /var/log/nginx/monno_error.log;
+    access_log /var/log/nginx/monno_access.log;
 }
 
 server {
