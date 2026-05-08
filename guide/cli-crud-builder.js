@@ -226,32 +226,50 @@ async function main() {
     `     e.g. "i want to add recipe with fields like name, and array of incredients and array of steps. also add enum of difficulty (easy, medium, hard). make image required"`,
   );
   console.log(
-    `  4. AI proposes schema → verifies PROGRESS-${resource}.md matches selections → you confirm`,
+    `  4. AI proposes schema → verifies PROGRESS-${resource}.md matches selections → you brainstorm together`,
   );
   console.log(
-    `  5. AI outputs final PROJECT-BRIEF-${resource}.md. In agent mode it auto-saves; otherwise copy-paste it.`,
+    `  5. AI edits apps/api/prisma/schema.prisma with the final schema`,
+  );
+  console.log(
+    `  6. AI outputs final PROJECT-BRIEF-${resource}.md. In agent mode it auto-saves; otherwise copy-paste it.`,
+  );
+  console.log(
+    `  7. You must run the migration to apply schema changes and generate Prisma client:`,
+  );
+  console.log(`     \`\`\`bash`);
+  console.log(`     cd apps/api`);
+  console.log(`     pnpm prisma migrate dev --name "add ${resource.toLowerCase()}"`);
+  console.log(`     \`\`\``);
+  console.log(
+    `     (Do NOT skip this — Prisma types are required for implementation)`,
   );
   console.log();
   console.log(`  [Session 2 — Implementation]`);
-  console.log(`  6. Use Claude Code with the system prompt (CRITICAL):`);
+  console.log(`  8. Use Claude Code with the system prompt (CRITICAL):`);
   console.log(`     \`\`\`bash`);
   console.log(`     claude --system-prompt SYSTEM-PROMPT-${resource}.txt`);
   console.log(`     \`\`\``);
   console.log();
-  console.log(`  7. In the Claude Code chat, share:`);
+  console.log(`  9. In the Claude Code chat, share:`);
   console.log(
     `     @PROJECT-BRIEF-${resource}.md @PROGRESS-${resource}.md @guide/how-to-add-new-resource.md`,
   );
   console.log();
+  console.log(`  10. Switch to "Accept Edits: On" mode (top right corner)`);
   console.log(
-    `  8. Then say: "Start implementation. Follow the guide and PROGRESS checklist."`,
+    `      (allows AI to save files automatically without asking permission each time)`,
+  );
+  console.log();
+  console.log(
+    `  11. Then say: "Start implementation. Follow the guide and PROGRESS checklist."`,
   );
   console.log();
   console.log(
     `     The system prompt will automatically remind AI to update PROGRESS as it completes each step.`,
   );
   console.log();
-  console.log(`  9. If context fills up mid-implementation:`);
+  console.log(`  12. If context fills up mid-implementation:`);
   console.log(
     `     - AI will say "Checkpoint: We completed up to Part X, Step Y"`,
   );
@@ -262,21 +280,21 @@ async function main() {
   console.log();
   console.log(`  [Session 3 — Write Integration Tests]`);
   console.log(
-    `  10. Optional: Add non-obvious business logic to FLOWS.md at repo root`,
+    `  13. Optional: Add non-obvious business logic to FLOWS.md at repo root`,
   );
   console.log(
     `      (only if your ${resource} has state transitions, cross-resource effects, or special ownership rules)`,
   );
-  console.log(`  11. Start another NEW chat session with your AI`);
-  console.log(`  12. Use the skill: /write-tests ${resource.toLowerCase()}`);
+  console.log(`  14. Start another NEW chat session with your AI`);
+  console.log(`  15. Use the skill: /write-tests ${resource.toLowerCase()}`);
   console.log(
     `      (this is a Claude Code slash command, not a pnpm command)`,
   );
   console.log(
-    `  13. Review the test plan the AI shows you (descriptions only)`,
+    `  16. Review the test plan the AI shows you (descriptions only)`,
   );
   console.log(
-    `  14. AI generates: src/modules/${resource.toLowerCase()}/${resource.toLowerCase()}.controller.integration.spec.ts`,
+    `  17. AI generates: src/modules/${resource.toLowerCase()}/${resource.toLowerCase()}.controller.integration.spec.ts`,
   );
   console.log();
   console.log(`  To run the tests:`);
@@ -353,7 +371,9 @@ I want to create a **${resource}** CRUD resource. The feature decisions are alre
 1. Read schema.prisma (I'll attach it) to confirm existing patterns
 2. Ask me ONLY about the ${resource} schema fields (what data it stores, any enum, any status)
 3. Propose the minimal ${resource} Prisma model
-4. Output PROJECT-BRIEF-${resource}.md with all decisions filled in
+4. Brainstorm with me about the schema until we're both happy with the changes
+5. Edit apps/api/prisma/schema.prisma with the final ${resource} model and any enum additions
+6. Output PROJECT-BRIEF-${resource}.md with all decisions filled in
 
 Start by asking me to describe the ${resource} fields.`;
 }
