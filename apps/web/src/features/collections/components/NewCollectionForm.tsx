@@ -4,72 +4,82 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  editCollectionAdminSchema,
-  EditCollectionAdminInput,
-} from "../schemas/editCollectionAdmin.schema";
-import { useAdminUpdateCollection } from "@/features/collections/hooks";
+  newCollectionSchema,
+  NewCollectionInput,
+} from "../schemas/newCollection.schema";
+import { useCreateCollection } from "../hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
-import { Collection } from "@/features/collections/types/collection";
+import { Loader2, ChevronUp, Plus } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
-interface InlineEditCollectionAdminFormProps {
-  data: Collection;
-  onSuccess?: () => void;
+interface NewCollectionFormProps {
+  onSuccess?: (response: any) => void;
   onCancel?: () => void;
   onError?: (error: any) => void;
   isAlwaysOpen?: boolean;
 }
 
-export function InlineEditCollectionAdminForm({
-  data: collectionData,
+/**
+ * Form for Creating collection.
+ *
+ * Handles submission. Importer must handle:
+ * - Success toast via onSuccess callback
+ * - Navigation/close via onSuccess callback (if needed)
+ * - Error handling via onError callback
+ *
+ * isAlwaysOpen=false: renders as collapsible toggle button.
+ * isAlwaysOpen=true: renders form immediately (for modals/pages).
+ */
+export function NewCollectionForm({
   onSuccess,
   onCancel,
   onError,
+
   isAlwaysOpen = false,
-}: InlineEditCollectionAdminFormProps) {
+}: NewCollectionFormProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const form = useForm<EditCollectionAdminInput>({
-    resolver: zodResolver(editCollectionAdminSchema),
+
+  const form = useForm<NewCollectionInput>({
+    resolver: zodResolver(newCollectionSchema),
     mode: "onChange",
     defaultValues: {
-      name: collectionData.name,
-      description: collectionData.description,
+      description: "",
+      name: "",
     },
   });
 
-  const editCollectionMutation = useAdminUpdateCollection();
+  const newCollectionMutation = useCreateCollection();
+
   const { isValid } = form.formState;
-  const handleSubmit = (data: EditCollectionAdminInput) => {
-    editCollectionMutation.mutate(
-      { id: collectionData.id, data },
-      {
-        onSuccess: () => {
-          form.reset();
-          if (!isAlwaysOpen) {
-            setIsOpen(false);
-          }
-          onSuccess?.();
-        },
-        onError: (err) => {
-          onError?.(err);
-        },
+
+  const handleSubmit = (data: NewCollectionInput) => {
+    newCollectionMutation.mutate(data, {
+      onSuccess: (response) => {
+        form.reset();
+        if (!isAlwaysOpen) {
+          setIsOpen(false);
+        }
+        onSuccess?.(response);
       },
-    );
+      onError: (err) => {
+        onError?.(err);
+      },
+    });
   };
 
   if (!isAlwaysOpen && !isOpen) {
     return (
       <Button onClick={() => setIsOpen(true)} variant="outline">
-        Edit Collection
+        <Plus /> New Collection
       </Button>
     );
   }
 
   return (
     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      {/* Input fields here*/}
       {/* name */}
       <div className="space-y-2">
         <Label htmlFor="inline-name" className="text-sm">
@@ -79,7 +89,7 @@ export function InlineEditCollectionAdminForm({
           id="inline-name"
           type="text"
           placeholder="name"
-          disabled={editCollectionMutation.isPending}
+          disabled={newCollectionMutation.isPending}
           {...form.register("name")}
         />
         {form.formState.errors.name && (
@@ -92,12 +102,12 @@ export function InlineEditCollectionAdminForm({
       {/* description */}
       <div className="space-y-2">
         <Label htmlFor="inline-description" className="text-sm">
-          Description
+          Description (optional)
         </Label>
         <Textarea
           id="inline-description"
           placeholder="description"
-          disabled={editCollectionMutation.isPending}
+          disabled={newCollectionMutation.isPending}
           {...form.register("description")}
         />
         {form.formState.errors.description && (
@@ -121,20 +131,28 @@ export function InlineEditCollectionAdminForm({
             form.reset();
             onCancel?.();
           }}
-          disabled={editCollectionMutation.isPending}
+          disabled={newCollectionMutation.isPending}
         >
-          {isAlwaysOpen ? "Reset" : "Cancel"}
+          {isAlwaysOpen ? (
+            "Clear"
+          ) : (
+            <div className="flex items-center gap-1">
+              <ChevronUp /> Collapse
+            </div>
+          )}
         </Button>
         <Button
           type="submit"
           size="sm"
-          disabled={editCollectionMutation.isPending || !isValid}
+          disabled={newCollectionMutation.isPending || !isValid}
           className="cursor-pointer"
         >
-          {editCollectionMutation.isPending && (
+          {newCollectionMutation.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          {editCollectionMutation.isPending ? "Saving..." : "Save collection"}
+          {newCollectionMutation.isPending
+            ? "Creating..."
+            : "Create collection"}
         </Button>
       </div>
     </form>

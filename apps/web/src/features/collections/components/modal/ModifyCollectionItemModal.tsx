@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/components/providers/ModalProvider";
 import { ResourceType } from "@/types/resource";
-import { InlineNewCollectionForm } from "@/features/collections/components/InlineNewCollectionForm";
+import { NewCollectionForm } from "@/features/collections/components/NewCollectionForm";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -108,7 +108,7 @@ export function ModifyCollectionItemModal({
 
   return (
     <div className="flex flex-col gap-4">
-      <InlineNewCollectionForm
+      <NewCollectionForm
         onSuccess={() => {
           toast.success("Collection created successfully");
         }}

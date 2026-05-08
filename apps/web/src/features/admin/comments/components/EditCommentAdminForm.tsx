@@ -4,47 +4,59 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  editCollectionSchema,
-  EditCollectionInput,
-} from "../schemas/editCollection.schema";
-import { useUpdateCollection } from "../hooks";
+  EditCommentAdminInput,
+  editCommentAdminSchema,
+} from "../schemas/editCommentAdmin.schema";
+import { useAdminUpdateComment } from "@/features/comments/hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { Collection } from "../types/collection";
-import { Textarea } from "@/components/ui/textarea";
+import { Comment } from "@/features/comments/types/comment";
 
-interface InlineEditCollectionFormProps {
-  data: Collection;
+interface EditCommentAdminFormProps {
+  data: Comment;
   onSuccess?: () => void;
   onCancel?: () => void;
   onError?: (error: any) => void;
   isAlwaysOpen?: boolean;
 }
 
-export function InlineEditCollectionForm({
-  data: collectionData,
+/**
+ * Form for Editing comment (admin).
+ *
+ * Handles submission. Importer must handle:
+ * - Success toast via onSuccess callback
+ * - Navigation/close via onSuccess callback (if needed)
+ * - Error handling via onError callback
+ *
+ * isAlwaysOpen=false: renders as collapsible toggle button.
+ * isAlwaysOpen=true: renders form immediately (for modals/pages).
+ */
+export function EditCommentAdminForm({
+  data: commentData,
   onSuccess,
   onCancel,
   onError,
   isAlwaysOpen = false,
-}: InlineEditCollectionFormProps) {
+}: EditCommentAdminFormProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const form = useForm<EditCollectionInput>({
-    resolver: zodResolver(editCollectionSchema),
+
+  const form = useForm<EditCommentAdminInput>({
+    resolver: zodResolver(editCommentAdminSchema),
     mode: "onChange",
     defaultValues: {
-      name: collectionData.name,
-      description: collectionData.description,
+      content: commentData.content,
     },
   });
 
-  const editCollectionMutation = useUpdateCollection();
+  const editCommentAdminMutation = useAdminUpdateComment();
+
   const { isValid } = form.formState;
-  const handleSubmit = (data: EditCollectionInput) => {
-    editCollectionMutation.mutate(
-      { id: collectionData.id, data },
+
+  const handleSubmit = (data: EditCommentAdminInput) => {
+    editCommentAdminMutation.mutate(
+      { id: commentData.id, data },
       {
         onSuccess: () => {
           form.reset();
@@ -63,46 +75,28 @@ export function InlineEditCollectionForm({
   if (!isAlwaysOpen && !isOpen) {
     return (
       <Button onClick={() => setIsOpen(true)} variant="outline">
-        Edit Collection
+        Edit Comment
       </Button>
     );
   }
 
   return (
     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-      {/* name */}
+      {/* content */}
       <div className="space-y-2">
-        <Label htmlFor="inline-name" className="text-sm">
-          Name
+        <Label htmlFor="inline-content" className="text-sm">
+          Content
         </Label>
         <Input
-          id="inline-name"
+          id="inline-content"
           type="text"
-          placeholder="name"
-          disabled={editCollectionMutation.isPending}
-          {...form.register("name")}
+          placeholder="content"
+          disabled={editCommentAdminMutation.isPending}
+          {...form.register("content")}
         />
-        {form.formState.errors.name && (
+        {form.formState.errors.content && (
           <p className="text-xs text-red-500">
-            {form.formState.errors.name.message}
-          </p>
-        )}
-      </div>
-
-      {/* description */}
-      <div className="space-y-2">
-        <Label htmlFor="inline-description" className="text-sm">
-          Description
-        </Label>
-        <Textarea
-          id="inline-description"
-          placeholder="description"
-          disabled={editCollectionMutation.isPending}
-          {...form.register("description")}
-        />
-        {form.formState.errors.description && (
-          <p className="text-xs text-red-500">
-            {form.formState.errors.description.message}
+            {form.formState.errors.content.message}
           </p>
         )}
       </div>
@@ -121,20 +115,20 @@ export function InlineEditCollectionForm({
             form.reset();
             onCancel?.();
           }}
-          disabled={editCollectionMutation.isPending}
+          disabled={editCommentAdminMutation.isPending}
         >
           {isAlwaysOpen ? "Reset" : "Cancel"}
         </Button>
         <Button
           type="submit"
           size="sm"
-          disabled={editCollectionMutation.isPending || !isValid}
           className="cursor-pointer"
+          disabled={editCommentAdminMutation.isPending || !isValid}
         >
-          {editCollectionMutation.isPending && (
+          {editCommentAdminMutation.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          {editCollectionMutation.isPending ? "Saving..." : "Save collection"}
+          {editCommentAdminMutation.isPending ? "Saving..." : "Save comment"}
         </Button>
       </div>
     </form>

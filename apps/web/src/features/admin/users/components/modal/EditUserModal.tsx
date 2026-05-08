@@ -1,6 +1,6 @@
 "use client";
 
-import { InlineEditUserAdminForm } from "@/features/admin/users/components/InlineEditUserAdminForm";
+import { EditUserAdminForm } from "@/features/admin/users/components/EditUserAdminForm";
 import { User } from "@/features/users/types/user";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
@@ -9,7 +9,7 @@ export function EditUserModal({ user }: { user: User }) {
   const { closeModal } = useModal();
 
   return (
-    <InlineEditUserAdminForm
+    <EditUserAdminForm
       user={user}
       onSuccess={() => {
         toast.success(`Edited ${user.username} successfully`);

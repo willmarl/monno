@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 
-interface InlineCreateUserAdminFormProps {
+interface CreateUserAdminFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   onError?: (error: any) => void;
@@ -28,12 +28,23 @@ interface InlineCreateUserAdminFormProps {
   isAlwaysOpen?: boolean;
 }
 
-export function InlineCreateUserAdminForm({
+/**
+ * Form for Creating user (admin).
+ *
+ * Handles submission. Importer must handle:
+ * - Success toast via onSuccess callback
+ * - Navigation/close via onSuccess callback (if needed)
+ * - Error handling via onError callback
+ *
+ * isAlwaysOpen=false: renders as collapsible toggle button.
+ * isAlwaysOpen=true: renders form immediately (for modals/pages).
+ */
+export function CreateUserAdminForm({
   onSuccess,
   onCancel,
   onError,
   isAlwaysOpen = false,
-}: InlineCreateUserAdminFormProps) {
+}: CreateUserAdminFormProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const form = useForm<CreateUserAdminInput>({

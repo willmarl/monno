@@ -1,13 +1,13 @@
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
-import { InlineEditPostAdminForm } from "@/features/admin/posts/components/InlineEditPostAdminForm";
+import { EditPostAdminForm } from "@/features/admin/posts/components/EditPostAdminForm";
 import { Post } from "@/features/posts/types/post";
 
 export function EditPostModal({ post }: { post: Post }) {
   const { closeModal } = useModal();
 
   return (
-    <InlineEditPostAdminForm
+    <EditPostAdminForm
       data={post}
       onSuccess={() => {
         toast.success("Successfully updated post");

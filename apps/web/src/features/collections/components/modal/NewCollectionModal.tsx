@@ -1,4 +1,4 @@
-import { InlineNewCollectionForm } from "@/features/collections/components/InlineNewCollectionForm";
+import { NewCollectionForm } from "@/features/collections/components/NewCollectionForm";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -8,7 +8,7 @@ export function NewCollectionModal() {
   const router = useRouter();
 
   return (
-    <InlineNewCollectionForm
+    <NewCollectionForm
       onSuccess={(response) => {
         toast.success("New Collection created successfully");
         closeModal();

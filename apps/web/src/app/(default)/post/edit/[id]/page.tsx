@@ -1,51 +1,13 @@
-"use client";
+import { EditPostPage } from "@/components/pages/post/EditPostPage";
+import { requireAuth } from "@/features/auth/server";
+import type { Metadata } from "next";
 
-import { useEffect } from "react";
-import { PageLoadingState } from "@/components/common/PageLoadingState";
-import EditPostForm from "@/features/posts/components/EditPostForm";
-import { Card } from "@/components/ui/card";
-import { useParams } from "next/navigation";
-import { useSessionUser } from "@/features/auth/hooks";
-import { usePostById } from "@/features/posts/hooks";
-import { useRouter } from "next/navigation";
+export const metadata: Metadata = {
+  title: "Edit Post",
+};
 
-export default function page() {
-  const { data: user, isLoading: loadingUser } = useSessionUser();
-  const params = useParams<{ id: string }>();
-  const { data: post, isLoading: loadingPost } = usePostById(Number(params.id));
-  const router = useRouter();
+export default async function page() {
+  await requireAuth();
 
-  useEffect(() => {
-    if (!loadingPost && !post) {
-      router.push("/not-found");
-    }
-  }, [post, loadingPost, router]);
-
-  useEffect(() => {
-    if (!loadingUser && !loadingPost && post && user) {
-      const isOwner = user.id === post.creator?.id;
-      if (!isOwner) {
-        router.push("/unauthorized");
-      }
-    }
-  }, [user, loadingUser, post, loadingPost, router]);
-
-  if (loadingUser || loadingPost) {
-    return <PageLoadingState variant="card" />;
-  }
-
-  if (!post) {
-    return null;
-  }
-
-  const isOwner = user?.id === post?.creator?.id;
-  if (!isOwner) {
-    return null;
-  }
-
-  return (
-    <Card className="p-8 w-full max-w-md mx-auto">
-      <EditPostForm post={post} />
-    </Card>
-  );
+  return <EditPostPage />;
 }

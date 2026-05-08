@@ -1,4 +1,4 @@
-import { InlineCreateTicketForm } from "@/features/support/components/InlineCreateTicketForm";
+import { CreateTicketForm } from "@/features/support/components/CreateTicketForm";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 
@@ -6,7 +6,7 @@ export function CreateTicketModal() {
   const { closeModal } = useModal();
 
   return (
-    <InlineCreateTicketForm
+    <CreateTicketForm
       onSuccess={() => {
         toast.success("Successfully sent message");
         closeModal();

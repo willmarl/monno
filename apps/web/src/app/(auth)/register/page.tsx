@@ -1,4 +1,4 @@
-import RegisterForm from "@/features/auth/components/RegisterForm";
+import { RegisterForm } from "@/features/auth/components/RegisterForm";
 import { Card } from "@/components/ui/card";
 import { redirectIfLoggedIn } from "@/features/auth/server";
 import type { Metadata } from "next";
@@ -12,7 +12,7 @@ export default async function RegisterPage() {
   return (
     <div className="flex justify-center mt-20">
       <Card className="p-8 w-full max-w-md">
-        <RegisterForm />
+        <RegisterForm isAlwaysOpen />
       </Card>
     </div>
   );

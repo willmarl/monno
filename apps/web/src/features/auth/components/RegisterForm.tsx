@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,7 +21,24 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import OAuthButtons from "./OAuthButtons";
 
-export default function RegisterForm() {
+interface RegisterFormProps {
+  onSuccess?: () => void;
+  isAlwaysOpen?: boolean;
+}
+
+/**
+ * Form for user registration. Importer must handle:
+ * - Post-registration navigation/redirect via onSuccess callback
+ *
+ * isAlwaysOpen=false: renders as toggle button.
+ * isAlwaysOpen=true: renders form immediately (pages/modals).
+ */
+export function RegisterForm({
+  onSuccess,
+  isAlwaysOpen = false,
+}: RegisterFormProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     mode: "onChange",
@@ -39,28 +57,34 @@ export default function RegisterForm() {
   const { captureEvent } = usePostHogEvents();
 
   function onSubmit(data: RegisterInput) {
-    // Only send username, email, and password to backend
-    // confirmPassword is only for frontend validation
     const payload = {
       username: data.username,
       password: data.password,
       ...(data.email && { email: data.email }),
     };
     registerMutation.mutate(payload, {
+      onSuccess: () => {
+        captureEvent("signup_completed", {
+          username: data.username,
+          hasEmail: !!data.email,
+        });
+        if (!isAlwaysOpen) setIsOpen(false);
+        onSuccess?.();
+      },
       onError: (err) => {
         const errorMessage = String(err);
-        form.setError("root", {
-          message: errorMessage,
-        });
+        form.setError("root", { message: errorMessage });
         toast.error(errorMessage);
       },
     });
+  }
 
-    // Track signup completion
-    captureEvent("signup_completed", {
-      username: data.username,
-      hasEmail: !!data.email,
-    });
+  if (!isAlwaysOpen && !isOpen) {
+    return (
+      <Button onClick={() => setIsOpen(true)} variant="outline">
+        Register
+      </Button>
+    );
   }
 
   return (
@@ -80,7 +104,6 @@ export default function RegisterForm() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-          {/* Error alert */}
           {form.formState.errors.root && (
             <div className="bg-destructive/10 border border-destructive/30 rounded-md p-3">
               <p className="text-sm text-destructive font-medium">
@@ -89,7 +112,6 @@ export default function RegisterForm() {
             </div>
           )}
 
-          {/* username */}
           <FormField
             control={form.control}
             name="username"
@@ -98,7 +120,6 @@ export default function RegisterForm() {
                 <FormLabel className="text-base font-semibold">
                   Username
                 </FormLabel>
-
                 <FormControl>
                   <Input
                     placeholder="Enter your username"
@@ -106,24 +127,17 @@ export default function RegisterForm() {
                     className="h-10"
                   />
                 </FormControl>
-
-                {/* <FormDescription>
-                  What people will see you as.
-                </FormDescription> */}
-
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* email */}
           <FormField
             control={form.control}
             name="email"
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-base font-semibold">Email</FormLabel>
-
                 <FormControl>
                   <Input
                     type="email"
@@ -133,17 +147,14 @@ export default function RegisterForm() {
                     className="h-10"
                   />
                 </FormControl>
-
                 <FormDescription>
                   We'll use this to help you recover your account.
                 </FormDescription>
-
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* password */}
           <FormField
             control={form.control}
             name="password"
@@ -152,7 +163,6 @@ export default function RegisterForm() {
                 <FormLabel className="text-base font-semibold">
                   Password
                 </FormLabel>
-
                 <FormControl>
                   <Input
                     type="password"
@@ -161,13 +171,11 @@ export default function RegisterForm() {
                     className="h-10"
                   />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* confirm password */}
           <FormField
             control={form.control}
             name="confirmPassword"
@@ -176,7 +184,6 @@ export default function RegisterForm() {
                 <FormLabel className="text-base font-semibold">
                   Confirm Password
                 </FormLabel>
-
                 <FormControl>
                   <Input
                     type="password"
@@ -185,7 +192,6 @@ export default function RegisterForm() {
                     className="h-10"
                   />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
@@ -196,14 +202,11 @@ export default function RegisterForm() {
             className="w-full h-10 font-semibold cursor-pointer"
             disabled={registerMutation.isPending || !isValid}
           >
-            {registerMutation.isPending
-              ? "Creating account..."
-              : "Create account"}
+            {registerMutation.isPending ? "Creating account..." : "Create account"}
           </Button>
         </form>
       </Form>
 
-      {/* Divider */}
       <div role="separator" aria-label="Or continue with" className="relative">
         <hr className="border-border" />
         <div className="absolute inset-0 flex items-center justify-center">
@@ -215,7 +218,6 @@ export default function RegisterForm() {
 
       <OAuthButtons />
 
-      {/* Login link */}
       <div className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
         <Link

@@ -15,7 +15,7 @@ import { User as UserType } from "@/features/users/types/user";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import type { ResourceType } from "@/types/resource";
 
-interface InlineNewCommentFormProps {
+interface NewCommentFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   isAlwaysOpen?: boolean;
@@ -24,14 +24,25 @@ interface InlineNewCommentFormProps {
   user?: UserType;
 }
 
-export function InlineNewCommentForm({
+/**
+ * Form for Creating comment.
+ *
+ * Handles submission. Importer must handle:
+ * - Success toast via onSuccess callback
+ * - Navigation/close via onSuccess callback (if needed)
+ * - Error handling via onError callback
+ *
+ * isAlwaysOpen=false: renders as collapsible toggle button.
+ * isAlwaysOpen=true: renders form immediately (for modals/pages).
+ */
+export function NewCommentForm({
   onSuccess,
   onCancel,
   isAlwaysOpen = true,
   resourceType,
   resourceId,
   user,
-}: InlineNewCommentFormProps) {
+}: NewCommentFormProps) {
   const [isOpen, setIsOpen] = useState(isAlwaysOpen);
   const [isFocused, setIsFocused] = useState(false);
 

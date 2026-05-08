@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,7 +15,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -27,28 +27,46 @@ const forgotPasswordSchema = z.object({
 
 type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 
-export default function ForgotPasswordForm() {
+interface ForgotPasswordFormProps {
+  onSuccess?: () => void;
+  isAlwaysOpen?: boolean;
+}
+
+/**
+ * Form for requesting a password reset email. Importer must handle:
+ * - Success toast via onSuccess callback
+ *
+ * Internally renders a confirmation panel after submission (page use).
+ * In a modal, onSuccess can close the modal instead.
+ *
+ * isAlwaysOpen=false: renders as toggle button.
+ * isAlwaysOpen=true: renders form immediately (pages/modals).
+ */
+export function ForgotPasswordForm({
+  onSuccess,
+  isAlwaysOpen = false,
+}: ForgotPasswordFormProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
   const form = useForm<ForgotPasswordInput>({
     resolver: zodResolver(forgotPasswordSchema),
     mode: "onChange",
-    defaultValues: {
-      email: "",
-    },
+    defaultValues: { email: "" },
   });
 
   const {
     formState: { isValid },
   } = form;
-
   const resetMutation = useRequestPasswordReset();
-  const [submitted, setSubmitted] = useState(false);
 
   function onSubmit(data: ForgotPasswordInput) {
     resetMutation.mutate(data.email, {
       onSuccess: () => {
-        toast.success("Check your email for password reset instructions");
-        setSubmitted(true);
         form.reset();
+        setSubmitted(true);
+        if (!isAlwaysOpen) setIsOpen(false);
+        onSuccess?.();
       },
       onError: () => {
         toast.error("Failed to send reset email");
@@ -56,10 +74,17 @@ export default function ForgotPasswordForm() {
     });
   }
 
+  if (!isAlwaysOpen && !isOpen) {
+    return (
+      <Button onClick={() => setIsOpen(true)} variant="outline">
+        Forgot Password
+      </Button>
+    );
+  }
+
   if (submitted) {
     return (
       <div className="w-full max-w-sm space-y-8">
-        {/* Header */}
         <div className="text-center space-y-3">
           <div className="flex justify-center">
             <img
@@ -95,7 +120,6 @@ export default function ForgotPasswordForm() {
 
   return (
     <div className="w-full max-w-sm space-y-8">
-      {/* Header */}
       <div className="text-center space-y-3">
         <div className="flex justify-center">
           <img
@@ -139,7 +163,6 @@ export default function ForgotPasswordForm() {
         </form>
       </Form>
 
-      {/* Info text */}
       <div className="rounded-lg border border-border bg-muted/50 p-4">
         <p className="text-sm text-muted-foreground">
           Enter your email and we'll send you a link to reset your password.
@@ -149,7 +172,6 @@ export default function ForgotPasswordForm() {
         </p>
       </div>
 
-      {/* Back to login link */}
       <div className="text-center text-sm text-muted-foreground">
         Remember your password?{" "}
         <Link

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +20,21 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import OAuthButtons from "./OAuthButtons";
 
-export default function LoginForm() {
+interface LoginFormProps {
+  onSuccess?: () => void;
+  isAlwaysOpen?: boolean;
+}
+
+/**
+ * Form for user login. Importer must handle:
+ * - Post-login navigation/redirect via onSuccess callback
+ *
+ * isAlwaysOpen=false: renders as toggle button.
+ * isAlwaysOpen=true: renders form immediately (pages/modals).
+ */
+export function LoginForm({ onSuccess, isAlwaysOpen = false }: LoginFormProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     mode: "onChange",
@@ -37,19 +52,26 @@ export default function LoginForm() {
 
   function onSubmit(data: LoginInput) {
     loginMutation.mutate(data, {
+      onSuccess: () => {
+        if (!isAlwaysOpen) setIsOpen(false);
+        onSuccess?.();
+      },
       onError: (e) => {
         const errorMessage = String(e);
-        form.setError("root", {
-          message: errorMessage,
-        });
+        form.setError("root", { message: errorMessage });
         toast.error(errorMessage);
       },
     });
 
-    // Track login attempt
-    captureEvent("login_attempted", {
-      username: data.username,
-    });
+    captureEvent("login_attempted", { username: data.username });
+  }
+
+  if (!isAlwaysOpen && !isOpen) {
+    return (
+      <Button onClick={() => setIsOpen(true)} variant="outline">
+        Login
+      </Button>
+    );
   }
 
   return (
@@ -69,7 +91,6 @@ export default function LoginForm() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Error alert */}
           {form.formState.errors.root && (
             <div className="bg-destructive/10 border border-destructive/30 rounded-md p-3">
               <p className="text-sm text-destructive font-medium">
@@ -78,7 +99,6 @@ export default function LoginForm() {
             </div>
           )}
 
-          {/* username */}
           <FormField
             control={form.control}
             name="username"
@@ -87,7 +107,6 @@ export default function LoginForm() {
                 <FormLabel className="text-base font-semibold">
                   Username
                 </FormLabel>
-
                 <FormControl>
                   <Input
                     placeholder="Enter your username"
@@ -95,13 +114,11 @@ export default function LoginForm() {
                     className="h-10"
                   />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* password */}
           <FormField
             control={form.control}
             name="password"
@@ -118,7 +135,6 @@ export default function LoginForm() {
                     Forgot password?
                   </Link>
                 </div>
-
                 <FormControl>
                   <Input
                     type="password"
@@ -127,7 +143,6 @@ export default function LoginForm() {
                     className="h-10"
                   />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
@@ -143,7 +158,6 @@ export default function LoginForm() {
         </form>
       </Form>
 
-      {/* Divider */}
       <div role="separator" aria-label="Or continue with" className="relative">
         <hr className="border-border" />
         <div className="absolute inset-0 flex items-center justify-center">
@@ -155,7 +169,6 @@ export default function LoginForm() {
 
       <OAuthButtons />
 
-      {/* Sign up link */}
       <div className="text-center text-sm text-muted-foreground">
         Don't have an account?{" "}
         <Link

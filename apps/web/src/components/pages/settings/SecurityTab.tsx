@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Lock, LogOut, Globe, Trash2 } from "lucide-react";
-import { InlinePasswordForm } from "@/features/users/components/InlinePasswordForm";
+import { PasswordForm } from "@/features/users/components/PasswordForm";
 import { toastSuccess, toastError } from "@/lib/toast";
 import { SessionManager } from "@/features/auth/components/SessionManager";
 import { useDeleteProfile } from "@/features/users/hooks";
@@ -38,8 +38,8 @@ export function SecurityTab() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* The InlinePasswordForm component handles all password change logic */}
-          <InlinePasswordForm
+          {/* The PasswordForm component handles all password change logic */}
+          <PasswordForm
             onSuccess={() => {
               toastSuccess("Password changed successfully");
             }}

@@ -23,7 +23,7 @@ import { Loader2 } from "lucide-react";
 import { User } from "@/features/users/types/user";
 import { AvatarUpload } from "@/components/ui/avatar-upload";
 
-interface InlineEditUserAdminFormProps {
+interface EditUserAdminFormProps {
   user: User;
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -31,13 +31,24 @@ interface InlineEditUserAdminFormProps {
   isAlwaysOpen?: boolean;
 }
 
-export function InlineEditUserAdminForm({
+/**
+ * Form for Editing user (admin).
+ *
+ * Handles submission. Importer must handle:
+ * - Success toast via onSuccess callback
+ * - Navigation/close via onSuccess callback (if needed)
+ * - Error handling via onError callback
+ *
+ * isAlwaysOpen=false: renders as collapsible toggle button.
+ * isAlwaysOpen=true: renders form immediately (for modals/pages).
+ */
+export function EditUserAdminForm({
   user,
   onSuccess,
   onCancel,
   onError,
   isAlwaysOpen = false,
-}: InlineEditUserAdminFormProps) {
+}: EditUserAdminFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 

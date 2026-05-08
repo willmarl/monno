@@ -14,19 +14,30 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
-interface InlineCreateTicketFormProps {
+interface CreateTicketFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   onError?: (error: any) => void;
   isAlwaysOpen?: boolean;
 }
 
-export function InlineCreateTicketForm({
+/**
+ * Form for Creating support ticket.
+ *
+ * Handles submission. Importer must handle:
+ * - Success toast via onSuccess callback
+ * - Navigation/close via onSuccess callback (if needed)
+ * - Error handling via onError callback
+ *
+ * isAlwaysOpen=false: renders as collapsible toggle button.
+ * isAlwaysOpen=true: renders form immediately (for modals/pages).
+ */
+export function CreateTicketForm({
   onSuccess,
   onCancel,
   onError,
   isAlwaysOpen = false,
-}: InlineCreateTicketFormProps) {
+}: CreateTicketFormProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const form = useForm<CreateTicketInput>({

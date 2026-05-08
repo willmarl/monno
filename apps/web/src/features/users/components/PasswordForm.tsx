@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 
-interface InlinePasswordFormProps {
+interface PasswordFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   onError?: (error: any) => void;
@@ -27,12 +27,23 @@ type FormInputs = {
   confirmPassword: string;
 };
 
-export function InlinePasswordForm({
+/**
+ * Form for Changing user password.
+ *
+ * Handles submission. Importer must handle:
+ * - Success toast via onSuccess callback
+ * - Navigation/close via onSuccess callback (if needed)
+ * - Error handling via onError callback
+ *
+ * isAlwaysOpen=false: renders as collapsible toggle button.
+ * isAlwaysOpen=true: renders form immediately (for modals/pages).
+ */
+export function PasswordForm({
   onSuccess,
   onCancel,
   onError,
   isAlwaysOpen = false,
-}: InlinePasswordFormProps) {
+}: PasswordFormProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const form = useForm<FormInputs>({

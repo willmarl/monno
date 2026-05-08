@@ -8,7 +8,7 @@ import { PageNotFound } from "@/components/common/PageNotFound";
 import { PageLoadingState } from "@/components/common/PageLoadingState";
 import { User } from "@/features/users/types/user";
 import { useRecordView } from "@/features/views/hook";
-import { InlineNewCommentForm } from "@/features/comments/components/InlineNewCommentForm";
+import { NewCommentForm } from "@/features/comments/components/NewCommentForm";
 import { CommentPagInline } from "@/features/comments/components/CommentPagInline";
 import { toast } from "sonner";
 // import { useSessionUser } from "@/features/auth/hooks";
@@ -52,7 +52,7 @@ export function ArticleDetail({ user }: { user: User | undefined }) {
       />
       <div className="bg-card rounded-lg p-4">
         <h3 className="font-semibold mb-4">Comments</h3>
-        <InlineNewCommentForm
+        <NewCommentForm
           resourceType="ARTICLE"
           resourceId={data.id}
           onSuccess={() => {

@@ -1,4 +1,4 @@
-import { InlineCreateUserAdminForm } from "@/features/admin/users/components/InlineCreateUserAdminForm";
+import { CreateUserAdminForm } from "@/features/admin/users/components/CreateUserAdminForm";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
 
@@ -6,7 +6,7 @@ export function CreateUserModal() {
   const { closeModal } = useModal();
 
   return (
-    <InlineCreateUserAdminForm
+    <CreateUserAdminForm
       onSuccess={() => {
         toast.success("Successfully made user");
         closeModal();

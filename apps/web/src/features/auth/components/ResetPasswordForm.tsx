@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useResetPassword } from "../hooks";
@@ -14,8 +15,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
@@ -23,9 +22,27 @@ import {
   ResetPasswordInput,
 } from "../schemas/resetPassword.schema";
 
-export default function ResetPasswordForm() {
+interface ResetPasswordFormProps {
+  onSuccess?: () => void;
+  isAlwaysOpen?: boolean;
+}
+
+/**
+ * Form for resetting a password via email token. Importer must handle:
+ * - Success toast and redirect to login via onSuccess callback
+ *
+ * Reads token from URL search params — inherently page-bound,
+ * but accepts callbacks for consistency.
+ *
+ * isAlwaysOpen=false: renders as toggle button.
+ * isAlwaysOpen=true: renders form immediately (pages/modals).
+ */
+export function ResetPasswordForm({
+  onSuccess,
+  isAlwaysOpen = false,
+}: ResetPasswordFormProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const searchParams = useSearchParams();
-  const router = useRouter();
   const token = searchParams.get("token");
 
   const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
@@ -40,21 +57,17 @@ export default function ResetPasswordForm() {
     },
   });
 
-  // Validate token on mount
   useEffect(() => {
     if (!token) {
       setIsValidToken(false);
       setTokenError("No reset token provided");
       return;
     }
-
-    // Token format validation (basic check - server will validate properly)
     if (token.length < 20) {
       setIsValidToken(false);
       setTokenError("Invalid reset link");
       return;
     }
-
     setIsValidToken(true);
   }, [token]);
 
@@ -73,10 +86,8 @@ export default function ResetPasswordForm() {
       { token, newPassword: data.confirmPassword },
       {
         onSuccess: () => {
-          toast.success("Password reset successfully! Redirecting to login...");
-          setTimeout(() => {
-            router.push("/login");
-          }, 1500);
+          if (!isAlwaysOpen) setIsOpen(false);
+          onSuccess?.();
         },
         onError: (error: any) => {
           const message = error?.message || "Failed to reset password";
@@ -87,10 +98,17 @@ export default function ResetPasswordForm() {
     );
   }
 
+  if (!isAlwaysOpen && !isOpen) {
+    return (
+      <Button onClick={() => setIsOpen(true)} variant="outline">
+        Reset Password
+      </Button>
+    );
+  }
+
   if (isValidToken === false) {
     return (
       <div className="w-full max-w-sm space-y-8">
-        {/* Header */}
         <div className="text-center space-y-3">
           <div className="flex justify-center">
             <img
@@ -135,7 +153,6 @@ export default function ResetPasswordForm() {
 
   return (
     <div className="w-full max-w-sm space-y-8">
-      {/* Header */}
       <div className="text-center space-y-3">
         <div className="flex justify-center">
           <img
@@ -202,7 +219,6 @@ export default function ResetPasswordForm() {
         </form>
       </Form>
 
-      {/* Back to login link */}
       <div className="text-center text-sm text-muted-foreground">
         Remember your password?{" "}
         <Link

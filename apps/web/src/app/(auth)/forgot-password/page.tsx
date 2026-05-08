@@ -1,5 +1,5 @@
 import { redirectIfLoggedIn } from "@/features/auth/server";
-import ForgotPasswordForm from "@/features/auth/components/ForgotPasswordForm";
+import { ForgotPasswordForm } from "@/features/auth/components/ForgotPasswordForm";
 import { Card } from "@/components/ui/card";
 import type { Metadata } from "next";
 
@@ -12,7 +12,7 @@ async function ForgotPasswordPage() {
   return (
     <div className="flex justify-center mt-20">
       <Card className="p-8 w-full max-w-md">
-        <ForgotPasswordForm />
+        <ForgotPasswordForm isAlwaysOpen />
       </Card>
     </div>
   );

@@ -3,72 +3,73 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { updatePostSchema, UpdatePostInput } from "../schemas/updatePost.schema";
-import { useUpdatePost } from "../hooks";
+import { createPostSchema, CreatePostInput } from "../schemas/createPost.schema";
+import { useCreatePost } from "../hooks";
+import { usePostHogEvents } from "@/hooks/usePostHogEvents";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Post } from "../types/post";
 
-interface EditPostFormProps {
-  post: Post;
-  onSuccess?: () => void;
+interface CreatePostFormProps {
+  onSuccess?: (postId: number) => void;
   onCancel?: () => void;
   isAlwaysOpen?: boolean;
 }
 
 /**
- * Form for editing posts. Importer must handle:
+ * Form for creating posts. Importer must handle:
  * - Success toast via onSuccess callback
- * - Navigation/redirect via onSuccess callback
+ * - Navigation/redirect via onSuccess callback (receives postId)
  *
  * isAlwaysOpen=false: renders as toggle button.
  * isAlwaysOpen=true: renders form immediately (pages/modals).
  */
-export function EditPostForm({
-  post,
+export function CreatePostForm({
   onSuccess,
   onCancel,
   isAlwaysOpen = false,
-}: EditPostFormProps) {
+}: CreatePostFormProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { captureEvent } = usePostHogEvents();
 
-  const form = useForm<UpdatePostInput>({
-    resolver: zodResolver(updatePostSchema),
+  const form = useForm<CreatePostInput>({
+    resolver: zodResolver(createPostSchema),
     mode: "onChange",
     defaultValues: {
-      title: post.title,
-      content: post.content,
+      title: "",
+      content: "",
     },
   });
 
   const {
     formState: { isValid },
   } = form;
-  const updatePostMutation = useUpdatePost();
+  const createPostMutation = useCreatePost();
 
-  function onSubmit(data: UpdatePostInput) {
-    updatePostMutation.mutate(
-      { id: post.id, data },
-      {
-        onSuccess: () => {
-          form.reset({ title: data.title, content: data.content });
-          if (!isAlwaysOpen) setIsOpen(false);
-          onSuccess?.();
-        },
-        onError: (err: any) => {
-          toast.error(err?.message ?? "Failed to update post");
-        },
+  function onSubmit(data: CreatePostInput) {
+    createPostMutation.mutate(data, {
+      onSuccess: (response) => {
+        captureEvent("post_created", {
+          postId: response.id,
+          titleLength: data.title.length,
+          contentLength: data.content.length,
+        });
+        form.reset();
+        if (!isAlwaysOpen) setIsOpen(false);
+        onSuccess?.(response.id);
       },
-    );
+      onError: (err: any) => {
+        toast.error(err?.message ?? "Failed to create post");
+      },
+    });
   }
 
   if (!isAlwaysOpen && !isOpen) {
     return (
       <Button onClick={() => setIsOpen(true)} variant="outline">
-        Edit Post
+        Create Post
       </Button>
     );
   }
@@ -76,7 +77,7 @@ export function EditPostForm({
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label className="text-sm">Title</Label>
+        <Label className="text-sm">Post Title</Label>
         <Input placeholder="title" {...form.register("title")} />
         {form.formState.errors.title && (
           <p className="text-xs text-red-500">
@@ -86,7 +87,7 @@ export function EditPostForm({
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm">Content</Label>
+        <Label className="text-sm">Post Content</Label>
         <Textarea placeholder="content" {...form.register("content")} />
         {form.formState.errors.content && (
           <p className="text-xs text-red-500">
@@ -106,7 +107,7 @@ export function EditPostForm({
             form.reset();
             onCancel?.();
           }}
-          disabled={updatePostMutation.isPending}
+          disabled={createPostMutation.isPending}
         >
           {isAlwaysOpen ? "Reset" : "Cancel"}
         </Button>
@@ -114,9 +115,9 @@ export function EditPostForm({
           type="submit"
           size="sm"
           className="cursor-pointer"
-          disabled={updatePostMutation.isPending || !isValid}
+          disabled={createPostMutation.isPending || !isValid}
         >
-          {updatePostMutation.isPending ? "Saving..." : "Save Post"}
+          {createPostMutation.isPending ? "Creating..." : "Create Post"}
         </Button>
       </div>
     </form>

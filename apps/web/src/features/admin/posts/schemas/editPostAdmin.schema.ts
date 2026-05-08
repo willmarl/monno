@@ -1,8 +1,0 @@
-import { z } from "zod";
-
-export const editPostAdminSchema = z.object({
-  title: z.string().min(1).max(150),
-  content: z.string().min(1).max(1000),
-});
-
-export type EditPostAdminInput = z.infer<typeof editPostAdminSchema>;
