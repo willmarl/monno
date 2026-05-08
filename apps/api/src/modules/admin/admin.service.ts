@@ -217,4 +217,13 @@ export class AdminService {
       timestamp: new Date().toISOString(),
     };
   }
+
+  // ===== TESTING & DEBUGGING =====
+
+  /**
+   * Force an error for testing error tracking (Sentry)
+   */
+  forceError() {
+    throw new Error('Intentional error for Sentry testing');
+  }
 }

@@ -7,6 +7,7 @@ import { PostsStatsWidget } from "./widgets/PostsStatsWidget";
 import { ArticlesStatsWidget } from "./widgets/ArticlesStatsWidget";
 import { SystemStatsWidget } from "./widgets/SystemStatsWidget";
 import { RecentActivityWidget } from "./widgets/RecentActivityWidget";
+import { ForceErrorWidget } from "./widgets/ForceErrorWidget";
 
 export function AdminDashboardPage() {
   const { data, isLoading } = useStats();
@@ -21,6 +22,7 @@ export function AdminDashboardPage() {
           <Skeleton className="h-64" /> {/*user stats*/}
           <Skeleton className="h-64" /> {/*post stats*/}
           <Skeleton className="h-64" /> {/*article stats*/}
+          <Skeleton className="h-64" /> {/*force error*/}
         </div>
       </div>
     );
@@ -41,6 +43,7 @@ export function AdminDashboardPage() {
         <PostsStatsWidget data={data?.posts} />
         <ArticlesStatsWidget data={data?.articles} />
         <RecentActivityWidget />
+        <ForceErrorWidget />
       </div>
     </div>
   );

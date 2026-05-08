@@ -78,4 +78,16 @@ export class AdminController {
   getStats() {
     return this.adminService.getStats();
   }
+
+  // ===== TESTING & DEBUGGING =====
+
+  @ApiOperation({ summary: 'Force an error for testing error tracking (admin only)' })
+  @ApiBearerAuth()
+  @ApiResponse({ status: 500, description: 'Intentional error for Sentry testing' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
+  @Get('force-error')
+  forceError() {
+    return this.adminService.forceError();
+  }
 }
