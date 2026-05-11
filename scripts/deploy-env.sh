@@ -42,6 +42,14 @@ else
   echo "⚠️  No scripts/.env.deploy found (skipping)"
 fi
 
+# Deploy .env.docker
+if [ -f .env.docker ]; then
+  echo "📄 Uploading .env.docker..."
+  scp .env.docker $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/
+else
+  echo "⚠️  No .env.docker found (skipping)"
+fi
+
 # Deploy API .env
 if [ -f apps/api/.env ]; then
   echo "📄 Uploading API .env..."
