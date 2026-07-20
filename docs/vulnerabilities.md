@@ -40,23 +40,24 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 
 ## High
 
-### 5. Draft (and non-published) articles exposed publicly
+### 5. Draft (and non-published) articles exposed publicly — **DEFERRED**
 
 - **Where:** `apps/api/src/modules/articles/articles.service.ts` — `findById`, `findAll`, `searchAll`
 - **Issue:** Public reads filter `deleted: false` only, not `status: PUBLISHED`. Full `content` is selected.
 - **Fix:** Default public queries to `status: 'PUBLISHED'`. Allow drafts only for creator/admin.
+- **Deferred:** Articles (and posts) are boilerplate placeholders and the primary AI CRUD reference (`guide/guidev2`, `docs/ai-tut.md`). Not treated as a product content surface — teach status filtering in the guide when scaffolding a real resource instead of hardening the sample.
 
-### 6. Local file serve path check is prefix-unsafe
+### 6. Local file serve path check is prefix-unsafe — **FIXED**
 
 - **Where:** `apps/api/src/modules/files/files.controller.ts` — `serveFile`
 - **Issue:** Uses `normalizedPath.startsWith(path.normalize(uploadPath))`. Paths like `/uploads_evil/...` can pass a check meant for `/uploads`.
-- **Fix:** Resolve with `path.resolve`, then require `resolved === root || resolved.startsWith(root + path.sep)`.
+- **Fix applied:** Shared `resolveWithinRoot()` (`path.resolve` + separator prefix). Used by file serve and local `deleteFile`.
 
-### 7. User-controlled `avatarPath` → delete path escape
+### 7. User-controlled `avatarPath` → delete path escape — **FIXED**
 
 - **Where:** `UpdateProfileDto.avatarPath`; `users.service.ts` `updateProfile`; `local-storage.backend.ts` `deleteFile`
 - **Issue:** Clients can set `avatarPath` without upload. On next avatar upload, `deleteFile` joins that value under the upload root with no traversal check.
-- **Fix:** Do not accept client `avatarPath`; only set from `processFile`. In `deleteFile`, apply the same resolve+prefix check as serve.
+- **Fix applied:** Client JSON can no longer set `avatarPath` (undecorated / stripped; forbidNonWhitelisted → 400). Avatar URLs only set from `processFile`. `deleteFile` refuses paths outside the upload root.
 
 ### 8. OAuth missing CSRF `state` (and PKCE)
 

@@ -71,9 +71,11 @@ export function EditUserAdminForm({
   const { isValid } = form.formState;
 
   const handleSubmit = (data: EditUserAdminInput) => {
-    // Filter out empty strings
+    // Filter out empty strings and avatarPath (file upload only)
     const filteredData = Object.fromEntries(
-      Object.entries(data).filter(([, value]) => value !== ""),
+      Object.entries(data).filter(
+        ([key, value]) => key !== "avatarPath" && value !== "",
+      ),
     ) as EditUserAdminInput;
 
     editUserAdminMutation.mutate(

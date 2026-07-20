@@ -153,7 +153,10 @@ export const updateAdminUser = (
 
   return fetcher(`/admin/users/${id}`, {
     method: "PATCH",
-    json: data,
+    json: (() => {
+      const { avatarPath: _ignored, ...rest } = data;
+      return rest;
+    })(),
   });
 };
 

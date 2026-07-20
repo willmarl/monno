@@ -222,18 +222,18 @@ export class AdminUserService {
     }
 
     // Handle avatar file upload
+    let avatarPath: string | undefined;
     if (file) {
       try {
         if (user.avatarPath) {
           await this.fileProcessing.deleteFile(user.avatarPath);
         }
 
-        const avatarPath = await this.fileProcessing.processFile(
+        avatarPath = await this.fileProcessing.processFile(
           file,
           'avatar',
           userId,
         );
-        data.avatarPath = avatarPath;
       } catch (error) {
         const errorMessage =
           error instanceof Error
@@ -244,6 +244,9 @@ export class AdminUserService {
     }
 
     const updateData: any = { ...data };
+    if (avatarPath) {
+      updateData.avatarPath = avatarPath;
+    }
 
     // Track changes for audit log
     const changes: Record<string, any> = {};

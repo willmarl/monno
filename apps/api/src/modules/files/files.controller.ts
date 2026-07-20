@@ -2,7 +2,7 @@ import { Controller, Get, Res, Req } from '@nestjs/common';
 import { ApiExcludeEndpoint } from '@nestjs/swagger';
 import type { Response, Request } from 'express';
 import * as fs from 'fs';
-import * as path from 'path';
+import { resolveWithinRoot } from '../../common/file-processing/path-confinement';
 
 @Controller('files')
 export class FilesController {
@@ -18,22 +18,18 @@ export class FilesController {
     const uploadPath = process.env.LOCAL_UPLOAD_PATH || '/uploads';
     // Extract file path from URL, removing the /files prefix
     const filePath = req.path.replace(/^\/files\/?/, '');
-    const fullPath = path.join(uploadPath, filePath);
+    const resolved = resolveWithinRoot(uploadPath, filePath);
 
-    // Security: Prevent directory traversal attacks
-    const normalizedPath = path.normalize(fullPath);
-    if (!normalizedPath.startsWith(path.normalize(uploadPath))) {
+    if (!resolved) {
       res.status(403).send('Forbidden');
       return;
     }
 
-    // Check if file exists
-    if (!fs.existsSync(normalizedPath)) {
+    if (!fs.existsSync(resolved)) {
       res.status(404).send('File not found');
       return;
     }
 
-    // Serve the file
-    res.sendFile(normalizedPath);
+    res.sendFile(resolved);
   }
 }

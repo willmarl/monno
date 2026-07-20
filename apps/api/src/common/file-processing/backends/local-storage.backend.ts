@@ -1,6 +1,7 @@
 import { StorageBackend } from '../storage-backend.interface';
 import * as fs from 'fs';
 import * as path from 'path';
+import { resolveWithinRoot } from '../path-confinement';
 
 export class LocalStorageBackend implements StorageBackend {
   private baseUploadPath: string;
@@ -41,21 +42,22 @@ export class LocalStorageBackend implements StorageBackend {
         const url = new URL(filePath);
         pathPart = url.pathname;
       } catch {
-        // If URL parsing fails, try to use as-is
         pathPart = filePath;
       }
     }
 
     // Remove /files/ prefix if it exists (URL has /files/avatars but filesystem just has /avatars)
     if (pathPart.startsWith('/files/')) {
-      pathPart = pathPart.replace('/files/', '/');
+      pathPart = pathPart.replace(/^\/files\//, '');
+    } else if (pathPart.startsWith('/')) {
+      pathPart = pathPart.slice(1);
     }
 
-    // Remove leading slash and construct full path
-    const relativePath = pathPart.startsWith('/')
-      ? pathPart.slice(1)
-      : pathPart;
-    const fullPath = path.join(this.baseUploadPath, relativePath);
+    const fullPath = resolveWithinRoot(this.baseUploadPath, pathPart);
+    if (!fullPath) {
+      // Refuse to delete outside the upload root (e.g. client-supplied avatarPath)
+      return;
+    }
 
     if (fs.existsSync(fullPath)) {
       fs.unlinkSync(fullPath);

@@ -38,8 +38,8 @@
 | done | [x] OAuth email auto-link only if existing email verified (or explicit link flow) | vulns #2 — 2026-07-20: verified → link; unverified → strip + new OAuth user |
 | done | [x] Protect Bull Board (`/admin/queues`) | vulns #3 — 2026-07-20: ADMIN cookie/Bearer middleware; `BULL_BOARD_ENABLED=false` to disable |
 | done | [x] Fail fast if JWT secrets missing/empty | vulns #4 — 2026-07-20: `requireJwtSecrets()` at boot + strategies |
-| todo | [ ] Public articles: default `PUBLISHED` only | vulns #5 |
-| todo | [ ] File serve + `avatarPath` / delete path confinement | vulns #6–7 |
+| deferred | [ ] Public articles: default `PUBLISHED` only | vulns #5 — articles are AI CRUD reference (guidev2), not a product surface; discarded 2026-07-20 |
+| done | [x] File serve + `avatarPath` / delete path confinement | vulns #6–7 — 2026-07-20: `resolveWithinRoot`; avatarPath not client-writable |
 | todo | [ ] Stop logging `DATABASE_URL` / reset & verify tokens | vulns #10 |
 | todo | [ ] Email rate limiting (forgot password, verify email, etc.) | futureToDo auth |
 
@@ -53,7 +53,7 @@
 |--------|------|-------|
 | todo | [ ] Batch `likedByMe` (`enhanceWithLikes` N+1 → one `findMany`) | code-quality |
 | todo | [ ] Collapse dual pagination (keep offset for admin, cursor for feeds; delete dead aliases/`findAll`) | code-quality |
-| todo | [ ] Articles DRY pilot: admin = domain service + audit; one form/schema on web | code-quality |
+| deferred | [ ] Articles DRY pilot: admin = domain service + audit; one form/schema on web | articles/posts are placeholders + guide reference — improve via guidev2, not product refactors |
 | todo | [ ] Update CRUD guide / form variants (no media, simple, complex) + admin create | Template + Guides |
 | todo | [ ] Single Prisma schema for api + worker | code-quality |
 | todo | [ ] Dockerize full stack (per-app images + compose; registry pull for prod) | Deploy |
@@ -129,6 +129,8 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-20 | Phase 0 — File path confinement | `resolveWithinRoot` for serve/delete; client cannot set `avatarPath` |
+| 2026-07-20 | Phase 0 — Article PUBLISHED (deferred) | Discarded: articles are guide/reference boilerplate, not product content |
 | 2026-07-20 | Phase 0 — JWT secret fail-fast | `requireJwtSecrets()` at boot + strategies; no empty-string fallback |
 | 2026-07-20 | Phase 0 — Bull Board auth | ADMIN session/Bearer middleware on `/admin/queues`; optional disable via env |
 | 2026-07-20 | Phase 0 — OAuth email auto-link | Verified-only merge; unverified email stripped + new OAuth user; unit tests |

@@ -49,12 +49,25 @@ describe('UsersController (integration)', () => {
 
   describe('PATCH /users/me', () => {
     it('returns 200 and updates the profile', async () => {
+      const newUsername = `u_${Date.now().toString(36)}`;
       const res = await request(testApp.app.getHttpServer())
         .patch('/users/me')
         .set('Cookie', cookieHeader)
-        .send({ avatarPath: '/test-avatar.jpg' });
+        .send({ username: newUsername });
 
-      expect(res.status).toBe(200);
+      expect(res.status, JSON.stringify(res.body)).toBe(200);
+      expect(res.body.data.username).toBe(newUsername);
+      testUser.username = newUsername;
+    });
+
+    it('rejects client-supplied avatarPath', async () => {
+      const res = await request(testApp.app.getHttpServer())
+        .patch('/users/me')
+        .set('Cookie', cookieHeader)
+        .send({ avatarPath: '/etc/passwd' });
+
+      // whitelist / forbidNonWhitelisted — avatarPath is not a client field
+      expect(res.status).toBe(400);
     });
 
     it('returns 401 when not authenticated', async () => {

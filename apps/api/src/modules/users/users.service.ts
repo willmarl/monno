@@ -509,26 +509,21 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
+    let avatarPath: string | undefined;
+
     // If file is provided, process it using FileProcessingService
     if (file) {
       try {
-        // Get the current user to retrieve old avatar path
-        const currentUser = await this.prisma.user.findUnique({
-          where: { id: userId },
-          select: { avatarPath: true },
-        });
-
         // Delete old avatar if it exists
-        if (currentUser?.avatarPath) {
+        if (currentUser.avatarPath) {
           await this.fileProcessing.deleteFile(currentUser.avatarPath);
         }
 
-        const avatarPath = await this.fileProcessing.processFile(
+        avatarPath = await this.fileProcessing.processFile(
           file,
           'avatar',
           userId,
         );
-        data.avatarPath = avatarPath;
       } catch (error) {
         const errorMessage =
           error instanceof Error
@@ -589,6 +584,9 @@ export class UsersService {
 
     // Update user profile
     const updateData: any = { ...data };
+    if (avatarPath) {
+      updateData.avatarPath = avatarPath;
+    }
 
     // If email is being changed, store it in tempEmail and mark for verification
     // Don't change the primary email until verification
