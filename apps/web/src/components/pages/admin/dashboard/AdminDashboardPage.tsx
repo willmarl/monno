@@ -8,6 +8,7 @@ import { ArticlesStatsWidget } from "./widgets/ArticlesStatsWidget";
 import { SystemStatsWidget } from "./widgets/SystemStatsWidget";
 import { RecentActivityWidget } from "./widgets/RecentActivityWidget";
 import { ForceErrorWidget } from "./widgets/ForceErrorWidget";
+import { ActiveNowWidget } from "./widgets/ActiveNowWidget";
 
 export function AdminDashboardPage() {
   const { data, isLoading } = useStats();
@@ -19,6 +20,7 @@ export function AdminDashboardPage() {
         <div className="grid gap-6 md:grid-cols-2">
           {/* for each widget add a skeleton */}
           <Skeleton className="h-80 md:col-span-2" /> {/*system stats*/}
+          <Skeleton className="h-32" /> {/*active now*/}
           <Skeleton className="h-64" /> {/*user stats*/}
           <Skeleton className="h-64" /> {/*post stats*/}
           <Skeleton className="h-64" /> {/*article stats*/}
@@ -39,6 +41,7 @@ export function AdminDashboardPage() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <SystemStatsWidget data={data?.system} />
+        <ActiveNowWidget data={data?.presence} />
         <UsersStatsWidget data={data?.users} />
         <PostsStatsWidget data={data?.posts} />
         <ArticlesStatsWidget data={data?.articles} />

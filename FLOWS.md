@@ -18,6 +18,7 @@ AI agents should read this file before writing tests for any module.
 - The access token cookie must always be accompanied by a valid `sessionId` cookie — the strategy validates both
 - Revoking a session (`DELETE /sessions/:id`) sets `isValid=false` in DB; subsequent requests with that session's cookies return 401
 - Users can only revoke their own sessions (403 if attempting another user's session)
+- "Active now" on the admin dashboard = distinct users with a valid session touched within the configured window (default 5 min); guests are not included. `lastUsedAt` is updated on token refresh and throttled (~30s) on authenticated API requests.
 
 ## Content (Posts, Comments, Collections)
 

@@ -13,6 +13,7 @@
 - Custom domain/company email sending from admin panel
 - Mass delete operations (findMany, deleteMany)
 - Special admin buttons on public pages to remove content (comments, posts, etc) without entering dashboard
+- Active now: track guests too (anonymous client id + Redis TTL heartbeat; show users/guests split or combined). Logged-in already uses session `lastUsedAt`
 
 **Main Resources/Modules**
 

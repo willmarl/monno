@@ -197,23 +197,50 @@ export class AdminService {
   }
 
   /**
+   * Ballpark "active now": distinct logged-in users with a valid session
+   * touched within the window. Guests are not included.
+   */
+  private async getPresenceStats() {
+    const windowMs = parseInt(
+      process.env.ACTIVE_NOW_WINDOW_MS || String(5 * 60 * 1000),
+      10,
+    );
+    const cutoff = new Date(Date.now() - windowMs);
+
+    const rows = await this.prisma.session.findMany({
+      where: {
+        isValid: true,
+        lastUsedAt: { gte: cutoff },
+      },
+      select: { userId: true },
+      distinct: ['userId'],
+    });
+
+    return {
+      activeNow: rows.length,
+      windowSeconds: Math.round(windowMs / 1000),
+    };
+  }
+
+  /**
    * Get all dashboard stats (system metrics + user stats + post stats)
    */
   async getStats() {
-    const [systemStats, userStats, postStats, articleStats] = await Promise.all(
-      [
+    const [systemStats, userStats, postStats, articleStats, presenceStats] =
+      await Promise.all([
         Promise.resolve(this.getSystemStats()),
         this.getUserStats(),
         this.getPostStats(),
         this.getArticleStats(),
-      ],
-    );
+        this.getPresenceStats(),
+      ]);
 
     return {
       system: systemStats,
       users: userStats,
       posts: postStats,
       articles: articleStats,
+      presence: presenceStats,
       timestamp: new Date().toISOString(),
     };
   }

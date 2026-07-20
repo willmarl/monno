@@ -38,10 +38,16 @@ export interface ArticleStats {
   deletionRate: number;
 }
 
+export interface PresenceStats {
+  activeNow: number;
+  windowSeconds: number;
+}
+
 export interface DashboardStats {
   system: SystemStats;
   users: UserStats;
   posts: PostStats;
   articles: ArticleStats;
+  presence: PresenceStats;
   timestamp: string;
 }

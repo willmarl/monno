@@ -4,6 +4,9 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
 import { PrismaService } from '../../../prisma.service';
 
+/** Min age before we rewrite lastUsedAt (lenient presence tracking). */
+const LAST_USED_TOUCH_MS = 30_000;
+
 @Injectable()
 export class AccessTokenStrategy extends PassportStrategy(
   Strategy,
@@ -53,6 +56,16 @@ export class AccessTokenStrategy extends PassportStrategy(
       throw new UnauthorizedException(
         `Account is ${session.user.status.toLowerCase()}${session.user.statusReason ? ': ' + session.user.statusReason : ''}`,
       );
+    }
+
+    // Throttled presence touch — fire-and-forget, never fail the request
+    if (now.getTime() - session.lastUsedAt.getTime() >= LAST_USED_TOUCH_MS) {
+      this.prisma.session
+        .update({
+          where: { id: sessionId },
+          data: { lastUsedAt: now },
+        })
+        .catch(() => {});
     }
 
     return payload; // attaches payload to req.user
