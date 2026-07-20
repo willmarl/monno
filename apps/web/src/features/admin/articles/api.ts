@@ -3,6 +3,7 @@ import type {
   Article,
   ArticleMedia,
   ArticlesList,
+  CreateArticleInput,
   UpdateArticleInput,
 } from "./types/article";
 
@@ -57,6 +58,10 @@ export const searchAdminArticlesOffset = ({
 // GET /admin/articles/:id
 export const fetchAdminArticleById = (id: number) =>
   fetcher<Article>(`/admin/articles/${id}`);
+
+// POST /admin/articles
+export const createAdminArticle = (data: CreateArticleInput) =>
+  fetcher<Article>("/admin/articles", { method: "POST", json: data });
 
 // PATCH /admin/articles/:id
 export const updateAdminArticle = (id: number, data: UpdateArticleInput) =>

@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../../../prisma.service';
 import { AdminService } from '../admin.service';
 import { MediaService } from '../../media/media.service';
+import { CreateArticleDto } from '../../articles/dto/create-article.dto';
 import { UpdateArticleDto } from '../../articles/dto/update-article.dto';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 import { buildSearchWhere } from 'src/common/search/search.utils';
@@ -63,6 +64,27 @@ export class AdminArticleService {
     private adminService: AdminService,
     private mediaService: MediaService,
   ) {}
+
+  async create(adminId: number, data: CreateArticleDto) {
+    const article = await this.prisma.article.create({
+      data: {
+        ...data,
+        creatorId: adminId,
+      },
+      select: DEFAULT_ARTICLE_SELECT,
+    });
+
+    await this.adminService.log({
+      adminId,
+      action: 'ARTICLE_CREATED',
+      resource: 'ARTICLE',
+      resourceId: article.id.toString(),
+      targetId: adminId,
+      description: `Admin created article "${article.title}"`,
+    });
+
+    return article;
+  }
 
   async findById(id: number) {
     const article = await this.prisma.article.findUnique({
@@ -214,7 +236,7 @@ export class AdminArticleService {
     files: any[],
     userId: number,
   ) {
-    await this.mediaService.addMediaBatch({
+    const media = await this.mediaService.addMediaBatch({
       resourceWhere: { articleId },
       files,
       userId,
@@ -229,6 +251,8 @@ export class AdminArticleService {
       resourceId: articleId.toString(),
       description: `Admin added ${files.length} media file(s) to article ${articleId}`,
     });
+
+    return media;
   }
 
   async replaceMedia(

@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  createArticleSchema,
-  CreateArticleInput,
-} from "../schemas/createArticle.schema";
-import { useCreateArticle } from "../hooks";
-import { addArticleMedia, setArticleMediaPrimary } from "../api";
+  adminCreateArticleSchema,
+  AdminCreateArticleInput,
+} from "../schemas/adminCreateArticle.schema";
+import { useAdminCreateArticle } from "../hooks";
+import {
+  addAdminArticleMedia,
+  setAdminArticleMediaPrimary,
+} from "../api";
 import { ARTICLE_STATUSES } from "../types/article";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,7 +37,7 @@ import { toast } from "sonner";
 
 const MAX_FILES = 3;
 
-interface CreateArticleFormProps {
+interface AdminCreateArticleFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   onError?: (error: any) => void;
@@ -43,26 +45,27 @@ interface CreateArticleFormProps {
 }
 
 /**
- * Form for creating articles with optional media upload.
+ * Admin form for creating articles with optional media upload.
  *
- * Redirects to the new article after creation (form handles this — it needs the new ID).
- * onSuccess is for caller extras only: show a success toast, close a modal, etc.
- * onError receives the thrown error for caller-level handling.
+ * Creates via POST /admin/articles (admin is creator), then uploads media
+ * via admin media sub-routes. Does not redirect — caller handles toast/close
+ * via onSuccess (typically a modal on the admin articles page).
  *
  * isAlwaysOpen=false renders a toggle button; true renders the form directly.
  */
-export function CreateArticleForm({
+export function AdminCreateArticleForm({
   onSuccess,
   onCancel,
   onError,
   isAlwaysOpen = false,
-}: CreateArticleFormProps) {
+}: AdminCreateArticleFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [items, setItems] = useState<UnifiedMediaItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
-  const form = useForm<CreateArticleInput>({
-    resolver: zodResolver(createArticleSchema),
+  const form = useForm<AdminCreateArticleInput>({
+    resolver: zodResolver(adminCreateArticleSchema),
     mode: "onChange",
     defaultValues: {
       title: "",
@@ -71,12 +74,10 @@ export function CreateArticleForm({
     },
   });
 
-  const router = useRouter();
-  const queryClient = useQueryClient();
   const { handleFilesDropped, handleRemove, handleSetPrimary } =
     createMediaHandlers(setItems, MAX_FILES);
 
-  const createArticleMutation = useCreateArticle();
+  const createArticleMutation = useAdminCreateArticle();
   const { isValid } = form.formState;
 
   function handleReset() {
@@ -85,7 +86,7 @@ export function CreateArticleForm({
     form.reset();
   }
 
-  async function handleSubmit(data: CreateArticleInput) {
+  async function handleSubmit(data: AdminCreateArticleInput) {
     if (!validateQueuedFiles(items)) {
       toast.error(
         "Some files have unsupported types. Remove them before submitting.",
@@ -97,19 +98,16 @@ export function CreateArticleForm({
       const article = await createArticleMutation.mutateAsync(data);
       await applyCreateMediaChanges({
         items,
-        addFn: (files) => addArticleMedia(article.id, files),
-        setPrimaryFn: (mediaId) => setArticleMediaPrimary(article.id, mediaId),
+        addFn: (files) => addAdminArticleMedia(article.id, files),
+        setPrimaryFn: (mediaId) =>
+          setAdminArticleMediaPrimary(article.id, mediaId),
       });
-      // Invalidate only after media is attached so lists don't flash "No image"
-      await queryClient.invalidateQueries({ queryKey: ["articles"] });
+      // Invalidate only after media is attached so the table doesn't flash "No image"
+      await queryClient.invalidateQueries({ queryKey: ["admin-articles"] });
       handleReset();
       if (!isAlwaysOpen) setIsOpen(false);
-      // redirect here — form owns this because only the form has the new article's ID
-      router.push(`/article/${article.id}`);
-      // onSuccess is for caller extras only (e.g. show a toast, close a modal)
       onSuccess?.();
     } catch (err: any) {
-      // no toast here — caller handles error feedback via onError
       onError?.(err);
       setIsSubmitting(false);
     }
@@ -125,13 +123,12 @@ export function CreateArticleForm({
 
   return (
     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-      {/* title */}
       <div className="space-y-2">
-        <Label htmlFor="inline-title" className="text-sm">
+        <Label htmlFor="admin-create-title" className="text-sm">
           Title
         </Label>
         <Input
-          id="inline-title"
+          id="admin-create-title"
           type="text"
           placeholder="title"
           disabled={isSubmitting}
@@ -144,13 +141,12 @@ export function CreateArticleForm({
         )}
       </div>
 
-      {/* content */}
       <div className="space-y-2">
-        <Label htmlFor="inline-content" className="text-sm">
+        <Label htmlFor="admin-create-content" className="text-sm">
           Content
         </Label>
         <Textarea
-          id="inline-content"
+          id="admin-create-content"
           placeholder="content"
           disabled={isSubmitting}
           {...form.register("content")}
@@ -162,9 +158,8 @@ export function CreateArticleForm({
         )}
       </div>
 
-      {/* status */}
       <div className="space-y-2">
-        <Label htmlFor="inline-status" className="text-sm">
+        <Label htmlFor="admin-create-status" className="text-sm">
           Status
         </Label>
         <Controller
@@ -172,7 +167,7 @@ export function CreateArticleForm({
           control={form.control}
           render={({ field }) => (
             <Select value={field.value || ""} onValueChange={field.onChange}>
-              <SelectTrigger id="inline-status" disabled={isSubmitting}>
+              <SelectTrigger id="admin-create-status" disabled={isSubmitting}>
                 <SelectValue placeholder="Select a status" />
               </SelectTrigger>
               <SelectContent>
@@ -193,7 +188,6 @@ export function CreateArticleForm({
         )}
       </div>
 
-      {/* file upload */}
       <div className="space-y-2">
         <Label className="text-sm">Media (optional)</Label>
         <MediaManager

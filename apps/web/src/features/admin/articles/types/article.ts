@@ -37,6 +37,12 @@ export interface ArticleListCursor {
   nextCursor: string;
 }
 
+export interface CreateArticleInput {
+  title: string;
+  content: string;
+  status: ArticleStatus;
+}
+
 export interface UpdateArticleInput {
   title?: string;
   content?: string;

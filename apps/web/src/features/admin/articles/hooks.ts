@@ -3,6 +3,7 @@ import {
   fetchAdminArticlesOffset,
   searchAdminArticlesOffset,
   fetchAdminArticleById,
+  createAdminArticle,
   updateAdminArticle,
   deleteAdminArticle,
   restoreAdminArticle,
@@ -67,6 +68,15 @@ export function useAdminArticleById(id: number) {
     queryKey: ["admin-article", id],
     queryFn: () => fetchAdminArticleById(id),
     enabled: !!id,
+  });
+}
+
+export function useAdminCreateArticle() {
+  return useMutation({
+    mutationFn: createAdminArticle,
+    // Do not invalidate here — create + media is a two-step flow; the form
+    // invalidates after media finishes so the list doesn't flash "No image".
+    throwOnError: false,
   });
 }
 

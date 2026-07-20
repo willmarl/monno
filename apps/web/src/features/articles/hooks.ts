@@ -168,13 +168,10 @@ export function useArticlesByUserIdCursor(userId: number, limit: number = 10) {
 }
 
 export function useCreateArticle() {
-  const qc = useQueryClient();
-
   return useMutation({
     mutationFn: (data: CreateArticleInput) => createArticle(data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["articles"] });
-    },
+    // Do not invalidate here — create + media is a two-step flow; the form
+    // invalidates after media finishes so lists don't flash empty media.
     throwOnError: false,
   });
 }

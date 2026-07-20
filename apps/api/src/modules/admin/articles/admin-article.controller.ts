@@ -21,6 +21,7 @@ import { JwtAccessGuard } from '../../auth/guards/jwt-access.guard';
 import { Roles } from '../../../decorators/roles.decorator';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { AdminArticleService } from './admin-article.service';
+import { CreateArticleDto } from '../../articles/dto/create-article.dto';
 import { UpdateArticleDto } from '../../articles/dto/update-article.dto';
 import { ReorderMediaDto } from '../../articles/dto/reorder-media.dto';
 import { PaginationDto } from '../../../common/pagination/dto/pagination.dto';
@@ -33,6 +34,12 @@ import { ArticleSearchCursorDto } from '../../articles/dto/search-article.dto';
 @Roles('ADMIN')
 export class AdminArticlesController {
   constructor(private readonly adminArticleService: AdminArticleService) {}
+
+  @Post()
+  create(@Body() body: CreateArticleDto, @Req() req: any) {
+    const adminId = req.user?.sub;
+    return this.adminArticleService.create(adminId, body);
+  }
 
   // commented out as its redundant now
   // @Get()
