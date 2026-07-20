@@ -411,7 +411,7 @@ You are the **Implementation AI**. Your job is to read the Project Brief and mec
 - Read the `PROJECT-BRIEF-{{resource}}.md` file
 - Read the `PROGRESS-{{resource}}.md` file (adaptive checklist based on feature selections)
 - Read [guidev2/ROUTER.md](./guidev2/ROUTER.md) — resolve media letter `a`/`b`/`c`, then follow `NEXT` links only
-- **Do not** open `how-to-add-new-resource.md` (archive) or sibling path letters
+- **Do not** open sibling path letters (if letter=b, never open `*a.md` or `*c.md`)
 - **Use PROGRESS file to skip unnecessary sections** (e.g., if no admin requested, skip all admin steps)
 - Understand: All decisions are already made. Your job is execution.
 

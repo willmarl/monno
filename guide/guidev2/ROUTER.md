@@ -57,11 +57,10 @@ COLLECTIONS: yes | no
 ## Step 3 — Hard rules
 
 1. **One letter only.** If `PATH_LETTER=b`, never open `*a.md` or `*c.md`.
-2. **Do not open the monolith** `guide/how-to-add-new-resource.md` — it is archive / poison.
-3. **Do not open `_source/`** if it exists — archived originals.
-4. After finishing a file, follow its `<!-- NEXT: ... -->` footer (or the table below if footer missing).
-5. Update `PROGRESS-{{resource}}.md` checkboxes as you complete each part.
-6. Skip any step labelled admin/search/likes/etc. when that gate is false — even if the file is on your list.
+2. **Do not open `_source/`** if it exists — archived originals.
+3. After finishing a file, follow its `<!-- NEXT: ... -->` footer (or the table below if footer missing).
+4. Update `PROGRESS-{{resource}}.md` checkboxes as you complete each part.
+5. Skip any step labelled admin/search/likes/etc. when that gate is false — even if the file is on your list.
 
 ---
 

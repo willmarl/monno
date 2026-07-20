@@ -96,18 +96,20 @@ Attach:
 - `PROJECT-BRIEF-{resource}.md`
 - `PROGRESS-{resource}.md`
 - `guide/guidev2/ROUTER.md`
+- `CONFIG-{resource}.json`
 
-Say:
+Prefer the **exact paste block** printed by `pnpm run crud` (includes locked `PATH_LETTER`). If you lost it, use:
 
 ```
-@PROJECT-BRIEF-{resource}.md @PROGRESS-{resource}.md @guide/guidev2/ROUTER.md
+@PROJECT-BRIEF-{resource}.md @PROGRESS-{resource}.md @guide/guidev2/ROUTER.md @CONFIG-{resource}.json
 
-You are in Implementation Mode. All decisions are in the brief. Resolve your media path letter from ROUTER.md, follow NEXT links only (never open sibling a/b/c files), and use PROGRESS to skip gated features. Start.
+You are in Implementation Mode. Lock PATH_LETTER from CONFIG.fileUpload (none→a, simple→b, complex→c).
+Follow ROUTER.md NEXT links only — never open sibling a/b/c files. Use PROGRESS to skip gated features. Start.
 ```
 
 **Why Haiku:** It's cheap (~7% of your limit for a full resource), fast, and the guide is literally just instructions. Any LLM can execute them. Save Sonnet/Opus for actually hard problems.
 
-**If the chat gets long:** Start a new session with the same system prompt. Say "We completed up to Part X, Step Y. Continue from Part X+1." Update PROGRESS-{resource}.md to mark what's done.
+**If the chat gets long:** Do not keep going. Start a new session with the same system prompt. Paste the CLI **checkpoint continue** block (or say: "Checkpoint resume. PATH_LETTER=X. We completed through guide/guidev2/Y.md. Continue from its NEXT footer."). Update PROGRESS-{resource}.md to mark what's done.
 
 ---
 
@@ -208,8 +210,8 @@ pnpm test:integration  # run all integration tests
 
 but hey better than doing it urself. and im not gonna use sonnet or opus and burn through my precious tokens. need to save those tokens for more import things like asking it how to grep
 
-**GUIDE SPLIT (guidev2)**
+**GUIDE (guidev2)**
 
-Implementation guide is path-based under `guide/guidev2/` — start at `ROUTER.md`. Media variants are exclusive files (`a`/`b`/`c`) so the model does not see competing upload templates. Old monolith `guide/how-to-add-new-resource.md` is archive only.
+Implementation guide is path-based under `guide/guidev2/` — start at `ROUTER.md`. Media variants are exclusive files (`a`/`b`/`c`). Missing-file safety net: [validate-resource](../guide/validate-resource.js).
 
-Missing-file safety net: [validate-resource](../guide/validate-resource.js).
+After Session 2, the CLI prints a **copy-paste first message** with `PATH_LETTER` locked from `CONFIG`. Use the checkpoint continue block when context fills.

@@ -105,7 +105,7 @@ function buildPrompt(resource, R, rs, errorsByType, config) {
   }
 
   prompt += `Please refer to @guide/guidev2/ROUTER.md — resolve fileUpload to path letter a/b/c, then open only matching guidev2 chapters for `;
-  prompt += `the exact structure and patterns needed for each of these files. Never open sibling path letters or how-to-add-new-resource.md.`;
+  prompt += `the exact structure and patterns needed for each of these files. Never open sibling path letters.`;
 
   return prompt;
 }

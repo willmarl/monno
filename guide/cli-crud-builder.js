@@ -211,8 +211,34 @@ async function main() {
   log.success(`Saved PROGRESS-${resource}.md`);
   log.success(`Saved SYSTEM-PROMPT-${resource}.txt`);
   log.success(`Saved CONFIG-${resource}.json`);
+  printNextSteps(resource, config);
+}
+
+/** Map CONFIG.fileUpload → guidev2 path letter (a/b/c). */
+function resolvePathLetter(fileUpload) {
+  if (fileUpload === "simple") return "b";
+  if (fileUpload === "complex") return "c";
+  return "a"; // none
+}
+
+function printNextSteps(resource, config) {
+  const pathLetter = resolvePathLetter(config.fileUpload);
+  const pathMeaning =
+    pathLetter === "a"
+      ? "none (no upload)"
+      : pathLetter === "b"
+        ? "simple (single file)"
+        : "complex (Media model)";
+
   console.log();
   console.log(`Next steps:`);
+  console.log();
+  console.log(
+    `  PATH_LETTER=${pathLetter}  ← fileUpload "${config.fileUpload}" = ${pathMeaning}`,
+  );
+  console.log(
+    `  Only open guide/guidev2 files ending in ${pathLetter} (or shared files with no letter).`,
+  );
   console.log();
   console.log(`  [Session 1 — Schema Planning]`);
   console.log(`  1. Start a NEW chat session with your AI`);
@@ -239,7 +265,9 @@ async function main() {
   );
   console.log(`     \`\`\`bash`);
   console.log(`     cd apps/api`);
-  console.log(`     pnpm prisma migrate dev --name "add ${resource.toLowerCase()}"`);
+  console.log(
+    `     pnpm prisma migrate dev --name "add ${resource.toLowerCase()}"`,
+  );
   console.log(`     \`\`\``);
   console.log(
     `     (Do NOT skip this — Prisma types are required for implementation)`,
@@ -251,34 +279,48 @@ async function main() {
   console.log(`     claude --system-prompt SYSTEM-PROMPT-${resource}.txt`);
   console.log(`     \`\`\``);
   console.log();
-  console.log(`  9. In the Claude Code chat, share:`);
-  console.log(
-    `     @PROJECT-BRIEF-${resource}.md @PROGRESS-${resource}.md @guide/guidev2/ROUTER.md`,
-  );
+  console.log(`  9. Switch to "Accept Edits: On" mode (top right corner)`);
   console.log();
-  console.log(`  10. Switch to "Accept Edits: On" mode (top right corner)`);
+  console.log(`  10. Paste this ENTIRE block as your first message (copy as-is):`);
+  console.log(`     ┌──────────────────────────────────────────────────────────`);
   console.log(
-    `      (allows AI to save files automatically without asking permission each time)`,
+    `     │ @PROJECT-BRIEF-${resource}.md @PROGRESS-${resource}.md @guide/guidev2/ROUTER.md @CONFIG-${resource}.json`,
   );
+  console.log(`     │`);
+  console.log(`     │ You are in Implementation Mode.`);
+  console.log(
+    `     │ PATH_LETTER=${pathLetter} (fileUpload=${config.fileUpload}). Lock this letter.`,
+  );
+  console.log(
+    `     │ Follow guide/guidev2/ROUTER.md → NEXT links only. Never open sibling a/b/c files.`,
+  );
+  console.log(
+    `     │ Use PROGRESS-${resource}.md to skip gated features. Update PROGRESS checkboxes as you go.`,
+  );
+  console.log(`     │ Start from 0_preamble.md then 1.md → 1${pathLetter}.md.`);
+  console.log(`     └──────────────────────────────────────────────────────────`);
   console.log();
+  console.log(`  11. CHECKPOINT RULE (when context fills — do NOT keep going in a dying chat):`);
   console.log(
-    `  11. Then say: "Start implementation. Follow ROUTER.md (resolve path letter, then NEXT links) and PROGRESS checklist."`,
+    `     - AI must say: Checkpoint: completed through guide/guidev2/<file>.md (Part X, Step Y). PATH_LETTER=${pathLetter}.`,
   );
+  console.log(`     - You: start a NEW chat with the SAME --system-prompt command`);
+  console.log(`     - Paste this continue block:`);
+  console.log(`     ┌──────────────────────────────────────────────────────────`);
+  console.log(
+    `     │ @PROJECT-BRIEF-${resource}.md @PROGRESS-${resource}.md @guide/guidev2/ROUTER.md @CONFIG-${resource}.json`,
+  );
+  console.log(
+    `     │ Checkpoint resume. PATH_LETTER=${pathLetter}. We completed through guide/guidev2/<FILE>.md (Part X, Step Y).`,
+  );
+  console.log(
+    `     │ Continue from the NEXT footer of that file. Do not reopen finished chapters. Update PROGRESS as you go.`,
+  );
+  console.log(`     └──────────────────────────────────────────────────────────`);
   console.log();
-  console.log(
-    `     The system prompt will automatically remind AI to update PROGRESS as it completes each step.`,
-  );
+  console.log(`  12. After Session 2: pnpm run validate-resource ${resource.toLowerCase()}`);
   console.log();
-  console.log(`  12. If context fills up mid-implementation:`);
-  console.log(
-    `     - AI will say "Checkpoint: We completed up to Part X, Step Y"`,
-  );
-  console.log(`     - Start a NEW session with SAME --system-prompt command`);
-  console.log(
-    `     - Say: "We completed up to Part X, Step Y. Continue from Part X, Step Y+1."`,
-  );
-  console.log();
-  console.log(`  [Session 3 — Write Integration Tests]`);
+  console.log(`  [Session 3 — Write Integration Tests] (optional)`);
   console.log(
     `  13. Optional: Add non-obvious business logic to FLOWS.md at repo root`,
   );
@@ -304,45 +346,54 @@ async function main() {
   console.log();
 }
 
-function generateSystemPrompt(resource) {
+function generateSystemPrompt(resource, config) {
+  const pathLetter = resolvePathLetter(config.fileUpload);
+  const pathMeaning =
+    pathLetter === "a"
+      ? "none"
+      : pathLetter === "b"
+        ? "simple"
+        : "complex";
+
   return `You are in IMPLEMENTATION MODE for the ${resource} CRUD resource.
 
-Your role: Follow guide/guidev2/ROUTER.md (choose-your-own-adventure map) and implement only the features and steps listed in PROGRESS-${resource}.md.
+Your role: Follow guide/guidev2/ROUTER.md (choose-your-own-adventure map) and implement only the features listed in PROGRESS-${resource}.md.
+
+**Locked path (from CONFIG):**
+- fileUpload=${config.fileUpload} → PATH_LETTER=${pathLetter} (${pathMeaning})
+- Only open guide/guidev2/*${pathLetter}.md companions and shared chapters (no letter).
+- Never open sibling path letters (if ${pathLetter}, do not open the other two).
 
 **Core Instructions:**
 1. Read PROJECT-BRIEF-${resource}.md first — all decisions are already made
-2. Read PROGRESS-${resource}.md second — this is your checklist for what to actually implement
-3. Read guide/guidev2/ROUTER.md third — resolve media path letter (a/b/c) and follow NEXT links only
-4. Do NOT open guide/how-to-add-new-resource.md (archive — causes context poisoning)
-5. Do NOT open sibling path letters (if letter=b, never open *a.md or *c.md)
-6. Do NOT ask clarifying questions about features — they're already decided in the brief
+2. Read PROGRESS-${resource}.md second — checklist for what to implement
+3. Read CONFIG-${resource}.json if shared — confirms fileUpload/admin/search gates
+4. Read guide/guidev2/ROUTER.md — then follow NEXT links only, one file (or shared+letter pair) at a time
+5. Do NOT ask clarifying questions about features — they're already decided in the brief
 
 **Progress Tracking (CRITICAL):**
-After completing each step in the guide:
-- [ ] Update PROGRESS-${resource}.md: Change the completed step from \`[ ]\` to \`[✓]\`
-- [ ] Note the current Part and Step number in your response
-- [ ] Example: "✓ Completed: Part 4, Step 3 - Create controller endpoint"
+After completing each step:
+- Update PROGRESS-${resource}.md: \`[ ]\` → \`[✓]\`
+- State: "✓ Completed: guide/guidev2/<file>.md — Part X, Step Y"
 
-**When context gets long (mid-implementation):**
-Explicitly state: "Checkpoint: We completed up to Part X, Step Y. Continue from Part X, Step Y+1."
+**CHECKPOINT RULE (when context gets long — mandatory):**
+Do NOT continue in a bloated chat. Explicitly output:
+  Checkpoint: completed through guide/guidev2/<file>.md (Part X, Step Y). PATH_LETTER=${pathLetter}. Continue from NEXT.
+Human will start a NEW session. They will tell you the last completed file — resume from that file's NEXT footer. Do not reopen finished chapters.
 
 **Skip Sections:**
-Only implement the sections that appear in PROGRESS-${resource}.md. For example:
-- If PROGRESS shows no "Admin Functionality" section → skip ALL admin-related steps
-- If PROGRESS shows no "Search Functionality" section → skip ALL search-related steps
-- If pagination is "offset only" → skip ALL cursor pagination steps
+Only implement sections in PROGRESS-${resource}.md. Examples:
+- No "Admin Functionality" → skip ALL admin steps (including 3-admin-create.md / 22-admin-create.md)
+- No search → skip 9.md and 20.md
+- Pagination offset only → skip ALL cursor steps
 
 **File Management:**
-- Do NOT create new files beyond what the guide specifies
-- Update PROGRESS-${resource}.md with checkbox marks as you go
+- Do NOT create files beyond what the guide specifies
+- Update PROGRESS-${resource}.md as you go
 - Do NOT modify PROMPT-${resource}.txt or PROJECT-BRIEF-${resource}.md
 
 **Testing:**
-- Run curl/Postman tests as specified in the guide
-- Report test results to the human
-- Wait for human confirmation before moving to next major section
-
-Let the human test endpoints themselves — you generate the endpoints and list them.
+List endpoints for the human to test. Do NOT start the server or curl yourself unless asked.
 `;
 }
 
@@ -382,6 +433,7 @@ Start by asking me to describe the ${resource} fields.`;
 
 function generateProgressFile(resource, config) {
   const resourceLower = resource.toLowerCase();
+  const pathLetter = resolvePathLetter(config.fileUpload);
 
   // Detailed step mapping for each part
   const buildDetailedSteps = () => {
@@ -860,7 +912,7 @@ function generateProgressFile(resource, config) {
 ### Selected Features
 - **Pagination:** ${config.pagination}
 - **Search:** ${config.search}${config.searchSuggest ? " + autocomplete" : ""}
-- **File Upload:** ${config.fileUpload}
+- **File Upload:** ${config.fileUpload} → **PATH_LETTER=${pathLetter}** (only open guidev2 \`*${pathLetter}.md\` companions + shared chapters)
 - **Admin:** ${config.admin}
 - **Resource Actions:** ${config.resourceActions.length > 0 ? config.resourceActions.join(", ") : "none"}
 - **Frontend:** ${config.frontend ? "yes" : "no"}${config.frontend && config.paginationUI.length > 0 ? ` (UI: ${config.paginationUI.join(", ")})` : ""}
