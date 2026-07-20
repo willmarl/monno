@@ -1,0 +1,158 @@
+# Security vulnerabilities
+
+Findings from a static security audit of the monorepo (API + web). Not a live pen test — no exploit payloads were run against the running stack.
+
+Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./futureToDo.md).
+
+---
+
+## Critical
+
+### 1. JWT identity not bound to session user
+
+- **Where:** `apps/api/src/modules/auth/strategies/access.strategy.ts` (`validate`)
+- **Issue:** Session is checked for existence / `isValid` / expiry / ACTIVE status, but `payload.sub` is never compared to `session.userId`. `req.user` is the JWT payload (including `role`).
+- **Impact:** A valid `sessionId` cookie paired with another user’s valid access JWT authenticates as that JWT’s subject (including ADMIN) for the access-token lifetime.
+- **Fix:** Require `payload.sub === session.userId`. Prefer loading `role` / `status` from `session.user` (or a fresh DB read), not from the token. Optionally bind tokens to `sessionId`.
+
+### 2. OAuth email auto-link → account takeover
+
+- **Where:** `apps/api/src/modules/auth/oauth/oauth.service.ts` — Strategy 2 (`upsertOauthUser`)
+- **Issue:** If an OAuth email matches an existing user row, the provider is linked and email is marked verified — no check that the existing account already verified that email.
+- **Impact:** Attacker registers with victim’s email (unverified, allowed). Victim later signs in with Google/GitHub → lands in the attacker’s account (password still attacker-controlled).
+- **Fix:** Only auto-link when `isEmailVerified === true` on the existing user (or require explicit “link account”). Otherwise create a separate user / conflict flow.
+
+### 3. Bull Board mounted with no auth
+
+- **Where:** `apps/api/src/main.ts`; `apps/api/src/modules/queue/bull-board.setup.ts`
+- **Issue:** `app.use('/admin/queues', …)` is Express middleware outside Nest guards.
+- **Impact:** Anyone who can reach the API can view/manage job queues (emails, payloads, retries).
+- **Fix:** Protect with Nest ADMIN auth, basic auth, IP allowlist, or disable outside private networks.
+
+### 4. Empty JWT secret fallback
+
+- **Where:** `access.strategy.ts`, `refresh.strategy.ts` — `secretOrKey: process.env.* || ''`
+- **Issue:** Missing secrets become empty string.
+- **Impact:** Misconfigured deploys accept tokens signed with an empty secret.
+- **Fix:** Fail fast at boot if secrets are missing/weak; never default to `''`.
+
+---
+
+## High
+
+### 5. Draft (and non-published) articles exposed publicly
+
+- **Where:** `apps/api/src/modules/articles/articles.service.ts` — `findById`, `findAll`, `searchAll`
+- **Issue:** Public reads filter `deleted: false` only, not `status: PUBLISHED`. Full `content` is selected.
+- **Fix:** Default public queries to `status: 'PUBLISHED'`. Allow drafts only for creator/admin.
+
+### 6. Local file serve path check is prefix-unsafe
+
+- **Where:** `apps/api/src/modules/files/files.controller.ts` — `serveFile`
+- **Issue:** Uses `normalizedPath.startsWith(path.normalize(uploadPath))`. Paths like `/uploads_evil/...` can pass a check meant for `/uploads`.
+- **Fix:** Resolve with `path.resolve`, then require `resolved === root || resolved.startsWith(root + path.sep)`.
+
+### 7. User-controlled `avatarPath` → delete path escape
+
+- **Where:** `UpdateProfileDto.avatarPath`; `users.service.ts` `updateProfile`; `local-storage.backend.ts` `deleteFile`
+- **Issue:** Clients can set `avatarPath` without upload. On next avatar upload, `deleteFile` joins that value under the upload root with no traversal check.
+- **Fix:** Do not accept client `avatarPath`; only set from `processFile`. In `deleteFile`, apply the same resolve+prefix check as serve.
+
+### 8. OAuth missing CSRF `state` (and PKCE)
+
+- **Where:** `oauth.service.ts` / `oauth.controller.ts`
+- **Issue:** No `state` (or PKCE) on authorize/callback.
+- **Impact:** Login CSRF — attacker can bind victim’s browser session to attacker’s OAuth account.
+- **Fix:** Generate/store `state`, validate on callback; add PKCE where applicable.
+
+### 9. Production cookies `SameSite=None` without CSRF tokens
+
+- **Where:** `apps/api/src/config/cookie.config.ts`; web `kyClient.ts` (`credentials: "include"`)
+- **Issue:** Prod cookies are `SameSite=None; Secure`. CORS limits XHR origins, but cookie-authenticated cross-site form/simple requests can still send cookies. No CSRF token / double-submit.
+- **Fix:** Prefer `Lax`/`Strict` if frontend/API share a site; otherwise CSRF tokens / custom headers for mutating routes.
+
+### 10. Secrets / tokens logged
+
+- **Where:** `main.ts` (logs `DATABASE_URL` at startup); `password-reset.service.ts`; `email-verification.service.ts`
+- **Issue:** Connection strings and full reset/verify URLs (with tokens) hit logs.
+- **Fix:** Never log connection strings; log reset/verify only in non-prod or with truncated/non-secret IDs.
+
+### 11. Logout can invalidate another user’s session
+
+- **Where:** `auth.controller.ts` `logout` — enabled by finding #1
+- **Issue:** Invalidates `sessionId` from the cookie with no ownership check vs `req.user.sub`.
+- **Fix:** After binding fix (#1), also require `session.userId === req.user.sub` before invalidate.
+
+---
+
+## Medium
+
+### 12. Authorization role from JWT, not DB
+
+- **Where:** `RolesGuard`; payload built in auth/OAuth
+- **Issue:** `@Roles('ADMIN')` uses `req.user.role` from token — demotions leave elevated access until access token expires.
+- **Fix:** Resolve role from DB (or `session.user`) in strategy/guard.
+
+### 13. `UserAwareThrottlerGuard` never sees `req.user`
+
+- **Where:** `throttle-user.guard.ts`; global guard order in `main.ts`
+- **Issue:** Global throttle runs before route JWT guards → always IP-based. Documented per-user limits don’t apply.
+- **Fix:** Extract user id from cookie JWT for tracking only, or run lightweight auth before throttle; configure trusted proxy.
+
+### 14. No Multer size limits at parser layer
+
+- **Where:** Controllers using `FileInterceptor` without `limits`
+- **Issue:** Large bodies can be buffered before `FileProcessingService` `maxSize` checks → memory DoS.
+- **Fix:** `FileInterceptor('…', { limits: { fileSize: … } })` matching presets.
+
+### 15. MIME type trusted from client
+
+- **Where:** `file-processing.service.ts`; raw processors
+- **Issue:** Allowlist uses `file.mimetype`; videos/docs stored raw after allowlist.
+- **Fix:** Magic-byte checks; store with server-chosen Content-Type.
+
+### 16. Soft-deleted posts still updatable by creator
+
+- **Where:** `CreatorGuard` (no `deleted` check); `posts.service.ts` `update`
+- **Fix:** Reject updates when `deleted === true` (unless admin restore path).
+
+### 17. Public collections by ID (privacy)
+
+- **Where:** `collections.controller.ts` / `collections.service.ts`
+- **Issue:** Any collection ID is readable; intentional until private/public toggle ships (`futureToDo.md`).
+- **Fix:** Visibility flag; default private or owner-only when feature ships.
+
+### 18. Frontend CSRF / upload / ownership gaps
+
+- **Where:** `apps/web` — cookie auth without CSRF; client-only upload MIME/size; wrong `isOwner` on liked/collection UIs; edit pages enforce ownership only in client
+- **Fix:** Align with API CSRF/`SameSite` work (#9); treat client upload checks as UX only; pass real content ownership for `isOwner`; optionally enforce ownership in RSC before edit forms.
+
+---
+
+## Low / Info
+
+| # | Issue | Notes |
+|---|--------|--------|
+| 19 | Swagger at `/docs` unauthenticated | Disable or protect in production |
+| 20 | Password-reset request body not a validated DTO | Use `@IsEmail()` DTO |
+| 21 | Test endpoints gated but still registered | Keep `ENABLE_TEST_ENDPOINTS=false` or exclude from prod |
+| 22 | Geolocation uses client-influenced IP (`x-forwarded-for`) | Trust proxy only from known hops |
+| 23 | No security headers on Next (`CSP`, frame denial, etc.) | Add in `next.config.ts` or reverse proxy |
+| 24 | Reset/verify tokens in URL query strings | Strip after read; short TTL / single-use |
+| 25 | Public `/test` UI playground | Gate or remove in production |
+| 26 | PostHog identifies with email / OAuth IDs | Minimize PII; consent |
+
+**Not found / in decent shape:** Admin Nest routes use `JwtAccessGuard` + `@Roles('ADMIN')`; Stripe webhook signature verification present; ValidationPipe whitelist + forbidNonWhitelisted; Pino redacts cookies/auth headers; no `dangerouslySetInnerHTML` (XSS via HTML sinks); tokens not in `localStorage`; soft-delete filters on most public reads; no user-input `$queryRaw` injection found; OAuth/Stripe redirects use fixed `FRONTEND_URL` (no open redirect observed).
+
+---
+
+## Summary
+
+| Severity | Count |
+|----------|-------|
+| Critical | 4 |
+| High | 7 |
+| Medium | 7 |
+| Low / Info | 8 |
+
+Suggested fix order: **#1 → #2 → #3 → #4 → #5 → #6/#7 → #8/#9 → remainder**.

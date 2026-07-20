@@ -7,6 +7,12 @@
 - Make roles (mod) and status (banned, suspended) functional instead of being a placeholder
 - Email rate limiting / request tracking (prevent spam on forgot password, verify email, etc) to run up resend API cost
 - Make inputting password required to delete account
+- User preferences model (or `UserInfo` / key-value on user) synced across devices — not localStorage-only
+  - Theme (light/dark) preference
+  - View/layout prefs (e.g. grid vs card on list pages)
+  - Last tab, page, or route context to resume where you left off
+  - Onboarding / tutorial completed (or dismissed)
+  - “Remind me later” snoozes (feature prompts, banners, etc.)
 
 **Admin Dashboard**
 
@@ -43,6 +49,30 @@
 **Testing**
 
 - Integration tests (e.g., "can't delete another person's post") with vitest + supertest
+
+**Security**
+
+- Fix vulnerabilities listed in [vulnerabilities.md](./vulnerabilities.md) (Critical first: JWT↔session binding, OAuth email auto-link takeover, unauthenticated Bull Board, empty JWT secret fallback; then High/Medium)
+
+**Code quality / architecture**
+
+- Improve patterns listed in [code-quality.md](./code-quality.md) (priority: batch `likedByMe` N+1, collapse dual pagination, DRY admin↔user via articles pilot, server-read / hydrate Query, `packages/shared` + single Prisma schema, then god-service splits)
+
+**Deploy / Infra**
+
+- Dockerize the full stack so deploy is mostly env + `compose up` (no manual app setup each time)
+  - One Dockerfile per app → separate images: api, web, worker (not one fat “whole stack” image)
+  - Compose wires them with postgres + redis; prod should pull prebuilt images from a registry (CI builds/pushes), not build from Git on the server
+  - Scale workers independently (compose `replicas` / multiple worker containers) for heavy jobs later — AI, account export/import, etc. — without scaling api/web the same way
+  - Optional later: split workers by queue (email vs media vs long-running) so one slow job type doesn’t starve others
+
+**Public site files**
+
+- `robots.txt` — crawl rules for search engines (allow/disallow admin, auth, API paths; link sitemap)
+- `llms.txt` — LLM-oriented site summary (convention is `llms.txt` at root, not `llm.txt`; optional `llms-full.txt` for longer docs)
+- `/.well-known/security.txt` — security contact + disclosure policy (RFC 9116; useful in prod)
+- `sitemap.xml` — not `.txt`, but usually paired with `robots.txt` for SEO
+- Optional: `humans.txt` — credits / “who built this” (low priority, mostly vanity)
 
 **Template**
 
