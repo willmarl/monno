@@ -127,19 +127,23 @@ Example: `pnpm run validate-resource foo`
 
 ---
 
-## STEP 5: Test Endpoints
+## STEP 5: Test Endpoints (Session 2 Part 8 gate)
+
+With `pnpm dev` already running:
 
 ```bash
 pnpm run ai-api-test
 ```
 
-Script outputs a prompt explaining all the endpoints and how to test them (curl/Postman examples). Use it to manually verify your backend works before moving to frontend.
+Paste the printed prompt into the **implementation chat**. The AI plans a short smoke suite and runs curl with your admin token/session. Fix failures before frontend.
+
+(Bruno `guide/{resource}-bru.json` is optional backup — not the primary gate.)
 
 ---
 
 ## STEP 6: Actually Use It
 
-Start the dev server and manually test:
+After frontend is done, manually click through in the browser:
 
 ```bash
 pnpm dev

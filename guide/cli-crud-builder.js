@@ -411,7 +411,8 @@ Only implement sections in PROGRESS-${resource}.md. Examples:
 - Do NOT modify PROMPT-${resource}.txt or PROJECT-BRIEF-${resource}.md
 
 **Testing:**
-List endpoints for the human to test. Do NOT start the server or curl yourself unless asked.
+After Part 8 (backend): stop and tell the human to run \`pnpm run ai-api-test\` (API must be up via \`pnpm dev\`). They paste the prompt into this chat. You then curl smoke-test the new endpoints with the provided admin token/session, fix failures, and wait for human OK before frontend parts.
+Do NOT invent auth tokens. Do NOT skip the ai-api-test gate.
 `;
 }
 

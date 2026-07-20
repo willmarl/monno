@@ -475,15 +475,17 @@ For each part in the guide:
 2. **Skip the section** if it doesn't apply (e.g., skip admin sections if admin not requested)
 3. **Follow the template code exactly** — adapt `{{resource}}` names but keep structure
 4. **Create/edit files** as instructed
-5. **Do NOT start the server or run curl/HTTP tests** — human tests endpoints after you finish
+5. **After Part 8:** human runs `pnpm run ai-api-test`; you curl with their pasted credentials — do not invent tokens
 
-#### Step 5: Prompt Human to Test Endpoints
+#### Step 5: Prompt Human for Live Smoke Test (Part 8)
 
-After completing all parts, follow **Part 8** of the guide:
+After backend parts:
 
-- List the endpoints for the human to test (POST, GET, PATCH, DELETE)
-- **Do NOT run the server yourself or curl any endpoints**
-- Wait for human confirmation before continuing
+- Generate optional Bruno collection
+- Tell human to run `pnpm run ai-api-test` (API must be running) and paste the prompt into the chat
+- AI curls smoke tests with the provided credentials, fixes failures
+- **Wait for human confirmation** before frontend parts
+- AI does NOT invent tokens; AI does NOT skip this gate
 
 #### Step 6: Verify Completeness
 
@@ -527,7 +529,7 @@ Test your endpoints:
 - [ ] All backend files created
 - [ ] All frontend components created (if applicable)
 - [ ] CRUD plan fully checked off
-- [ ] Human has been prompted to test endpoints (AI does NOT run the server or curl tests)
+- [ ] Human ran `pnpm run ai-api-test` and AI smoke-tested endpoints with pasted credentials
 
 ### Gate 3: Human Integration Testing (Human)
 

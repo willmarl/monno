@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
 /**
- * Endpoint Test Helper
+ * AI API smoke-test helper
  *
- * Usage: node guide/endpoint-test.js
- *        pnpm run endpoint-test
+ * Usage: pnpm run ai-api-test
  *
- * Reads auth config from apps/api/.env and generates credentials for testing.
+ * Logs in with SEED_ADMIN_* from apps/api/.env and prints a paste prompt
+ * so an AI can curl live endpoints in the current chat.
+ * Requires: API already running (pnpm dev).
  */
 
 const fs = require("fs");
@@ -19,6 +20,7 @@ const COLORS = {
   yellow: "\x1b[33m",
   cyan: "\x1b[36m",
   bright: "\x1b[1m",
+  dim: "\x1b[2m",
 };
 
 const log = {
@@ -28,6 +30,7 @@ const log = {
   section: (msg) => console.log(`\n${COLORS.bright}[${msg}]${COLORS.reset}`),
   info: (msg) => console.log(`${COLORS.cyan}ℹ  ${msg}${COLORS.reset}`),
   code: (msg) => console.log(`${COLORS.cyan}${msg}${COLORS.reset}`),
+  dim: (msg) => console.log(`${COLORS.dim}${msg}${COLORS.reset}`),
 };
 
 function loadEnv() {
@@ -97,24 +100,8 @@ function showMissingConfigError(config) {
   log.code(`     -H "Content-Type: application/json" \\`);
   log.code(`     -d '{"username":"YOUR_USERNAME","password":"YOUR_PASSWORD"}'`);
   console.log(`\n3. Copy the token and sessionId from the response`);
-
-  showInstructions();
-}
-
-function showInstructions() {
   console.log(
-    `\n${COLORS.bright}📋 Step 4: Copy & Paste This Prompt to Claude:${COLORS.reset}\n`,
-  );
-  console.log(`---\n`);
-  console.log(
-    `first think of short postman tests to do to verify endpoints. then i want you to run bash commands in this chat to tests those endpoints.`,
-  );
-  console.log(
-    `here is example command of my current admin session that i give you permission to use \`curl -H "Authorization: Bearer YOUR_TOKEN" -b "sessionId=YOUR_SESSION_ID" http://localhost:3001/admin/stats\` use should be able to use the token and session to test endpoints`,
-  );
-  console.log(`\n---\n`);
-  console.log(
-    `${COLORS.cyan}Replace YOUR_TOKEN and YOUR_SESSION_ID with the credentials from step 2${COLORS.reset}\n`,
+    `\n${COLORS.dim}Then paste a prompt telling your AI to curl with Authorization: Bearer <token> and -b "sessionId=<id>"${COLORS.reset}\n`,
   );
 }
 
@@ -136,7 +123,6 @@ async function authenticate(port, username, password) {
     const data = await response.json();
     const setCookieHeader = response.headers.get("set-cookie");
 
-    // Extract from Set-Cookie headers (preferred, as tokens are HttpOnly)
     const token = setCookieHeader ? extractAccessToken(setCookieHeader) : null;
     const sessionId = setCookieHeader
       ? extractSessionId(setCookieHeader)
@@ -146,6 +132,7 @@ async function authenticate(port, username, password) {
       token,
       sessionId,
       refreshToken: data.refresh_token || data.refreshToken,
+      port,
     };
   } catch (err) {
     log.error(`Connection failed: ${err.message}`);
@@ -167,33 +154,35 @@ function extractAccessToken(cookieHeader) {
 function generatePrompt(auth) {
   const token = auth.token || "<TOKEN>";
   const sessionId = auth.sessionId || "<SESSION_ID>";
+  const port = auth.port || "3001";
+  const base = `http://localhost:${port}`;
 
-  const prompt = `${COLORS.bright}📋 Copy & Paste This Prompt:${COLORS.reset}
+  // Plain text only inside copy markers (no ANSI) for easy drag-select.
+  const lines = [
+    `You have permission to smoke-test the live API with curl in this chat.`,
+    ``,
+    `1. Skim the resource's controller(s) / PROJECT-BRIEF / Bruno file if present and list a short smoke plan (create → read → update → media if any → delete/restore if admin).`,
+    `2. Run those checks with bash curl commands. Fix failures before continuing the guide.`,
+    `3. Use this admin session (keep the space after "Bearer"):`,
+    ``,
+    `curl -sS -H "Authorization: Bearer ${token}" -b "sessionId=${sessionId}" ${base}/admin/stats`,
+    ``,
+    `Reuse the same Authorization and -b cookie headers for other routes on ${base}.`,
+    `Prefer JSON -H "Content-Type: application/json" for create/update unless the endpoint is multipart.`,
+  ];
 
----
-
-first think of short postman tests to do to verify endpoints. then i want you to run bash commands in this chat to tests those endpoints.
-here is example command of my current admin session that i give you permission to use \`curl -H "Authorization: Bearer ${token}" -b "sessionId=${sessionId}" http://localhost:3001/admin/stats\` use should be able to use the token and session to test endpoints
-
----
-
-${COLORS.cyan}Fresh credentials generated at ${new Date().toLocaleTimeString()}${COLORS.reset}
-`;
-
-  return prompt;
+  return lines.join("\n");
 }
 
 async function main() {
   const config = loadEnv();
 
-  // Check if .env loading failed
   if (config.error) {
     log.error(`Failed to load .env: ${config.error}`);
     showMissingConfigError({ port: null, username: null, password: null });
     process.exit(1);
   }
 
-  // Check if required config values are missing
   if (!config.port || !config.username || !config.password) {
     showMissingConfigError(config);
     process.exit(1);
@@ -226,8 +215,14 @@ async function main() {
     log.warn("No sessionId found in response");
   }
 
-  const prompt = generatePrompt(auth);
-  console.log(prompt);
+  console.log();
+  log.section("Copy & paste this prompt to your AI");
+  log.dim("--- copy below ---");
+  console.log(generatePrompt(auth));
+  log.dim("--- copy above ---");
+  console.log();
+  log.dim(`Fresh credentials at ${new Date().toLocaleTimeString()}`);
+  console.log();
 }
 
 main();
