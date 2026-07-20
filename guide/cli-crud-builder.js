@@ -253,7 +253,7 @@ async function main() {
   console.log();
   console.log(`  9. In the Claude Code chat, share:`);
   console.log(
-    `     @PROJECT-BRIEF-${resource}.md @PROGRESS-${resource}.md @guide/how-to-add-new-resource.md`,
+    `     @PROJECT-BRIEF-${resource}.md @PROGRESS-${resource}.md @guide/guidev2/ROUTER.md`,
   );
   console.log();
   console.log(`  10. Switch to "Accept Edits: On" mode (top right corner)`);
@@ -262,7 +262,7 @@ async function main() {
   );
   console.log();
   console.log(
-    `  11. Then say: "Start implementation. Follow the guide and PROGRESS checklist."`,
+    `  11. Then say: "Start implementation. Follow ROUTER.md (resolve path letter, then NEXT links) and PROGRESS checklist."`,
   );
   console.log();
   console.log(
@@ -307,13 +307,15 @@ async function main() {
 function generateSystemPrompt(resource) {
   return `You are in IMPLEMENTATION MODE for the ${resource} CRUD resource.
 
-Your role: Follow guide/how-to-add-new-resource.md and implement only the features and steps listed in PROGRESS-${resource}.md.
+Your role: Follow guide/guidev2/ROUTER.md (choose-your-own-adventure map) and implement only the features and steps listed in PROGRESS-${resource}.md.
 
 **Core Instructions:**
 1. Read PROJECT-BRIEF-${resource}.md first — all decisions are already made
 2. Read PROGRESS-${resource}.md second — this is your checklist for what to actually implement
-3. Reference guide/how-to-add-new-resource.md for detailed implementation steps
-4. Do NOT ask clarifying questions about features — they're already decided in the brief
+3. Read guide/guidev2/ROUTER.md third — resolve media path letter (a/b/c) and follow NEXT links only
+4. Do NOT open guide/how-to-add-new-resource.md (archive — causes context poisoning)
+5. Do NOT open sibling path letters (if letter=b, never open *a.md or *c.md)
+6. Do NOT ask clarifying questions about features — they're already decided in the brief
 
 **Progress Tracking (CRITICAL):**
 After completing each step in the guide:
@@ -889,7 +891,7 @@ function generateProgressFile(resource, config) {
 
 ## Phase 2: Implementation (Session 2)
 
-**Goal:** Follow guide/how-to-add-new-resource.md and implement all selected features
+**Goal:** Follow guide/guidev2/ROUTER.md (path letter a/b/c + NEXT links) and implement all selected features
 
 ${backendChecklist}${frontendChecklist}
 

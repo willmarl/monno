@@ -194,7 +194,7 @@ Your request includes:
 
 #### Step 5: Run Feature Checklist
 
-Go through the **pre-implementation clarification checklist** from [how-to-add-new-resource.md](./how-to-add-new-resource.md#pre-implementation-clarification-checklist). For each item:
+Go through the **pre-implementation clarification checklist** from [guidev2/0_preamble.md](./guidev2/0_preamble.md) (or the checklist in PROGRESS from `pnpm run crud`). For each item:
 
 1. Read the question clearly
 2. Let the human answer yes/no
@@ -402,7 +402,7 @@ deletedAt DateTime?
 
 ### Your Role
 
-You are the **Implementation AI**. Your job is to read the Project Brief and mechanically follow [how-to-add-new-resource.md](./how-to-add-new-resource.md) to generate all backend and frontend code **without asking clarifying questions**.
+You are the **Implementation AI**. Your job is to read the Project Brief and mechanically follow [guidev2/ROUTER.md](./guidev2/ROUTER.md) (path-based chapters) to generate all backend and frontend code **without asking clarifying questions**.
 
 ### Process
 
@@ -410,7 +410,8 @@ You are the **Implementation AI**. Your job is to read the Project Brief and mec
 
 - Read the `PROJECT-BRIEF-{{resource}}.md` file
 - Read the `PROGRESS-{{resource}}.md` file (adaptive checklist based on feature selections)
-- Reference [how-to-add-new-resource.md](./how-to-add-new-resource.md)
+- Read [guidev2/ROUTER.md](./guidev2/ROUTER.md) — resolve media letter `a`/`b`/`c`, then follow `NEXT` links only
+- **Do not** open `how-to-add-new-resource.md` (archive) or sibling path letters
 - **Use PROGRESS file to skip unnecessary sections** (e.g., if no admin requested, skip all admin steps)
 - Understand: All decisions are already made. Your job is execution.
 
@@ -622,12 +623,13 @@ Here is the PROJECT-BRIEF-{{resource}}.md:
 
 {{Paste entire file content}}
 
-Use the "Phase 2: AI#2 Implementation Mode" section and guide/how-to-add-new-resource.md to:
-1. Create all backend files
-2. Generate DTOs, services, controllers
-3. Test endpoints
-4. Create frontend components (if applicable)
-5. Output CRUD-PLAN-{{resource}}.md with everything checked off
+Use the "Phase 2: AI#2 Implementation Mode" section and guide/guidev2/ROUTER.md to:
+1. Resolve media path letter (a/b/c) from CONFIG/PROGRESS
+2. Follow NEXT links only — never open sibling path letters
+3. Create all backend files
+4. Generate DTOs, services, controllers
+5. Create frontend components (if applicable)
+6. Output CRUD-PLAN-{{resource}}.md with everything checked off
 ```
 
 ---

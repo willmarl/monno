@@ -1,3 +1,9 @@
+# ARCHIVE — do not use for Session 2
+
+> **Superseded by path-based guide:** [`guide/guidev2/ROUTER.md`](./guidev2/ROUTER.md)
+>
+> Opening this monolith in an implementation chat causes context poisoning (all upload paths at once). Keep for human reference / archaeology only.
+
 # preamble
 
 note everything here assumes the human or AI has prisma schema model ready (resource is in schema.prisma and the migrations has been set), for example:

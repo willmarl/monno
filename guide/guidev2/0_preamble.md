@@ -1,5 +1,7 @@
 # preamble
 
+> **Entry point:** Start at [`ROUTER.md`](./ROUTER.md). Resolve your media letter (`a`/`b`/`c`) there. This preamble is schema-adapt context only — do not treat the planning checklists below as Session 2 work (those belong to Session 1).
+
 note everything here assumes the human or AI has prisma schema model ready (resource is in schema.prisma and the migrations has been set), for example:
 
 ```prisma
@@ -115,15 +117,15 @@ The example 'Article' I use is suppose to cover a good amount of scenarios. I do
 
 ## File Upload Path Reference
 
-Every section in this guide that differs by upload type is labelled with one of these tags. **Check your selection once here, then follow the matching tag throughout.**
+Upload variants are **separate files**, not inline forks. Resolve once in `ROUTER.md`, then only open your letter:
 
-| Tag               | When to follow                                                                            |
-| ----------------- | ----------------------------------------------------------------------------------------- |
-| `[PATH: none]`    | fileUpload is "none" — no file upload at all                                              |
-| `[PATH: simple]`  | fileUpload is "simple" — single file per resource (`filePath`/`imagePath` field on model) |
-| `[PATH: complex]` | fileUpload is "complex" — multi-file array via separate `Media` model and `MediaService`  |
+| Letter | `fileUpload` | Files you may open                                      |
+| ------ | ------------ | ------------------------------------------------------- |
+| **a**  | `none`       | `1a.md`, `2a.md`, `3a.md`, `5a.md`, `13a.md`, …         |
+| **b**  | `simple`     | `1b.md`, `2b.md`, `3b.md`, `5b.md`, `13b.md`, …         |
+| **c**  | `complex`    | `1c.md`, `2c.md`, `3c.md`, `5c.md`, `8c.md`, `13c.md`, … |
 
-When you see a step split into `a / b / c`, pick only the sub-step that matches your path and skip the others.
+**Never** open a sibling letter file. Shared chapters (`4.md`, `6.md`, …) have no letter — still skip gated subsections (admin/search/actions) per ROUTER.
 
 ---
 
@@ -255,3 +257,6 @@ After confirming everything with the human, create a `CRUD-plan.md` file at the 
 ```
 
 Fill in the checkboxes based on what was confirmed. Check them off as you complete each part. Update the Notes section whenever the human clarifies something mid-implementation.
+
+
+<!-- NEXT: 1.md then 1{L}.md -->

@@ -95,14 +95,14 @@ Attach:
 
 - `PROJECT-BRIEF-{resource}.md`
 - `PROGRESS-{resource}.md`
-- `guide/how-to-add-new-resource.md`
+- `guide/guidev2/ROUTER.md`
 
 Say:
 
 ```
-@PROJECT-BRIEF-{resource}.md @PROGRESS-{resource}.md @guide/how-to-add-new-resource.md
+@PROJECT-BRIEF-{resource}.md @PROGRESS-{resource}.md @guide/guidev2/ROUTER.md
 
-You are in Implementation Mode. All decisions are in the brief. Use PROGRESS-{resource}.md to skip sections you don't need. Follow the guide for only the features you picked. Start.
+You are in Implementation Mode. All decisions are in the brief. Resolve your media path letter from ROUTER.md, follow NEXT links only (never open sibling a/b/c files), and use PROGRESS to skip gated features. Start.
 ```
 
 **Why Haiku:** It's cheap (~7% of your limit for a full resource), fast, and the guide is literally just instructions. Any LLM can execute them. Save Sonnet/Opus for actually hard problems.
@@ -208,11 +208,8 @@ pnpm test:integration  # run all integration tests
 
 but hey better than doing it urself. and im not gonna use sonnet or opus and burn through my precious tokens. need to save those tokens for more import things like asking it how to grep
 
-**WHY GUIDE SO BIG. TO SPLIT OR NOT TO SPLIT**
+**GUIDE SPLIT (guidev2)**
 
-ive gone back and forth, hear conflicting stories, to split instruction guide up or not. dont want "needle in the hay stack" but if you split files no telling
-if LLM will keep context of resouce in mind i.e. adapt if new enums, file upload, etc... mmh what to do.
+Implementation guide is path-based under `guide/guidev2/` — start at `ROUTER.md`. Media variants are exclusive files (`a`/`b`/`c`) so the model does not see competing upload templates. Old monolith `guide/how-to-add-new-resource.md` is archive only.
 
-too be fair ive never tested it, guide being split, having like a sample size of 10 each, but its not that deep mate
-
-i thought about adding LLM judgement and even quick checker script cus AI will straight up skip making AdminEditBlogForm.tsx but if i had a script to check if files \*{{resource}}Form.tsx exist then can act something like mini pytest. well thats actually what [validate-resource](../guide/validate-resource.js) is for.
+Missing-file safety net: [validate-resource](../guide/validate-resource.js).

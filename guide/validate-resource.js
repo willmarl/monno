@@ -65,7 +65,7 @@ function generateAIPrompt(resource, R, rs, errorsByType, config) {
   const prompt = buildPrompt(resource, R, rs, errorsByType, config);
   console.log(prompt);
   console.log(
-    `\n${COLORS.cyan}Reference: @guide/how-to-add-new-resource.md for detailed instructions${COLORS.reset}\n`,
+    `\n${COLORS.cyan}Reference: @guide/guidev2/ROUTER.md (then only your path letter files)${COLORS.reset}\n`,
   );
 }
 
@@ -104,9 +104,8 @@ function buildPrompt(resource, R, rs, errorsByType, config) {
     prompt += `\n`;
   }
 
-  prompt += `Please refer to @guide/how-to-add-new-resource.md for the exact structure and patterns `;
-  prompt += `needed for each of these files. Make sure to follow the guide's conventions for `;
-  prompt += `naming, imports, and structure.`;
+  prompt += `Please refer to @guide/guidev2/ROUTER.md — resolve fileUpload to path letter a/b/c, then open only matching guidev2 chapters for `;
+  prompt += `the exact structure and patterns needed for each of these files. Never open sibling path letters or how-to-add-new-resource.md.`;
 
   return prompt;
 }
