@@ -41,8 +41,10 @@ function getCorsOrigins(): string[] {
 }
 
 Print.log('Server running on port ' + process.env.PORT);
-Print.log('Database URL ' + process.env.DATABASE_URL);
 Print.log('Frontend URL ' + process.env.FRONTEND_URL);
+Print.log(
+  'Database configured: ' + (process.env.DATABASE_URL ? 'yes' : 'no'),
+);
 const corsOrigins = getCorsOrigins();
 
 Print.log('CORS origins allowed: ' + JSON.stringify(corsOrigins));

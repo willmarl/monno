@@ -72,11 +72,11 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 - **Issue:** Prod cookies are `SameSite=None; Secure`. CORS limits XHR origins, but cookie-authenticated cross-site form/simple requests can still send cookies. No CSRF token / double-submit.
 - **Fix:** Prefer `Lax`/`Strict` if frontend/API share a site; otherwise CSRF tokens / custom headers for mutating routes.
 
-### 10. Secrets / tokens logged
+### 10. Secrets / tokens logged — **FIXED**
 
-- **Where:** `main.ts` (logs `DATABASE_URL` at startup); `password-reset.service.ts`; `email-verification.service.ts`
+- **Where:** `main.ts` (logged `DATABASE_URL` at startup); `password-reset.service.ts`; `email-verification.service.ts`; verify-email controller
 - **Issue:** Connection strings and full reset/verify URLs (with tokens) hit logs.
-- **Fix:** Never log connection strings; log reset/verify only in non-prod or with truncated/non-secret IDs.
+- **Fix applied:** Startup logs only whether a DB URL is set (not the value). Reset/verify never log tokens or full URLs; non-prod may log recipient email only. Verify-email endpoint no longer logs the token.
 
 ### 11. Logout can invalidate another user’s session
 

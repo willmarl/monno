@@ -78,9 +78,10 @@ export class PasswordResetService {
 
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
-    // Log for dev mode
-    console.log('[PASSWORD RESET] Send to:', user.email);
-    console.log('Reset URL:', resetUrl);
+    // Dev-only: confirm queue target — never log the token/URL (secret in query string)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[PASSWORD RESET] Queued for:', user.email);
+    }
 
     // Send via BullMQ worker
     try {
@@ -102,7 +103,7 @@ export class PasswordResetService {
         '[PASSWORD RESET] Failed to queue email:',
         error instanceof Error ? error.message : 'Unknown error',
       );
-      // Don't throw - token was created and logged, email delivery is best-effort
+      // Don't throw - token was created; email delivery is best-effort
     }
 
     return {

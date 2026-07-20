@@ -111,17 +111,12 @@ export class EmailVerificationController {
     @Req() req: any,
     @Response() res: any,
   ) {
-    console.log('[VERIFY EMAIL ENDPOINT] Token received:', token);
-
     if (!token) {
-      console.log('[VERIFY EMAIL ENDPOINT] No token provided');
       throw new BadRequestException('Token query parameter is required');
     }
 
     try {
-      console.log('[VERIFY EMAIL ENDPOINT] Verifying token...');
       const user = await this.emailVerification.verifyEmailToken(token);
-      console.log('[VERIFY EMAIL ENDPOINT] Token verified successfully');
 
       // Issue tokens with session creation (same as login flow)
       const tokens = await this.authService.issueTokens(user.id, {
@@ -151,7 +146,6 @@ export class EmailVerificationController {
       });
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-      console.log('[VERIFY EMAIL ENDPOINT] Verification failed:', errorMsg);
       throw new BadRequestException(errorMsg);
     }
   }

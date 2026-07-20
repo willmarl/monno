@@ -65,9 +65,10 @@ export class EmailVerificationService {
 
     const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`; // Points to the unified verification page
 
-    // Log for dev mode (you can grab link manually)
-    console.log('[EMAIL VERIFICATION] Send to:', emailToVerify);
-    console.log('Verification URL:', verifyUrl);
+    // Dev-only: confirm queue target — never log the token/URL
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[EMAIL VERIFICATION] Queued for:', emailToVerify);
+    }
 
     // Send via BullMQ worker
     try {
@@ -89,7 +90,7 @@ export class EmailVerificationService {
         '[EMAIL VERIFICATION] Failed to queue email:',
         error instanceof Error ? error.message : 'Unknown error',
       );
-      // Don't throw - token was created and logged, email delivery is best-effort
+      // Don't throw - token was created; email delivery is best-effort
     }
 
     return user;

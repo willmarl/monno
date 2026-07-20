@@ -15,7 +15,10 @@ import * as path from 'path';
  */
 export async function setup() {
   console.log('[test setup] Applying migrations to test database...');
-  console.log('[test setup] DATABASE_URL:', process.env.DATABASE_URL);
+  console.log(
+    '[test setup] Database configured:',
+    process.env.DATABASE_URL ? 'yes' : 'no',
+  );
 
   // Sync schema to the test DB.
   // Using `db push` instead of `migrate deploy` because:
