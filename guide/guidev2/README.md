@@ -14,6 +14,8 @@ The old monolith (`../how-to-add-new-resource.md`) put all three upload styles i
 
 Shared chapters (`4.md`, `6.md`, …) have no letter. Feature gates (admin/search/likes/…) are skip rules in ROUTER + file headers.
 
+**Admin dashboard create:** `3-admin-create.md` (backend) + `22-admin-create.md` (frontend) when `ADMIN=yes`.
+
 ## For humans
 
 1. Run `pnpm run crud` as usual.

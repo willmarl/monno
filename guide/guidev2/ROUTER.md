@@ -81,6 +81,7 @@ Replace `{L}` with your letter (`a`, `b`, or `c`).
 | 5     | `5.md` then `5{L}.md`        | Basic update + path upload delta                  |
 | 6     | `6.md`                       | Skip admin steps if !ADMIN                        |
 | 7     | `7.md`                       | **SKIP entire file** if !ADMIN                    |
+| 7b    | `3-admin-create.md`          | **SKIP** if !ADMIN — `POST /admin/{{resource}}`   |
 | 8     | `8.md` then `8c.md` if L=c   | `8c.md` only for complex media test endpoints     |
 | 9     | `9.md`                       | **SKIP entire file** if SEARCH=none               |
 | 10    | `10.md`                      | Read only subsections for enabled resource actions|
@@ -100,6 +101,7 @@ If `FRONTEND=no` → stop after Part 11. Hand off to human for endpoint testing.
 | 17    | `17.md`                      | List/pagination UI per PAGINATION_UI              |
 | 18    | `18.md`                      | Pages; profile section only if PROFILE            |
 | 19    | `19.md` then `19{L}.md`      | **SKIP** if !ADMIN; columns media fork in `19{L}` |
+| 22    | `22-admin-create.md`         | **SKIP** if !ADMIN — dashboard create button/form |
 | 20    | `20.md`                      | **SKIP entire file** if SEARCH=none               |
 | 21    | `21.md`                      | Only subsections for enabled resource actions     |
 
