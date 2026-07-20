@@ -89,9 +89,9 @@ pnpm prisma generate
 
 ## STEP 3: Session 2 — Implementation (~9 min)
 
-New chat. Set **"Accept Edits: On"** mode (top right).
+New chat with any AI. Use `SYSTEM-PROMPT-{resource}.txt` as system/custom instructions if supported; otherwise paste it at the top of the first message. Enable auto-approve edits if available.
 
-Attach:
+Attach / @-mention:
 
 - `PROJECT-BRIEF-{resource}.md`
 - `PROGRESS-{resource}.md`
@@ -107,7 +107,7 @@ You are in Implementation Mode. Lock PATH_LETTER from CONFIG.fileUpload (none→
 Follow ROUTER.md NEXT links only — never open sibling a/b/c files. Use PROGRESS to skip gated features. Start.
 ```
 
-**Why Haiku:** It's cheap (~7% of your limit for a full resource), fast, and the guide is literally just instructions. Any LLM can execute them. Save Sonnet/Opus for actually hard problems.
+**Why a cheap/fast model:** The guide is mostly instructions. Save stronger models for hard debugging.
 
 **If the chat gets long:** Do not keep going. Start a new session with the same system prompt. Paste the CLI **checkpoint continue** block (or say: "Checkpoint resume. PATH_LETTER=X. We completed through guide/guidev2/Y.md. Continue from its NEXT footer."). Update PROGRESS-{resource}.md to mark what's done.
 

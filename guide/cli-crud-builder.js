@@ -6,9 +6,13 @@ const path = require("path");
 const COLORS = {
   reset: "\x1b[0m",
   bright: "\x1b[1m",
+  dim: "\x1b[2m",
   green: "\x1b[32m",
+  yellow: "\x1b[33m",
   blue: "\x1b[34m",
+  magenta: "\x1b[35m",
   cyan: "\x1b[36m",
+  white: "\x1b[37m",
 };
 
 const log = {
@@ -17,6 +21,20 @@ const log = {
   success: (msg) => console.log(`${COLORS.green}✓ ${msg}${COLORS.reset}`),
   section: (msg) => console.log(`\n${COLORS.bright}${msg}${COLORS.reset}`),
   info: (msg) => console.log(`${COLORS.cyan}ℹ ${msg}${COLORS.reset}`),
+  dim: (msg) => console.log(`${COLORS.dim}${msg}${COLORS.reset}`),
+  warn: (msg) =>
+    console.log(`${COLORS.bright}${COLORS.yellow}${msg}${COLORS.reset}`),
+};
+
+/** Console-only helpers — never use these inside writeFileSync / generated file content. */
+const c = {
+  bold: (s) => `${COLORS.bright}${s}${COLORS.reset}`,
+  dim: (s) => `${COLORS.dim}${s}${COLORS.reset}`,
+  cyan: (s) => `${COLORS.cyan}${s}${COLORS.reset}`,
+  green: (s) => `${COLORS.green}${s}${COLORS.reset}`,
+  yellow: (s) => `${COLORS.yellow}${s}${COLORS.reset}`,
+  magenta: (s) => `${COLORS.magenta}${s}${COLORS.reset}`,
+  blue: (s) => `${COLORS.blue}${s}${COLORS.reset}`,
 };
 
 async function main() {
@@ -229,120 +247,120 @@ function printNextSteps(resource, config) {
       : pathLetter === "b"
         ? "simple (single file)"
         : "complex (Media model)";
+  const R = resource;
+  const r = resource.toLowerCase();
+
+  // Paste lines: plain text, no ANSI, no box borders, no leading indent — easy drag-select.
+  const pasteSession2 = [
+    `@PROJECT-BRIEF-${R}.md @PROGRESS-${R}.md @guide/guidev2/ROUTER.md @CONFIG-${R}.json`,
+    ``,
+    `You are in Implementation Mode.`,
+    `PATH_LETTER=${pathLetter} (fileUpload=${config.fileUpload}). Lock this letter.`,
+    `Follow guide/guidev2/ROUTER.md → NEXT links only. Never open sibling a/b/c files.`,
+    `Use PROGRESS-${R}.md to skip gated features. Update PROGRESS checkboxes as you go.`,
+    `Start from 0_preamble.md then 1.md → 1${pathLetter}.md.`,
+  ];
+  const pasteCheckpoint = [
+    `@PROJECT-BRIEF-${R}.md @PROGRESS-${R}.md @guide/guidev2/ROUTER.md @CONFIG-${R}.json`,
+    `Checkpoint resume. PATH_LETTER=${pathLetter}. We completed through guide/guidev2/<FILE>.md (Part X, Step Y).`,
+    `Continue from the NEXT footer of that file. Do not reopen finished chapters. Update PROGRESS as you go.`,
+  ];
+
+  const printPaste = (label, lines) => {
+    console.log(`  ${c.dim(`--- copy below (${label}) ---`)}`);
+    for (const line of lines) {
+      console.log(line);
+    }
+    console.log(`  ${c.dim("--- copy above ---")}`);
+  };
+
+  const step = (n, text) =>
+    console.log(`  ${c.cyan(String(n) + ".")} ${text}`);
+  const sub = (text) => console.log(`     ${c.dim(text)}`);
+  const session = (label) => {
+    console.log();
+    console.log(
+      `  ${COLORS.bright}${COLORS.blue}${label}${COLORS.reset}`,
+    );
+    console.log(`  ${c.dim("─".repeat(Math.min(label.length + 2, 48)))}`);
+  };
 
   console.log();
-  console.log(`Next steps:`);
+  log.section("Next steps");
   console.log();
   console.log(
-    `  PATH_LETTER=${pathLetter}  ← fileUpload "${config.fileUpload}" = ${pathMeaning}`,
+    `  ${COLORS.bright}${COLORS.magenta}PATH_LETTER=${pathLetter}${COLORS.reset}  ${c.dim("←")} fileUpload ${c.yellow(`"${config.fileUpload}"`)} = ${pathMeaning}`,
   );
+  sub(`Only open guide/guidev2 files ending in ${pathLetter} (or shared files with no letter).`);
+
+  session("[Session 1 — Schema Planning]");
+  step(1, `Start a ${c.bold("NEW")} chat session with your AI`);
+  step(
+    2,
+    `Share: ${c.cyan(`PROMPT-${R}.txt`)} + ${c.cyan(`PROGRESS-${R}.md`)} + ${c.cyan("apps/api/prisma/schema.prisma")}`,
+  );
+  step(3, `In the same message, describe the ${R} fields freely:`);
+  sub(
+    `e.g. "title, body, rating enum 1-5, soft delete. reuse Like/Comment. media optional"`,
+  );
+  step(4, `AI proposes schema → verifies PROGRESS matches → brainstorm`);
+  step(5, `AI edits ${c.cyan("apps/api/prisma/schema.prisma")}`);
+  step(6, `AI outputs final ${c.cyan(`PROJECT-BRIEF-${R}.md`)}`);
+  step(7, `Run migration ${c.bold("(required)")}:`);
+  console.log(`     ${c.green("cd apps/api")}`);
   console.log(
-    `  Only open guide/guidev2 files ending in ${pathLetter} (or shared files with no letter).`,
+    `     ${c.green(`pnpm prisma migrate dev --name "add ${r}"`)}`,
+  );
+  sub("Do NOT skip — Prisma types are required for implementation");
+
+  session("[Session 2 — Implementation]");
+  step(
+    8,
+    `New chat with your AI. Use ${c.cyan(`SYSTEM-PROMPT-${R}.txt`)} as system / custom instructions if your tool supports it (otherwise paste it at the top of the first message).`,
+  );
+  step(
+    9,
+    `Enable auto-approve / auto-apply edits if your tool has that option.`,
+  );
+  step(
+    10,
+    `${COLORS.bright}${COLORS.yellow}Paste this as your first message${COLORS.reset} (select between the markers):`,
+  );
+  printPaste("Session 2 first message", pasteSession2);
+  console.log();
+  step(
+    11,
+    `${COLORS.bright}${COLORS.yellow}CHECKPOINT${COLORS.reset} when context fills — do NOT keep going:`,
+  );
+  sub(
+    `AI says: Checkpoint: completed through guide/guidev2/<file>.md (Part X, Step Y). PATH_LETTER=${pathLetter}.`,
+  );
+  sub(
+    `You: NEW chat (same SYSTEM-PROMPT if supported), then paste:`,
+  );
+  printPaste("checkpoint resume", pasteCheckpoint);
+  console.log();
+  step(
+    12,
+    `After Session 2: ${c.green(`pnpm run validate-resource ${r}`)}`,
+  );
+
+  session("[Session 3 — Integration Tests] (optional)");
+  step(13, `Optional: note weird business logic in ${c.cyan("FLOWS.md")}`);
+  step(14, `Start another NEW chat`);
+  step(
+    15,
+    `Ask your AI to write integration tests for ${c.cyan(r)} (or use /write-tests ${r} if that skill exists)`,
+  );
+  step(16, `Approve the test plan (descriptions only)`);
+  step(
+    17,
+    `AI writes ${c.cyan(`src/modules/${r}/${r}.controller.integration.spec.ts`)}`,
   );
   console.log();
-  console.log(`  [Session 1 — Schema Planning]`);
-  console.log(`  1. Start a NEW chat session with your AI`);
-  console.log(
-    `  2. Share: PROMPT-${resource}.txt + PROGRESS-${resource}.md + apps/api/prisma/schema.prisma`,
-  );
-  console.log(
-    `  3. In the same message, describe the ${resource} fields freely:`,
-  );
-  console.log(
-    `     e.g. "i want to add recipe with fields like name, and array of incredients and array of steps. also add enum of difficulty (easy, medium, hard). make image required"`,
-  );
-  console.log(
-    `  4. AI proposes schema → verifies PROGRESS-${resource}.md matches selections → you brainstorm together`,
-  );
-  console.log(
-    `  5. AI edits apps/api/prisma/schema.prisma with the final schema`,
-  );
-  console.log(
-    `  6. AI outputs final PROJECT-BRIEF-${resource}.md. In agent mode it auto-saves; otherwise copy-paste it.`,
-  );
-  console.log(
-    `  7. You must run the migration to apply schema changes and generate Prisma client:`,
-  );
-  console.log(`     \`\`\`bash`);
-  console.log(`     cd apps/api`);
-  console.log(
-    `     pnpm prisma migrate dev --name "add ${resource.toLowerCase()}"`,
-  );
-  console.log(`     \`\`\``);
-  console.log(
-    `     (Do NOT skip this — Prisma types are required for implementation)`,
-  );
-  console.log();
-  console.log(`  [Session 2 — Implementation]`);
-  console.log(`  8. Use Claude Code with the system prompt (CRITICAL):`);
-  console.log(`     \`\`\`bash`);
-  console.log(`     claude --system-prompt SYSTEM-PROMPT-${resource}.txt`);
-  console.log(`     \`\`\``);
-  console.log();
-  console.log(`  9. Switch to "Accept Edits: On" mode (top right corner)`);
-  console.log();
-  console.log(`  10. Paste this ENTIRE block as your first message (copy as-is):`);
-  console.log(`     ┌──────────────────────────────────────────────────────────`);
-  console.log(
-    `     │ @PROJECT-BRIEF-${resource}.md @PROGRESS-${resource}.md @guide/guidev2/ROUTER.md @CONFIG-${resource}.json`,
-  );
-  console.log(`     │`);
-  console.log(`     │ You are in Implementation Mode.`);
-  console.log(
-    `     │ PATH_LETTER=${pathLetter} (fileUpload=${config.fileUpload}). Lock this letter.`,
-  );
-  console.log(
-    `     │ Follow guide/guidev2/ROUTER.md → NEXT links only. Never open sibling a/b/c files.`,
-  );
-  console.log(
-    `     │ Use PROGRESS-${resource}.md to skip gated features. Update PROGRESS checkboxes as you go.`,
-  );
-  console.log(`     │ Start from 0_preamble.md then 1.md → 1${pathLetter}.md.`);
-  console.log(`     └──────────────────────────────────────────────────────────`);
-  console.log();
-  console.log(`  11. CHECKPOINT RULE (when context fills — do NOT keep going in a dying chat):`);
-  console.log(
-    `     - AI must say: Checkpoint: completed through guide/guidev2/<file>.md (Part X, Step Y). PATH_LETTER=${pathLetter}.`,
-  );
-  console.log(`     - You: start a NEW chat with the SAME --system-prompt command`);
-  console.log(`     - Paste this continue block:`);
-  console.log(`     ┌──────────────────────────────────────────────────────────`);
-  console.log(
-    `     │ @PROJECT-BRIEF-${resource}.md @PROGRESS-${resource}.md @guide/guidev2/ROUTER.md @CONFIG-${resource}.json`,
-  );
-  console.log(
-    `     │ Checkpoint resume. PATH_LETTER=${pathLetter}. We completed through guide/guidev2/<FILE>.md (Part X, Step Y).`,
-  );
-  console.log(
-    `     │ Continue from the NEXT footer of that file. Do not reopen finished chapters. Update PROGRESS as you go.`,
-  );
-  console.log(`     └──────────────────────────────────────────────────────────`);
-  console.log();
-  console.log(`  12. After Session 2: pnpm run validate-resource ${resource.toLowerCase()}`);
-  console.log();
-  console.log(`  [Session 3 — Write Integration Tests] (optional)`);
-  console.log(
-    `  13. Optional: Add non-obvious business logic to FLOWS.md at repo root`,
-  );
-  console.log(
-    `      (only if your ${resource} has state transitions, cross-resource effects, or special ownership rules)`,
-  );
-  console.log(`  14. Start another NEW chat session with your AI`);
-  console.log(`  15. Use the skill: /write-tests ${resource.toLowerCase()}`);
-  console.log(
-    `      (this is a Claude Code slash command, not a pnpm command)`,
-  );
-  console.log(
-    `  16. Review the test plan the AI shows you (descriptions only)`,
-  );
-  console.log(
-    `  17. AI generates: src/modules/${resource.toLowerCase()}/${resource.toLowerCase()}.controller.integration.spec.ts`,
-  );
-  console.log();
-  console.log(`  To run the tests:`);
-  console.log(`    pnpm db:test:up        # start test DB (first time only)`);
-  console.log(`    cd apps/api`);
-  console.log(`    pnpm test:integration  # run all integration tests`);
+  console.log(`  ${c.bold("Run tests:")}`);
+  console.log(`    ${c.green("pnpm db:test:up")}        ${c.dim("# first time only")}`);
+  console.log(`    ${c.green("cd apps/api && pnpm test:integration")}`);
   console.log();
 }
 
