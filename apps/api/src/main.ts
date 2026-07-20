@@ -20,16 +20,26 @@ import { QueueService } from './modules/queue/queue.service';
 import { SeedService } from './modules/admin/seed.service';
 import * as express from 'express';
 
+function getCorsOrigins(): string[] {
+  const origins = new Set(['http://localhost:3000']);
+  if (process.env.FRONTEND_URL) {
+    try {
+      const url = new URL(process.env.FRONTEND_URL);
+      const apex = url.hostname.replace(/^www\./, '');
+      origins.add(process.env.FRONTEND_URL);
+      origins.add(`${url.protocol}//${apex}`);
+      origins.add(`${url.protocol}//www.${apex}`);
+    } catch {
+      origins.add(process.env.FRONTEND_URL);
+    }
+  }
+  return [...origins];
+}
+
 Print.log('Server running on port ' + process.env.PORT);
 Print.log('Database URL ' + process.env.DATABASE_URL);
 Print.log('Frontend URL ' + process.env.FRONTEND_URL);
-const corsOrigins = process.env.FRONTEND_URL
-  ? [
-      process.env.FRONTEND_URL,
-      `www.${process.env.FRONTEND_URL}`,
-      'http://localhost:3000',
-    ]
-  : ['http://localhost:3000'];
+const corsOrigins = getCorsOrigins();
 
 Print.log('CORS origins allowed: ' + JSON.stringify(corsOrigins));
 

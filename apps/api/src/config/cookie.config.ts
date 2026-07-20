@@ -9,8 +9,8 @@
 const getDomain = () => {
   if (process.env.NODE_ENV === 'production' && process.env.FRONTEND_URL) {
     const url = new URL(process.env.FRONTEND_URL);
-    // Extract domain and add leading dot for subdomain matching
-    return '.' + url.hostname;
+    const apex = url.hostname.replace(/^www\./, '');
+    return '.' + apex;
   }
   return undefined;
 };
