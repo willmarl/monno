@@ -192,7 +192,11 @@ export class AuthService {
     return this.issueTokens(userId);
   }
 
-  async refreshTokensBySession(sessionId: string, refreshToken: string) {
+  async refreshTokensBySession(
+    sessionId: string,
+    refreshToken: string,
+    expectedUserId?: number,
+  ) {
     // Validate session exists and is valid
     const session = await this.prisma.session.findUnique({
       where: { id: sessionId },
@@ -201,6 +205,16 @@ export class AuthService {
 
     if (!session || !session.isValid)
       throw new UnauthorizedException('Invalid or expired session');
+
+    // Refresh JWT subject must match the session owner
+    if (
+      expectedUserId != null &&
+      Number(expectedUserId) !== session.userId
+    ) {
+      throw new UnauthorizedException(
+        'Token does not match session. Please log in again.',
+      );
+    }
 
     // Validate refresh token matches hashed token
     const tokenMatches = await bcrypt.compare(

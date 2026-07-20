@@ -42,6 +42,6 @@ import { PasswordResetController } from './password-reset.controller';
     EmailVerificationService,
     PasswordResetService,
   ],
-  exports: [EmailVerificationService, PasswordResetService],
+  exports: [EmailVerificationService, PasswordResetService, JwtModule],
 })
 export class AuthModule {}

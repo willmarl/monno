@@ -8,33 +8,33 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 
 ## Critical
 
-### 1. JWT identity not bound to session user
+### 1. JWT identity not bound to session user — **FIXED**
 
 - **Where:** `apps/api/src/modules/auth/strategies/access.strategy.ts` (`validate`)
 - **Issue:** Session is checked for existence / `isValid` / expiry / ACTIVE status, but `payload.sub` is never compared to `session.userId`. `req.user` is the JWT payload (including `role`).
 - **Impact:** A valid `sessionId` cookie paired with another user’s valid access JWT authenticates as that JWT’s subject (including ADMIN) for the access-token lifetime.
-- **Fix:** Require `payload.sub === session.userId`. Prefer loading `role` / `status` from `session.user` (or a fresh DB read), not from the token. Optionally bind tokens to `sessionId`.
+- **Fix applied:** Require `payload.sub === session.userId`. `req.user` is built from `session.user` (`sub` + `role`). Refresh-by-session also checks JWT `sub` vs session owner. Covered by auth integration test (mismatched cookies → 401).
 
-### 2. OAuth email auto-link → account takeover
+### 2. OAuth email auto-link → account takeover — **FIXED**
 
 - **Where:** `apps/api/src/modules/auth/oauth/oauth.service.ts` — Strategy 2 (`upsertOauthUser`)
 - **Issue:** If an OAuth email matches an existing user row, the provider is linked and email is marked verified — no check that the existing account already verified that email.
 - **Impact:** Attacker registers with victim’s email (unverified, allowed). Victim later signs in with Google/GitHub → lands in the attacker’s account (password still attacker-controlled).
-- **Fix:** Only auto-link when `isEmailVerified === true` on the existing user (or require explicit “link account”). Otherwise create a separate user / conflict flow.
+- **Fix applied:** Auto-link only when `isEmailVerified === true`. Unverified holder: strip email (same claim rule as email verification) and create a new OAuth user. OAuth email sync refuses another user’s verified email. Unit tests in `oauth.service.spec.ts`.
 
-### 3. Bull Board mounted with no auth
+### 3. Bull Board mounted with no auth — **FIXED**
 
 - **Where:** `apps/api/src/main.ts`; `apps/api/src/modules/queue/bull-board.setup.ts`
 - **Issue:** `app.use('/admin/queues', …)` is Express middleware outside Nest guards.
 - **Impact:** Anyone who can reach the API can view/manage job queues (emails, payloads, retries).
-- **Fix:** Protect with Nest ADMIN auth, basic auth, IP allowlist, or disable outside private networks.
+- **Fix applied:** `createBullBoardAdminMiddleware` requires accessToken + sessionId (same binding rules as JWT strategy) and `role === ADMIN`. Set `BULL_BOARD_ENABLED=false` to disable the mount entirely.
 
-### 4. Empty JWT secret fallback
+### 4. Empty JWT secret fallback — **FIXED**
 
 - **Where:** `access.strategy.ts`, `refresh.strategy.ts` — `secretOrKey: process.env.* || ''`
 - **Issue:** Missing secrets become empty string.
 - **Impact:** Misconfigured deploys accept tokens signed with an empty secret.
-- **Fix:** Fail fast at boot if secrets are missing/weak; never default to `''`.
+- **Fix applied:** `requireJwtSecrets()` throws on missing/empty secrets at boot (`main.ts`) and in strategy constructors. Unit tests in `jwt-secrets.spec.ts`.
 
 ---
 

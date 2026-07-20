@@ -130,6 +130,7 @@ export class AuthController {
       result = await this.authService.refreshTokensBySession(
         sessionId,
         refreshToken,
+        userId,
       );
     } else {
       result = await this.authService.refreshTokens(userId, refreshToken);

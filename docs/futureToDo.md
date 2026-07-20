@@ -1,5 +1,7 @@
 ## Monno V2
 
+> **Execution order & status:** see [progress.md](./progress.md) (phased tracker). This file is the idea backlog; `progress.md` is what to do next and what’s done.
+
 **Auth & User Management**
 
 - Login with username or email (currently just username)

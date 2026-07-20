@@ -16,8 +16,12 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { setupBullBoard } from './modules/queue/bull-board.setup';
+import { createBullBoardAdminMiddleware } from './modules/queue/bull-board-auth.middleware';
 import { QueueService } from './modules/queue/queue.service';
 import { SeedService } from './modules/admin/seed.service';
+import { PrismaService } from './prisma.service';
+import { JwtService } from '@nestjs/jwt';
+import { requireJwtSecrets } from './config/jwt-secrets';
 import * as express from 'express';
 
 function getCorsOrigins(): string[] {
@@ -44,6 +48,8 @@ const corsOrigins = getCorsOrigins();
 Print.log('CORS origins allowed: ' + JSON.stringify(corsOrigins));
 
 async function bootstrap() {
+  requireJwtSecrets();
+
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
   });
@@ -105,10 +111,20 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 
-  /* Bull Board setup for queue monitoring */
-  const queueService = app.get(QueueService);
-  const bullBoardAdapter = setupBullBoard(queueService.getJobsQueue());
-  app.use('/admin/queues', bullBoardAdapter.getRouter());
+  /* Bull Board — disabled when BULL_BOARD_ENABLED=false; always ADMIN-gated */
+  const bullBoardEnabled = process.env.BULL_BOARD_ENABLED !== 'false';
+  if (bullBoardEnabled) {
+    const queueService = app.get(QueueService);
+    const bullBoardAdapter = setupBullBoard(queueService.getJobsQueue());
+    app.use(
+      '/admin/queues',
+      createBullBoardAdminMiddleware(app.get(PrismaService), app.get(JwtService)),
+      bullBoardAdapter.getRouter(),
+    );
+    Print.log('Bull Board mounted at /admin/queues (ADMIN session required)');
+  } else {
+    Print.log('Bull Board disabled (BULL_BOARD_ENABLED=false)');
+  }
 
   /* Seed admin account on startup*/
   const seedService = app.get(SeedService);

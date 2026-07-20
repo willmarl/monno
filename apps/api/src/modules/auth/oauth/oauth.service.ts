@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, ConflictException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { PrismaService } from '../../../prisma.service';
 import { QueueService } from '../../queue/queue.service';
@@ -21,8 +21,10 @@ import type { User } from '../../../generated/prisma/client';
  *
  * Account Merging Strategy:
  * If user logs in with Google using email@example.com, then later logs in with GitHub
- * using the same email@example.com, the accounts are automatically linked.
- * User can use either provider to access the same account.
+ * using the same email@example.com, the accounts are automatically linked — but only when
+ * the existing account has already verified that email. An unverified email holder does
+ * not own the address; OAuth proves ownership, so the email is stripped from them and a
+ * new OAuth account is created (same claim rule as email verification).
  *
  * To Add a New OAuth Provider (e.g., Twitter):
  *
@@ -330,13 +332,15 @@ export class OauthService {
         user = null; // Fall through to Strategy 3
       } else {
         // If OAuth email has changed (e.g., user changed email in Google account),
-        // auto-sync the email since OAuth is a trusted source
+        // auto-sync the email since OAuth is a trusted source — but never steal a
+        // verified email from another account.
         if (email && email !== user.email) {
+          await this.claimEmailForOauth(email, user.id);
           return await this.prisma.user.update({
             where: { id: user.id },
             data: {
-              email, // Update to current OAuth email
-              isEmailVerified: true, // Re-verify (from trusted provider)
+              email,
+              isEmailVerified: true,
               emailVerifiedAt: new Date(),
             },
           });
@@ -346,21 +350,34 @@ export class OauthService {
     }
 
     // Strategy 2: Email exists (account merging)
-    // User previously created account with password/email, now logging in via OAuth.
+    // Only auto-link when the existing account already verified this email.
+    // Unverified holders do not own the address — OAuth proves ownership (same as
+    // email verification): strip the email and fall through to create a new user.
     // Deleted accounts have their email mangled (deleted_{id}_...) so findUnique by
     // the real email will never match them — no extra deleted check needed here.
     if (email) {
       user = await this.prisma.user.findUnique({ where: { email } });
       if (user) {
-        // Link this OAuth provider to existing active account
-        return this.prisma.user.update({
+        if (user.isEmailVerified) {
+          return this.prisma.user.update({
+            where: { id: user.id },
+            data: {
+              [providerField]: providerId,
+              isEmailVerified: true,
+              emailVerifiedAt: new Date(),
+            },
+          });
+        }
+
+        await this.prisma.user.update({
           where: { id: user.id },
           data: {
-            [providerField]: providerId,
-            isEmailVerified: true, // OAuth email is from trusted provider
-            emailVerifiedAt: new Date(),
+            email: null,
+            tempEmail:
+              user.tempEmail === email ? null : user.tempEmail,
           },
         });
+        // Fall through to Strategy 3 with a free email
       }
     }
 
@@ -382,6 +399,48 @@ export class OauthService {
         isEmailVerified: email ? true : false, // Auto-verify email from OAuth provider
       },
     });
+  }
+
+  /**
+   * Ensure `email` can be assigned to `userId` for an OAuth-proven claim.
+   * Verified elsewhere → conflict. Unverified elsewhere → strip (FLOWS).
+   */
+  private async claimEmailForOauth(email: string, userId: number) {
+    const otherVerified = await this.prisma.user.findFirst({
+      where: {
+        email,
+        isEmailVerified: true,
+        id: { not: userId },
+      },
+    });
+
+    if (otherVerified) {
+      throw new ConflictException(
+        'Email is already verified by another user',
+      );
+    }
+
+    const otherUnverified = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email, id: { not: userId }, isEmailVerified: false },
+          { tempEmail: email, id: { not: userId } },
+        ],
+      },
+    });
+
+    if (otherUnverified) {
+      await this.prisma.user.update({
+        where: { id: otherUnverified.id },
+        data: {
+          email: otherUnverified.email === email ? null : otherUnverified.email,
+          tempEmail:
+            otherUnverified.tempEmail === email
+              ? null
+              : otherUnverified.tempEmail,
+        },
+      });
+    }
   }
 
   /* ===== SESSION & COOKIES ===== */

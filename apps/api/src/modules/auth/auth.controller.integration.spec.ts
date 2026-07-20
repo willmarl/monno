@@ -223,4 +223,42 @@ describe('AuthController (integration)', () => {
       expect(res.status).toBe(401);
     });
   });
+
+  // ── Session ↔ JWT binding ─────────────────────────────────────────────────
+
+  describe('access token / session binding', () => {
+    it('returns 401 when accessToken and sessionId belong to different users', async () => {
+      const userA = await createTestUser(testApp.prisma, {
+        username: `bind_a_${Date.now()}`,
+      });
+      const userB = await createTestUser(testApp.prisma, {
+        username: `bind_b_${Date.now()}`,
+      });
+      createdUserIds.push(userA.id, userB.id);
+
+      const loginA = await request(testApp.app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: userA.username, password: userA.plainPassword });
+      const loginB = await request(testApp.app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: userB.username, password: userB.plainPassword });
+
+      const cookiesA = loginA.headers['set-cookie'] as string[];
+      const cookiesB = loginB.headers['set-cookie'] as string[];
+
+      const accessFromA = cookiesA
+        .find((c) => c.startsWith('accessToken='))!
+        .split(';')[0];
+      const sessionFromB = cookiesB
+        .find((c) => c.startsWith('sessionId='))!
+        .split(';')[0];
+
+      const res = await request(testApp.app.getHttpServer())
+        .get('/users/me')
+        .set('Cookie', `${accessFromA}; ${sessionFromB}`);
+
+      expect(res.status).toBe(401);
+      expect(res.body.success).toBe(false);
+    });
+  });
 });

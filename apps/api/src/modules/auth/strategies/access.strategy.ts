@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
 import { PrismaService } from '../../../prisma.service';
+import { requireJwtSecrets } from '../../../config/jwt-secrets';
 
 /** Min age before we rewrite lastUsedAt (lenient presence tracking). */
 const LAST_USED_TOUCH_MS = 30_000;
@@ -13,6 +14,7 @@ export class AccessTokenStrategy extends PassportStrategy(
   'jwt-access',
 ) {
   constructor(private prisma: PrismaService) {
+    const { accessTokenSecret } = requireJwtSecrets();
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -20,7 +22,7 @@ export class AccessTokenStrategy extends PassportStrategy(
           return req?.cookies?.accessToken;
         },
       ]),
-      secretOrKey: process.env.ACCESS_TOKEN_SECRET || '',
+      secretOrKey: accessTokenSecret,
       passReqToCallback: true,
     });
   }
@@ -43,6 +45,14 @@ export class AccessTokenStrategy extends PassportStrategy(
     // Session must exist and be valid
     if (!session || !session.isValid) {
       throw new UnauthorizedException('Session is invalid or expired');
+    }
+
+    // Access JWT must belong to the same user as the session cookie
+    const tokenUserId = Number(payload?.sub);
+    if (!Number.isFinite(tokenUserId) || tokenUserId !== session.userId) {
+      throw new UnauthorizedException(
+        'Token does not match session. Please log in again.',
+      );
     }
 
     // Check if session has expired
@@ -68,6 +78,10 @@ export class AccessTokenStrategy extends PassportStrategy(
         .catch(() => {});
     }
 
-    return payload; // attaches payload to req.user
+    // Identity from DB/session — not from JWT claims (role can change after issue)
+    return {
+      sub: session.user.id,
+      role: session.user.role,
+    };
   }
 }
