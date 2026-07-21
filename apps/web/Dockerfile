@@ -23,7 +23,9 @@ FROM deps AS build
 COPY apps/web apps/web
 WORKDIR /repo/apps/web
 
-ARG NEXT_PUBLIC_API_URL=http://localhost:3001
+# No default on purpose: this is baked into the browser bundle, so a wrong
+# value ships a broken image. Compose supplies it from .env.docker.
+ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_APP_NAME=Monno
 ARG NEXT_PUBLIC_STRIPE_ENABLED=true
 ARG NEXT_PUBLIC_POSTHOG_KEY=
@@ -42,6 +44,14 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_SENTRY_ENVIRONMENT=$NEXT_PUBLIC_SENTRY_ENVIRONMENT \
     SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN \
     NEXT_TELEMETRY_DISABLED=1
+
+# Fail loudly on a missing/malformed API URL instead of baking a broken bundle.
+# (String validation only — nothing needs to be running at that URL.)
+RUN case "$NEXT_PUBLIC_API_URL" in \
+      http://*|https://*) echo "NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL" ;; \
+      "") echo "ERROR: NEXT_PUBLIC_API_URL build arg is required (e.g. --build-arg NEXT_PUBLIC_API_URL=https://api.example.com)" >&2; exit 1 ;; \
+      *) echo "ERROR: NEXT_PUBLIC_API_URL must start with http:// or https:// (got: $NEXT_PUBLIC_API_URL)" >&2; exit 1 ;; \
+    esac
 
 RUN pnpm run build
 
