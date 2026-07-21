@@ -7,7 +7,7 @@
 - Login with username or email (currently just username)
 - Email notifications for account status changes (banned, restored, deleted, etc)
 - Make roles (mod) and status (banned, suspended) functional instead of being a placeholder
-- Email rate limiting / request tracking (prevent spam on forgot password, verify email, etc) to run up resend API cost
+- Email rate limiting / request tracking (prevent spam on forgot password, verify email, etc) to run up resend API cost — **done:** IP `@Throttle` + per-email `EMAIL_SEND_COOLDOWN_MS` (see progress)
 - Make inputting password required to delete account
 - User preferences model (or `UserInfo` / key-value on user) synced across devices — not localStorage-only
   - Theme (light/dark) preference

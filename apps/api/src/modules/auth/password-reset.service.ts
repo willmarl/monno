@@ -4,6 +4,7 @@ import { randomBytes } from 'crypto';
 import { QueueService } from '../queue/queue.service';
 import { LogoService } from '../../common/logo/logo.service';
 import { resetPasswordTemplate } from '../../common/email-templates/ResetPassword';
+import { emailSendCooldownCutoff } from '../../config/email-send-cooldown';
 import * as bcrypt from 'bcrypt';
 
 // Helper functions (lightweight alternative to date-fns)
@@ -53,6 +54,24 @@ export class PasswordResetService {
     // If user doesn't have a password (OAuth-only user), they can't reset
     if (!user.password) {
       console.log('[PASSWORD RESET] User is OAuth-only:', email);
+      return {
+        success: true,
+        message:
+          'If an account exists with this email, a reset link has been sent',
+      };
+    }
+
+    // Per-email cooldown (IP throttle alone is not enough vs rotating clients)
+    const recent = await this.prisma.passwordResetToken.findFirst({
+      where: {
+        userId: user.id,
+        createdAt: { gt: emailSendCooldownCutoff() },
+      },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true },
+    });
+    if (recent) {
+      // Same generic response — do not reveal rate limit or account existence
       return {
         success: true,
         message:

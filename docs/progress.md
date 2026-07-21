@@ -41,7 +41,7 @@
 | deferred | [ ] Public articles: default `PUBLISHED` only | vulns #5 — articles are AI CRUD reference (guidev2), not a product surface; discarded 2026-07-20 |
 | done | [x] File serve + `avatarPath` / delete path confinement | vulns #6–7 — 2026-07-20: `resolveWithinRoot`; avatarPath not client-writable |
 | done | [x] Stop logging `DATABASE_URL` / reset & verify tokens | vulns #10 — 2026-07-20: no DB URL/token URLs in logs |
-| todo | [ ] Email rate limiting (forgot password, verify email, etc.) | futureToDo auth |
+| done | [x] Email rate limiting (forgot password, verify email, etc.) | 2026-07-20: existing `@Throttle` + per-email `EMAIL_SEND_COOLDOWN_MS` (default 60s) |
 
 *Optional in this phase (cheap Highs): OAuth `state`/PKCE (#8), CSRF / SameSite plan (#9) — can follow immediately after criticals.*
 
@@ -129,6 +129,7 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-20 | Phase 0 — Email send rate limiting | Confirmed existing `@Throttle`; added per-email cooldown (`EMAIL_SEND_COOLDOWN_MS`) |
 | 2026-07-20 | Phase 0 — Stop logging secrets/tokens | No DATABASE_URL or reset/verify token URLs in logs |
 | 2026-07-20 | Phase 0 — File path confinement | `resolveWithinRoot` for serve/delete; client cannot set `avatarPath` |
 | 2026-07-20 | Phase 0 — Article PUBLISHED (deferred) | Discarded: articles are guide/reference boilerplate, not product content |

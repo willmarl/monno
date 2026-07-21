@@ -38,7 +38,7 @@ export class PasswordResetController {
     status: 400,
     description: 'Email is required',
   })
-  @Throttle({ default: rateLimitConfig.normal })
+  @Throttle({ default: rateLimitConfig.strict })
   @Post('request-password-reset')
   async requestReset(@Body() body: { email: string }) {
     if (!body.email) {

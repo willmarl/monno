@@ -2,12 +2,15 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { randomBytes } from 'crypto';
 import { QueueService } from '../queue/queue.service';
 import { LogoService } from '../../common/logo/logo.service';
 import { verifyEmailTemplate } from '../../common/email-templates/VerifyEmail';
+import { emailSendCooldownCutoff } from '../../config/email-send-cooldown';
 
 // Helper functions (lightweight alternative to date-fns)
 const addHours = (date: Date, hours: number): Date => {
@@ -45,6 +48,21 @@ export class EmailVerificationService {
     // If user has no tempEmail and email is already verified, deny
     if (!user.tempEmail && user.isEmailVerified) {
       throw new BadRequestException('Email already verified');
+    }
+
+    const recent = await this.prisma.emailVerificationToken.findFirst({
+      where: {
+        userId,
+        createdAt: { gt: emailSendCooldownCutoff() },
+      },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true },
+    });
+    if (recent) {
+      throw new HttpException(
+        'Please wait before requesting another verification email',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
 
     // Invalidate old tokens

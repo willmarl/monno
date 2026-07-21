@@ -15,6 +15,7 @@ describe('PasswordResetService', () => {
         update: vi.fn(),
       },
       passwordResetToken: {
+        findFirst: vi.fn().mockResolvedValue(null),
         deleteMany: vi.fn().mockResolvedValue({}),
         create: vi.fn().mockResolvedValue({
           token: 'mock-token',
@@ -34,7 +35,11 @@ describe('PasswordResetService', () => {
     };
 
     // Directly instantiate service with mocked dependencies
-    service = new PasswordResetService(mockPrisma, mockQueueService);
+    service = new PasswordResetService(
+      mockPrisma,
+      mockQueueService,
+      { getLogoUrl: vi.fn().mockReturnValue('http://logo') } as any,
+    );
   });
 
   afterEach(() => {
@@ -103,6 +108,22 @@ describe('PasswordResetService', () => {
 
       // Verify deleteMany was called first
       expect(mockPrisma.passwordResetToken.deleteMany).toHaveBeenCalled();
+    });
+
+    it('should skip sending when a recent reset token exists (cooldown)', async () => {
+      mockPrisma.user.findFirst.mockResolvedValue({
+        id: 1,
+        email: 'user@test.com',
+        password: 'hashed-password',
+        username: 'user',
+      });
+      mockPrisma.passwordResetToken.findFirst.mockResolvedValue({ id: 'recent' });
+
+      const result = await service.requestPasswordReset('user@test.com');
+
+      expect(result.success).toBe(true);
+      expect(mockPrisma.passwordResetToken.create).not.toHaveBeenCalled();
+      expect(mockQueueService.enqueueEmail).not.toHaveBeenCalled();
     });
   });
 
