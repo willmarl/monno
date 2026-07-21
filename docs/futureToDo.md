@@ -78,8 +78,8 @@
 
 **Template**
 
-- make variant of create and edit forms with no media, simple file upload, complex multimedia. Will help AI for code reference
-- add admin create to guide
+- ~~make variant of create and edit forms with no media, simple file upload, complex multimedia. Will help AI for code reference~~ — done in guidev2 (a/b/c media paths)
+- ~~add admin create to guide~~ — done in guidev2 (`3-admin-create.md` + `22-admin-create.md`)
 
 **Guides**
 
