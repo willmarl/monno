@@ -65,11 +65,11 @@ Findings from a static architecture review of `apps/web`, `apps/api`, and `apps/
 - **Risk:** One side drifts after a hurried migration.
 - **What good looks like:** Single schema source (generate both clients from one path). Shared email/Resend helper.
 
-### 8. `enhanceWithLikes` N+1
+### 8. `enhanceWithLikes` N+1 — **FIXED**
 
 - **Where:** `apps/api/src/common/likes/enhance-with-likes.ts`
 - **Issue:** Per-item `like.findUnique` for `likedByMe` on list pages (limit=20 → 20 extra queries). Denormalized `likeCount` is the right read model; `likedByMe` undoes the win.
-- **What good looks like:** One `findMany` with `resourceId: { in: ids }`, then map in memory.
+- **Fix applied (2026-07-20):** One `findMany` with `resourceId: { in: ids }`, mapped in memory via a `Set`. Unit tests updated to assert a single batched query.
 
 ---
 

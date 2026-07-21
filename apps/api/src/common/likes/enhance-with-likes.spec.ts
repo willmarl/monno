@@ -7,7 +7,7 @@ describe('enhanceWithLikes', () => {
   beforeEach(() => {
     mockPrisma = {
       like: {
-        findUnique: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
       },
     };
   });
@@ -27,18 +27,18 @@ describe('enhanceWithLikes', () => {
       { id: 1, likeCount: 5, likedByMe: false },
       { id: 2, likeCount: 2, likedByMe: false },
     ]);
-    expect(mockPrisma.like.findUnique).not.toHaveBeenCalled();
+    expect(mockPrisma.like.findMany).not.toHaveBeenCalled();
   });
 
   it('does not query the DB when no userId is provided', async () => {
     await enhanceWithLikes(mockPrisma, 'POST', [{ id: 1 }]);
-    expect(mockPrisma.like.findUnique).not.toHaveBeenCalled();
+    expect(mockPrisma.like.findMany).not.toHaveBeenCalled();
   });
 
   // ── With currentUserId ────────────────────────────────────────────────────
 
   it('sets likedByMe=true when user has liked the item', async () => {
-    mockPrisma.like.findUnique.mockResolvedValue({ id: 10 }); // like record exists
+    mockPrisma.like.findMany.mockResolvedValue([{ resourceId: 1 }]);
 
     const result = await enhanceWithLikes(mockPrisma, 'POST', [{ id: 1 }], 42);
 
@@ -46,44 +46,36 @@ describe('enhanceWithLikes', () => {
   });
 
   it('sets likedByMe=false when user has not liked the item', async () => {
-    mockPrisma.like.findUnique.mockResolvedValue(null); // no like record
+    mockPrisma.like.findMany.mockResolvedValue([]);
 
     const result = await enhanceWithLikes(mockPrisma, 'POST', [{ id: 1 }], 42);
 
     expect(result[0].likedByMe).toBe(false);
   });
 
-  it('queries with the correct composite key', async () => {
-    mockPrisma.like.findUnique.mockResolvedValue(null);
+  it('batches all ids into a single findMany with the right filter', async () => {
+    mockPrisma.like.findMany.mockResolvedValue([]);
 
-    await enhanceWithLikes(mockPrisma, 'POST', [{ id: 7 }], 99);
+    await enhanceWithLikes(mockPrisma, 'POST', [{ id: 1 }, { id: 2 }, { id: 7 }], 99);
 
-    expect(mockPrisma.like.findUnique).toHaveBeenCalledWith({
+    expect(mockPrisma.like.findMany).toHaveBeenCalledTimes(1);
+    expect(mockPrisma.like.findMany).toHaveBeenCalledWith({
       where: {
-        userId_resourceType_resourceId: {
-          userId: 99,
-          resourceType: 'POST',
-          resourceId: 7,
-        },
+        userId: 99,
+        resourceType: 'POST',
+        resourceId: { in: [1, 2, 7] },
       },
+      select: { resourceId: true },
     });
-  });
-
-  it('queries once per item', async () => {
-    mockPrisma.like.findUnique.mockResolvedValue(null);
-
-    await enhanceWithLikes(mockPrisma, 'POST', [{ id: 1 }, { id: 2 }, { id: 3 }], 5);
-
-    expect(mockPrisma.like.findUnique).toHaveBeenCalledTimes(3);
   });
 
   // ── Mixed liked/not liked ─────────────────────────────────────────────────
 
   it('handles a mix of liked and not-liked items correctly', async () => {
-    mockPrisma.like.findUnique
-      .mockResolvedValueOnce({ id: 1 })  // item 1: liked
-      .mockResolvedValueOnce(null)         // item 2: not liked
-      .mockResolvedValueOnce({ id: 3 }); // item 3: liked
+    mockPrisma.like.findMany.mockResolvedValue([
+      { resourceId: 1 },
+      { resourceId: 3 },
+    ]);
 
     const items = [{ id: 1 }, { id: 2 }, { id: 3 }];
     const result = await enhanceWithLikes(mockPrisma, 'POST', items, 10);
@@ -98,13 +90,13 @@ describe('enhanceWithLikes', () => {
   it('returns an empty array when given an empty array', async () => {
     const result = await enhanceWithLikes(mockPrisma, 'POST', [], 1);
     expect(result).toEqual([]);
-    expect(mockPrisma.like.findUnique).not.toHaveBeenCalled();
+    expect(mockPrisma.like.findMany).not.toHaveBeenCalled();
   });
 
   // ── Preserves existing fields ─────────────────────────────────────────────
 
   it('preserves all existing fields on each item', async () => {
-    mockPrisma.like.findUnique.mockResolvedValue(null);
+    mockPrisma.like.findMany.mockResolvedValue([]);
 
     const item = { id: 1, title: 'Test', likeCount: 7, viewCount: 100 };
     const result = await enhanceWithLikes(mockPrisma, 'POST', [item], 5);
@@ -115,27 +107,27 @@ describe('enhanceWithLikes', () => {
   // ── Resource types (EP: one test per valid enum value) ───────────────────
 
   it('works with COMMENT resource type', async () => {
-    mockPrisma.like.findUnique.mockResolvedValue({ id: 50 });
+    mockPrisma.like.findMany.mockResolvedValue([{ resourceId: 3 }]);
 
     const result = await enhanceWithLikes(mockPrisma, 'COMMENT', [{ id: 3 }], 1);
 
     expect(result[0].likedByMe).toBe(true);
-    expect(mockPrisma.like.findUnique).toHaveBeenCalledWith(
+    expect(mockPrisma.like.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.objectContaining({ userId_resourceType_resourceId: expect.objectContaining({ resourceType: 'COMMENT' }) }),
+        where: expect.objectContaining({ resourceType: 'COMMENT' }),
       }),
     );
   });
 
   it('works with ARTICLE resource type', async () => {
-    mockPrisma.like.findUnique.mockResolvedValue(null);
+    mockPrisma.like.findMany.mockResolvedValue([]);
 
     const result = await enhanceWithLikes(mockPrisma, 'ARTICLE', [{ id: 9 }], 1);
 
     expect(result[0].likedByMe).toBe(false);
-    expect(mockPrisma.like.findUnique).toHaveBeenCalledWith(
+    expect(mockPrisma.like.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.objectContaining({ userId_resourceType_resourceId: expect.objectContaining({ resourceType: 'ARTICLE' }) }),
+        where: expect.objectContaining({ resourceType: 'ARTICLE' }),
       }),
     );
   });
@@ -148,6 +140,6 @@ describe('enhanceWithLikes', () => {
     const result = await enhanceWithLikes(mockPrisma, 'POST', [{ id: 1 }], 0);
 
     expect(result[0].likedByMe).toBe(false);
-    expect(mockPrisma.like.findUnique).not.toHaveBeenCalled();
+    expect(mockPrisma.like.findMany).not.toHaveBeenCalled();
   });
 });

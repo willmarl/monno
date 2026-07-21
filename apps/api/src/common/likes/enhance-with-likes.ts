@@ -2,11 +2,11 @@ import { PrismaService } from '../../prisma.service';
 import type { LikeableResourceType } from 'src/common/types/resource.types';
 
 /**
- * Attaches `likedByMe` (and ensures `likeCount` is present) to an array of
- * records that already carry a denormalized `likeCount` field.
+ * Attaches `likedByMe` (and preserves the denormalized `likeCount`) to an array
+ * of records that carry an `id`.
  *
  * - `likeCount`  → read directly from the record (O(1), denormalized)
- * - `likedByMe`  → single `findUnique` per record only when `currentUserId` is set
+ * - `likedByMe`  → one batched `findMany` for all ids (avoids N+1)
  */
 export async function enhanceWithLikes(
   prisma: PrismaService,
@@ -14,24 +14,25 @@ export async function enhanceWithLikes(
   items: any[],
   currentUserId?: number,
 ): Promise<any[]> {
-  return Promise.all(
-    items.map(async (item) => {
-      let likedByMe = false;
+  if (!currentUserId || items.length === 0) {
+    return items.map((item) => ({ ...item, likedByMe: false }));
+  }
 
-      if (currentUserId) {
-        const userLike = await prisma.like.findUnique({
-          where: {
-            userId_resourceType_resourceId: {
-              userId: currentUserId,
-              resourceType,
-              resourceId: item.id,
-            },
-          },
-        });
-        likedByMe = !!userLike;
-      }
+  const resourceIds = items.map((item) => item.id);
 
-      return { ...item, likedByMe };
-    }),
-  );
+  const likes = await prisma.like.findMany({
+    where: {
+      userId: currentUserId,
+      resourceType,
+      resourceId: { in: resourceIds },
+    },
+    select: { resourceId: true },
+  });
+
+  const likedIds = new Set(likes.map((like) => like.resourceId));
+
+  return items.map((item) => ({
+    ...item,
+    likedByMe: likedIds.has(item.id),
+  }));
 }

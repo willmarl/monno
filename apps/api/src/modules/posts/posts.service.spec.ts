@@ -19,6 +19,7 @@ describe('PostsService', () => {
       like: {
         count: vi.fn().mockResolvedValue(0),
         findUnique: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
       },
       user: {
         findUnique: vi.fn(),
@@ -113,6 +114,7 @@ describe('PostsService', () => {
 
       mockPrisma.post.findUnique.mockResolvedValue(post);
       mockPrisma.like.findUnique.mockResolvedValue(null); // Current user hasn't liked
+      mockPrisma.like.findMany.mockResolvedValue([]); // Current user hasn't liked
 
       // ACT
       const result = await service.findById(1, 2);
@@ -149,6 +151,7 @@ describe('PostsService', () => {
       mockPrisma.post.findUnique.mockResolvedValue(post);
       mockPrisma.like.count.mockResolvedValue(1);
       mockPrisma.like.findUnique.mockResolvedValue({ id: 1, userId: 2 }); // User 2 liked it
+      mockPrisma.like.findMany.mockResolvedValue([{ resourceId: 1 }]); // User 2 liked it
 
       // ACT
       const result = await service.findById(1, 2);
