@@ -53,11 +53,11 @@ Findings from a static architecture review of `apps/web`, `apps/api`, and `apps/
 - **Issue:** Workspace is only `apps/*` — no `packages/`. Nest class-validator DTOs and web Zod/interfaces are hand-duplicated (same min/max constraints). Drift is inevitable.
 - **What good looks like:** Shared Zod (or OpenAPI-generated) types package consumed by Nest and Next. At minimum, codegen from OpenAPI.
 
-### 6. Dual offset + cursor pagination everywhere
+### 6. Dual offset + cursor pagination everywhere — **INTENTIONAL (deferred)**
 
 - **Where:** Posts, articles, and most list surfaces (`/`, `/cursor`, `/search`, `/search/cursor`, liked, by-user, …)
-- **Issue:** Scaffold hangover. Posts even alias `GET /` and `GET /search` to the same path. Articles keep unused `findAll` / `findAllCursor` after routing list → `searchAll`. Liked-by-user paths reimplement pagination outside shared paginators.
-- **What good looks like:** Offset for admin tables, cursor for infinite feeds — pick per client need and delete the rest. Update the CRUD guide so AI stops generating both.
+- **Issue:** Posts even alias `GET /` and `GET /search` to the same path. Articles keep unused `findAll` / `findAllCursor` after routing list → `searchAll`. Liked-by-user paths reimplement pagination outside shared paginators.
+- **Decision (2026-07-20):** Deliberate — posts/articles are boilerplate resources kept as code reference for both pagination styles, and get deleted on real projects. On a real resource: offset for admin tables, cursor for infinite feeds — pick per client need. The CRUD guide should teach picking one, not generating both.
 
 ### 7. Worker ↔ API: Prisma (and email) duplicated
 

@@ -52,7 +52,7 @@
 | Status | Task | Notes |
 |--------|------|-------|
 | done | [x] Batch `likedByMe` (`enhanceWithLikes` N+1 → one `findMany`) | code-quality — 2026-07-20: single `findMany` + Set lookup |
-| todo | [ ] Collapse dual pagination (keep offset for admin, cursor for feeds; delete dead aliases/`findAll`) | code-quality |
+| deferred | [ ] Collapse dual pagination (keep offset for admin, cursor for feeds; delete dead aliases/`findAll`) | intentional: posts/articles are boilerplate showing both styles as code reference; deleted on real projects — 2026-07-20 |
 | deferred | [ ] Articles DRY pilot: admin = domain service + audit; one form/schema on web | articles/posts are placeholders + guide reference — improve via guidev2, not product refactors |
 | todo | [ ] Update CRUD guide / form variants (no media, simple, complex) + admin create | Template + Guides |
 | todo | [ ] Single Prisma schema for api + worker | code-quality |
@@ -129,6 +129,7 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-20 | Phase 1 — Dual pagination (deferred) | Intentional boilerplate: both styles kept as code reference; resource deleted on real projects |
 | 2026-07-20 | Phase 1 — Batch `likedByMe` | `enhanceWithLikes` now one `findMany` + Set; was N+1 per list item |
 | 2026-07-20 | Phase 0 — Email send rate limiting | Confirmed existing `@Throttle`; added per-email cooldown (`EMAIL_SEND_COOLDOWN_MS`) |
 | 2026-07-20 | Phase 0 — Stop logging secrets/tokens | No DATABASE_URL or reset/verify token URLs in logs |
