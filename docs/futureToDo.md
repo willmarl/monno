@@ -61,11 +61,12 @@
 
 **Deploy / Infra**
 
-- Dockerize the full stack so deploy is mostly env + `compose up` (no manual app setup each time)
+- ~~Dockerize the full stack so deploy is mostly env + `compose up` (no manual app setup each time)~~ — done: `docker-compose.stack.yml` + per-app Dockerfiles (`pnpm run stack:*`). Remaining polish (CI push to registry, nginx SSL fronting the stack) still optional.
   - One Dockerfile per app → separate images: api, web, worker (not one fat “whole stack” image)
   - Compose wires them with postgres + redis; prod should pull prebuilt images from a registry (CI builds/pushes), not build from Git on the server
   - Scale workers independently (compose `replicas` / multiple worker containers) for heavy jobs later — AI, account export/import, etc. — without scaling api/web the same way
   - Optional later: split workers by queue (email vs media vs long-running) so one slow job type doesn’t starve others
+  - Optional later: CI workflow that builds/pushes `monno-{api,worker,web,migrate}` to a registry and a prod compose override that only pulls
 
 **Public site files**
 

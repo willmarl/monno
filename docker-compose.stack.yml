@@ -1,0 +1,154 @@
+# Full-stack compose: postgres + redis + api + worker + web.
+#
+#   pnpm run stack:build   # build the three app images locally
+#   pnpm run stack:up      # start everything (runs migrations first)
+#   pnpm run stack:down
+#
+# Local dev keeps using docker-compose.yml (db + redis only) + pnpm dev.
+#
+# Prod: CI builds/pushes images, then the server runs this file with
+#   REGISTRY=ghcr.io/you/ IMAGE_TAG=sha-abc123 docker compose -f docker-compose.stack.yml up -d
+# (registry pull — no building on the server).
+#
+# App secrets come from apps/api/.env and apps/worker/.env (env_file below);
+# compose only overrides the container-network endpoints (db/redis hosts).
+# NEXT_PUBLIC_* for web are baked at BUILD time — see apps/web/Dockerfile args.
+
+x-db-url: &db-url
+  DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-appdb}
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-appdb}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - app
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - app
+
+  # One-shot: prisma migrate deploy, then exits. api/worker wait for it.
+  migrate:
+    image: ${REGISTRY:-}monno-migrate:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: migrate
+    environment:
+      <<: *db-url
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - app
+
+  api:
+    image: ${REGISTRY:-}monno-api:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - path: apps/api/.env
+        required: false
+    environment:
+      <<: *db-url
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      PORT: 3001
+      LOCAL_UPLOAD_PATH: /app/uploads
+    ports:
+      - "${API_PORT:-3001}:3001"
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    networks:
+      - app
+
+  worker:
+    image: ${REGISTRY:-}monno-worker:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - path: apps/worker/.env
+        required: false
+    environment:
+      <<: *db-url
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      LOCAL_UPLOAD_PATH: /app/uploads
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    # Scale heavy job processing independently of api/web:
+    #   docker compose -f docker-compose.stack.yml up -d --scale worker=3
+    networks:
+      - app
+
+  web:
+    image: ${REGISTRY:-}monno-web:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-Monno}
+        NEXT_PUBLIC_STRIPE_ENABLED: ${NEXT_PUBLIC_STRIPE_ENABLED:-true}
+        NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
+        NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-}
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+        NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${NEXT_PUBLIC_SENTRY_ENVIRONMENT:-production}
+        SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN:-}
+    restart: unless-stopped
+    environment:
+      # Server-side (RSC/SSR) fetches go container-to-container;
+      # the browser keeps using the baked NEXT_PUBLIC_API_URL
+      API_INTERNAL_URL: http://api:3001
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      - api
+    networks:
+      - app
+
+networks:
+  app:
+    driver: bridge
+
+volumes:
+  db_data:
+  redis_data:
+  uploads:

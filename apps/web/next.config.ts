@@ -3,7 +3,8 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Self-contained server bundle for Docker (node apps/web/server.js)
+  output: "standalone",
 };
 
 // const withNextIntl = createNextIntlPlugin()

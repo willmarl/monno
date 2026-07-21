@@ -56,7 +56,7 @@
 | deferred | [ ] Articles DRY pilot: admin = domain service + audit; one form/schema on web | articles/posts are placeholders + guide reference — improve via guidev2, not product refactors |
 | done | [x] Update CRUD guide / form variants (no media, simple, complex) + admin create | already done in guidev2 — 2026-07-20: a/b/c media paths (none/simple/complex); admin create in `3-admin-create.md` + `22-admin-create.md` (ADMIN gate) |
 | done | [x] Single Prisma schema for api + worker | code-quality #7 — 2026-07-20: api schema canonical; `db:sync-schema` stamps worker copy (+ `--check` drift guard); worker migrations deleted, worker only generates |
-| todo | [ ] Dockerize full stack (per-app images + compose; registry pull for prod) | Deploy |
+| done | [x] Dockerize full stack (per-app images + compose; registry pull for prod) | Deploy — 2026-07-20: Dockerfiles for api/worker/web; `docker-compose.stack.yml`; `pnpm run stack:{build,up,down,logs}`; migrate one-shot; `API_INTERNAL_URL` for RSC |
 
 ---
 
@@ -129,6 +129,7 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-20 | Phase 1 — Dockerize full stack | Per-app Dockerfiles + `docker-compose.stack.yml`; `stack:*` scripts; migrate one-shot; web `API_INTERNAL_URL` for SSR |
 | 2026-07-20 | Phase 1 — Single Prisma schema | api canonical + synced worker copy (`db:sync-schema` / `--check`); worker migrations removed, api owns migrate |
 | 2026-07-20 | Phase 1 — CRUD guide / form variants + admin create | Already shipped in guidev2 (a/b/c media paths + `3-/22-admin-create.md`); marked done, tracker was stale |
 | 2026-07-20 | Phase 1 — Dual pagination (deferred) | Intentional boilerplate: both styles kept as code reference; resource deleted on real projects |

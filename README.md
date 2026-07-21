@@ -27,6 +27,8 @@ A full-stack CRUD boilerplate with auth. This is a mono repo that uses nestjs fo
 6. `pnpm run db:migrate` to run database migrations
 7. `pnpm run dev` to start everything (or separate terminals per app)
 
+**optional — full stack in Docker** (api + worker + web + db + redis): `pnpm run stack:build && pnpm run stack:up` — see [docs/setup.md](./docs/setup.md#full-stack-in-docker-optional)
+
 api docs at http://localhost:3001/docs
 
 integration tests available — see [docs/setup.md](./docs/setup.md) for test setup instructions and [docs/tests.md](./docs/tests.md) for current coverage details

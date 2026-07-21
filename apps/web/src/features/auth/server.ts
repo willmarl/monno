@@ -1,6 +1,7 @@
 // server.ts  (updated version)
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { serverApiUrl } from "@/lib/serverApiUrl";
 
 export async function requireAuth() {
   const user = await getServerUser();
@@ -16,7 +17,7 @@ export async function getServerUser() {
     .map((cookie) => `${cookie.name}=${cookie.value}`)
     .join("; ");
 
-  let res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
+  let res = await fetch(`${serverApiUrl()}/users/me`, {
     method: "GET",
     headers: { Cookie: cookieHeader },
     credentials: "include",
@@ -26,7 +27,7 @@ export async function getServerUser() {
   if (res.status === 401) {
     // Try refresh
     const refreshRes = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+      `${serverApiUrl()}/auth/refresh`,
       {
         method: "POST",
         headers: { Cookie: cookieHeader },
@@ -59,7 +60,7 @@ export async function getServerUser() {
     }
 
     // Retry /users/me with the fresh cookies
-    res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
+    res = await fetch(`${serverApiUrl()}/users/me`, {
       method: "GET",
       headers: { Cookie: cookieHeader },
       credentials: "include",

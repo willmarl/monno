@@ -100,6 +100,28 @@ RESEND_FROM_NAME=foo
 
 ## how to build/deploy
 
+### full stack in Docker (optional)
+
+Local day-to-day still uses `docker-compose.yml` (db + redis only) + `pnpm run dev`.
+
+For a containerized run of **api + worker + web** (plus db/redis + one-shot migrations):
+
+```bash
+pnpm run stack:build   # build monno-api / monno-worker / monno-web / monno-migrate
+pnpm run stack:up      # start everything (project name: monno-stack)
+pnpm run stack:logs
+pnpm run stack:down
+```
+
+- One Dockerfile per app under `apps/{api,worker,web}/Dockerfile` — build context is the **repo root**
+- Compose file: `docker-compose.stack.yml`
+- Api/worker secrets come from `apps/api/.env` and `apps/worker/.env` (`env_file`); compose overrides `DATABASE_URL` / `REDIS_HOST` for the container network
+- Web `NEXT_PUBLIC_*` is baked at **build** time; set `NEXT_PUBLIC_API_URL` in `.env.docker` (browser → host-mapped api). Server-side fetches inside the web container use `API_INTERNAL_URL=http://api:3001`
+- Scale workers: `docker compose -p monno-stack -f docker-compose.stack.yml up -d --scale worker=3`
+- Prod path: CI builds/pushes images, server pulls with `REGISTRY=… IMAGE_TAG=…` (no build-from-git on the box)
+
+If local `pnpm dev` already owns ports 3000/3001, override when bringing the stack up: `API_PORT=3101 WEB_PORT=3100 pnpm run stack:up`
+
 ### reminder of env vars to change before deploying
 
 #### `apps/api/.env`

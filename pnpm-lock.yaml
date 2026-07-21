@@ -29,6 +29,12 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: ^3.958.0
         version: 3.958.0
+      '@bull-board/api':
+        specifier: ^6.16.1
+        version: 6.16.1(@bull-board/ui@6.16.1)
+      '@bull-board/express':
+        specifier: ^6.16.1
+        version: 6.16.1
       '@keyv/redis':
         specifier: ^5.1.5
         version: 5.1.5(keyv@5.5.5)
@@ -86,6 +92,12 @@ importers:
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
+      express:
+        specifier: ^5.1.0
+        version: 5.2.1
       keyv:
         specifier: ^5.5.5
         version: 5.5.5
@@ -135,12 +147,6 @@ importers:
         specifier: ^13.0.0
         version: 13.0.0
     devDependencies:
-      '@bull-board/api':
-        specifier: ^6.16.1
-        version: 6.16.1(@bull-board/ui@6.16.1)
-      '@bull-board/express':
-        specifier: ^6.16.1
-        version: 6.16.1
       '@eslint/eslintrc':
         specifier: ^3.2.0
         version: 3.3.3
@@ -183,9 +189,6 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^4.0.18
         version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(msw@2.12.7(@types/node@22.19.3)(typescript@5.9.3))(terser@5.44.1)(tsx@4.21.0))
-      dotenv:
-        specifier: ^17.2.3
-        version: 17.2.3
       eslint:
         specifier: ^9.18.0
         version: 9.39.2(jiti@2.6.1)
@@ -409,6 +412,9 @@ importers:
       bullmq:
         specifier: ^5.65.0
         version: 5.66.2
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
       resend:
         specifier: ^6.6.0
         version: 6.6.0
@@ -416,9 +422,6 @@ importers:
       '@types/node':
         specifier: ^24.10.4
         version: 24.10.4
-      dotenv:
-        specifier: ^17.2.3
-        version: 17.2.3
       prisma:
         specifier: ^7.2.0
         version: 7.2.0(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3)

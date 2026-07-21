@@ -1,5 +1,6 @@
 import { getServerUser } from "@/features/auth/server";
 import { ArticleDetail } from "@/components/pages/article/ArticleDetail";
+import { serverApiUrl } from "@/lib/serverApiUrl";
 import type { Metadata } from "next";
 
 export async function generateMetadata({
@@ -11,7 +12,7 @@ export async function generateMetadata({
 
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/articles/${id}`,
+      `${serverApiUrl()}/articles/${id}`,
       {
         credentials: "include",
       }

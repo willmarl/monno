@@ -11,7 +11,7 @@
     "start": "nest start",
     "dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "node dist/src/main.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts",
@@ -23,6 +23,8 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.958.0",
     "@aws-sdk/s3-request-presigner": "^3.958.0",
+    "@bull-board/api": "^6.16.1",
+    "@bull-board/express": "^6.16.1",
     "@keyv/redis": "^5.1.5",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.1.10",
@@ -42,6 +44,8 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "cookie-parser": "^1.4.7",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
     "keyv": "^5.5.5",
     "nestjs-pino": "^4.5.0",
     "node-fetch": "^3.3.2",
@@ -60,8 +64,6 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@bull-board/api": "^6.16.1",
-    "@bull-board/express": "^6.16.1",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.0",
@@ -76,7 +78,6 @@
     "@types/pino": "^7.0.5",
     "@types/supertest": "^6.0.2",
     "@vitest/coverage-v8": "^4.0.18",
-    "dotenv": "^17.2.3",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
