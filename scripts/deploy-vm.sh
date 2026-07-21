@@ -43,11 +43,12 @@ pnpm install
 # Run database migrations if needed
 echo ""
 echo "🗄️  Running database migrations..."
+# api owns the canonical schema + migrations; worker gets a synced copy
+bash "$DEPLOY_PATH/scripts/sync-prisma-schema.sh"
 cd "$DEPLOY_PATH/apps/api"
 pnpm prisma migrate deploy
 pnpm prisma generate
 cd "$DEPLOY_PATH/apps/worker"
-pnpm prisma migrate deploy
 pnpm prisma generate
 
 # Build each app individually

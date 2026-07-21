@@ -10,6 +10,8 @@
     "db:test:up": "docker compose --env-file .env.docker.test up -d",
     "db:test:down": "docker compose --env-file .env.docker.test down",
     "db:migrate": "bash ./scripts/migrate.sh",
+    "db:sync-schema": "bash ./scripts/sync-prisma-schema.sh",
+    "db:sync-schema:check": "bash ./scripts/sync-prisma-schema.sh --check",
     "deploy:env": "bash ./scripts/deploy-env.sh",
     "deploy:vm": "bash ./scripts/deploy-vm.sh",
     "crud": "node guide/cli-crud-builder.js",

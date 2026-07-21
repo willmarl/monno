@@ -3,11 +3,10 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+// Worker never runs migrations — apps/api owns the canonical schema and
+// migrations. This schema is a synced copy (pnpm run db:sync-schema).
 export default defineConfig({
   schema: "prisma/schema.prisma",
-  migrations: {
-    path: "prisma/migrations",
-  },
   datasource: {
     url: process.env["DATABASE_URL"],
   },
