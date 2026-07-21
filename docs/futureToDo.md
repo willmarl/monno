@@ -7,7 +7,6 @@
 - Login with username or email (currently just username)
 - Email notifications for account status changes (banned, restored, deleted, etc)
 - Make roles (mod) and status (banned, suspended) functional instead of being a placeholder
-- Email rate limiting / request tracking (prevent spam on forgot password, verify email, etc) to run up resend API cost — **done:** IP `@Throttle` + per-email `EMAIL_SEND_COOLDOWN_MS` (see progress)
 - Make inputting password required to delete account
 - User preferences model (or `UserInfo` / key-value on user) synced across devices — not localStorage-only
   - Theme (light/dark) preference
@@ -54,11 +53,11 @@
 
 **Security**
 
-- Fix vulnerabilities listed in [vulnerabilities.md](./vulnerabilities.md) (Critical first: JWT↔session binding, OAuth email auto-link takeover, unauthenticated Bull Board, empty JWT secret fallback; then High/Medium)
+- Fix remaining High/Medium findings in [vulnerabilities.md](./vulnerabilities.md) (OAuth `state`/PKCE, CSRF/SameSite, Multer limits, and remaining hardening). Phase 0 criticals are complete; see [progress.md](./progress.md).
 
 **Code quality / architecture**
 
-- Improve patterns listed in [code-quality.md](./code-quality.md) (priority: batch `likedByMe` N+1, collapse dual pagination, DRY admin↔user via articles pilot, server-read / hydrate Query, `packages/shared` + single Prisma schema, then god-service splits)
+- Improve remaining patterns in [code-quality.md](./code-quality.md) (next: single Prisma schema, server-read / hydrate Query, `packages/shared`, then god-service splits). `likedByMe` is fixed; dual pagination and the articles DRY pilot are intentionally deferred for the reference resources.
 
 **Deploy / Infra**
 
@@ -75,11 +74,6 @@
 - `/.well-known/security.txt` — security contact + disclosure policy (RFC 9116; useful in prod)
 - `sitemap.xml` — not `.txt`, but usually paired with `robots.txt` for SEO
 - Optional: `humans.txt` — credits / “who built this” (low priority, mostly vanity)
-
-**Template**
-
-- ~~make variant of create and edit forms with no media, simple file upload, complex multimedia. Will help AI for code reference~~ — done in guidev2 (a/b/c media paths)
-- ~~add admin create to guide~~ — done in guidev2 (`3-admin-create.md` + `22-admin-create.md`)
 
 **Guides**
 
