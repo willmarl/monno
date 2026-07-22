@@ -44,6 +44,7 @@ export async function setup() {
       "CollectionItem",
       "Collection",
       "Like",
+      "ViewHistory",
       "Comment",
       "AuditLog",
       "PasswordResetToken",

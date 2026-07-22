@@ -96,6 +96,7 @@ model User {
   collections             Collection[]
   supportTicket           SupportTicket[]
   articles                Article[]
+  viewHistory             ViewHistory[]
   // OAuth identity fields
   googleId                String?                  @unique
   githubId                String?                  @unique
@@ -248,6 +249,24 @@ model Like {
   @@unique([userId, resourceType, resourceId])
   @@index([resourceType])
   @@index([userId])
+  @@index([resourceId])
+}
+
+model ViewHistory {
+  id           Int          @id @default(autoincrement())
+  userId       Int
+  resourceType ResourceType
+  resourceId   Int
+  createdAt    DateTime     @default(now())
+  viewedAt     DateTime     @default(now())
+  deleted      Boolean      @default(false)
+  deletedAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, resourceType, resourceId])
+  @@index([userId, deleted, viewedAt])
+  @@index([resourceType])
   @@index([resourceId])
 }
 

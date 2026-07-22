@@ -36,6 +36,10 @@ export default function Header({ user }: { user: User | null }) {
       router.push("/settings");
     };
 
+    const handleHistory = () => {
+      router.push("/history");
+    };
+
     const handleProducts = () => {
       router.push("/purchases");
     };
@@ -80,6 +84,7 @@ export default function Header({ user }: { user: User | null }) {
             </>
           )}
           <DropdownMenuItem onClick={handleProfile}>Profile</DropdownMenuItem>
+          <DropdownMenuItem onClick={handleHistory}>History</DropdownMenuItem>
           <DropdownMenuItem onClick={handleSettings}>Settings</DropdownMenuItem>
           {SHOW_ACCOUNT_STATUS && (
             <DropdownMenuItem onClick={handleProducts}>
@@ -149,6 +154,9 @@ export default function Header({ user }: { user: User | null }) {
                   onClick={() => router.push("/user/" + user.username)}
                 >
                   Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/history")}>
+                  History
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push("/settings")}>
                   Settings

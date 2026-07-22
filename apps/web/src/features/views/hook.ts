@@ -1,17 +1,24 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ResourceType } from "@/types/resource";
-import { recordView, fetchViewStats } from "./api";
+import type { ViewableResourceType } from "./types/view";
+import {
+  recordView,
+  fetchViewStats,
+  fetchViewHistory,
+  removeViewHistoryEntry,
+  clearViewHistory,
+} from "./api";
 
 export function useRecordView() {
   const qc = useQueryClient();
 
   return useMutation({
     mutationFn: recordView,
-    onSuccess: (data) => {
-      // Invalidate view stats for this resource to get latest count
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["view"], exact: false });
+      qc.invalidateQueries({ queryKey: ["view-history"], exact: false });
     },
-    throwOnError: false, // Don't throw errors, let component handle them
+    throwOnError: false,
   });
 }
 
@@ -20,5 +27,48 @@ export function useViewStats(resourceType: ResourceType, resourceId: number) {
     queryKey: ["view", resourceId],
     queryFn: () => fetchViewStats(resourceType, resourceId),
     enabled: !!resourceId,
+  });
+}
+
+export function useViewHistory(
+  resourceType: ViewableResourceType,
+  page: number = 1,
+  limit: number = 9,
+  query: string = "",
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: ["view-history", resourceType, page, limit, query],
+    queryFn: () =>
+      fetchViewHistory({
+        resourceType,
+        limit,
+        offset,
+        query: query || undefined,
+      }),
+  });
+}
+
+export function useRemoveViewHistoryEntry() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: removeViewHistoryEntry,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["view-history"], exact: false });
+    },
+  });
+}
+
+export function useClearViewHistory() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (resourceType?: ViewableResourceType) =>
+      clearViewHistory(resourceType),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["view-history"], exact: false });
+    },
   });
 }

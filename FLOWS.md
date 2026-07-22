@@ -39,6 +39,14 @@ AI agents should read this file before writing tests for any module.
 - Liked-by-user lists only include posts the **viewer** can access: if a liked post later becomes private, it disappears for everyone except the post creator (same idea as skipping private items in a public collection).
 - Private posts may be added to the owner’s collections (private or public). Viewers who can’t see a private item skip it (YouTube playlist style); owners still see their private items in the list.
 
+## View history
+
+- Authenticated `POST /views` upserts one `ViewHistory` row per `(userId, resourceType, resourceId)` and bumps `viewedAt` (YouTube-style). Guests only bump denormalized `viewCount`.
+- History upsert runs even when the view-count spam/rate window skips incrementing `viewCount`. Re-viewing a soft-deleted history row restores it (`deleted=false`, `deletedAt=null`).
+- History list/mutate APIs (`GET /views/history`, `DELETE /views/history/:id`, `POST /views/history/clear`) require auth and only operate on the caller’s rows (owner-only).
+- Remove-one and clear-all are **soft-delete only** so admins can still audit rows in DB. Soft-deleted rows are omitted from the user’s history list.
+- History list hydrates posts/articles and omits deleted or inaccessible resources (e.g. another user’s private post that was public when viewed).
+
 ---
 
 _Add new entries here when you make a product decision that isn't obvious from reading the code._

@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma.service';
  * Deletes a test user and all their data.
  *
  * Cascade deletes (happen automatically when user is deleted):
- *   Session, Like, Collection + CollectionItems, Comment, PasswordResetToken,
+ *   Session, Like, ViewHistory, Collection + CollectionItems, Comment, PasswordResetToken,
  *   EmailVerificationToken, UsernameHistory
  *
  * Must be deleted manually first (no cascade from User → Post):
