@@ -16,9 +16,9 @@
 - Session manager with geolocation & risk scoring
 - 2 Token auth (refresh + access)
 - Roles (Admin, Mod, User)
-  - _Note: Mod role is a placeholder with no logic implemented_
+  - _Note: Mod role is a placeholder with no logic implemented — define scopes after Reports (Phase 3)_
 - User account status system (ACTIVE, SUSPENDED, BANNED, DELETED) with expiration
-  - _Note: Only ACTIVE and DELETED have implemented logic. SUSPENDED and BANNED are placeholders (e.g., could disable comments if `user.status === "SUSPENDED"`)_
+  - _Note: Non-ACTIVE blocks login, OAuth session creation, JWT access, and refresh. Admin can set `statusExpireAt` for temporary SUSPENDED/BANNED; expired status auto-restores to ACTIVE. DELETED never auto-expires._
 
 **Main resources/modules**
 

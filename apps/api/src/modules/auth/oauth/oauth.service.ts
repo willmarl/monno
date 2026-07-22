@@ -11,6 +11,7 @@ import { LogoService } from '../../../common/logo/logo.service';
 import { suspiciousLoginTemplate } from '../../../common/email-templates';
 import { cookieConfig } from '../../../config/cookie.config';
 import type { User } from '../../../generated/prisma/client';
+import { evaluateAccountAccess } from '../account-status';
 /**
  * OAuth Service - Multi-provider authentication
  *
@@ -453,6 +454,18 @@ export class OauthService {
 
     if (!user) {
       throw new BadRequestException('User not found');
+    }
+
+    const oauthAccess = evaluateAccountAccess(user);
+    if (oauthAccess.expired) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          status: 'ACTIVE',
+          statusExpireAt: null,
+          statusReason: null,
+        },
+      });
     }
 
     // Extract metadata from request

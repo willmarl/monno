@@ -16,6 +16,8 @@ export const editUserAdminSchema = z.object({
   role: z.enum(["USER", "ADMIN", "MOD"]).optional(),
   status: z.enum(["ACTIVE", "SUSPENDED", "BANNED", "DELETED"]).optional(),
   statusReason: z.string().optional(),
+  // datetime-local string; converted to ISO on submit
+  statusExpireAt: z.string().optional(),
 });
 
 export type EditUserAdminInput = z.infer<typeof editUserAdminSchema>;

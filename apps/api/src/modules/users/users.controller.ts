@@ -28,6 +28,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { DeleteAccountDto } from './dto/delete-account.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { JwtAccessOptionalGuard } from '../auth/guards/jwt-access-optional.guard';
 import { Roles } from '../../decorators/roles.decorator';
@@ -115,18 +116,24 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Delete current user account' })
   @ApiBearerAuth()
+  @ApiBody({ type: DeleteAccountDto })
   @ApiResponse({
     status: 204,
     description: 'Account deleted successfully',
   })
+  @ApiResponse({ status: 400, description: 'Incorrect password' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @UseGuards(JwtAccessGuard)
   @Delete('me')
   @HttpCode(204)
-  async deleteAccount(@Req() req: any, @Res({ passthrough: true }) res) {
+  async deleteAccount(
+    @Req() req: any,
+    @Body() body: DeleteAccountDto,
+    @Res({ passthrough: true }) res,
+  ) {
     const userId = req.user.sub;
-    await this.usersService.deleteAccount(userId);
+    await this.usersService.deleteAccount(userId, body);
 
     // Clear cookies (same as logout)
     res.cookie('accessToken', '', cookieConfig.clear);

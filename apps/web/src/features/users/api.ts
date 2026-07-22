@@ -50,9 +50,10 @@ export const changePassword = (data: ChangePasswordInput) =>
     json: data,
   });
 
-export const deleteProfile = () =>
+export const deleteProfile = (password: string) =>
   fetcher<void>(`/users/me`, {
     method: "DELETE",
+    json: { password },
   });
 
 export const fetchUserByUsername = (username: string): Promise<PublicUser> =>

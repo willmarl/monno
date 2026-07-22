@@ -34,6 +34,9 @@ describe('UsersService', () => {
       collection: {
         create: vi.fn(),
       },
+      session: {
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+      },
       $transaction: vi.fn(),
     };
 
@@ -370,14 +373,31 @@ describe('UsersService', () => {
     it('should throw NotFoundException if user not found', async () => {
       mockPrisma.user.findUnique.mockResolvedValueOnce(null);
 
-      // Act & Assert
-      await expect(service.deleteAccount(999)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.deleteAccount(999, { password: 'x' }),
+      ).rejects.toThrow(NotFoundException);
     });
 
-    it('should call softDeleteUserWithCascade for valid user', async () => {
-      const user = { id: 1, username: 'testuser' };
+    it('should reject incorrect password', async () => {
+      mockPrisma.user.findUnique.mockResolvedValueOnce({
+        id: 1,
+        password: await bcrypt.hash('right', 10),
+      });
+      (bcrypt.compare as any).mockResolvedValue(false);
+
+      await expect(
+        service.deleteAccount(1, { password: 'wrong' }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should call softDeleteUserWithCascade for valid password', async () => {
+      const user = {
+        id: 1,
+        username: 'testuser',
+        password: 'hashed',
+        status: 'ACTIVE',
+        email: null,
+      };
       const deletedUser = {
         id: 1,
         username: 'd_testuser',
@@ -385,20 +405,22 @@ describe('UsersService', () => {
         deleted: true,
       };
 
-      // Setup mock for the findUnique call in deleteAccount
       mockPrisma.user.findUnique.mockResolvedValueOnce(user);
+      (bcrypt.compare as any).mockResolvedValue(true);
 
-      // Setup mocks for softDeleteUserWithCascade
+      // softDeleteUserWithCascade lookups
       mockPrisma.user.findUnique.mockResolvedValueOnce(user);
+      mockPrisma.user.findUnique.mockResolvedValueOnce(null); // renamed username free
       mockPrisma.post.updateMany.mockResolvedValue({});
+      mockPrisma.article.updateMany.mockResolvedValue({});
       mockPrisma.usernameHistory.create.mockResolvedValue({});
       mockPrisma.user.update.mockResolvedValue(deletedUser);
+      mockPrisma.session.updateMany.mockResolvedValue({ count: 1 });
 
-      // Act
-      const result = await service.deleteAccount(1);
+      const result = await service.deleteAccount(1, { password: 'right' });
 
-      // Assert
       expect(result).toEqual(deletedUser);
+      expect(mockPrisma.session.updateMany).toHaveBeenCalled();
     });
   });
 
@@ -416,7 +438,9 @@ describe('UsersService', () => {
       };
       mockPrisma.user.update.mockResolvedValue(deletedUser);
       mockPrisma.post.updateMany.mockResolvedValue({});
+      mockPrisma.article.updateMany.mockResolvedValue({});
       mockPrisma.usernameHistory.create.mockResolvedValue({});
+      mockPrisma.session.updateMany.mockResolvedValue({ count: 0 });
 
       // Act
       const result = await service.softDeleteUserWithCascade(1);
@@ -481,7 +505,9 @@ describe('UsersService', () => {
       };
       mockPrisma.user.update.mockResolvedValue(deletedUser);
       mockPrisma.post.updateMany.mockResolvedValue({});
+      mockPrisma.article.updateMany.mockResolvedValue({});
       mockPrisma.usernameHistory.create.mockResolvedValue({});
+      mockPrisma.session.updateMany.mockResolvedValue({ count: 0 });
 
       // Act
       const result = await service.softDeleteUserWithCascade(1, 'user_request');

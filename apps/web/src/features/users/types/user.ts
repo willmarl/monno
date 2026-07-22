@@ -72,4 +72,5 @@ export interface UpdateUserAdminInput {
   role?: "ADMIN" | "MOD" | "USER";
   status?: "ACTIVE" | "SUSPENDED" | "BANNED" | "DELETED";
   statusReason?: string;
+  statusExpireAt?: string | null;
 }

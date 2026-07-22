@@ -247,6 +247,10 @@ export class AdminUserService {
     if (avatarPath) {
       updateData.avatarPath = avatarPath;
     }
+    if (data.statusExpireAt !== undefined) {
+      updateData.statusExpireAt =
+        data.statusExpireAt === null ? null : new Date(data.statusExpireAt);
+    }
 
     // Track changes for audit log
     const changes: Record<string, any> = {};
@@ -277,6 +281,18 @@ export class AdminUserService {
       data: updateData,
       select: DEFAULT_USER_SELECT,
     });
+
+    // Restrictive status changes kill existing sessions immediately
+    if (
+      data.status &&
+      data.status !== 'ACTIVE' &&
+      data.status !== user.status
+    ) {
+      await this.prisma.session.updateMany({
+        where: { userId, isValid: true },
+        data: { isValid: false },
+      });
+    }
 
     // Log the update if any changes were made
     if (adminId && Object.keys(changes).length > 0) {

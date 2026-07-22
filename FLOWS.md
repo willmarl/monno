@@ -14,6 +14,8 @@ AI agents should read this file before writing tests for any module.
 - OAuth login proves email ownership the same way: auto-link a provider only if an existing account already has that email **verified**; if the holder is unverified, strip the email and create a new OAuth user (do not merge into the unverified account)
 - Forgot password works even if the requesting user's email is unverified
 - A user whose email was stripped can still use their account normally — they just have no email attached
+- Self-delete (`DELETE /users/me`) requires the current password; soft-deletes the account and invalidates all sessions
+- Non-ACTIVE accounts (SUSPENDED / BANNED / DELETED) cannot log in, complete OAuth session creation, refresh tokens, or use JWT-guarded routes. Temporary SUSPENDED/BANNED with past `statusExpireAt` auto-restore to ACTIVE on next auth check. Admin status changes away from ACTIVE invalidate sessions immediately.
 
 ## Sessions
 

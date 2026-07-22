@@ -6,8 +6,8 @@
 
 - ~~Login with username or email (currently just username)~~ — done (see progress)
 - Email notifications for account status changes (banned, restored, deleted, etc)
-- Make roles (mod) and status (banned, suspended) functional instead of being a placeholder
-- Make inputting password required to delete account
+- ~~Make inputting password required to delete account~~ — done
+- ~~Make roles (mod) and status (banned, suspended) functional instead of being a placeholder~~ — status done; mod deferred until Reports
 - User preferences model (or `UserInfo` / key-value on user) synced across devices — not localStorage-only
   - Theme (light/dark) preference
   - View/layout prefs (e.g. grid vs card on list pages)

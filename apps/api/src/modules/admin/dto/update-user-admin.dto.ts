@@ -5,6 +5,7 @@ import {
   IsEmail,
   MaxLength,
   IsEnum,
+  IsDateString,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Role, UserStatus } from '../../../generated/prisma/client';
@@ -72,4 +73,13 @@ export class UpdateUserAdminDto {
   @IsString()
   @MaxLength(512)
   statusReason?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'When SUSPENDED/BANNED automatically return to ACTIVE (ISO date). Omit or null for indefinite.',
+    example: '2026-08-01T00:00:00.000Z',
+  })
+  @IsOptional()
+  @IsDateString()
+  statusExpireAt?: string | null;
 }

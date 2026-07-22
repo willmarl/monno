@@ -9,6 +9,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { DeleteAccountDto } from './dto/delete-account.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { FileProcessingService } from '../../common/file-processing/file-processing.service';
 import { EmailVerificationService } from '../auth/email-verification.service';
@@ -239,7 +240,7 @@ export class UsersService {
     }
 
     // Soft delete the user and rename to d_{username}
-    return this.prisma.user.update({
+    const updated = await this.prisma.user.update({
       where: { id: userId },
       data: {
         username: renamedUsername,
@@ -254,6 +255,14 @@ export class UsersService {
       },
       select: DEFAULT_ADMIN_USER_SELECT,
     });
+
+    // Kill all sessions so leftover cookies cannot linger until expiry
+    await this.prisma.session.updateMany({
+      where: { userId, isValid: true },
+      data: { isValid: false },
+    });
+
+    return updated;
   }
 
   //==============
@@ -688,13 +697,24 @@ export class UsersService {
     });
   }
 
-  async deleteAccount(userId: number) {
+  async deleteAccount(userId: number, dto: DeleteAccountDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
 
     if (!user) {
       throw new NotFoundException('User not found');
+    }
+
+    if (!user.password) {
+      throw new BadRequestException(
+        'This account has no password. Set a password before deleting, or contact support.',
+      );
+    }
+
+    const valid = await bcrypt.compare(dto.password, user.password);
+    if (!valid) {
+      throw new BadRequestException('Password is incorrect');
     }
 
     // Soft delete user and cascade to their posts

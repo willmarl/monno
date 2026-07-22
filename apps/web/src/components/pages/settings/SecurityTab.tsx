@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -9,24 +8,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Lock, LogOut, Globe, Trash2 } from "lucide-react";
+import { Lock, Trash2 } from "lucide-react";
 import { PasswordForm } from "@/features/users/components/PasswordForm";
 import { toastSuccess, toastError } from "@/lib/toast";
 import { SessionManager } from "@/features/auth/components/SessionManager";
 import { useDeleteProfile } from "@/features/users/hooks";
-import { ConfirmModal } from "@/components/modal/ConfirmModal";
+import { DeleteAccountModal } from "@/features/users/components/DeleteAccountModal";
 import { useModal } from "@/components/providers/ModalProvider";
 
 export function SecurityTab() {
   const deleteProfile = useDeleteProfile();
-  const { openModal } = useModal();
+  const { openModal, closeModal } = useModal();
   return (
     <div className="space-y-6">
-      {/* Change Password Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -38,14 +32,11 @@ export function SecurityTab() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* The PasswordForm component handles all password change logic */}
           <PasswordForm
             onSuccess={() => {
               toastSuccess("Password changed successfully");
             }}
-            onCancel={() => {
-              // toastError("Password form cancelled");
-            }}
+            onCancel={() => {}}
             onError={(err) => {
               toastError(String(err));
             }}
@@ -54,12 +45,10 @@ export function SecurityTab() {
         </CardContent>
       </Card>
 
-      {/* Active Sessions Card */}
       <Card>
         <SessionManager showGeolocation={true} showRiskScore={true} />
       </Card>
 
-      {/* Delete Account Card */}
       <Card className="border-destructive/30 bg-destructive/5 dark:border-destructive/50 dark:bg-destructive/10">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-destructive dark:text-red-400">
@@ -67,8 +56,7 @@ export function SecurityTab() {
             Delete Account
           </CardTitle>
           <CardDescription className="text-destructive/80 dark:text-destructive/70">
-            Permanently delete your account and all associated data. This action
-            cannot be undone.
+            Soft-delete your account. You must confirm with your password.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -80,19 +68,19 @@ export function SecurityTab() {
               openModal({
                 title: "Delete Account",
                 content: (
-                  <ConfirmModal
-                    message={`Are you sure you want to permanently delete your account? This action cannot be undone.`}
-                    onConfirm={() => {
-                      deleteProfile.mutate(undefined, {
+                  <DeleteAccountModal
+                    isPending={deleteProfile.isPending}
+                    onConfirm={(password) => {
+                      deleteProfile.mutate(password, {
                         onSuccess: () => {
-                          // Account deleted and cookies cleared by backend
-                          // Just redirect to login
+                          closeModal();
                           window.location.href = "/login";
+                        },
+                        onError: (err) => {
+                          toastError(String(err));
                         },
                       });
                     }}
-                    variant={"destructive"}
-                    showCancelButton={true}
                   />
                 ),
               });

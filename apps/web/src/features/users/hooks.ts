@@ -60,7 +60,7 @@ export function useDeleteProfile() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: deleteProfile,
+    mutationFn: (password: string) => deleteProfile(password),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["session"] });
     },

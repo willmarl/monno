@@ -63,6 +63,9 @@ export function EditUserAdminForm({
       role: user.role,
       status: user.status,
       statusReason: user.statusReason || "",
+      statusExpireAt: user.statusExpireAt
+        ? new Date(user.statusExpireAt).toISOString().slice(0, 16)
+        : "",
     },
   });
 
@@ -77,6 +80,12 @@ export function EditUserAdminForm({
         ([key, value]) => key !== "avatarPath" && value !== "",
       ),
     ) as EditUserAdminInput;
+
+    if (filteredData.statusExpireAt) {
+      filteredData.statusExpireAt = new Date(
+        filteredData.statusExpireAt,
+      ).toISOString();
+    }
 
     editUserAdminMutation.mutate(
       { id: user.id, data: filteredData, file: selectedFile || undefined },
@@ -248,6 +257,28 @@ export function EditUserAdminForm({
         {form.formState.errors.statusReason && (
           <p className="text-xs text-red-500">
             {form.formState.errors.statusReason.message}
+          </p>
+        )}
+      </div>
+
+      {/* statusExpireAt — temporary SUSPENDED/BANNED */}
+      <div className="space-y-2">
+        <Label htmlFor="inline-statusExpireAt" className="text-sm">
+          Status expires at (optional)
+        </Label>
+        <Input
+          id="inline-statusExpireAt"
+          type="datetime-local"
+          disabled={editUserAdminMutation.isPending}
+          {...form.register("statusExpireAt")}
+        />
+        <p className="text-xs text-muted-foreground">
+          For SUSPENDED/BANNED only. After this time the account auto-returns to
+          ACTIVE.
+        </p>
+        {form.formState.errors.statusExpireAt && (
+          <p className="text-xs text-red-500">
+            {form.formState.errors.statusExpireAt.message}
           </p>
         )}
       </div>

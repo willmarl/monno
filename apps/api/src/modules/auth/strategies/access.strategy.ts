@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
 import { PrismaService } from '../../../prisma.service';
 import { requireJwtSecrets } from '../../../config/jwt-secrets';
+import { evaluateAccountAccess } from '../account-status';
 
 /** Min age before we rewrite lastUsedAt (lenient presence tracking). */
 const LAST_USED_TOUCH_MS = 30_000;
@@ -61,11 +62,18 @@ export class AccessTokenStrategy extends PassportStrategy(
       throw new UnauthorizedException('Session has expired');
     }
 
-    // Check if user account is active
-    if (session.user.status !== 'ACTIVE') {
-      throw new UnauthorizedException(
-        `Account is ${session.user.status.toLowerCase()}${session.user.statusReason ? ': ' + session.user.statusReason : ''}`,
-      );
+    const access = evaluateAccountAccess(session.user);
+    let role = session.user.role;
+    if (access.expired) {
+      const restored = await this.prisma.user.update({
+        where: { id: session.user.id },
+        data: {
+          status: 'ACTIVE',
+          statusExpireAt: null,
+          statusReason: null,
+        },
+      });
+      role = restored.role;
     }
 
     // Throttled presence touch — fire-and-forget, never fail the request
@@ -81,7 +89,7 @@ export class AccessTokenStrategy extends PassportStrategy(
     // Identity from DB/session — not from JWT claims (role can change after issue)
     return {
       sub: session.user.id,
-      role: session.user.role,
+      role,
     };
   }
 }

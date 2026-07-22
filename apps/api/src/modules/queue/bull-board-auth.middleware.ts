@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../prisma.service';
+import { evaluateAccountAccess } from '../auth/account-status';
 
 /** Min age before we rewrite lastUsedAt (keep in sync with access.strategy). */
 const LAST_USED_TOUCH_MS = 30_000;
@@ -73,8 +74,22 @@ export function createBullBoardAdminMiddleware(
         return;
       }
 
-      if (session.user.status !== 'ACTIVE') {
-        res.status(401).send(`Account is ${session.user.status.toLowerCase()}`);
+      try {
+        const access = evaluateAccountAccess(session.user);
+        if (access.expired) {
+          await prisma.user.update({
+            where: { id: session.user.id },
+            data: {
+              status: 'ACTIVE',
+              statusExpireAt: null,
+              statusReason: null,
+            },
+          });
+        }
+      } catch {
+        res
+          .status(401)
+          .send(`Account is ${session.user.status.toLowerCase()}`);
         return;
       }
 

@@ -9,6 +9,7 @@ import { Request } from 'express';
 import { GeolocationService } from '../../common/geolocation/geolocation.service';
 import { RiskScoringService } from '../../common/risk-scoring/risk-scoring.service';
 import { EmailVerificationService } from './email-verification.service';
+import { evaluateAccountAccess } from './account-status';
 
 @Injectable()
 export class AuthService {
@@ -49,11 +50,16 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
-    // Check if account is active
-    if (user.status !== 'ACTIVE') {
-      throw new UnauthorizedException(
-        `Account is ${user.status.toLowerCase()}${user.statusReason ? ': ' + user.statusReason : ''}`,
-      );
+    const loginAccess = evaluateAccountAccess(user);
+    if (loginAccess.expired) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          status: 'ACTIVE',
+          statusExpireAt: null,
+          statusReason: null,
+        },
+      });
     }
 
     const valid = await bcrypt.compare(password, user.password);
@@ -80,11 +86,16 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException('User not found');
 
-    // Check if account is active
-    if (user.status !== 'ACTIVE') {
-      throw new UnauthorizedException(
-        `Account is ${user.status.toLowerCase()}${user.statusReason ? ': ' + user.statusReason : ''}`,
-      );
+    const tokenAccess = evaluateAccountAccess(user);
+    if (tokenAccess.expired) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          status: 'ACTIVE',
+          statusExpireAt: null,
+          statusReason: null,
+        },
+      });
     }
 
     const payload = { sub: userId, role: user.role };
@@ -224,10 +235,21 @@ export class AuthService {
 
     if (!tokenMatches) throw new UnauthorizedException('Invalid refresh token');
 
-    // Check if user is deleted or inactive
+    // Check if user is deleted or inactive (honor temporary status expiry)
     const user = session.user;
-    if (!user || user.deleted || user.status !== 'ACTIVE') {
+    if (!user || user.deleted) {
       throw new UnauthorizedException('User account is no longer valid');
+    }
+    const refreshAccess = evaluateAccountAccess(user);
+    if (refreshAccess.expired) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          status: 'ACTIVE',
+          statusExpireAt: null,
+          statusReason: null,
+        },
+      });
     }
     const payload = { sub: user.id, role: user.role };
 
