@@ -118,9 +118,13 @@ pnpm run stack:down
 - Api/worker secrets come from `apps/api/.env` and `apps/worker/.env` (`env_file`); compose overrides `DATABASE_URL` / `REDIS_HOST` for the container network
 - Web `NEXT_PUBLIC_*` is baked at **build** time; set `NEXT_PUBLIC_API_URL` in `.env.docker` (browser → host-mapped api). Server-side fetches inside the web container use `API_INTERNAL_URL=http://api:3001`
 - Scale workers: `docker compose -p monno-stack -f docker-compose.stack.yml up -d --scale worker=3`
-- Prod path: CI builds/pushes images, server pulls with `REGISTRY=… IMAGE_TAG=…` (no build-from-git on the box)
+- Production path: build/push versioned images from the main PC, then SSH into
+  the VM and run the pull-only update script. See
+  [docker-deploy.md](./docker-deploy.md).
 
-If local `pnpm dev` already owns ports 3000/3001, override when bringing the stack up: `API_PORT=3101 WEB_PORT=3100 pnpm run stack:up`
+For the normal local Docker run, stop `pnpm dev` and use `pnpm run stack:up`.
+If the public API host port changes, rebuild the web image with a matching
+`NEXT_PUBLIC_API_URL`; that value is baked into browser JavaScript.
 
 ### reminder of env vars to change before deploying
 
@@ -226,12 +230,9 @@ pnpm run db:migrate
 #### 4. reminder to set env, secret token, and Oauth
 
 if you setup `scripts/.env.deploy` then can conveniently `scp` files to VM by doing `pnpm run deploy:env`
-it will send over `.env` files thats currently in project to their respective `/apps/*` location
 
-- API `apps/api/.env`
-- Worker `apps/worker/.env`
-- Frontend `apps/web/.production` only
-- Deploy `scripts/.env.deploy`
+- **Docker (default):** `pnpm run deploy:env` uploads `.env.prod`, `env/api.env`, `env/worker.env`, plus `docker-compose.prod.yml` / update script
+- **Bare metal / PM2:** `pnpm run deploy:env -- bare` uploads `apps/api/.env`, `apps/worker/.env`, `apps/web/.env.production`
 
 ##### Example of what env should have before sending over env files to VM
 

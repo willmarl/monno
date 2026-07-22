@@ -10,8 +10,12 @@ dist/
 .env.local
 .env.development
 .env.production
+.env.prod
 .env.test
 .env.deploy
+
+# Pull-only VM deployment secrets
+/env/
 
 # Prisma
 prisma/migrations/

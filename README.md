@@ -36,6 +36,7 @@ integration tests available — see [docs/setup.md](./docs/setup.md) for test se
 ## documentation
 
 - [docs/setup.md](./docs/setup.md) - dev environment setup, building, and deployment
+- [docs/docker-deploy.md](./docs/docker-deploy.md) - build images locally, push to GHCR, and update a pull-only VM
 - [docs/features.md](./docs/features.md) - feature overview and what's actually implemented
 - [docs/screenshots.md](./docs/screenshots.md) - visual overview of the app with embedded screenshots
 - [docs/tests.md](./docs/tests.md) - how to run tests and coverage status

@@ -51,7 +51,7 @@ services:
 
   # One-shot: prisma migrate deploy, then exits. api/worker wait for it.
   migrate:
-    image: ${REGISTRY:-}monno-migrate:${IMAGE_TAG:-latest}
+    image: ${REGISTRY:-}${IMAGE_PREFIX:-monno}-migrate:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: apps/api/Dockerfile
@@ -66,7 +66,7 @@ services:
       - app
 
   api:
-    image: ${REGISTRY:-}monno-api:${IMAGE_TAG:-latest}
+    image: ${REGISTRY:-}${IMAGE_PREFIX:-monno}-api:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: apps/api/Dockerfile
@@ -93,7 +93,7 @@ services:
       - app
 
   worker:
-    image: ${REGISTRY:-}monno-worker:${IMAGE_TAG:-latest}
+    image: ${REGISTRY:-}${IMAGE_PREFIX:-monno}-worker:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: apps/worker/Dockerfile
@@ -119,7 +119,7 @@ services:
       - app
 
   web:
-    image: ${REGISTRY:-}monno-web:${IMAGE_TAG:-latest}
+    image: ${REGISTRY:-}${IMAGE_PREFIX:-monno}-web:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: apps/web/Dockerfile
