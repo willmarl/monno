@@ -118,7 +118,7 @@ Do these **alongside** feature work, not as a final dump.
 
 | Status | Task | Notes |
 |--------|------|-------|
-| todo | [ ] Integration tests for each behavior you lock (IDOR, soft-delete, visibility, auth) | don’t save for “the end” |
+| todo | [ ] Integration tests for each behavior you lock (IDOR, soft-delete, visibility, auth) | 2026-07-22: added visibility/IDOR coverage on posts, collections, likes; keep growing with new locks |
 | todo | [ ] Remaining High/Medium vulns (CSRF, OAuth state, role-from-DB, Multer limits, …) | after Phase 0 criticals |
 | todo | [ ] Remaining code-quality (server-read / hydrate Query, `packages/shared`, god-service splits, soft-delete `$transaction`) | after Phase 1 pilots |
 

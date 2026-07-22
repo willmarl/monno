@@ -248,6 +248,49 @@ describe('CollectionsController (integration)', () => {
 
       expect(res.status).toBe(409);
     });
+
+    it('allows the owner to add their own PRIVATE post', async () => {
+      const privatePost = await testApp.prisma.post.create({
+        data: {
+          title: `OwnerPrivate ${Date.now()}`,
+          content: 'x',
+          creatorId: owner.id,
+          visibility: 'PRIVATE',
+        },
+      });
+
+      const res = await request(testApp.app.getHttpServer())
+        .post(`/collections/${collectionId}/items`)
+        .set('Cookie', ownerCookies)
+        .send({ resourceType: 'POST', resourceId: privatePost.id });
+
+      expect(res.status).toBe(201);
+
+      await testApp.prisma.collectionItem.deleteMany({
+        where: { collectionId, resourceId: privatePost.id },
+      });
+      await testApp.prisma.post.delete({ where: { id: privatePost.id } });
+    });
+
+    it('returns 404 when adding another users PRIVATE post', async () => {
+      const othersPrivate = await testApp.prisma.post.create({
+        data: {
+          title: `OtherPrivate ${Date.now()}`,
+          content: 'x',
+          creatorId: otherUser.id,
+          visibility: 'PRIVATE',
+        },
+      });
+
+      const res = await request(testApp.app.getHttpServer())
+        .post(`/collections/${collectionId}/items`)
+        .set('Cookie', ownerCookies)
+        .send({ resourceType: 'POST', resourceId: othersPrivate.id });
+
+      expect(res.status).toBe(404);
+
+      await testApp.prisma.post.delete({ where: { id: othersPrivate.id } });
+    });
   });
 
   // ── DELETE /collections/:id ───────────────────────────────────────────────
@@ -282,6 +325,61 @@ describe('CollectionsController (integration)', () => {
       expect(res.status).toBe(403);
 
       await testApp.prisma.collection.delete({ where: { id: col.id } });
+    });
+  });
+
+  // ── GET /collections (public search) ──────────────────────────────────────
+
+  describe('GET /collections (search)', () => {
+    let publicId: number;
+    let privateId: number;
+    const stamp = Date.now();
+
+    beforeAll(async () => {
+      const pub = await testApp.prisma.collection.create({
+        data: {
+          name: `SearchPublic ${stamp}`,
+          creatorId: owner.id,
+          visibility: 'PUBLIC',
+        },
+      });
+      publicId = pub.id;
+
+      const priv = await testApp.prisma.collection.create({
+        data: {
+          name: `SearchPrivate ${stamp}`,
+          creatorId: owner.id,
+          visibility: 'PRIVATE',
+        },
+      });
+      privateId = priv.id;
+    });
+
+    afterAll(async () => {
+      await testApp.prisma.collection.deleteMany({
+        where: { id: { in: [publicId, privateId] } },
+      });
+    });
+
+    it('returns PUBLIC collections in search', async () => {
+      const res = await request(testApp.app.getHttpServer())
+        .get('/collections')
+        .query({ query: `SearchPublic ${stamp}` });
+
+      expect(res.status).toBe(200);
+      const ids = res.body.data.items.map((c: { id: number }) => c.id);
+      expect(ids).toContain(publicId);
+    });
+
+    it('excludes PRIVATE collections from public search', async () => {
+      const res = await request(testApp.app.getHttpServer())
+        .get('/collections')
+        .query({ query: `SearchPrivate ${stamp}` })
+        .set('Cookie', ownerCookies);
+
+      expect(res.status).toBe(200);
+      const ids = res.body.data.items.map((c: { id: number }) => c.id);
+      expect(ids).not.toContain(privateId);
     });
   });
 });

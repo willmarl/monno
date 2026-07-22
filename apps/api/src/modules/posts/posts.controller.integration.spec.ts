@@ -232,4 +232,153 @@ describe('PostsController (integration)', () => {
       expect(res.body.data.pageInfo).toBeDefined();
     });
   });
+
+  // ── Visibility (PRIVATE posts) ────────────────────────────────────────────
+
+  describe('Visibility', () => {
+    let privatePostId: number;
+    let publicPostId: number;
+
+    beforeAll(async () => {
+      const priv = await testApp.prisma.post.create({
+        data: {
+          title: `PrivateVis ${Date.now()}`,
+          content: 'secret',
+          creatorId: ownerUser.id,
+          visibility: 'PRIVATE',
+        },
+      });
+      privatePostId = priv.id;
+
+      const pub = await testApp.prisma.post.create({
+        data: {
+          title: `PublicVis ${Date.now()}`,
+          content: 'open',
+          creatorId: ownerUser.id,
+          visibility: 'PUBLIC',
+        },
+      });
+      publicPostId = pub.id;
+    });
+
+    afterAll(async () => {
+      await testApp.prisma.post.deleteMany({
+        where: { id: { in: [privatePostId, publicPostId] } },
+      });
+    });
+
+    it('returns 200 when the creator fetches their PRIVATE post', async () => {
+      const res = await request(testApp.app.getHttpServer())
+        .get(`/posts/${privatePostId}`)
+        .set('Cookie', ownerCookies);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.id).toBe(privatePostId);
+      expect(res.body.data.visibility).toBe('PRIVATE');
+    });
+
+    it('returns 404 when a non-owner fetches a PRIVATE post', async () => {
+      const res = await request(testApp.app.getHttpServer())
+        .get(`/posts/${privatePostId}`)
+        .set('Cookie', otherCookies);
+
+      expect(res.status).toBe(404);
+    });
+
+    it('returns 404 when a guest fetches a PRIVATE post', async () => {
+      const res = await request(testApp.app.getHttpServer()).get(
+        `/posts/${privatePostId}`,
+      );
+
+      expect(res.status).toBe(404);
+    });
+
+    it('excludes PRIVATE posts from public search even for the creator', async () => {
+      const res = await request(testApp.app.getHttpServer())
+        .get('/posts')
+        .query({ query: 'PrivateVis' })
+        .set('Cookie', ownerCookies);
+
+      expect(res.status).toBe(200);
+      const ids = res.body.data.items.map((p: { id: number }) => p.id);
+      expect(ids).not.toContain(privatePostId);
+    });
+
+    it('includes PUBLIC posts in public search', async () => {
+      const res = await request(testApp.app.getHttpServer())
+        .get('/posts')
+        .query({ query: 'PublicVis' });
+
+      expect(res.status).toBe(200);
+      const ids = res.body.data.items.map((p: { id: number }) => p.id);
+      expect(ids).toContain(publicPostId);
+    });
+
+    it('owner profile list includes PRIVATE posts; other viewer does not', async () => {
+      const asOwner = await request(testApp.app.getHttpServer())
+        .get(`/posts/users/${ownerUser.id}`)
+        .set('Cookie', ownerCookies);
+
+      expect(asOwner.status).toBe(200);
+      expect(
+        asOwner.body.data.items.map((p: { id: number }) => p.id),
+      ).toContain(privatePostId);
+
+      const asOther = await request(testApp.app.getHttpServer())
+        .get(`/posts/users/${ownerUser.id}`)
+        .set('Cookie', otherCookies);
+
+      expect(asOther.status).toBe(200);
+      expect(
+        asOther.body.data.items.map((p: { id: number }) => p.id),
+      ).not.toContain(privatePostId);
+    });
+
+    it('liked list drops a post after it becomes PRIVATE for the liker', async () => {
+      const post = await testApp.prisma.post.create({
+        data: {
+          title: `LikedThenPrivate ${Date.now()}`,
+          content: 'x',
+          creatorId: ownerUser.id,
+          visibility: 'PUBLIC',
+        },
+      });
+
+      await testApp.prisma.like.create({
+        data: {
+          userId: otherUser.id,
+          resourceType: 'POST',
+          resourceId: post.id,
+        },
+      });
+
+      const before = await request(testApp.app.getHttpServer())
+        .get(`/posts/users/${otherUser.id}/liked`)
+        .set('Cookie', otherCookies);
+
+      expect(before.status).toBe(200);
+      expect(
+        before.body.data.items.map((p: { id: number }) => p.id),
+      ).toContain(post.id);
+
+      await testApp.prisma.post.update({
+        where: { id: post.id },
+        data: { visibility: 'PRIVATE' },
+      });
+
+      const after = await request(testApp.app.getHttpServer())
+        .get(`/posts/users/${otherUser.id}/liked`)
+        .set('Cookie', otherCookies);
+
+      expect(after.status).toBe(200);
+      expect(
+        after.body.data.items.map((p: { id: number }) => p.id),
+      ).not.toContain(post.id);
+
+      await testApp.prisma.like.deleteMany({
+        where: { resourceType: 'POST', resourceId: post.id },
+      });
+      await testApp.prisma.post.delete({ where: { id: post.id } });
+    });
+  });
 });
