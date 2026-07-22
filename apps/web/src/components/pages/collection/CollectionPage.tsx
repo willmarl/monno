@@ -20,6 +20,7 @@ import { LikeButton } from "@/components/common/LikeButton";
 import { useToggleLike } from "@/features/likes/hooks";
 import { RESOURCE_TYPES } from "@/types/resource";
 import { ReportButton } from "@/components/common/ReportButton";
+import { AdminRemoveButton } from "@/components/common/AdminRemoveButton";
 interface CollectionPageProps {
   id: number;
   isOwner?: boolean;
@@ -128,6 +129,10 @@ export function CollectionPage({ id }: CollectionPageProps) {
               resourceType={RESOURCE_TYPES.COLLECTION}
               resourceId={data.id}
               isOwner={!!isOwner}
+            />
+            <AdminRemoveButton
+              resourceType={RESOURCE_TYPES.COLLECTION}
+              resourceId={data.id}
             />
           </div>
         </div>

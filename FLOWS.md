@@ -56,6 +56,12 @@ AI agents should read this file before writing tests for any module.
 - Admin-only queue: `GET/PATCH /admin/reports` (+ UI `/admin/reports`). Statuses: `OPEN | REVIEWING | RESOLVED | DISMISSED`. Resolving/dismissing sets `resolverId` + `resolvedAt`.
 - MOD does not access the queue yet (mod scopes deferred).
 
+## Admin remove on public pages
+
+- When `user.role === ADMIN`, public cards/detail (posts, articles, comments, collections) show an **Admin remove** control (`AdminRemoveButton`).
+- Soft-deletes via existing `/admin/{resource}/:id` DELETE (audit-logged). Does not require opening the admin dashboard. MOD not included yet.
+- Owner edit/delete controls stay separate; admin remove works on others’ content too.
+
 ---
 
 _Add new entries here when you make a product decision that isn't obvious from reading the code._

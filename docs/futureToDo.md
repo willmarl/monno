@@ -19,7 +19,7 @@
 
 - Custom domain/company email sending from admin panel
 - Mass delete operations (findMany, deleteMany)
-- Special admin buttons on public pages to remove content (comments, posts, etc) without entering dashboard
+- ~~Special admin buttons on public pages to remove content (comments, posts, etc) without entering dashboard~~ — done 2026-07-22
 - Active now: track guests too (anonymous client id + Redis TTL heartbeat; show users/guests split or combined). Logged-in already uses session `lastUsedAt`
 
 **Main Resources/Modules**

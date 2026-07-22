@@ -15,6 +15,7 @@ import { RESOURCE_TYPES } from "@/types/resource";
 import { CollectionButton } from "../common/CollectionButton";
 import { MediaGallery } from "./MediaGallery";
 import { ReportButton } from "../common/ReportButton";
+import { AdminRemoveButton } from "../common/AdminRemoveButton";
 
 export function Article({
   data,
@@ -190,6 +191,10 @@ export function Article({
             resourceType={RESOURCE_TYPES.ARTICLE}
             resourceId={data.id}
             isOwner={isOwner}
+          />
+          <AdminRemoveButton
+            resourceType={RESOURCE_TYPES.ARTICLE}
+            resourceId={data.id}
           />
           <Calendar className="h-4 w-4" />
           <span>{formattedDate}</span>

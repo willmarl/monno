@@ -35,6 +35,7 @@ import {
 import { useDeleteComment, useUpdateComment } from "@/features/comments/hooks";
 import { LikeButton } from "../common/LikeButton";
 import { ReportButton } from "../common/ReportButton";
+import { AdminRemoveButton } from "../common/AdminRemoveButton";
 
 export function Comment({
   data,
@@ -252,6 +253,10 @@ export function Comment({
               resourceType={RESOURCE_TYPES.COMMENT}
               resourceId={data.id}
               isOwner={isOwner}
+            />
+            <AdminRemoveButton
+              resourceType={RESOURCE_TYPES.COMMENT}
+              resourceId={data.id}
             />
           </div>
         )}

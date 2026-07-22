@@ -13,6 +13,7 @@ import { useToggleLike } from "@/features/likes/hooks";
 import { LikeButton } from "../common/LikeButton";
 import { CollectionButton } from "../common/CollectionButton";
 import { ReportButton } from "../common/ReportButton";
+import { AdminRemoveButton } from "../common/AdminRemoveButton";
 
 export function Post({
   data,
@@ -151,6 +152,10 @@ export function Post({
             resourceType={RESOURCE_TYPES.POST}
             resourceId={data.id}
             isOwner={isOwner}
+          />
+          <AdminRemoveButton
+            resourceType={RESOURCE_TYPES.POST}
+            resourceId={data.id}
           />
         </div>
       </div>
