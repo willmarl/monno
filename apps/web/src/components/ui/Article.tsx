@@ -14,6 +14,7 @@ import { useToggleLike } from "@/features/likes/hooks";
 import { RESOURCE_TYPES } from "@/types/resource";
 import { CollectionButton } from "../common/CollectionButton";
 import { MediaGallery } from "./MediaGallery";
+import { ReportButton } from "../common/ReportButton";
 
 export function Article({
   data,
@@ -184,6 +185,11 @@ export function Article({
           <CollectionButton
             resourceId={data.id}
             resourceType={RESOURCE_TYPES.ARTICLE}
+          />
+          <ReportButton
+            resourceType={RESOURCE_TYPES.ARTICLE}
+            resourceId={data.id}
+            isOwner={isOwner}
           />
           <Calendar className="h-4 w-4" />
           <span>{formattedDate}</span>

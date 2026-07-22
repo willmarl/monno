@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useToggleLike } from "@/features/likes/hooks";
 import { LikeButton } from "../common/LikeButton";
 import { CollectionButton } from "../common/CollectionButton";
+import { ReportButton } from "../common/ReportButton";
 
 export function Post({
   data,
@@ -146,6 +147,11 @@ export function Post({
               resourceType={RESOURCE_TYPES.POST}
             />
           )}
+          <ReportButton
+            resourceType={RESOURCE_TYPES.POST}
+            resourceId={data.id}
+            isOwner={isOwner}
+          />
         </div>
       </div>
     </Card>

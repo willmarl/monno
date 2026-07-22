@@ -25,6 +25,7 @@ import { CommentsModule } from './modules/comments/comments.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { StripeModule } from './modules/stripe/stripe.module';
 import { SupportModule } from './modules/support/support.module';
+import { ReportsModule } from './modules/reports/reports.module';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { PrismaService } from './prisma.service';
 @Module({
@@ -111,6 +112,7 @@ import { PrismaService } from './prisma.service';
     AnalyticsModule,
     StripeModule,
     SupportModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserAwareThrottlerGuard, QueueModule, PrismaService],

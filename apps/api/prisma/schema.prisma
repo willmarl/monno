@@ -77,6 +77,23 @@ enum SupportTicketStatus {
   CLOSED
 }
 
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  HATE
+  NSFW
+  MISINFORMATION
+  COPYRIGHT
+  OTHER
+}
+
 model User {
   id                      Int                      @id @default(autoincrement())
   username                String                   @unique
@@ -97,6 +114,8 @@ model User {
   supportTicket           SupportTicket[]
   articles                Article[]
   viewHistory             ViewHistory[]
+  reportsFiled            Report[]                 @relation("ReportReporter")
+  reportsResolved         Report[]                 @relation("ReportResolver")
   // OAuth identity fields
   googleId                String?                  @unique
   githubId                String?                  @unique
@@ -420,6 +439,29 @@ model SupportTicket {
 
   @@index([userId])
   @@index([status])
+}
+
+model Report {
+  id           Int          @id @default(autoincrement())
+  reporterId   Int
+  resourceType ResourceType
+  resourceId   Int
+  reason       ReportReason
+  details      String?
+  status       ReportStatus @default(OPEN)
+  adminNotes   String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  resolvedAt   DateTime?
+  resolverId   Int?
+
+  reporter User  @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  resolver User? @relation("ReportResolver", fields: [resolverId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([resourceType, resourceId])
+  @@index([reporterId])
+  @@index([resolverId])
 }
 
 enum ArticleStatus {

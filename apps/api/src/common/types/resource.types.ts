@@ -7,8 +7,10 @@ export const LIKEABLE_RESOURCES = ['POST', 'COMMENT', 'ARTICLE', 'COLLECTION'] a
 export const VIEWABLE_RESOURCES = ['POST', 'ARTICLE'] as const;
 export const COLLECTABLE_RESOURCES = ['POST', 'ARTICLE'] as const;
 export const COMMENTABLE_RESOURCES = ['POST', 'COMMENT', 'ARTICLE'] as const;
+export const REPORTABLE_RESOURCES = ['POST', 'ARTICLE', 'COMMENT', 'COLLECTION'] as const;
 
 export type LikeableResourceType = (typeof LIKEABLE_RESOURCES)[number];
 export type ViewableResourceType = (typeof VIEWABLE_RESOURCES)[number];
 export type CollectableResourceType = (typeof COLLECTABLE_RESOURCES)[number];
 export type CommentableResourceType = (typeof COMMENTABLE_RESOURCES)[number];
+export type ReportableResourceType = (typeof REPORTABLE_RESOURCES)[number];

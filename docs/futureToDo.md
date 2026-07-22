@@ -29,7 +29,7 @@
 - ~~Profile / scoped search: query filter on posts-by-user, articles-by-user, liked-by-user, collections-by-user~~ (done 2026-07-22)
 - ~~Private/public visibility toggle for posts, collections, likes~~ (done 2026-07-21)
   - Owner may add private posts to own collections; viewers skip unavailable items; private/deleted detail → 404 copy
-- Report feature (post, user, comment, etc)
+- ~~Report feature (post, user, comment, etc)~~ — done 2026-07-22 (content-only; admin queue; user reports / MOD later)
 
 **Sub Resources/Modules**
 

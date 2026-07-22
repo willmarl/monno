@@ -34,6 +34,7 @@ import {
 } from "@/features/comments/schemas/editComment.schema";
 import { useDeleteComment, useUpdateComment } from "@/features/comments/hooks";
 import { LikeButton } from "../common/LikeButton";
+import { ReportButton } from "../common/ReportButton";
 
 export function Comment({
   data,
@@ -246,6 +247,11 @@ export function Comment({
               likedByMe={data.likedByMe}
               likeCount={data.likeCount}
               onLike={handleLike}
+            />
+            <ReportButton
+              resourceType={RESOURCE_TYPES.COMMENT}
+              resourceId={data.id}
+              isOwner={isOwner}
             />
           </div>
         )}

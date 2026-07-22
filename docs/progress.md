@@ -79,7 +79,7 @@
 | done | [x] Search + likes for collections | 2026-07-22: `COLLECTION` ResourceType + likeCount; public search/suggest; `/collections` browse tab; LikeButton on card/detail |
 | done | [x] Profile / scoped search (posts, articles, liked, collections by user) | 2026-07-22: `query` on by-user + liked list endpoints; inline debounced search on profile sections |
 | done | [x] View history | 2026-07-22: `ViewHistory` upsert; `/history` page; soft remove/clear for audit; owner-only API |
-| todo | [ ] Report feature (post, user, comment, …) | unlocks mod + admin public remove |
+| done | [x] Report feature (post, article, comment, collection) | 2026-07-22: content-only reports; admin queue; no user reports; MOD deferred |
 | todo | [ ] Admin remove-content buttons on public pages | after reports / mod model |
 
 ---
@@ -130,6 +130,7 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-22 | Phase 3 — Report feature | Content reports (post/article/comment/collection); admin-only queue; MOD deferred |
 | 2026-07-22 | Phase 3 — View history | Upsert `ViewHistory`; dedicated `/history`; soft remove/clear retained for audit |
 | 2026-07-21 | Phase 2 — Password delete + status enforcement | Password required for self-delete; OAuth/JWT/refresh honor status + expiry; mod scopes deferred to Reports |
 | 2026-07-21 | Phase 2 — Login username or email | `findByLoginAuth`; email case-insensitive; LoginForm label + schema |

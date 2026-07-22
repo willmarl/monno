@@ -48,6 +48,14 @@ AI agents should read this file before writing tests for any module.
 - History list hydrates posts/articles and omits deleted or inaccessible resources (e.g. another user’s private post that was public when viewed).
 - Admin audit: `GET /admin/users/:id/view-history` (users table → View history) includes soft-deleted history rows and does not apply visibility filters; UI at `/admin/users/[id]/history`.
 
+## Reports
+
+- Users can report **user-made content** only: `POST`, `ARTICLE`, `COMMENT`, `COLLECTION` (not users). Auth required (`POST /reports`).
+- Cannot report your own content (403). Cannot file a second open/`REVIEWING` report on the same target (409). Private content you cannot see → 404.
+- Reasons: `SPAM | HARASSMENT | HATE | NSFW | MISINFORMATION | COPYRIGHT | OTHER`. Optional details.
+- Admin-only queue: `GET/PATCH /admin/reports` (+ UI `/admin/reports`). Statuses: `OPEN | REVIEWING | RESOLVED | DISMISSED`. Resolving/dismissing sets `resolverId` + `resolvedAt`.
+- MOD does not access the queue yet (mod scopes deferred).
+
 ---
 
 _Add new entries here when you make a product decision that isn't obvious from reading the code._

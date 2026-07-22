@@ -19,6 +19,7 @@ import { useEffect } from "react";
 import { LikeButton } from "@/components/common/LikeButton";
 import { useToggleLike } from "@/features/likes/hooks";
 import { RESOURCE_TYPES } from "@/types/resource";
+import { ReportButton } from "@/components/common/ReportButton";
 interface CollectionPageProps {
   id: number;
   isOwner?: boolean;
@@ -122,6 +123,11 @@ export function CollectionPage({ id }: CollectionPageProps) {
               likedByMe={data.likedByMe}
               likeCount={data.likeCount}
               onLike={handleLike}
+            />
+            <ReportButton
+              resourceType={RESOURCE_TYPES.COLLECTION}
+              resourceId={data.id}
+              isOwner={!!isOwner}
             />
           </div>
         </div>
