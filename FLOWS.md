@@ -88,6 +88,13 @@ AI agents should read this file before writing tests for any module.
 - Auto-expiry restore on login (`evaluateAccountAccess` → ACTIVE) does **not** send email (silent unlock).
 - Not an in-app bell item: suspended/banned users cannot use the app; email is the channel.
 
+## Comments on comments
+
+- `COMMENT` is already on `COMMENTABLE_RESOURCES` — replies are `POST /comments` with `resourceType: COMMENT`, `resourceId: parentCommentId`.
+- No schema change (polymorphic Comment already nests). Notifications go to the parent comment author via existing `createIfAllowed`.
+- UI: each comment has Reply + Show/Hide replies; nested list loads on demand (avoids N+1). Indent capped visually (`MAX_NEST_DEPTH`).
+- Top-level lists on post/article stay `resourceType: POST|ARTICLE` only; replies live under each parent.
+
 ---
 
 _Add new entries here when you make a product decision that isn't obvious from reading the code._

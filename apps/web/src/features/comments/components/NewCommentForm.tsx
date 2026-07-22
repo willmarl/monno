@@ -22,6 +22,10 @@ interface NewCommentFormProps {
   resourceType: ResourceType;
   resourceId: number;
   user?: UserType;
+  placeholder?: string;
+  submitLabel?: string;
+  /** Compact inline reply style (no top border) */
+  compact?: boolean;
 }
 
 /**
@@ -42,6 +46,9 @@ export function NewCommentForm({
   resourceType,
   resourceId,
   user,
+  placeholder = "Add a comment...",
+  submitLabel = "Comment",
+  compact = false,
 }: NewCommentFormProps) {
   const [isOpen, setIsOpen] = useState(isAlwaysOpen);
   const [isFocused, setIsFocused] = useState(false);
@@ -96,7 +103,11 @@ export function NewCommentForm({
   return (
     <form
       onSubmit={form.handleSubmit(handleSubmit)}
-      className="mt-4 sm:mt-6 border-t pt-3 sm:pt-4"
+      className={
+        compact
+          ? "mt-2 pt-1"
+          : "mt-4 sm:mt-6 border-t pt-3 sm:pt-4"
+      }
     >
       <div className="flex gap-2 sm:gap-4">
         {/* Avatar - Left Side */}
@@ -111,7 +122,7 @@ export function NewCommentForm({
         <div className="flex-1 min-w-0">
           <Textarea
             id="inline-content"
-            placeholder="Add a comment..."
+            placeholder={placeholder}
             disabled={commentMutation.isPending}
             className="resize-none min-h-[36px] p-2 sm:p-3 text-xs sm:text-sm"
             {...form.register("content", {
@@ -156,7 +167,7 @@ export function NewCommentForm({
                 {commentMutation.isPending && (
                   <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin flex-shrink-0" />
                 )}
-                {commentMutation.isPending ? "Posting..." : "Comment"}
+                {commentMutation.isPending ? "Posting..." : submitLabel}
               </Button>
             </div>
           )}

@@ -22,8 +22,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
 import { useForm } from "react-hook-form";
@@ -32,19 +30,33 @@ import {
   editCommentSchema,
   EditCommentInput,
 } from "@/features/comments/schemas/editComment.schema";
-import { useDeleteComment, useUpdateComment } from "@/features/comments/hooks";
+import {
+  useCommentsByResource,
+  useDeleteComment,
+  useUpdateComment,
+} from "@/features/comments/hooks";
 import { LikeButton } from "../common/LikeButton";
 import { ReportButton } from "../common/ReportButton";
 import { AdminRemoveButton } from "../common/AdminRemoveButton";
+import { NewCommentForm } from "@/features/comments/components/NewCommentForm";
+import { useSessionUser } from "@/features/auth/hooks";
+
+/** Visual nesting cap — deeper replies stay at this indent. */
+const MAX_NEST_DEPTH = 3;
+const REPLIES_LIMIT = 50;
 
 export function Comment({
   data,
   isOwner,
+  depth = 0,
 }: {
   data: CommentType;
   isOwner: boolean;
+  depth?: number;
 }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isReplying, setIsReplying] = useState(false);
+  const [showReplies, setShowReplies] = useState(false);
   const editForm = useForm<EditCommentInput>({
     resolver: zodResolver(editCommentSchema),
     defaultValues: { content: data.content },
@@ -53,13 +65,28 @@ export function Comment({
   const like = useToggleLike();
   const { openModal, closeModal } = useModal();
   const router = useRouter();
+  const { data: currentUser } = useSessionUser();
   const commentDate = formatDate(data.createdAt);
   const deleteComment = useDeleteComment();
   const updateComment = useUpdateComment();
 
-  let isEdited: boolean = false;
+  const repliesEnabled = showReplies || isReplying;
+  const { data: repliesData, isLoading: repliesLoading } =
+    useCommentsByResource(
+      RESOURCE_TYPES.COMMENT,
+      data.id,
+      1,
+      REPLIES_LIMIT,
+      { enabled: repliesEnabled },
+    );
 
-  //   check if content was edited
+  const replies = repliesData?.items ?? [];
+  const replyCount =
+    repliesData?.pageInfo?.total ??
+    repliesData?.pageInfo?.totalItems ??
+    replies.length;
+
+  let isEdited = false;
   if (data.createdAt != data.contentUpdatedAt) {
     isEdited = true;
   }
@@ -151,121 +178,188 @@ export function Comment({
     });
   }
 
+  const nestPad = Math.min(depth, MAX_NEST_DEPTH);
+
   return (
-    <div className="flex gap-2 sm:gap-3">
-      {/* Left: Avatar */}
-      <Avatar
-        className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 cursor-pointer mt-0.5"
-        onClick={() =>
-          data?.creator.username &&
-          router.push(`/user/${data.creator.username}`)
-        }
-      >
-        <AvatarImage
-          src={data?.creator.avatarPath || undefined}
-          alt={data?.creator.username || "User"}
-        />
-        <AvatarFallback>
-          {data?.creator.username?.[0]?.toUpperCase() || "?"}
-        </AvatarFallback>
-      </Avatar>
+    <div
+      className={nestPad > 0 ? "border-l border-border/60 pl-3 sm:pl-4" : ""}
+      style={nestPad > 1 ? { marginLeft: `${(nestPad - 1) * 0.75}rem` } : undefined}
+    >
+      <div className="flex gap-2 sm:gap-3">
+        <Avatar
+          className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 cursor-pointer mt-0.5"
+          onClick={() =>
+            data?.creator.username &&
+            router.push(`/user/${data.creator.username}`)
+          }
+        >
+          <AvatarImage
+            src={data?.creator.avatarPath || undefined}
+            alt={data?.creator.username || "User"}
+          />
+          <AvatarFallback>
+            {data?.creator.username?.[0]?.toUpperCase() || "?"}
+          </AvatarFallback>
+        </Avatar>
 
-      {/* Middle: Content */}
-      <div className="flex-1 min-w-0">
-        {/* Username and Date */}
-        <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
-          <p
-            className="text-xs sm:text-sm font-semibold cursor-pointer hover:text-foreground truncate"
-            onClick={() =>
-              data?.creator.username &&
-              router.push(`/user/${data.creator.username}`)
-            }
-            title={data?.creator.username || "Unknown"}
-          >
-            {data?.creator.username || "Unknown"}
-          </p>
-          <p className="text-xs text-muted-foreground whitespace-nowrap">
-            {commentDate}
-          </p>
-          {isEdited && renderEditVisual()}
-        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
+            <p
+              className="text-xs sm:text-sm font-semibold cursor-pointer hover:text-foreground truncate"
+              onClick={() =>
+                data?.creator.username &&
+                router.push(`/user/${data.creator.username}`)
+              }
+              title={data?.creator.username || "Unknown"}
+            >
+              {data?.creator.username || "Unknown"}
+            </p>
+            <p className="text-xs text-muted-foreground whitespace-nowrap">
+              {commentDate}
+            </p>
+            {isEdited && renderEditVisual()}
+          </div>
 
-        {/* Comment Content or Edit Textarea */}
-        {isEditing ? (
-          <div className="space-y-2 mb-2">
-            <Textarea
-              {...editForm.register("content")}
-              placeholder="Edit your comment..."
-              className="resize-none min-h-[60px] text-xs sm:text-sm"
-              disabled={updateComment.isPending}
-            />
-            {editForm.formState.errors.content && (
-              <p className="text-xs text-red-500">
-                {editForm.formState.errors.content.message}
-              </p>
-            )}
-            <div className="flex flex-wrap gap-2">
+          {isEditing ? (
+            <div className="space-y-2 mb-2">
+              <Textarea
+                {...editForm.register("content")}
+                placeholder="Edit your comment..."
+                className="resize-none min-h-[60px] text-xs sm:text-sm"
+                disabled={updateComment.isPending}
+              />
+              {editForm.formState.errors.content && (
+                <p className="text-xs text-red-500">
+                  {editForm.formState.errors.content.message}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    editForm.reset({ content: data.content });
+                    setIsEditing(false);
+                  }}
+                  disabled={updateComment.isPending}
+                  className="h-8 min-w-[80px] cursor-pointer text-xs sm:text-sm"
+                >
+                  <X size={16} className="mr-1 cursor-pointer shrink-0" />
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  onClick={handleEdit}
+                  disabled={
+                    updateComment.isPending ||
+                    !editForm.formState.isDirty ||
+                    !editForm.formState.isValid
+                  }
+                  className="h-8 min-w-[80px] cursor-pointer text-xs sm:text-sm"
+                >
+                  {updateComment.isPending ? "Saving..." : "Save"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs sm:text-sm text-foreground mb-2 break-words">
+              {data?.content || ""}
+            </p>
+          )}
+
+          {!isEditing && (
+            <div className="flex flex-wrap items-center gap-2">
+              <LikeButton
+                isOwner={isOwner}
+                likedByMe={data.likedByMe}
+                likeCount={data.likeCount}
+                onLike={handleLike}
+              />
+              {currentUser && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-xs cursor-pointer"
+                  onClick={() => {
+                    setIsReplying((v) => !v);
+                    setShowReplies(true);
+                  }}
+                >
+                  Reply
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => {
-                  editForm.reset({ content: data.content });
-                  setIsEditing(false);
-                }}
-                disabled={updateComment.isPending}
-                className="h-8 min-w-[80px] cursor-pointer text-xs sm:text-sm"
+                className="h-8 px-2 text-xs cursor-pointer text-muted-foreground"
+                onClick={() => setShowReplies((v) => !v)}
               >
-                <X size={16} className="mr-1 cursor-pointer shrink-0" />
-                Cancel
+                {showReplies
+                  ? replyCount > 0
+                    ? `Hide replies (${replyCount})`
+                    : "Hide replies"
+                  : "Show replies"}
               </Button>
-              <Button
-                type="submit"
-                size="sm"
-                onClick={handleEdit}
-                disabled={
-                  updateComment.isPending ||
-                  !editForm.formState.isDirty ||
-                  !editForm.formState.isValid
-                }
-                className="h-8 min-w-[80px] cursor-pointer text-xs sm:text-sm"
-              >
-                {updateComment.isPending ? "Saving..." : "Save"}
-              </Button>
+              <ReportButton
+                resourceType={RESOURCE_TYPES.COMMENT}
+                resourceId={data.id}
+                isOwner={isOwner}
+              />
+              <AdminRemoveButton
+                resourceType={RESOURCE_TYPES.COMMENT}
+                resourceId={data.id}
+              />
             </div>
-          </div>
-        ) : (
-          <p className="text-xs sm:text-sm text-foreground mb-2 break-words">
-            {data?.content || ""}
-          </p>
-        )}
+          )}
 
-        {/* Like - Only show when not editing */}
-        {!isEditing && (
-          <div className="flex items-center gap-2">
-            <LikeButton
-              isOwner={isOwner}
-              likedByMe={data.likedByMe}
-              likeCount={data.likeCount}
-              onLike={handleLike}
-            />
-            <ReportButton
+          {isReplying && currentUser && (
+            <NewCommentForm
               resourceType={RESOURCE_TYPES.COMMENT}
               resourceId={data.id}
-              isOwner={isOwner}
+              user={currentUser}
+              compact
+              placeholder="Add a reply..."
+              submitLabel="Reply"
+              onCancel={() => setIsReplying(false)}
+              onSuccess={() => {
+                setIsReplying(false);
+                setShowReplies(true);
+              }}
             />
-            <AdminRemoveButton
-              resourceType={RESOURCE_TYPES.COMMENT}
-              resourceId={data.id}
-            />
-          </div>
+          )}
+
+          {showReplies && (
+            <div className="mt-3 space-y-3">
+              {repliesLoading && replies.length === 0 ? (
+                <p className="text-xs text-muted-foreground pl-1">
+                  Loading replies…
+                </p>
+              ) : replies.length === 0 ? (
+                <p className="text-xs text-muted-foreground pl-1">
+                  No replies yet.
+                </p>
+              ) : (
+                replies.map((reply) => (
+                  <Comment
+                    key={reply.id}
+                    data={reply}
+                    isOwner={currentUser?.id === reply.creator.id}
+                    depth={depth + 1}
+                  />
+                ))
+              )}
+            </div>
+          )}
+        </div>
+
+        {isOwner && !isEditing && (
+          <div className="shrink-0 mt-0.5">{commentMenu()}</div>
         )}
       </div>
-
-      {/* Right: Menu */}
-      {isOwner && !isEditing && (
-        <div className="shrink-0 mt-0.5">{commentMenu()}</div>
-      )}
     </div>
   );
 }

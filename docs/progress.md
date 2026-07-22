@@ -91,7 +91,7 @@
 | done | [x] User preferences model (theme, layout, resume, onboarding, snoozes) | 2026-07-22: `UserPreferences` + GET/PATCH; theme sync wired; other keys for later |
 | done | [x] Notification system (worker + UI + preference toggles) | 2026-07-22: in-app bell + email on comment/like; prefs toggles; poll (no websocket) |
 | done | [x] Email on account status changes | 2026-07-22: suspend/ban/delete/restore → enqueueEmail; skip if no email |
-| todo | [ ] Comments on comments | |
+| done | [x] Comments on comments | 2026-07-22: API already COMMENTABLE; Reply + nested UI; on-demand replies |
 | todo | [ ] Reactions (replace binary likes) | **last** in this phase — migration |
 
 ---

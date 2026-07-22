@@ -237,15 +237,44 @@ describe('CommentsController (integration)', () => {
     });
   });
 
-  // ── GET /comments/resource/:resourceType/:resourceId ──────────────────────
+  // ── Nested replies (COMMENT on COMMENT) ───────────────────────────────────
 
-  describe('GET /comments/resource/:resourceType/:resourceId', () => {
-    it('returns 200 with comment list', async () => {
-      const res = await request(testApp.app.getHttpServer())
-        .get(`/comments/resource/POST/${testPostId}`);
+  describe('comments on comments', () => {
+    it('creates a reply on another comment and lists it under that comment', async () => {
+      const parent = await testApp.prisma.comment.create({
+        data: {
+          content: 'Parent comment',
+          resourceType: 'POST',
+          resourceId: testPostId,
+          userId: author.id,
+        },
+      });
 
-      expect(res.status).toBe(200);
-      expect(res.body.data).toBeDefined();
+      const reply = await request(testApp.app.getHttpServer())
+        .post('/comments')
+        .set('Cookie', otherCookies)
+        .send({
+          resourceType: 'COMMENT',
+          resourceId: parent.id,
+          content: 'Nested reply',
+        });
+
+      expect(reply.status).toBe(201);
+      expect(reply.body.data.resourceType).toBe('COMMENT');
+      expect(reply.body.data.resourceId).toBe(parent.id);
+      expect(reply.body.data.content).toBe('Nested reply');
+
+      const list = await request(testApp.app.getHttpServer()).get(
+        `/comments/resource/COMMENT/${parent.id}`,
+      );
+      expect(list.status).toBe(200);
+      expect(
+        list.body.data.items.some((c: any) => c.id === reply.body.data.id),
+      ).toBe(true);
+
+      await testApp.prisma.comment.deleteMany({
+        where: { id: { in: [reply.body.data.id, parent.id] } },
+      });
     });
   });
 });

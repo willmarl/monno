@@ -22,13 +22,15 @@ export function useCommentsByResource(
   resourceId: number,
   page: number = 1,
   limit: number = 10,
+  options?: { enabled?: boolean },
 ) {
   const offset = (page - 1) * limit;
   return useQuery({
     queryKey: ["comments-resource", resourceType, resourceId, page, limit],
     queryFn: () =>
       fetchCommentsByResource(resourceType, resourceId, limit, offset),
-    enabled: !!resourceType && !!resourceId,
+    enabled:
+      (options?.enabled ?? true) && !!resourceType && !!resourceId,
   });
 }
 
