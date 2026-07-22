@@ -50,8 +50,8 @@ AI agents should read this file before writing tests for any module.
 
 ## Reports
 
-- Users can report **user-made content** only: `POST`, `ARTICLE`, `COMMENT`, `COLLECTION` (not users). Auth required (`POST /reports`).
-- Cannot report your own content (403). Cannot file a second open/`REVIEWING` report on the same target (409). Private content you cannot see → 404.
+- Users can report **user-made content** only when the resource is in `REPORTABLE_RESOURCES` (posts, articles, comments, collections today — opt-in per resource via CLI/guide). Not users.
+- Auth required (`POST /reports`).- Cannot report your own content (403). Cannot file a second open/`REVIEWING` report on the same target (409). Private content you cannot see → 404.
 - Reasons: `SPAM | HARASSMENT | HATE | NSFW | MISINFORMATION | COPYRIGHT | OTHER`. Optional details.
 - Admin-only queue: `GET/PATCH /admin/reports` (+ UI `/admin/reports`). Statuses: `OPEN | REVIEWING | RESOLVED | DISMISSED`. Resolving/dismissing sets `resolverId` + `resolvedAt`.
 - MOD does not access the queue yet (mod scopes deferred).

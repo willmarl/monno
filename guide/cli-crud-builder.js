@@ -133,6 +133,11 @@ async function main() {
         value: "collections",
         checked: true,
       },
+      {
+        name: "Reports (users can report this content)",
+        value: "reports",
+        checked: true,
+      },
     ],
   });
 
@@ -471,7 +476,7 @@ I want to create a **${resource}** CRUD resource. The feature decisions are alre
 - Frontend: ${config.frontend ? "yes" : "no"}${paginationUI}
 - Profile page integration: ${config.profileIntegration ? "yes (includes scoped search on by-user lists — see profile-search.md)" : "no"}
 
-**Infrastructure reminder:** Polymorphic Like, Comment, Collection, ViewHistory models exist (via ResourceType enum). Views = \`viewCount\` on model + \`ViewHistory\` upsert on authenticated record. Soft delete = deleted/deletedAt fields. Visibility = existing \`Visibility\` enum + column on the resource (NOT a polymorphic addon — do NOT add PRIVATEABLE_RESOURCES). Do NOT invent separate ${resource}Like, ${resource}Comment tables.
+**Infrastructure reminder:** Polymorphic Like, Comment, Collection, ViewHistory, Report models exist (via ResourceType enum). Views = \`viewCount\` on model + \`ViewHistory\` upsert on authenticated record. Reports = opt-in via \`REPORTABLE_RESOURCES\` (content only; admin queue). Soft delete = deleted/deletedAt fields. Visibility = existing \`Visibility\` enum + column on the resource (NOT a polymorphic addon — do NOT add PRIVATEABLE_RESOURCES). Do NOT invent separate ${resource}Like, ${resource}Comment, ${resource}Report tables.
 
 **Your task:**
 1. Read schema.prisma (I'll attach it) to confirm existing patterns
@@ -722,6 +727,14 @@ function generateProgressFile(resource, config) {
   - [ ] Implement toggleCollection service method
   - [ ] Add toggleCollection controller endpoint`;
       }
+      if (config.resourceActions.includes("reports")) {
+        steps += `
+- [ ] **Reports:**
+  - [ ] Add {{RESOURCE_UPPER}} to REPORTABLE_RESOURCES
+  - [ ] Wire ReportsService.resolveTarget for {{RESOURCE_UPPER}}
+  - [ ] Optional: admin reports Open link for {{RESOURCE_UPPER}}
+  - [ ] Smoke-test POST /reports + GET /admin/reports`;
+      }
     }
 
     // Part 9: Testing
@@ -905,6 +918,13 @@ function generateProgressFile(resource, config) {
   - [ ] Add collection picker modal/dropdown
   - [ ] Implement toggle handler
   - [ ] Show save status`;
+      }
+      if (config.resourceActions.includes("reports")) {
+        frontendChecklist += `
+- [ ] **Reports:**
+  - [ ] Add {{RESOURCE_UPPER}} to web REPORTABLE_RESOURCES
+  - [ ] Add ReportButton on card/detail (hidden for owner)
+  - [ ] Optional: admin reports deep-link for {{RESOURCE_UPPER}}`;
       }
     }
 
@@ -1167,6 +1187,7 @@ model ${resource} {
 - [${config.resourceActions.includes("views") ? "x" : " "}] Views (viewCount counter + view history hydrate/UI tabs)
 - [${config.resourceActions.includes("comments") ? "x" : " "}] Comments (use existing Comment model + add ${resourceUpper} to ResourceType)
 - [${config.resourceActions.includes("collections") ? "x" : " "}] Collections (use existing Collection/CollectionItem models + add ${resourceUpper} to ResourceType)
+- [${config.resourceActions.includes("reports") ? "x" : " "}] Reports (REPORTABLE_RESOURCES + ReportButton; admin queue already exists)
 
 ## Frontend Implementation Checklist
 
@@ -1185,6 +1206,7 @@ ${
 - [${config.resourceActions.includes("views") ? "x" : " "}] Views UI (counter + /history + admin user history tabs)
 - [${config.resourceActions.includes("comments") ? "x" : " "}] Comments UI
 - [${config.resourceActions.includes("collections") ? "x" : " "}] Collections UI (save to collection)
+- [${config.resourceActions.includes("reports") ? "x" : " "}] Reports UI (ReportButton on card/detail)
 ${
   config.visibility !== "none"
     ? `
@@ -1211,6 +1233,7 @@ Your existing infrastructure handles all resource actions:
 - **Comments**: Existing \`Comment\` model (polymorphic via ResourceType)
 - **Collections**: Existing \`Collection\` + \`CollectionItem\` models (polymorphic via ResourceType)
 - **Views**: Counter on ${resource} model + polymorphic \`ViewHistory\` (see views subsections in \`10.md\` / \`21.md\` for history hydrate + UI tabs)
+- **Reports**: Existing \`Report\` model + \`REPORTABLE_RESOURCES\` allowlist (see reports subsections in \`10.md\` / \`21.md\`)
 
 Just add \`${resourceUpper}\` to the ResourceType enum.
 ${
