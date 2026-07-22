@@ -35,3 +35,7 @@ export {
   engagementNotificationEmailTemplate,
   type EngagementNotificationEmailProps,
 } from './EngagementNotification.js';
+export {
+  accountStatusChangedEmailTemplate,
+  type AccountStatusChangedEmailProps,
+} from './AccountStatusChanged.js';

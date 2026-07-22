@@ -5,7 +5,7 @@
 **Auth & User Management**
 
 - ~~Login with username or email (currently just username)~~ — done (see progress)
-- Email notifications for account status changes (banned, restored, deleted, etc)
+- ~~Email notifications for account status changes (banned, restored, deleted, etc)~~ — done 2026-07-22
 - ~~Make inputting password required to delete account~~ — done
 - ~~Make roles (mod) and status (banned, suspended) functional instead of being a placeholder~~ — status done; mod deferred until Reports
 - ~~User preferences model (or `UserInfo` / key-value on user) synced across devices — not localStorage-only~~ — done 2026-07-22 (`UserPreferences` + theme sync; layout/resume/onboarding/snoozes API-ready)

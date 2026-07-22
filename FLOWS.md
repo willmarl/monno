@@ -78,7 +78,15 @@ AI agents should read this file before writing tests for any module.
 - Links for comment targets resolve up to parent post/article/collection for click-through.
 - APIs (auth, owner-only): `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/read` (`ids` or `all`).
 - UI: header bell (poll unread ~60s + fetch on open), `/notifications` page, Settings → Notifications toggles.
-- No websockets/push in this slice. Account-status emails are a separate follow-up.
+- No websockets/push in this slice.
+
+## Account status emails
+
+- Admin status changes enqueue `account-status-changed` via BullMQ (`AccountStatusEmailService`).
+- Triggers: `AdminUserService.update` when `status` changes; soft-delete; restore.
+- Sends if the user has an email on file (verification not required — account lockouts must still notify). Skips when no email.
+- Auto-expiry restore on login (`evaluateAccountAccess` → ACTIVE) does **not** send email (silent unlock).
+- Not an in-app bell item: suspended/banned users cannot use the app; email is the channel.
 
 ---
 

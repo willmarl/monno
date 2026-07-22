@@ -21,6 +21,7 @@ import { buildSearchWhere } from 'src/common/search/search.utils';
 import { FileProcessingService } from '../../../common/file-processing/file-processing.service';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 import { AdminViewHistoryQueryDto } from './dto/admin-view-history-query.dto';
+import { AccountStatusEmailService } from '../../../common/email/account-status-email.service';
 
 /**
  * Admin User Service
@@ -55,6 +56,7 @@ export class AdminUserService {
     private adminService: AdminService,
     private usersService: UsersService,
     private fileProcessing: FileProcessingService,
+    private accountStatusEmail: AccountStatusEmailService,
   ) {}
 
   // ===== USER MANAGEMENT =====
@@ -308,6 +310,20 @@ export class AdminUserService {
       });
     }
 
+    if (data.status && data.status !== user.status) {
+      await this.accountStatusEmail.sendIfPossible({
+        username: updated.username,
+        email: updated.email ?? user.email,
+        previousStatus: user.status,
+        newStatus: data.status,
+        reason:
+          data.statusReason !== undefined
+            ? data.statusReason
+            : updated.statusReason,
+        expireAt: updated.statusExpireAt,
+      });
+    }
+
     return updated;
   }
 
@@ -339,6 +355,14 @@ export class AdminUserService {
       changes: {
         status: { from: user.status, to: 'DELETED' },
       },
+    });
+
+    await this.accountStatusEmail.sendIfPossible({
+      username: user.username,
+      email: user.email,
+      previousStatus: user.status,
+      newStatus: 'DELETED',
+      reason: reason || 'admin_deletion',
     });
 
     return deleted;
@@ -576,6 +600,14 @@ export class AdminUserService {
         status: { from: user.status, to: 'ACTIVE' },
         username: { from: user.username, to: restored.username },
       },
+    });
+
+    await this.accountStatusEmail.sendIfPossible({
+      username: restored.username,
+      email: restored.email ?? user.email,
+      previousStatus: user.status,
+      newStatus: 'ACTIVE',
+      reason: 'admin_restore',
     });
 
     return restored;
