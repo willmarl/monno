@@ -40,7 +40,12 @@ export function PostDetail({ user }: { user: User | undefined }) {
   }
 
   if (error || !data) {
-    return <PageNotFound title="Post Not Found" />;
+    return (
+      <PageNotFound
+        title="Post Not Found"
+        description="This post is private, deleted, or does not exist."
+      />
+    );
   }
 
   return (

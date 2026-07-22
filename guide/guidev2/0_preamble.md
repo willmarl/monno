@@ -159,6 +159,7 @@ Similarly, if schema has `viewCount Int @default(0)`, that signals the resource 
 - has view count (optional — only add if human explicitly requests it)
 - able to comment on (optional — only add if human explicitly requests it)
 - able to add to collection (optional — only add if human explicitly requests it)
+- private/public visibility (optional — only if human asks; default PUBLIC unless they want PRIVATE like collections)
 
 **frontend**
 
@@ -204,6 +205,11 @@ Go through this checklist with the human **before writing any code**. Do not pro
   - [ ] Views
   - [ ] Comments
   - [ ] Collections
+- [ ] **Visibility (private/public)** on this resource?
+  - [ ] No
+  - [ ] Yes — default PUBLIC
+  - [ ] Yes — default PRIVATE
+  - (Not a polymorphic addon — column on the model; reuse `Visibility` enum + `common/visibility`)
 
 **frontend**
 
@@ -240,6 +246,7 @@ After confirming everything with the human, create a `CRUD-plan.md` file at the 
 - [ ] Views
 - [ ] Comments
 - [ ] Collections
+- [ ] Visibility (private/public)
 
 ## Frontend
 

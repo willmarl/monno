@@ -17,6 +17,7 @@ export interface Collection {
   items?: CollectionItem[];
   deleted: boolean;
   deletedAt: string;
+  visibility: "PUBLIC" | "PRIVATE";
 }
 
 export type CollectionsList = PaginatedResponse<Collection>;
@@ -24,6 +25,7 @@ export type CollectionsList = PaginatedResponse<Collection>;
 export interface CollectionInput {
   name?: string;
   description?: string;
+  visibility?: "PUBLIC" | "PRIVATE";
 }
 
 export interface CollectionItem {

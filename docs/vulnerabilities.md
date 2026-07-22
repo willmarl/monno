@@ -117,11 +117,11 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 - **Where:** `CreatorGuard` (no `deleted` check); `posts.service.ts` `update`
 - **Fix:** Reject updates when `deleted === true` (unless admin restore path).
 
-### 17. Public collections by ID (privacy)
+### 17. Public collections by ID (privacy) — fixed
 
 - **Where:** `collections.controller.ts` / `collections.service.ts`
-- **Issue:** Any collection ID is readable; intentional until private/public toggle ships (`futureToDo.md`).
-- **Fix:** Visibility flag; default private or owner-only when feature ships.
+- **Issue:** Any collection ID was readable.
+- **Fix (2026-07-21):** `Visibility` on Collection (default `PRIVATE`); non-owner private reads return 404; lists filter by viewer.
 
 ### 18. Frontend CSRF / upload / ownership gaps
 

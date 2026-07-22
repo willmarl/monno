@@ -31,6 +31,11 @@ AI agents should read this file before writing tests for any module.
 - Soft-delete sets `deleted=true` + `deletedAt` timestamp; the record stays in DB for potential admin recovery
 - Soft-deleted resources return 404 to public requests (not 410) — 410 is reserved for actions on already-deleted resources (e.g. deleting a comment that is already deleted)
 - Comments can be made on posts owned by the commenter (self-commenting is allowed)
+- Visibility: `PUBLIC` | `PRIVATE`. Posts default `PUBLIC`; collections default `PRIVATE`. Likes inherit the resource’s visibility (no column on Like).
+- Private content is visible only to the creator (and admins where applicable). Non-owners get **404** (same as soft-delete), including by-id fetches — closes collection IDOR.
+- Public search/feeds list `PUBLIC` only. Profile / liked lists are viewer-aware (owner sees own private items).
+- Liked-by-user lists only include posts the **viewer** can access: if a liked post later becomes private, it disappears for everyone except the post creator (same idea as skipping private items in a public collection).
+- Private posts may be added to the owner’s collections (private or public). Viewers who can’t see a private item skip it (YouTube playlist style); owners still see their private items in the list.
 
 ---
 

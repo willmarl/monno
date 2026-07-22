@@ -14,6 +14,14 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { Collection } from "../types/collection";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Controller } from "react-hook-form";
 
 interface EditCollectionFormProps {
   data: Collection;
@@ -48,6 +56,7 @@ export function EditCollectionForm({
     defaultValues: {
       name: collectionData.name,
       description: collectionData.description,
+      visibility: collectionData.visibility ?? "PRIVATE",
     },
   });
 
@@ -116,6 +125,29 @@ export function EditCollectionForm({
             {form.formState.errors.description.message}
           </p>
         )}
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm">Visibility</Label>
+        <Controller
+          control={form.control}
+          name="visibility"
+          render={({ field }) => (
+            <Select
+              value={field.value ?? "PRIVATE"}
+              onValueChange={field.onChange}
+              disabled={editCollectionMutation.isPending}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Visibility" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PRIVATE">Private</SelectItem>
+                <SelectItem value="PUBLIC">Public</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        />
       </div>
 
       {/* Action Buttons */}

@@ -13,6 +13,10 @@ import type { CollectableResourceType } from 'src/common/types/resource.types';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import {
+  visibilityWhereForViewer,
+  canViewPrivateContent,
+} from 'src/common/visibility/visibility';
 
 type CollectableResourceConfig = { model: keyof PrismaService; label: string };
 
@@ -33,6 +37,7 @@ const DEFAULT_COLLECTION_SELECT = {
   creator: {
     select: { id: true, username: true, avatarPath: true },
   },
+  visibility: true,
 };
 
 @Injectable()
@@ -70,8 +75,16 @@ export class CollectionsService {
   /**
    * Get all collections for a user (excluding soft-deleted)
    */
-  async findAllByUserId(userId: number, pag: PaginationDto) {
-    const where = { creatorId: userId, deleted: false };
+  async findAllByUserId(
+    userId: number,
+    pag: PaginationDto,
+    viewerId?: number,
+  ) {
+    const where = {
+      creatorId: userId,
+      deleted: false,
+      ...visibilityWhereForViewer(userId, viewerId),
+    };
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.collection,
       limit: pag.limit ?? 10,
@@ -92,9 +105,13 @@ export class CollectionsService {
   }
 
   /**
-   * Get a specific collection with its items (public, excluding soft-deleted)
+   * Get a specific collection with its items (excluding soft-deleted)
    */
-  async findOne(collectionId: number, pag?: PaginationDto) {
+  async findOne(
+    collectionId: number,
+    pag?: PaginationDto,
+    viewerId?: number,
+  ) {
     const limit = pag?.limit ?? 10;
     const offset = pag?.offset ?? 0;
 
@@ -124,6 +141,13 @@ export class CollectionsService {
     });
 
     if (!collection || collection.deleted) {
+      throw new NotFoundException('Collection not found');
+    }
+
+    if (
+      collection.visibility === 'PRIVATE' &&
+      !canViewPrivateContent(collection.creator.id, viewerId)
+    ) {
       throw new NotFoundException('Collection not found');
     }
 
@@ -235,8 +259,12 @@ export class CollectionsService {
   ) {
     await this.getByIdAndUserId(collectionId, userId);
 
-    // Validate that the resource exists
-    await this.validateResourceExists(data.resourceType, data.resourceId);
+    // Validate that the resource exists (private OK if adder owns the resource)
+    await this.validateResourceExists(
+      data.resourceType,
+      data.resourceId,
+      userId,
+    );
 
     // Check if item already exists and is not deleted in collection
     const existing = await this.prisma.collectionItem.findFirst({
@@ -331,16 +359,27 @@ export class CollectionsService {
   }
 
   /**
-   * Validate that a resource exists based on type
+   * Validate that a resource exists and is collectable.
+   * Private resources may only be added by their creator (YouTube-style:
+   * they stay in the collection but are skipped for viewers who can't see them).
    */
   private async validateResourceExists(
     resourceType: CollectableResourceType,
     resourceId: number,
+    userId: number,
   ): Promise<void> {
     const config = COLLECTABLE_RESOURCE_CONFIG[resourceType];
     const delegate = this.prisma[config.model] as any;
     const record = await delegate.findUnique({ where: { id: resourceId } });
     if (!record || record.deleted) {
+      throw new NotFoundException(
+        `${config.label} not found or has been deleted`,
+      );
+    }
+    if (
+      record.visibility === 'PRIVATE' &&
+      record.creatorId !== userId
+    ) {
       throw new NotFoundException(
         `${config.label} not found or has been deleted`,
       );

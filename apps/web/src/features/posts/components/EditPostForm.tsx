@@ -11,6 +11,14 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Post } from "../types/post";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Controller } from "react-hook-form";
 
 interface EditPostFormProps {
   post: Post;
@@ -41,6 +49,7 @@ export function EditPostForm({
     defaultValues: {
       title: post.title,
       content: post.content,
+      visibility: post.visibility ?? "PUBLIC",
     },
   });
 
@@ -54,7 +63,11 @@ export function EditPostForm({
       { id: post.id, data },
       {
         onSuccess: () => {
-          form.reset({ title: data.title, content: data.content });
+          form.reset({
+            title: data.title,
+            content: data.content,
+            visibility: data.visibility,
+          });
           if (!isAlwaysOpen) setIsOpen(false);
           onSuccess?.();
         },
@@ -93,6 +106,28 @@ export function EditPostForm({
             {form.formState.errors.content.message}
           </p>
         )}
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm">Visibility</Label>
+        <Controller
+          control={form.control}
+          name="visibility"
+          render={({ field }) => (
+            <Select
+              value={field.value ?? "PUBLIC"}
+              onValueChange={field.onChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Visibility" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PUBLIC">Public</SelectItem>
+                <SelectItem value="PRIVATE">Private</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        />
       </div>
 
       <div className="flex gap-3 pt-2">

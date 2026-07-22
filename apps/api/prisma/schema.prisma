@@ -40,6 +40,11 @@ enum ResourceType {
   // VIDEO
 }
 
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
 enum SubscriptionStatus {
   ACTIVE
   CANCELED
@@ -207,17 +212,21 @@ model AuditLog {
 }
 
 model Post {
-  id        Int       @id @default(autoincrement())
-  title     String
-  content   String
-  creatorId Int
-  creator   User      @relation(fields: [creatorId], references: [id])
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deleted   Boolean   @default(false)
-  deletedAt DateTime?
-  viewCount Int       @default(0)
-  likeCount Int       @default(0)
+  id         Int        @id @default(autoincrement())
+  title      String
+  content    String
+  creatorId  Int
+  creator    User       @relation(fields: [creatorId], references: [id])
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  deleted    Boolean    @default(false)
+  deletedAt  DateTime?
+  viewCount  Int        @default(0)
+  likeCount  Int        @default(0)
+  visibility Visibility @default(PUBLIC)
+
+  @@index([visibility])
+  @@index([deleted])
 }
 
 model Setting {
@@ -250,12 +259,14 @@ model Collection {
   updatedAt   DateTime         @updatedAt
   deleted     Boolean          @default(false)
   deletedAt   DateTime?
+  visibility  Visibility       @default(PRIVATE)
   items       CollectionItem[]
   creator     User             @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
   @@unique([creatorId, name]) // Each user can't have duplicate collection names
   @@index([creatorId])
   @@index([deleted])
+  @@index([visibility])
 }
 
 model CollectionItem {

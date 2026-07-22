@@ -32,8 +32,8 @@ export class LikesService {
     resourceType: LikeableResourceType,
     resourceId: number,
   ) {
-    // Validate resource exists based on type
-    await this.validateResourceExists(resourceType, resourceId);
+    // Validate resource exists and is likeable by this user
+    await this.validateResourceExists(resourceType, resourceId, userId);
 
     // Check if like exists
     const existing = await this.prisma.like.findUnique({
@@ -123,10 +123,12 @@ export class LikesService {
   /**
    * Validate that the resource exists (post, article, comment, etc.)
    * Driven by LIKEABLE_RESOURCE_CONFIG — add a new entry there to support a new type.
+   * PRIVATE posts: only the creator may like/unlike.
    */
   private async validateResourceExists(
     resourceType: LikeableResourceType,
     resourceId: number,
+    userId: number,
   ) {
     const config = LIKEABLE_RESOURCE_CONFIG[resourceType];
     if (!config) {
@@ -137,6 +139,14 @@ export class LikesService {
     const record = await delegate.findUnique({ where: { id: resourceId } });
 
     if (!record || record.deleted) {
+      throw new NotFoundException(`${config.label} not found`);
+    }
+
+    if (
+      resourceType === 'POST' &&
+      record.visibility === 'PRIVATE' &&
+      record.creatorId !== userId
+    ) {
       throw new NotFoundException(`${config.label} not found`);
     }
   }

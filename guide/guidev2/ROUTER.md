@@ -46,11 +46,14 @@ PAGINATION: none | offset | cursor | both
 FRONTEND: yes | no
 PAGINATION_UI: numbered | cursor | both | none
 PROFILE: yes | no
+VISIBILITY: none | defaultPublic | defaultPrivate
 LIKES: yes | no
 VIEWS: yes | no
 COMMENTS: yes | no
 COLLECTIONS: yes | no
 ```
+
+**Note:** `VISIBILITY` is a schema/feature gate (column + helpers), **not** a media path letter. Do not invent path `d` / `D`.
 
 ---
 
@@ -60,7 +63,7 @@ COLLECTIONS: yes | no
 2. **Do not open `_source/`** if it exists — archived originals.
 3. After finishing a file, follow its `<!-- NEXT: ... -->` footer (or the table below if footer missing).
 4. Update `PROGRESS-{{resource}}.md` checkboxes as you complete each part.
-5. Skip any step labelled admin/search/likes/etc. when that gate is false — even if the file is on your list.
+5. Skip any step labelled admin/search/likes/visibility/etc. when that gate is false — even if the file is on your list.
 
 ---
 
@@ -78,6 +81,7 @@ Replace `{L}` with your letter (`a`, `b`, or `c`).
 | 3     | `3.md` then `3{L}.md`        | Basic create + path upload delta                  |
 | 4     | `4.md`                       | Skip offset and/or cursor sections per PAGINATION |
 | 5     | `5.md` then `5{L}.md`        | Basic update + path upload delta                  |
+| 5v    | `visibility.md`              | **SKIP entire file** if VISIBILITY=none           |
 | 6     | `6.md`                       | Skip admin steps if !ADMIN                        |
 | 7     | `7.md`                       | **SKIP entire file** if !ADMIN                    |
 | 7b    | `3-admin-create.md`          | **SKIP** if !ADMIN — `POST /admin/{{resource}}`   |
@@ -95,8 +99,8 @@ If `FRONTEND=no` → stop after Part 11. Hand off to human for endpoint testing.
 | 12    | `12.md`                      | Admin folders only if ADMIN                       |
 | 13    | `13.md` then `13{L}.md`      | Types/api/hooks base + path upload deltas         |
 | 14    | `14.md` then `14{L}.md`      | Create forms                                      |
-| 15    | `15.md` then `15{L}.md`      | Edit forms; admin steps only if ADMIN             |
-| 16    | `16{L}.md`                   | Card/component (path-exclusive)                   |
+| 15    | `15.md` then `15{L}.md`      | Edit forms; admin steps only if ADMIN; visibility select if VISIBILITY≠none |
+| 16    | `16{L}.md`                   | Card/component (path-exclusive); private badge if VISIBILITY≠none |
 | 17    | `17.md`                      | List/pagination UI per PAGINATION_UI              |
 | 18    | `18.md`                      | Pages; profile section only if PROFILE            |
 | 19    | `19.md` then `19{L}.md`      | **SKIP** if !ADMIN; columns media fork in `19{L}` |

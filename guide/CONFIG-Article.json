@@ -4,6 +4,7 @@
   "search": "basic",
   "fileUpload": "complex",
   "admin": "write",
+  "visibility": "none",
   "resourceActions": [
     "likes",
     "views",

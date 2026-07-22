@@ -75,8 +75,9 @@
 
 | Status | Task | Notes |
 |--------|------|-------|
-| todo | [ ] Private/public visibility (posts, collections, likes) | do before collection social features |
+| done | [x] Private/public visibility (posts, collections, likes) | 2026-07-21: `Visibility` on Post/Collection; defaults PUBLIC/PRIVATE; API viewer filters + private→404; owner may add private posts to own collections (viewers skip unavailable items); web selects + private badge |
 | todo | [ ] Search + likes for collections | after visibility |
+| todo | [ ] Profile / scoped search (posts, articles, liked, collections by user) | polish — query within by-user / liked lists; reuse search DTOs + visibility |
 | todo | [ ] View history | |
 | todo | [ ] Report feature (post, user, comment, …) | unlocks mod + admin public remove |
 | todo | [ ] Admin remove-content buttons on public pages | after reports / mod model |

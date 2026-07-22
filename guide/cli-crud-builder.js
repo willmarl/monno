@@ -106,6 +106,22 @@ async function main() {
     ],
   });
 
+  // Schema property (not a polymorphic addon) — column + query rules on the resource
+  const visibility = await select({
+    message: "Private/public visibility on this resource?",
+    choices: [
+      { name: "No (always effectively public)", value: "none" },
+      {
+        name: "Yes — default PUBLIC (e.g. posts)",
+        value: "defaultPublic",
+      },
+      {
+        name: "Yes — default PRIVATE (e.g. collections)",
+        value: "defaultPrivate",
+      },
+    ],
+  });
+
   const resourceActions = await checkbox({
     message: "Resource actions (uses your existing polymorphic models):",
     choices: [
@@ -176,6 +192,7 @@ async function main() {
     searchSuggest,
     fileUpload,
     admin,
+    visibility,
     resourceActions,
     frontend,
     paginationUI,
@@ -194,6 +211,7 @@ async function main() {
     searchSuggest: answers.searchSuggest,
     fileUpload: answers.fileUpload,
     admin: answers.admin,
+    visibility: answers.visibility,
     resourceActions: answers.resourceActions,
     frontend: answers.frontend,
     paginationUI: answers.paginationUI,
@@ -239,6 +257,18 @@ function resolvePathLetter(fileUpload) {
   return "a"; // none
 }
 
+function visibilityLabel(visibility) {
+  if (visibility === "defaultPublic") return "yes (default PUBLIC)";
+  if (visibility === "defaultPrivate") return "yes (default PRIVATE)";
+  return "none";
+}
+
+function visibilityPrismaDefault(visibility) {
+  if (visibility === "defaultPrivate") return "PRIVATE";
+  if (visibility === "defaultPublic") return "PUBLIC";
+  return null;
+}
+
 function printNextSteps(resource, config) {
   const pathLetter = resolvePathLetter(config.fileUpload);
   const pathMeaning =
@@ -256,7 +286,7 @@ function printNextSteps(resource, config) {
     ``,
     `You are in Implementation Mode.`,
     `PATH_LETTER=${pathLetter} (fileUpload=${config.fileUpload}). Lock this letter.`,
-    `Follow guide/guidev2/ROUTER.md → NEXT links only. Never open sibling a/b/c files.`,
+    `VISIBILITY=${config.visibility}. Follow guide/guidev2/ROUTER.md → NEXT links only. Never open sibling a/b/c files.`,
     `Use PROGRESS-${R}.md to skip gated features. Update PROGRESS checkboxes as you go.`,
     `Start from 0_preamble.md then 1.md → 1${pathLetter}.md.`,
   ];
@@ -379,13 +409,14 @@ Your role: Follow guide/guidev2/ROUTER.md (choose-your-own-adventure map) and im
 
 **Locked path (from CONFIG):**
 - fileUpload=${config.fileUpload} → PATH_LETTER=${pathLetter} (${pathMeaning})
+- visibility=${config.visibility} (${visibilityLabel(config.visibility)}) — feature gate, NOT a path letter
 - Only open guide/guidev2/*${pathLetter}.md companions and shared chapters (no letter).
 - Never open sibling path letters (if ${pathLetter}, do not open the other two).
 
 **Core Instructions:**
 1. Read PROJECT-BRIEF-${resource}.md first — all decisions are already made
 2. Read PROGRESS-${resource}.md second — checklist for what to implement
-3. Read CONFIG-${resource}.json if shared — confirms fileUpload/admin/search gates
+3. Read CONFIG-${resource}.json if shared — confirms fileUpload/admin/search/visibility gates
 4. Read guide/guidev2/ROUTER.md — then follow NEXT links only, one file (or shared+letter pair) at a time
 5. Do NOT ask clarifying questions about features — they're already decided in the brief
 
@@ -403,6 +434,7 @@ Human will start a NEW session. They will tell you the last completed file — r
 Only implement sections in PROGRESS-${resource}.md. Examples:
 - No "Admin Functionality" → skip ALL admin steps (including 3-admin-create.md / 22-admin-create.md)
 - No search → skip 9.md and 20.md
+- visibility=none → skip visibility.md
 - Pagination offset only → skip ALL cursor steps
 
 **File Management:**
@@ -433,11 +465,12 @@ I want to create a **${resource}** CRUD resource. The feature decisions are alre
 - Search: ${config.search}${config.searchSuggest ? " + autocomplete suggest" : ""}
 - File upload: ${config.fileUpload}
 - Admin: ${config.admin}
+- Visibility (private/public): ${visibilityLabel(config.visibility)}
 - Resource actions: ${actions}
 - Frontend: ${config.frontend ? "yes" : "no"}${paginationUI}
 - Profile page integration: ${config.profileIntegration ? "yes" : "no"}
 
-**Infrastructure reminder:** Polymorphic Like, Comment, Collection models exist (via ResourceType enum). Views = counter on model. Soft delete = deleted/deletedAt fields. Do NOT invent separate ${resource}Like, ${resource}Comment tables.
+**Infrastructure reminder:** Polymorphic Like, Comment, Collection models exist (via ResourceType enum). Views = counter on model. Soft delete = deleted/deletedAt fields. Visibility = existing \`Visibility\` enum + column on the resource (NOT a polymorphic addon — do NOT add PRIVATEABLE_RESOURCES). Do NOT invent separate ${resource}Like, ${resource}Comment tables.
 
 **Your task:**
 1. Read schema.prisma (I'll attach it) to confirm existing patterns
@@ -565,6 +598,19 @@ function generateProgressFile(resource, config) {
   - [ ] Add controller endpoint
   - [ ] Add restore service method
   - [ ] Add restore controller endpoint`;
+
+    if (config.visibility !== "none") {
+      const visDefault = visibilityPrismaDefault(config.visibility);
+      steps += `
+
+### Part 4b: Visibility (private/public)
+- [ ] Confirm \`Visibility\` enum exists in schema (reuse — do not invent a new enum)
+- [ ] Add \`visibility Visibility @default(${visDefault})\` + index on model
+- [ ] Create/Update DTOs: optional visibility
+- [ ] Follow guide/guidev2/visibility.md (reuse \`src/common/visibility/visibility.ts\`)
+- [ ] Public search/feeds: PUBLIC only; by-user: viewer-aware; findById: private→404 for non-owners
+- [ ] If collectable: owner may add own private items; viewers skip inaccessible items`;
+    }
 
     // Part 5: Search
     if (config.search !== "none") {
@@ -727,6 +773,10 @@ function generateProgressFile(resource, config) {
 - [ ] Step 2: Create API client file with fetch methods
 - [ ] Step 3: Create custom hooks (useCreate, useUpdate, useFetch, useLists, etc.)
 - [ ] Step 4: Add error handling and loading states`;
+    if (config.visibility !== "none") {
+      frontendChecklist += `
+- [ ] Include \`visibility: "PUBLIC" | "PRIVATE"\` on types`;
+    }
 
     frontendChecklist += `
 
@@ -740,6 +790,10 @@ function generateProgressFile(resource, config) {
     if (config.fileUpload === "complex") {
       frontendChecklist += `
 - [ ] Step 3: Add MediaManager + media-utils (UnifiedMediaItem state, validateQueuedFiles, applyCreateMediaChanges)`;
+    }
+    if (config.visibility !== "none") {
+      frontendChecklist += `
+- [ ] Add visibility Public/Private select (default ${visibilityPrismaDefault(config.visibility)})`;
     }
     frontendChecklist += `
 - [ ] Step 4: Create inline create form variant
@@ -761,6 +815,10 @@ function generateProgressFile(resource, config) {
       frontendChecklist += `
 - [ ] Step 4: Add MediaManager + media-utils (toUnified, createMediaHandlers, applyMediaChanges)
 - [ ] Step 4b: Create InlineEdit variant with isAlwaysOpen prop (used in modals)`;
+    }
+    if (config.visibility !== "none") {
+      frontendChecklist += `
+- [ ] Prefill + allow changing visibility on edit`;
     }
     frontendChecklist += `
 - [ ] Step 5: Create inline edit form variant
@@ -933,6 +991,7 @@ function generateProgressFile(resource, config) {
 - **Search:** ${config.search}${config.searchSuggest ? " + autocomplete" : ""}
 - **File Upload:** ${config.fileUpload} → **PATH_LETTER=${pathLetter}** (only open guidev2 \`*${pathLetter}.md\` companions + shared chapters)
 - **Admin:** ${config.admin}
+- **Visibility:** ${visibilityLabel(config.visibility)}${config.visibility !== "none" ? " → follow \`visibility.md\` (not a path letter)" : ""}
 - **Resource Actions:** ${config.resourceActions.length > 0 ? config.resourceActions.join(", ") : "none"}
 - **Frontend:** ${config.frontend ? "yes" : "no"}${config.frontend && config.paginationUI.length > 0 ? ` (UI: ${config.paginationUI.join(", ")})` : ""}
 - **Profile Integration:** ${config.profileIntegration ? "yes" : "no"}
@@ -1010,6 +1069,14 @@ function generateProjectBrief(resource, config) {
   const resourceLower = resource.toLowerCase();
   const resourcePlural = resource + "s";
   const resourceUpper = resource.toUpperCase();
+  const visDefault = visibilityPrismaDefault(config.visibility);
+  const visibilityField =
+    visDefault != null
+      ? `
+  visibility Visibility @default(${visDefault})
+
+  @@index([visibility])`
+      : "";
 
   let brief = `# Project Brief — ${resource}
 
@@ -1024,7 +1091,14 @@ function generateProjectBrief(resource, config) {
 ## Prisma Schema Changes
 
 \`\`\`prisma
-// Add to ResourceType enum:
+${
+  visDefault != null
+    ? `// Reuse existing Visibility enum (do NOT create a second enum):
+// enum Visibility { PUBLIC PRIVATE }
+
+`
+    : ""
+}// Add to ResourceType enum:
 enum ResourceType {
   POST
   COMMENT
@@ -1043,7 +1117,7 @@ model ${resource} {
   deleted   Boolean  @default(false)
   deletedAt DateTime?
   viewCount Int      @default(0)
-  likeCount Int      @default(0)
+  likeCount Int      @default(0)${visibilityField}
 }
 \`\`\`
 
@@ -1073,6 +1147,11 @@ model ${resource} {
 - [${config.admin === "read" ? "x" : " "}] Admin read-only
 - [${config.admin === "write" ? "x" : " "}] Admin write (edit/delete/restore)
 
+### Visibility (schema property — not a polymorphic addon)
+- [${config.visibility === "none" ? "x" : " "}] No visibility field
+- [${config.visibility === "defaultPublic" ? "x" : " "}] Yes — default PUBLIC
+- [${config.visibility === "defaultPrivate" ? "x" : " "}] Yes — default PRIVATE
+
 ### Resource Actions (Polymorphic Models)
 - [${config.resourceActions.includes("likes") ? "x" : " "}] Likes (use existing Like model + add ${resourceUpper} to ResourceType)
 - [${config.resourceActions.includes("views") ? "x" : " "}] Views (use viewCount counter on ${resource} model)
@@ -1096,7 +1175,15 @@ ${
 - [${config.resourceActions.includes("views") ? "x" : " "}] Views UI (counter display)
 - [${config.resourceActions.includes("comments") ? "x" : " "}] Comments UI
 - [${config.resourceActions.includes("collections") ? "x" : " "}] Collections UI (save to collection)
-
+${
+  config.visibility !== "none"
+    ? `
+### Visibility UI
+- [x] Create/edit Public/Private select
+- [x] Private badge on cards; 404 copy on detail for inaccessible
+`
+    : ""
+}
 ### Additional Pages
 - [${config.profileIntegration ? "x" : " "}] Resource list on user profile page
 - [ ] Admin dashboard page + data table
@@ -1115,13 +1202,27 @@ Your existing infrastructure handles all resource actions:
 - **Views**: Counter on ${resource} model (like Post, Article, etc.)
 
 Just add \`${resourceUpper}\` to the ResourceType enum.
+${
+  config.visibility !== "none"
+    ? `
+## Visibility (not a polymorphic addon)
 
+Reuse \`Visibility\` enum + \`apps/api/src/common/visibility/visibility.ts\` helpers.
+Follow \`guide/guidev2/visibility.md\`. Do **not** add a \`PRIVATEABLE_RESOURCES\` list.
+`
+    : ""
+}
 ## Notes
 
 - Schema details to be confirmed by AI#1
 - Uses existing polymorphic patterns (no new models for interactions)
 - Soft delete pattern follows existing convention
-`;
+${
+  config.visibility !== "none"
+    ? `- Visibility default: ${visibilityPrismaDefault(config.visibility)}
+`
+    : ""
+}`;
 
   return brief;
 }

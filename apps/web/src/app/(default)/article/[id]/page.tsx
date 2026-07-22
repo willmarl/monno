@@ -1,6 +1,7 @@
 import { getServerUser } from "@/features/auth/server";
 import { ArticleDetail } from "@/components/pages/article/ArticleDetail";
 import { serverApiUrl } from "@/lib/serverApiUrl";
+import { cookies } from "next/headers";
 import type { Metadata } from "next";
 
 export async function generateMetadata({
@@ -11,15 +12,19 @@ export async function generateMetadata({
   const { id } = await params;
 
   try {
-    const response = await fetch(
-      `${serverApiUrl()}/articles/${id}`,
-      {
-        credentials: "include",
-      }
-    );
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore
+      .getAll()
+      .map((c) => `${c.name}=${c.value}`)
+      .join("; ");
+
+    const response = await fetch(`${serverApiUrl()}/articles/${id}`, {
+      headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
+      cache: "no-store",
+    });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch article: ${response.status}`);
+      return { title: "Article Detail" };
     }
 
     const jsonResponse = await response.json();
@@ -29,8 +34,7 @@ export async function generateMetadata({
     return {
       title: articleTitle,
     };
-  } catch (error) {
-    console.error("Error in generateMetadata for article:", error);
+  } catch {
     return {
       title: "Article Detail",
     };

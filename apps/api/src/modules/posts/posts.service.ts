@@ -10,6 +10,12 @@ import { PostSearchDto, PostSearchCursorDto } from './dto/search-post.dto';
 import { buildSearchWhere } from 'src/common/search/search.utils';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 import { enhanceWithLikes } from 'src/common/likes/enhance-with-likes';
+import {
+  publicVisibilityWhere,
+  visibilityWhereForViewer,
+  visibilityWhereForContentViewer,
+  canViewPrivateContent,
+} from 'src/common/visibility/visibility';
 
 const DEFAULT_POST_SELECT = {
   id: true,
@@ -23,6 +29,7 @@ const DEFAULT_POST_SELECT = {
   deletedAt: true,
   viewCount: true,
   likeCount: true,
+  visibility: true,
 };
 
 // ============================================================
@@ -94,12 +101,13 @@ export class PostsService {
   async findByUserId(
     userId: number,
     pag: PaginationDto,
-    currentUserId?: number,
+    viewerId?: number,
   ) {
     const where = {
       creatorId: userId,
       deleted: false,
-      creator: { status: 'ACTIVE' },
+      creator: { status: 'ACTIVE' as const },
+      ...visibilityWhereForViewer(userId, viewerId),
     };
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.post,
@@ -117,7 +125,7 @@ export class PostsService {
       this.prisma,
       'POST',
       items,
-      currentUserId,
+      viewerId,
     );
 
     return {
@@ -130,7 +138,7 @@ export class PostsService {
   async findByUserIdCursor(
     userId: number,
     pag: CursorPaginationDto,
-    currentUserId?: number,
+    viewerId?: number,
   ) {
     const { cursor, limit } = pag;
 
@@ -142,7 +150,8 @@ export class PostsService {
         where: {
           creatorId: userId,
           deleted: false,
-          creator: { status: 'ACTIVE' },
+          creator: { status: 'ACTIVE' as const },
+          ...visibilityWhereForViewer(userId, viewerId),
         },
         orderBy: { createdAt: 'desc' } as const,
         select: DEFAULT_POST_SELECT,
@@ -153,7 +162,7 @@ export class PostsService {
       this.prisma,
       'POST',
       items,
-      currentUserId,
+      viewerId,
     );
 
     return {
@@ -165,7 +174,7 @@ export class PostsService {
   async findLikedByUser(
     userId: number,
     pag: PaginationDto,
-    currentUserId?: number,
+    viewerId?: number,
   ) {
     // Check if user exists
     const user = await this.prisma.user.findUnique({
@@ -175,6 +184,9 @@ export class PostsService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
+    // Only posts this viewer can still see (private liked posts drop for non-creators)
+    const likedPostVisibility = visibilityWhereForContentViewer(viewerId);
 
     // Get total count of posts liked by the user
     const totalCount = await this.prisma.like.count({
@@ -215,6 +227,7 @@ export class PostsService {
       where: {
         id: { in: postIds },
         deleted: false,
+        ...likedPostVisibility,
       },
       select: DEFAULT_POST_SELECT,
     });
@@ -224,7 +237,7 @@ export class PostsService {
       this.prisma,
       'POST',
       posts,
-      currentUserId,
+      viewerId,
     );
 
     const limit = pag.limit ?? 10;
@@ -245,7 +258,7 @@ export class PostsService {
   async findLikedByUserCursor(
     userId: number,
     pag: CursorPaginationDto,
-    currentUserId?: number,
+    viewerId?: number,
   ) {
     // Check if user exists
     const user = await this.prisma.user.findUnique({
@@ -257,6 +270,9 @@ export class PostsService {
     }
 
     const { cursor, limit } = pag;
+
+    // Only posts this viewer can still see (private liked posts drop for non-creators)
+    const likedPostVisibility = visibilityWhereForContentViewer(viewerId);
 
     // Get paginated likes using cursor pagination
     const likes = await this.prisma.like.findMany({
@@ -290,6 +306,7 @@ export class PostsService {
       where: {
         id: { in: postIds },
         deleted: false,
+        ...likedPostVisibility,
       },
       select: DEFAULT_POST_SELECT,
     });
@@ -299,7 +316,7 @@ export class PostsService {
       this.prisma,
       'POST',
       posts,
-      currentUserId,
+      viewerId,
     );
 
     return {
@@ -308,7 +325,7 @@ export class PostsService {
     };
   }
 
-  async findById(id: number, userId: number | undefined) {
+  async findById(id: number, viewerId?: number) {
     const post = await this.prisma.post.findUnique({
       where: { id },
       select: DEFAULT_POST_SELECT,
@@ -318,11 +335,18 @@ export class PostsService {
       throw new NotFoundException('Post not found');
     }
 
+    if (
+      post.visibility === 'PRIVATE' &&
+      !canViewPrivateContent(post.creator.id, viewerId)
+    ) {
+      throw new NotFoundException('Post not found');
+    }
+
     const [enhanced] = await enhanceWithLikes(
       this.prisma,
       'POST',
       [post],
-      userId ?? undefined,
+      viewerId,
     );
     return enhanced;
   }
@@ -375,7 +399,8 @@ export class PostsService {
     const whereWithStatus = {
       ...where,
       deleted: false,
-      creator: { status: 'ACTIVE' },
+      creator: { status: 'ACTIVE' as const },
+      ...publicVisibilityWhere(),
     };
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.post,
@@ -424,7 +449,12 @@ export class PostsService {
       limit: limit ?? 10,
       cursor,
       query: {
-        where: { ...where, deleted: false, creator: { status: 'ACTIVE' } },
+        where: {
+          ...where,
+          deleted: false,
+          creator: { status: 'ACTIVE' as const },
+          ...publicVisibilityWhere(),
+        },
         orderBy,
         select: DEFAULT_POST_SELECT,
       },
@@ -450,6 +480,7 @@ export class PostsService {
       where: {
         deleted: false,
         creator: { status: 'ACTIVE' },
+        ...publicVisibilityWhere(),
         OR: [
           { title: { contains: q, mode: 'insensitive' } },
           { content: { contains: q, mode: 'insensitive' } },
@@ -463,7 +494,7 @@ export class PostsService {
   }
 
   /**
-   * Get all collections that contain a specific post
+   * Get collections owned by userId that contain a specific post
    */
   async getCollectionsForPost(postId: number, userId: number) {
     const collections = await this.prisma.collectionItem.findMany({
@@ -473,6 +504,7 @@ export class PostsService {
         deleted: false,
         collection: {
           deleted: false,
+          creatorId: userId,
         },
       },
       select: {

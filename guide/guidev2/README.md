@@ -12,7 +12,7 @@ A single mega-guide put all three upload styles in one context window and models
 | b      | simple       | `2b.md`, `3b.md`, …  |
 | c      | complex      | `2c.md`, `3c.md`, …  |
 
-Shared chapters (`4.md`, `6.md`, …) have no letter. Feature gates (admin/search/likes/…) are skip rules in ROUTER + file headers.
+Shared chapters (`4.md`, `6.md`, `visibility.md`, …) have no letter. Feature gates (admin/search/likes/visibility/…) are skip rules in ROUTER + file headers. **Visibility is not a path letter** — use `visibility.md` when CONFIG says so.
 
 **Admin dashboard create:** `3-admin-create.md` (backend) + `22-admin-create.md` (frontend) when `ADMIN=yes`.
 

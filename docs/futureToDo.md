@@ -26,9 +26,9 @@
 
 - View history feature (view history of posts, articles, etc)
 - Search and likes for collections
-- Private/public visibility toggle for posts, collections, likes
-  - Ensure private content isn't included in collections
-  - Render as "private/deleted" if changed from public to private
+- Profile / scoped search: query filter on posts-by-user, articles-by-user, liked-by-user, collections-by-user
+- ~~Private/public visibility toggle for posts, collections, likes~~ (done 2026-07-21)
+  - Owner may add private posts to own collections; viewers skip unavailable items; private/deleted detail → 404 copy
 - Report feature (post, user, comment, etc)
 
 **Sub Resources/Modules**

@@ -13,6 +13,14 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2, ChevronUp, Plus } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Controller } from "react-hook-form";
 
 interface NewCollectionFormProps {
   onSuccess?: (response: any) => void;
@@ -47,6 +55,7 @@ export function NewCollectionForm({
     defaultValues: {
       description: "",
       name: "",
+      visibility: "PRIVATE",
     },
   });
 
@@ -115,6 +124,29 @@ export function NewCollectionForm({
             {form.formState.errors.description.message}
           </p>
         )}
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm">Visibility</Label>
+        <Controller
+          control={form.control}
+          name="visibility"
+          render={({ field }) => (
+            <Select
+              value={field.value}
+              onValueChange={field.onChange}
+              disabled={newCollectionMutation.isPending}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Visibility" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PRIVATE">Private</SelectItem>
+                <SelectItem value="PUBLIC">Public</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        />
       </div>
 
       {/* Action Buttons */}

@@ -104,6 +104,7 @@ Prefer the **exact paste block** printed by `pnpm run crud` (includes locked `PA
 @PROJECT-BRIEF-{resource}.md @PROGRESS-{resource}.md @guide/guidev2/ROUTER.md @CONFIG-{resource}.json
 
 You are in Implementation Mode. Lock PATH_LETTER from CONFIG.fileUpload (none→a, simple→b, complex→c).
+Lock VISIBILITY from CONFIG.visibility (none | defaultPublic | defaultPrivate) — not a path letter; skip visibility.md when none.
 Follow ROUTER.md NEXT links only — never open sibling a/b/c files. Use PROGRESS to skip gated features. Start.
 ```
 
@@ -216,6 +217,6 @@ but hey better than doing it urself. and im not gonna use sonnet or opus and bur
 
 **GUIDE (guidev2)**
 
-Implementation guide is path-based under `guide/guidev2/` — start at `ROUTER.md`. Media variants are exclusive files (`a`/`b`/`c`). Missing-file safety net: [validate-resource](../guide/validate-resource.js).
+Implementation guide is path-based under `guide/guidev2/` — start at `ROUTER.md`. Media variants are exclusive files (`a`/`b`/`c`). Optional **visibility** is a feature gate (`visibility.md`), not a path letter. Missing-file safety net: [validate-resource](../guide/validate-resource.js).
 
 After Session 2, the CLI prints a **copy-paste first message** with `PATH_LETTER` locked from `CONFIG`. Use the checkpoint continue block when context fills.

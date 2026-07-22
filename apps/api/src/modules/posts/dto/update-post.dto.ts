@@ -1,5 +1,6 @@
-import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional, IsString, MaxLength, MinLength, IsEnum } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Visibility } from '../../../generated/prisma/client';
 
 export class UpdatePostDto {
   @ApiProperty({
@@ -27,4 +28,12 @@ export class UpdatePostDto {
   @MinLength(1)
   @MaxLength(1000)
   content?: string;
+
+  @ApiPropertyOptional({
+    description: 'Who can see this post',
+    enum: Visibility,
+  })
+  @IsOptional()
+  @IsEnum(Visibility)
+  visibility?: Visibility;
 }

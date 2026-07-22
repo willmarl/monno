@@ -19,7 +19,12 @@ export function CollectionCard({
     >
       <div className="flex items-center gap-3 mb-3">
         <FolderPlus className="w-6 h-6 flex-shrink-0 text-muted-foreground" />
-        <h3 className="font-semibold text-base truncate">{data?.name}</h3>
+        <h3 className="font-semibold text-base truncate flex-1">{data?.name}</h3>
+        {data.visibility === "PRIVATE" && (
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground border border-border px-1.5 py-0.5 rounded flex-shrink-0">
+            Private
+          </span>
+        )}
       </div>
       <p className="text-sm text-muted-foreground line-clamp-2">
         {data?.description}

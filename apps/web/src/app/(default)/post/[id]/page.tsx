@@ -1,6 +1,7 @@
 import { getServerUser } from "@/features/auth/server";
 import { PostDetail } from "@/components/pages/post/PostDetail";
 import { serverApiUrl } from "@/lib/serverApiUrl";
+import { cookies } from "next/headers";
 import type { Metadata } from "next";
 
 export async function generateMetadata({
@@ -11,15 +12,21 @@ export async function generateMetadata({
   const { id } = await params;
 
   try {
-    const response = await fetch(
-      `${serverApiUrl()}/posts/${id}`,
-      {
-        credentials: "include",
-      }
-    );
+    // Server fetch does not forward browser cookies via credentials alone —
+    // private posts need the session Cookie header so owners get a title.
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore
+      .getAll()
+      .map((c) => `${c.name}=${c.value}`)
+      .join("; ");
+
+    const response = await fetch(`${serverApiUrl()}/posts/${id}`, {
+      headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
+      cache: "no-store",
+    });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch post: ${response.status}`);
+      return { title: "Post Detail" };
     }
 
     const jsonResponse = await response.json();
@@ -29,8 +36,7 @@ export async function generateMetadata({
     return {
       title: postTitle,
     };
-  } catch (error) {
-    console.error("Error in generateMetadata for post:", error);
+  } catch {
     return {
       title: "Post Detail",
     };

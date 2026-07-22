@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsOptional, IsString, MaxLength, MinLength, IsEnum } from 'class-validator';
+import { Visibility } from '../../../generated/prisma/client';
 
 export class UpdateCollectionDto {
   @ApiPropertyOptional({
@@ -12,7 +13,7 @@ export class UpdateCollectionDto {
   @IsString()
   @MinLength(1)
   @MaxLength(100)
-  name!: string;
+  name?: string;
 
   @ApiPropertyOptional({
     description: 'The new description for the collection',
@@ -23,4 +24,12 @@ export class UpdateCollectionDto {
   @IsString()
   @MaxLength(2000)
   description?: string;
+
+  @ApiPropertyOptional({
+    description: 'Who can see this collection',
+    enum: Visibility,
+  })
+  @IsOptional()
+  @IsEnum(Visibility)
+  visibility?: Visibility;
 }

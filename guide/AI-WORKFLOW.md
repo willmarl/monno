@@ -204,8 +204,14 @@ Go through the **pre-implementation clarification checklist** from [guidev2/0_pr
 **Key sections:**
 
 - Schema validation ✓ (already validated in Step 1)
-- Backend features (admin, file upload, pagination, search, resource actions)
+- Backend features (admin, file upload, pagination, search, visibility, resource actions)
 - Frontend features (implementation, pagination UI, profile integration, admin dashboard)
+
+**When they mention visibility (private/public):**
+
+- This is a **column on the resource**, not a polymorphic addon — reuse `Visibility` enum + `common/visibility` helpers
+- Ask default: PUBLIC (typical posts) vs PRIVATE (typical collections)
+- Do **not** invent `PRIVATEABLE_RESOURCES` allowlists
 
 **When they mention resource actions (likes, comments, collections):**
 
@@ -228,6 +234,7 @@ BACKEND:
 ✓ File upload (images only, 5MB max)
 ✓ Search
 ✗ Admin variant
+✓ Visibility (default PUBLIC)
 ✓ Resource actions: likes + views (not comments/collections)
 
 FRONTEND:

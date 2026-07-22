@@ -181,6 +181,45 @@ describe('PostsService', () => {
       await expect(service.findById(1, 1)).rejects.toThrow(NotFoundException);
       await expect(service.findById(1, 1)).rejects.toThrow('Post not found');
     });
+
+    it('should throw NotFoundException if post is PRIVATE and viewer is not creator', async () => {
+      mockPrisma.post.findUnique.mockResolvedValue({
+        id: 1,
+        title: 'Private Post',
+        deleted: false,
+        visibility: 'PRIVATE',
+        creator: { id: 1, username: 'owner', avatarPath: null },
+      });
+
+      await expect(service.findById(1, 2)).rejects.toThrow(NotFoundException);
+      await expect(service.findById(1, undefined)).rejects.toThrow(
+        'Post not found',
+      );
+    });
+
+    it('should return PRIVATE post when viewer is the creator', async () => {
+      const post = {
+        id: 1,
+        title: 'Private Post',
+        deleted: false,
+        visibility: 'PRIVATE',
+        likeCount: 0,
+        creator: { id: 1, username: 'owner', avatarPath: null },
+      };
+
+      mockPrisma.post.findUnique.mockResolvedValue(post);
+      mockPrisma.like.findMany.mockResolvedValue([]);
+
+      const result = await service.findById(1, 1);
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: 1,
+          title: 'Private Post',
+          visibility: 'PRIVATE',
+        }),
+      );
+    });
   });
 
   describe('update', () => {

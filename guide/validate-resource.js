@@ -75,6 +75,7 @@ function buildPrompt(resource, R, rs, errorsByType, config) {
   prompt += `- Search: ${config.search}\n`;
   prompt += `- Admin: ${config.admin}\n`;
   prompt += `- File Upload: ${config.fileUpload}\n`;
+  prompt += `- Visibility: ${config.visibility ?? "none"}\n`;
   prompt += `- Frontend: ${config.frontend}\n`;
   prompt += `- Profile Integration: ${config.profileIntegration}\n\n`;
 

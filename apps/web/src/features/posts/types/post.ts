@@ -18,6 +18,7 @@ export interface Post {
   likeCount: number;
   likedByMe: boolean;
   viewCount: number;
+  visibility: "PUBLIC" | "PRIVATE";
 }
 
 export type PostsList = PaginatedResponse<Post>;
@@ -30,9 +31,11 @@ export interface PostListCursor {
 export interface CreatePostInput {
   title: string;
   content: string;
+  visibility?: "PUBLIC" | "PRIVATE";
 }
 
 export interface UpdatePostInput {
   title?: string;
   content?: string;
+  visibility?: "PUBLIC" | "PRIVATE";
 }

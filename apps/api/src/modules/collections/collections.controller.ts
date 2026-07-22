@@ -20,6 +20,7 @@ import { AddCollectionItemDto } from './dto/add-collection-item.dto';
 import { RemoveCollectionItemDto } from './dto/remove-collection-item.dto';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
+import { JwtAccessOptionalGuard } from '../auth/guards/jwt-access-optional.guard';
 
 @ApiBearerAuth()
 @Controller('collections')
@@ -42,6 +43,7 @@ export class CollectionsController {
   /**
    * Get a specific collection with all its items
    */
+  @UseGuards(JwtAccessOptionalGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Get collection with its items' })
   @ApiResponse({
@@ -49,8 +51,13 @@ export class CollectionsController {
     description: 'Collection retrieved successfully',
   })
   @ApiResponse({ status: 404, description: 'Collection not found' })
-  findOne(@Param('id', ParseIntPipe) id: number, @Query() pag: PaginationDto) {
-    return this.collectionsService.findOne(id, pag);
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Query() pag: PaginationDto,
+    @Req() req,
+  ) {
+    const viewerId = req.user?.sub;
+    return this.collectionsService.findOne(id, pag, viewerId);
   }
 
   /**

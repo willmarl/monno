@@ -81,30 +81,65 @@ describe('CollectionsController (integration)', () => {
   // ── GET /collections/:id ──────────────────────────────────────────────────
 
   describe('GET /collections/:id', () => {
-    let collectionId: number;
+    let publicCollectionId: number;
+    let privateCollectionId: number;
 
     beforeAll(async () => {
-      const col = await testApp.prisma.collection.create({
-        data: { name: `Readable ${Date.now()}`, creatorId: owner.id },
+      const pub = await testApp.prisma.collection.create({
+        data: {
+          name: `Readable Public ${Date.now()}`,
+          creatorId: owner.id,
+          visibility: 'PUBLIC',
+        },
       });
-      collectionId = col.id;
+      publicCollectionId = pub.id;
+
+      const priv = await testApp.prisma.collection.create({
+        data: {
+          name: `Readable Private ${Date.now()}`,
+          creatorId: owner.id,
+          visibility: 'PRIVATE',
+        },
+      });
+      privateCollectionId = priv.id;
     });
 
     afterAll(async () => {
-      await testApp.prisma.collection.deleteMany({ where: { id: collectionId } });
+      await testApp.prisma.collection.deleteMany({
+        where: { id: { in: [publicCollectionId, privateCollectionId] } },
+      });
     });
 
-    it('returns 200 with the collection data', async () => {
-      const res = await request(testApp.app.getHttpServer())
-        .get(`/collections/${collectionId}`);
+    it('returns 200 with the collection data for a PUBLIC collection', async () => {
+      const res = await request(testApp.app.getHttpServer()).get(
+        `/collections/${publicCollectionId}`,
+      );
 
       expect(res.status).toBe(200);
-      expect(res.body.data.id).toBe(collectionId);
+      expect(res.body.data.id).toBe(publicCollectionId);
+    });
+
+    it('returns 200 when the owner views their PRIVATE collection', async () => {
+      const res = await request(testApp.app.getHttpServer())
+        .get(`/collections/${privateCollectionId}`)
+        .set('Cookie', ownerCookies);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.id).toBe(privateCollectionId);
+    });
+
+    it('returns 404 when a non-owner views a PRIVATE collection', async () => {
+      const res = await request(testApp.app.getHttpServer())
+        .get(`/collections/${privateCollectionId}`)
+        .set('Cookie', otherCookies);
+
+      expect(res.status).toBe(404);
     });
 
     it('returns 404 for a non-existent collection', async () => {
-      const res = await request(testApp.app.getHttpServer())
-        .get('/collections/999999');
+      const res = await request(testApp.app.getHttpServer()).get(
+        '/collections/999999',
+      );
 
       expect(res.status).toBe(404);
     });

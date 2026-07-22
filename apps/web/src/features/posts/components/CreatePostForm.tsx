@@ -11,6 +11,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Controller } from "react-hook-form";
 
 interface CreatePostFormProps {
   onSuccess?: (postId: number) => void;
@@ -40,6 +48,7 @@ export function CreatePostForm({
     defaultValues: {
       title: "",
       content: "",
+      visibility: "PUBLIC",
     },
   });
 
@@ -94,6 +103,25 @@ export function CreatePostForm({
             {form.formState.errors.content.message}
           </p>
         )}
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm">Visibility</Label>
+        <Controller
+          control={form.control}
+          name="visibility"
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Visibility" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PUBLIC">Public</SelectItem>
+                <SelectItem value="PRIVATE">Private</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        />
       </div>
 
       <div className="flex gap-3 pt-2">

@@ -34,7 +34,13 @@ export function CollectionPage({ id }: CollectionPageProps) {
 
   if (isLoading) return <PageLoadingState variant="card" />;
 
-  if (!data || error) return <PageNotFound title="Collection Not Found" />;
+  if (!data || error)
+    return (
+      <PageNotFound
+        title="Collection Not Found"
+        description="This collection is private, deleted, or does not exist."
+      />
+    );
 
   const formatted = formatDate(data?.createdAt);
 
@@ -44,7 +50,14 @@ export function CollectionPage({ id }: CollectionPageProps) {
         <div className="space-y-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 space-y-2">
-              <h1 className="text-3xl font-bold">{data?.name}</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold">{data?.name}</h1>
+                {data.visibility === "PRIVATE" && (
+                  <span className="text-xs uppercase tracking-wide text-muted-foreground border border-border px-2 py-0.5 rounded">
+                    Private
+                  </span>
+                )}
+              </div>
               <p className="text-muted-foreground line-clamp-3">
                 {data?.description}
               </p>

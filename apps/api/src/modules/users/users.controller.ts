@@ -192,6 +192,7 @@ export class UsersController {
   async getUserCollections(
     @Param('userId', ParseIntPipe) userId: number,
     @Query() pag: PaginationDto,
+    @Req() req,
   ) {
     // Verify user exists
     const user = await this.usersService.findById(userId);
@@ -199,8 +200,9 @@ export class UsersController {
       throw new NotFoundException(`User with ID "${userId}" not found`);
     }
 
-    // Get user's collections with pagination (excludes soft-deleted)
-    return this.collectionsService.findAllByUserId(userId, pag);
+    const viewerId = req.user?.sub;
+    // Get user's collections with pagination (excludes soft-deleted; visibility filtered)
+    return this.collectionsService.findAllByUserId(userId, pag, viewerId);
   }
 
   @ApiOperation({ summary: 'Get all users (public)' })

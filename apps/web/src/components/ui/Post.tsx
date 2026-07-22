@@ -96,7 +96,14 @@ export function Post({
         >
           {data?.title}
         </h2>
-        {modifyPost(isOwner)}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {data.visibility === "PRIVATE" && (
+            <span className="text-[10px] uppercase tracking-wide text-muted-foreground border border-border px-1.5 py-0.5 rounded">
+              Private
+            </span>
+          )}
+          {modifyPost(isOwner)}
+        </div>
       </div>
       <p
         className={`text-xs md:text-sm text-foreground my-3 break-words ${truncateContent ? "line-clamp-3" : ""}`}
@@ -133,10 +140,12 @@ export function Post({
             likeCount={data.likeCount}
             onLike={handleLike}
           />
-          <CollectionButton
-            resourceId={data.id}
-            resourceType={RESOURCE_TYPES.POST}
-          />
+          {(data.visibility !== "PRIVATE" || isOwner) && (
+            <CollectionButton
+              resourceId={data.id}
+              resourceType={RESOURCE_TYPES.POST}
+            />
+          )}
         </div>
       </div>
     </Card>
