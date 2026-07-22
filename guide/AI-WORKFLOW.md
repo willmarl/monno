@@ -213,7 +213,7 @@ Go through the **pre-implementation clarification checklist** from [guidev2/0_pr
 - Ask default: PUBLIC (typical posts) vs PRIVATE (typical collections)
 - Do **not** invent `PRIVATEABLE_RESOURCES` allowlists
 
-**When they mention resource actions (likes, comments, collections):**
+**When they mention resource actions (likes, comments, collections, reports):**
 
 - Don't ask "should we add likes?" → you already know they use the Like model
 - Instead ask: "Likes UI on the frontend — load immediately or fetch on demand?"
@@ -235,13 +235,13 @@ BACKEND:
 ✓ Search
 ✗ Admin variant
 ✓ Visibility (default PUBLIC)
-✓ Resource actions: likes + views (not comments/collections)
+✓ Resource actions: likes + views (not comments/collections/reports)
 
 FRONTEND:
 ✓ Offset pagination UI
 ✗ Infinite scroll
 ✓ Resource list on profile page
-✓ Likes + views UI (no comments/collections)
+✓ Likes + views UI (no comments/collections/reports)
 ✗ Admin dashboard
 ```
 
@@ -258,7 +258,7 @@ If the human used `pnpm run crud` to generate initial files, a `PROGRESS-{{resou
    - Does the pagination type match? (offset, cursor, both, or none)
    - Does the search selection match? (basic, none, with/without suggest)
    - Does the admin level match? (none, read, write)
-   - Do the resource actions match? (likes, views, comments, collections)
+   - Do the resource actions match? (likes, views, comments, collections, reports)
    - Does the frontend/pagination UI match?
 3. If anything is **wrong or changed during planning**, **update the feature summary** to match your agreed decisions
 4. Add the resource's **purpose statement** to the "Notes (fill in during Session 1)" section
@@ -459,7 +459,7 @@ Create `CRUD-PLAN-{{resource}}.md` at the project root with this structure:
 - [ ] Part 10: Create/edit forms
 - [ ] Part 11: List components + pagination UI
 - [ ] Part 12: Detail page
-- [ ] Part 13: Resource action UI (likes, views, comments, collections)
+- [ ] Part 13: Resource action UI (likes, views, comments, collections, reports)
 - [ ] Part 14: User profile list integration (if requested)
 - [ ] Part 15: Admin dashboard (if requested)
 
