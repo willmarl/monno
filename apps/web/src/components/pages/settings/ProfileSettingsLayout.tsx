@@ -1,10 +1,9 @@
-"use client";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Lock, CreditCard } from "lucide-react";
+import { User, Lock, CreditCard, Bell } from "lucide-react";
 import { AccInfoTab } from "./AccInfoTab";
 import { SecurityTab } from "./SecurityTab";
 import { PaymentTab } from "./PaymentTab";
+import { NotificationsTab } from "./NotificationsTab";
 import { useEffect, useState } from "react";
 
 export function ProfileSettingsLayout() {
@@ -12,10 +11,8 @@ export function ProfileSettingsLayout() {
   const isStripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true";
 
   useEffect(() => {
-    // 1. Get initial hash on load (e.g., "#account")
     setHash(window.location.hash.slice(1));
 
-    // 2. Listen for changes if the user clicks other anchor links
     const handleHashChange = () => setHash(window.location.hash.slice(1));
     window.addEventListener("hashchange", handleHashChange);
 
@@ -25,7 +22,6 @@ export function ProfileSettingsLayout() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
           <p className="text-muted-foreground mt-2">
@@ -33,7 +29,6 @@ export function ProfileSettingsLayout() {
           </p>
         </div>
 
-        {/* Content Area */}
         <Tabs
           value={hash || "account"}
           onValueChange={(value) => (window.location.hash = value)}
@@ -54,6 +49,13 @@ export function ProfileSettingsLayout() {
               <Lock className="h-4 w-4" />
               Security
             </TabsTrigger>
+            <TabsTrigger
+              value="notifications"
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              <Bell className="h-4 w-4" />
+              Notifications
+            </TabsTrigger>
             {isStripeEnabled && (
               <TabsTrigger
                 value="payment"
@@ -71,6 +73,10 @@ export function ProfileSettingsLayout() {
 
           <TabsContent value="security" className="space-y-6">
             <SecurityTab />
+          </TabsContent>
+
+          <TabsContent value="notifications" className="space-y-6">
+            <NotificationsTab />
           </TabsContent>
 
           {isStripeEnabled && (

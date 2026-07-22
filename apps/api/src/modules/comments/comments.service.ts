@@ -11,6 +11,8 @@ import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import type { CommentableResourceType } from 'src/common/types/resource.types';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
 import { enhanceWithLikes } from 'src/common/likes/enhance-with-likes';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType, ResourceType } from 'src/generated/prisma/client';
 
 type CommentableResourceConfig = { model: keyof PrismaService; label: string };
 
@@ -39,7 +41,10 @@ const DEFAULT_COMMENT_SELECT = {
 
 @Injectable()
 export class CommentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   /**
    * Create a comment on a resource (post, video, article, or another comment)
@@ -54,6 +59,13 @@ export class CommentsService {
         ...data,
       },
       select: DEFAULT_COMMENT_SELECT,
+    });
+
+    await this.notificationsService.createIfAllowed({
+      type: NotificationType.COMMENT,
+      actorId: userId,
+      resourceType: data.resourceType as ResourceType,
+      resourceId: data.resourceId,
     });
 
     const [enhanced] = await enhanceWithLikes(

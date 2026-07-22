@@ -59,6 +59,18 @@ export class PreferencesService {
         ...(dto.snoozes as Prisma.InputJsonObject),
       };
     }
+    if (dto.notifyInAppComments !== undefined) {
+      data.notifyInAppComments = dto.notifyInAppComments;
+    }
+    if (dto.notifyInAppLikes !== undefined) {
+      data.notifyInAppLikes = dto.notifyInAppLikes;
+    }
+    if (dto.notifyEmailComments !== undefined) {
+      data.notifyEmailComments = dto.notifyEmailComments;
+    }
+    if (dto.notifyEmailLikes !== undefined) {
+      data.notifyEmailLikes = dto.notifyEmailLikes;
+    }
 
     return this.prisma.userPreferences.update({
       where: { userId },

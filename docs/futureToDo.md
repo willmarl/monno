@@ -39,7 +39,7 @@
 
 **Worker (BullMQ)**
 
-- Notification system (email/push and UI component)
+- ~~Notification system (email/push and UI component)~~ — done 2026-07-22 (in-app bell + email on comment/like; prefs; no push/websocket yet)
   - Trigger on likes, views, comments, etc
   - Expand settings to toggle which notifications to receive
 

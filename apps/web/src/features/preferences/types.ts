@@ -7,6 +7,10 @@ export type UserPreferences = {
   resume: Record<string, unknown>;
   onboarding: Record<string, unknown>;
   snoozes: Record<string, unknown>;
+  notifyInAppComments: boolean;
+  notifyInAppLikes: boolean;
+  notifyEmailComments: boolean;
+  notifyEmailLikes: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -17,6 +21,10 @@ export type UpdatePreferencesInput = {
   resume?: Record<string, unknown>;
   onboarding?: Record<string, unknown>;
   snoozes?: Record<string, unknown>;
+  notifyInAppComments?: boolean;
+  notifyInAppLikes?: boolean;
+  notifyEmailComments?: boolean;
+  notifyEmailLikes?: boolean;
 };
 
 export function themeToNextThemes(theme: ThemePreference): string {

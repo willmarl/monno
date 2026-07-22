@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { ThemePreference } from 'src/generated/prisma/client';
-import { IsEnum, IsObject, IsOptional } from 'class-validator';
+import { IsBoolean, IsEnum, IsObject, IsOptional } from 'class-validator';
 
 export class UpdatePreferencesDto {
   @ApiPropertyOptional({
@@ -46,4 +46,24 @@ export class UpdatePreferencesDto {
   @IsOptional()
   @IsObject()
   snoozes?: Record<string, unknown>;
+
+  @ApiPropertyOptional({ description: 'In-app notifications for comments' })
+  @IsOptional()
+  @IsBoolean()
+  notifyInAppComments?: boolean;
+
+  @ApiPropertyOptional({ description: 'In-app notifications for likes' })
+  @IsOptional()
+  @IsBoolean()
+  notifyInAppLikes?: boolean;
+
+  @ApiPropertyOptional({ description: 'Email notifications for comments' })
+  @IsOptional()
+  @IsBoolean()
+  notifyEmailComments?: boolean;
+
+  @ApiPropertyOptional({ description: 'Email notifications for likes' })
+  @IsOptional()
+  @IsBoolean()
+  notifyEmailLikes?: boolean;
 }

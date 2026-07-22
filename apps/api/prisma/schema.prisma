@@ -101,6 +101,11 @@ enum ThemePreference {
   SYSTEM
 }
 
+enum NotificationType {
+  COMMENT
+  LIKE
+}
+
 model User {
   id                      Int                      @id @default(autoincrement())
   username                String                   @unique
@@ -149,6 +154,8 @@ model User {
   // Credits balance
   credits                 Int                      @default(0)
   preferences             UserPreferences?
+  notificationsReceived   Notification[]           @relation("NotificationRecipient")
+  notificationsActed      Notification[]           @relation("NotificationActor")
 }
 
 model UserPreferences {
@@ -163,8 +170,29 @@ model UserPreferences {
   onboarding Json            @default("{}")
   /// e.g. { "featureBanner": "2026-08-01T00:00:00.000Z" } ISO snooze-until
   snoozes    Json            @default("{}")
+  notifyInAppComments  Boolean @default(true)
+  notifyInAppLikes     Boolean @default(true)
+  notifyEmailComments  Boolean @default(true)
+  notifyEmailLikes     Boolean @default(true)
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
+}
+
+model Notification {
+  id           Int              @id @default(autoincrement())
+  recipientId  Int
+  recipient    User             @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  actorId      Int?
+  actor        User?            @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  type         NotificationType
+  resourceType ResourceType
+  resourceId   Int
+  message      String?
+  readAt       DateTime?
+  createdAt    DateTime         @default(now())
+
+  @@index([recipientId, createdAt(sort: Desc)])
+  @@index([recipientId, readAt])
 }
 
 model Session {

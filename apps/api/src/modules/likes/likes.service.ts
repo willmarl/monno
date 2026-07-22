@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import type { LikeableResourceType } from 'src/common/types/resource.types';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType, ResourceType } from 'src/generated/prisma/client';
 
 type ResourceConfig = {
   /** Prisma delegate key, e.g. 'post' → this.prisma.post */
@@ -22,7 +24,10 @@ const LIKEABLE_RESOURCE_CONFIG: Record<LikeableResourceType, ResourceConfig> = {
 
 @Injectable()
 export class LikesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   /**
    * Toggle like for a resource (post, video, article, etc.)
@@ -70,6 +75,13 @@ export class LikesService {
       await delegate.update({
         where: { id: resourceId },
         data: { likeCount: { increment: 1 } },
+      });
+
+      await this.notificationsService.createIfAllowed({
+        type: NotificationType.LIKE,
+        actorId: userId,
+        resourceType: resourceType as ResourceType,
+        resourceId,
       });
     }
 

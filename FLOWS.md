@@ -66,8 +66,18 @@ AI agents should read this file before writing tests for any module.
 
 - One `UserPreferences` row per user (`GET/PATCH /users/me/preferences`, auth). Auto-created with defaults on first GET/PATCH.
 - Fields: `theme` (`LIGHT | DARK | SYSTEM`, default `SYSTEM`); JSON bags `layout`, `resume`, `onboarding`, `snoozes` (each default `{}`). PATCH shallow-merges JSON bags.
+- Notification toggles (defaults on): `notifyInAppComments`, `notifyInAppLikes`, `notifyEmailComments`, `notifyEmailLikes`.
 - Theme UI: logged-in users sync via `ThemeToggle` + `PreferencesThemeSync` (server wins on load). Guests keep `next-themes` localStorage only.
 - Layout / resume / onboarding / snoozes are API-ready for later consumers (no UI yet).
+
+## Notifications
+
+- `Notification` rows for recipients; types `COMMENT` | `LIKE`. Emitted from comment create and new likes (not unlikes); skipped when actor is owner.
+- Respect prefs: in-app row only if corresponding `notifyInApp*` is on; email via `enqueueEmail` only if `notifyEmail*` is on and recipient has verified email.
+- Links for comment targets resolve up to parent post/article/collection for click-through.
+- APIs (auth, owner-only): `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/read` (`ids` or `all`).
+- UI: header bell (poll unread ~60s + fetch on open), `/notifications` page, Settings → Notifications toggles.
+- No websockets/push in this slice. Account-status emails are a separate follow-up.
 
 ---
 

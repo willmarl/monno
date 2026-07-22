@@ -31,3 +31,7 @@ export {
   resetPasswordTemplate,
   type ResetPasswordProps,
 } from './ResetPassword.js';
+export {
+  engagementNotificationEmailTemplate,
+  type EngagementNotificationEmailProps,
+} from './EngagementNotification.js';

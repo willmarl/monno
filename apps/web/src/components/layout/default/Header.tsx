@@ -1,6 +1,7 @@
 "use client";
 
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -50,7 +51,7 @@ export default function Header({ user }: { user: User | null }) {
 
     return (
       <DropdownMenu>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           {user.role === "ADMIN" ? (
             <Link href="/admin">
               <Button className="cursor-pointer" variant={"link"}>
@@ -61,6 +62,7 @@ export default function Header({ user }: { user: User | null }) {
             ""
           )}
 
+          <NotificationBell />
           <UserAvatar user={user} />
           <DropdownMenuTrigger asChild>
             <Button variant="ghost">Hello, {user.username}</Button>
@@ -85,6 +87,9 @@ export default function Header({ user }: { user: User | null }) {
           )}
           <DropdownMenuItem onClick={handleProfile}>Profile</DropdownMenuItem>
           <DropdownMenuItem onClick={handleHistory}>History</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push("/notifications")}>
+            Notifications
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleSettings}>Settings</DropdownMenuItem>
           {SHOW_ACCOUNT_STATUS && (
             <DropdownMenuItem onClick={handleProducts}>
@@ -124,6 +129,7 @@ export default function Header({ user }: { user: User | null }) {
       <div className="flex md:hidden items-center gap-2 ml-auto">
         {user && (
           <>
+            <NotificationBell />
             <UserAvatar user={user} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -157,6 +163,11 @@ export default function Header({ user }: { user: User | null }) {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push("/history")}>
                   History
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => router.push("/notifications")}
+                >
+                  Notifications
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push("/settings")}>
                   Settings
