@@ -3,9 +3,11 @@ import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from '../../prisma.service';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
 
-function asObject(value: Prisma.JsonValue | null | undefined): Record<string, unknown> {
+function asObject(
+  value: Prisma.JsonValue | null | undefined,
+): Prisma.InputJsonObject {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
-    return value as Record<string, unknown>;
+    return value as Prisma.InputJsonObject;
   }
   return {};
 }
@@ -34,16 +36,28 @@ export class PreferencesService {
       data.theme = dto.theme;
     }
     if (dto.layout !== undefined) {
-      data.layout = { ...asObject(current.layout), ...dto.layout };
+      data.layout = {
+        ...asObject(current.layout),
+        ...(dto.layout as Prisma.InputJsonObject),
+      };
     }
     if (dto.resume !== undefined) {
-      data.resume = { ...asObject(current.resume), ...dto.resume };
+      data.resume = {
+        ...asObject(current.resume),
+        ...(dto.resume as Prisma.InputJsonObject),
+      };
     }
     if (dto.onboarding !== undefined) {
-      data.onboarding = { ...asObject(current.onboarding), ...dto.onboarding };
+      data.onboarding = {
+        ...asObject(current.onboarding),
+        ...(dto.onboarding as Prisma.InputJsonObject),
+      };
     }
     if (dto.snoozes !== undefined) {
-      data.snoozes = { ...asObject(current.snoozes), ...dto.snoozes };
+      data.snoozes = {
+        ...asObject(current.snoozes),
+        ...(dto.snoozes as Prisma.InputJsonObject),
+      };
     }
 
     return this.prisma.userPreferences.update({

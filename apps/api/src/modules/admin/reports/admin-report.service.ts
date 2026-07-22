@@ -4,7 +4,7 @@ import { AdminService } from '../admin.service';
 import { ReportSearchDto } from '../../reports/dto/report-search.dto';
 import { UpdateReportDto } from '../../reports/dto/update-report.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
-import { ReportStatus } from 'src/generated/prisma/client';
+import { Prisma, ReportStatus } from 'src/generated/prisma/client';
 
 const DEFAULT_REPORT_SELECT = {
   id: true,
@@ -23,7 +23,11 @@ const DEFAULT_REPORT_SELECT = {
   resolver: {
     select: { id: true, username: true, avatarPath: true },
   },
-};
+} as const;
+
+type AdminReportRow = Prisma.ReportGetPayload<{
+  select: typeof DEFAULT_REPORT_SELECT;
+}>;
 
 @Injectable()
 export class AdminReportService {
@@ -54,7 +58,7 @@ export class AdminReportService {
       ];
     }
 
-    const { items, pageInfo, isRedirected } = await offsetPaginate({
+    const { items, pageInfo, isRedirected } = await offsetPaginate<AdminReportRow>({
       model: this.prisma.report,
       limit: searchDto.limit ?? 20,
       offset: searchDto.offset ?? 0,
