@@ -1,3 +1,5 @@
+"use client";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Lock, CreditCard, Bell } from "lucide-react";
 import { AccInfoTab } from "./AccInfoTab";
