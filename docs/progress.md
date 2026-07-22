@@ -88,7 +88,7 @@
 
 | Status | Task | Notes |
 |--------|------|-------|
-| todo | [ ] User preferences model (theme, layout, resume, onboarding, snoozes) | not localStorage-only |
+| done | [x] User preferences model (theme, layout, resume, onboarding, snoozes) | 2026-07-22: `UserPreferences` + GET/PATCH; theme sync wired; other keys for later |
 | todo | [ ] Notification system (worker + UI + preference toggles) | |
 | todo | [ ] Email on account status changes | reuses notification/email path |
 | todo | [ ] Comments on comments | |

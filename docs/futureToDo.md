@@ -8,7 +8,7 @@
 - Email notifications for account status changes (banned, restored, deleted, etc)
 - ~~Make inputting password required to delete account~~ — done
 - ~~Make roles (mod) and status (banned, suspended) functional instead of being a placeholder~~ — status done; mod deferred until Reports
-- User preferences model (or `UserInfo` / key-value on user) synced across devices — not localStorage-only
+- ~~User preferences model (or `UserInfo` / key-value on user) synced across devices — not localStorage-only~~ — done 2026-07-22 (`UserPreferences` + theme sync; layout/resume/onboarding/snoozes API-ready)
   - Theme (light/dark) preference
   - View/layout prefs (e.g. grid vs card on list pages)
   - Last tab, page, or route context to resume where you left off

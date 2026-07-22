@@ -4,10 +4,15 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSessionUser } from "@/features/auth/hooks";
+import { useUpdatePreferences } from "@/features/preferences/hooks";
+import { nextThemesToApi } from "@/features/preferences/types";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { data: user } = useSessionUser();
+  const updatePrefs = useUpdatePreferences();
 
   useEffect(() => {
     setMounted(true);
@@ -17,11 +22,18 @@ export function ThemeToggle() {
     return <Button variant="outline" size="icon" disabled />;
   }
 
+  const nextLocal = theme === "light" ? "dark" : "light";
+
   return (
     <Button
       variant="outline"
       size="icon"
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+      onClick={() => {
+        setTheme(nextLocal);
+        if (user) {
+          updatePrefs.mutate({ theme: nextThemesToApi(nextLocal) });
+        }
+      }}
     >
       {theme === "light" ? (
         <Moon className="text-foreground" />

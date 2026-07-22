@@ -23,10 +23,12 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
+import { PreferencesService } from './preferences.service';
 import { CollectionsService } from '../collections/collections.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdatePreferencesDto } from './dto/update-preferences.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { DeleteAccountDto } from './dto/delete-account.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
@@ -58,6 +60,7 @@ import { cookieConfig } from 'src/config/cookie.config';
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
+    private readonly preferencesService: PreferencesService,
     private readonly collectionsService: CollectionsService,
   ) {}
 
@@ -140,6 +143,28 @@ export class UsersController {
     res.cookie('accessToken', '', cookieConfig.clear);
     res.cookie('refreshToken', '', cookieConfig.clear);
     res.cookie('sessionId', '', cookieConfig.clear);
+  }
+
+  @ApiOperation({ summary: 'Get current user preferences' })
+  @ApiBearerAuth()
+  @ApiResponse({ status: 200, description: 'Preferences (created with defaults if missing)' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @UseGuards(JwtAccessGuard)
+  @Get('me/preferences')
+  getMyPreferences(@Req() req: any) {
+    return this.preferencesService.getOrCreate(req.user.sub);
+  }
+
+  @ApiOperation({ summary: 'Update current user preferences (partial)' })
+  @ApiBearerAuth()
+  @ApiBody({ type: UpdatePreferencesDto })
+  @ApiResponse({ status: 200, description: 'Preferences updated' })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @UseGuards(JwtAccessGuard)
+  @Patch('me/preferences')
+  updateMyPreferences(@Req() req: any, @Body() body: UpdatePreferencesDto) {
+    return this.preferencesService.update(req.user.sub, body);
   }
 
   //==============

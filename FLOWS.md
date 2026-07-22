@@ -62,6 +62,13 @@ AI agents should read this file before writing tests for any module.
 - Soft-deletes via existing `/admin/{resource}/:id` DELETE (audit-logged). Does not require opening the admin dashboard. MOD not included yet.
 - Owner edit/delete controls stay separate; admin remove works on others’ content too.
 
+## User preferences
+
+- One `UserPreferences` row per user (`GET/PATCH /users/me/preferences`, auth). Auto-created with defaults on first GET/PATCH.
+- Fields: `theme` (`LIGHT | DARK | SYSTEM`, default `SYSTEM`); JSON bags `layout`, `resume`, `onboarding`, `snoozes` (each default `{}`). PATCH shallow-merges JSON bags.
+- Theme UI: logged-in users sync via `ThemeToggle` + `PreferencesThemeSync` (server wins on load). Guests keep `next-themes` localStorage only.
+- Layout / resume / onboarding / snoozes are API-ready for later consumers (no UI yet).
+
 ---
 
 _Add new entries here when you make a product decision that isn't obvious from reading the code._

@@ -77,6 +77,7 @@ export const useLogout = () => {
       // Clear all auth-related caches
       queryClient.invalidateQueries({ queryKey: ["session"] });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.removeQueries({ queryKey: ["preferences"] });
       window.location.href = "/login";
     },
     throwOnError: false,

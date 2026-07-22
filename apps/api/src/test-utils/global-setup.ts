@@ -46,6 +46,7 @@ export async function setup() {
       "Like",
       "ViewHistory",
       "Report",
+      "UserPreferences",
       "Comment",
       "AuditLog",
       "PasswordResetToken",

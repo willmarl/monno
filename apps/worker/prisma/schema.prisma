@@ -99,6 +99,12 @@ enum ReportReason {
   OTHER
 }
 
+enum ThemePreference {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
 model User {
   id                      Int                      @id @default(autoincrement())
   username                String                   @unique
@@ -146,6 +152,23 @@ model User {
   creditTransactions      CreditTransaction[]
   // Credits balance
   credits                 Int                      @default(0)
+  preferences             UserPreferences?
+}
+
+model UserPreferences {
+  userId     Int             @id
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme      ThemePreference @default(SYSTEM)
+  /// e.g. { "postsView": "grid" | "list" }
+  layout     Json            @default("{}")
+  /// e.g. { "path": "/collections", "tab": "posts" }
+  resume     Json            @default("{}")
+  /// e.g. { "welcomeDismissed": true }
+  onboarding Json            @default("{}")
+  /// e.g. { "featureBanner": "2026-08-01T00:00:00.000Z" } ISO snooze-until
+  snoozes    Json            @default("{}")
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
 }
 
 model Session {
