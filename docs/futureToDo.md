@@ -33,7 +33,7 @@
 
 **Sub Resources/Modules**
 
-- Comments on comments
+- ~~Comments on comments~~ — done 2026-07-22 (Reply UI; nested via COMMENTABLE)
 - Reactions system (like, dislike, react emoji) instead of just binary likes
   - Update posts and comments to support reactions
 
