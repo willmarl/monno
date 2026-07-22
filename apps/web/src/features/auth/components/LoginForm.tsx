@@ -105,11 +105,12 @@ export function LoginForm({ onSuccess, isAlwaysOpen = false }: LoginFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-base font-semibold">
-                  Username
+                  Username or email
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter your username"
+                    placeholder="username or email"
+                    autoComplete="username"
                     {...field}
                     className="h-10"
                   />

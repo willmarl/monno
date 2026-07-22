@@ -16,7 +16,7 @@ describe('AuthService', () => {
     // Mock all dependencies
     mockUsersService = {
       create: vi.fn(),
-      findByUsernameAuth: vi.fn(),
+      findByLoginAuth: vi.fn(),
     };
 
     mockPrisma = {
@@ -71,7 +71,7 @@ describe('AuthService', () => {
 
   describe('login', () => {
     it('should throw UnauthorizedException for invalid username', async () => {
-      mockUsersService.findByUsernameAuth.mockResolvedValue(null);
+      mockUsersService.findByLoginAuth.mockResolvedValue(null);
 
       const mockRequest = {
         headers: { 'user-agent': 'test-agent' },
@@ -87,7 +87,7 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedException for invalid password', async () => {
-      mockUsersService.findByUsernameAuth.mockResolvedValue({
+      mockUsersService.findByLoginAuth.mockResolvedValue({
         id: 1,
         username: 'testuser',
         password: await bcrypt.hash('correct-password', 10),
@@ -108,7 +108,7 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedException for suspended account', async () => {
-      mockUsersService.findByUsernameAuth.mockResolvedValue({
+      mockUsersService.findByLoginAuth.mockResolvedValue({
         id: 1,
         username: 'testuser',
         password: await bcrypt.hash('password', 10),
@@ -131,7 +131,7 @@ describe('AuthService', () => {
 
     it('should return tokens for valid login', async () => {
       const hashedPassword = await bcrypt.hash('password', 10);
-      mockUsersService.findByUsernameAuth.mockResolvedValue({
+      mockUsersService.findByLoginAuth.mockResolvedValue({
         id: 1,
         username: 'testuser',
         password: hashedPassword,
@@ -167,6 +167,40 @@ describe('AuthService', () => {
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
       expect(result).toHaveProperty('sessionId');
+      expect(mockUsersService.findByLoginAuth).toHaveBeenCalledWith('testuser');
+    });
+
+    it('should resolve email identifiers via findByLoginAuth', async () => {
+      const hashedPassword = await bcrypt.hash('password', 10);
+      mockUsersService.findByLoginAuth.mockResolvedValue({
+        id: 2,
+        username: 'emailuser',
+        email: 'user@example.com',
+        password: hashedPassword,
+        status: 'ACTIVE',
+        role: 'USER',
+      });
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 2,
+        status: 'ACTIVE',
+        role: 'USER',
+      });
+      mockPrisma.session.create.mockResolvedValue({ id: 'session-email' });
+
+      const mockRequest = {
+        headers: { 'user-agent': 'test-agent' },
+        ip: '127.0.0.1',
+      } as any;
+
+      const result = await service.login(
+        { username: 'user@example.com', password: 'password' },
+        mockRequest,
+      );
+
+      expect(result.sessionId).toBe('session-email');
+      expect(mockUsersService.findByLoginAuth).toHaveBeenCalledWith(
+        'user@example.com',
+      );
     });
   });
 

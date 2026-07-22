@@ -41,7 +41,7 @@ export class AuthController {
     return { success: true };
   }
 
-  @ApiOperation({ summary: 'Log in with username and password' })
+  @ApiOperation({ summary: 'Log in with username or email and password' })
   @ApiBody({ type: LoginDto })
   @ApiResponse({
     status: 201,

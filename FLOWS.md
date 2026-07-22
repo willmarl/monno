@@ -9,6 +9,7 @@ AI agents should read this file before writing tests for any module.
 ## Auth & Registration
 
 - Email is optional at registration — users can sign up with username + password only
+- Login accepts **username or email** in the same field (`username` on the wire). Values containing `@` are looked up as email (case-insensitive); otherwise exact username. Invalid credentials always return the same 401 message.
 - Unverified email gets silently stripped from the original holder when a different user verifies ownership of that same email
 - OAuth login proves email ownership the same way: auto-link a provider only if an existing account already has that email **verified**; if the holder is unverified, strip the email and create a new OAuth user (do not merge into the unverified account)
 - Forgot password works even if the requesting user's email is unverified

@@ -173,6 +173,34 @@ describe('UsersService', () => {
     });
   });
 
+  describe('findByLoginAuth', () => {
+    it('looks up by username when identifier has no @', async () => {
+      const user = { id: 1, username: 'testuser' };
+      mockPrisma.user.findUnique.mockResolvedValue(user);
+
+      const result = await service.findByLoginAuth('testuser');
+
+      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
+        where: { username: 'testuser' },
+      });
+      expect(result).toEqual(user);
+    });
+
+    it('looks up by email (case-insensitive) when identifier contains @', async () => {
+      const user = { id: 2, email: 'user@example.com' };
+      mockPrisma.user.findFirst.mockResolvedValue(user);
+
+      const result = await service.findByLoginAuth('User@Example.com');
+
+      expect(mockPrisma.user.findFirst).toHaveBeenCalledWith({
+        where: {
+          email: { equals: 'User@Example.com', mode: 'insensitive' },
+        },
+      });
+      expect(result).toEqual(user);
+    });
+  });
+
   describe('findById', () => {
     it('should return user by id with admin selection', async () => {
       const user = {

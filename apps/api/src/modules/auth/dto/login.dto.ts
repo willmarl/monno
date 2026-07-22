@@ -1,21 +1,16 @@
-import { IsString, MinLength, MaxLength, Matches } from 'class-validator';
+import { IsString, MinLength, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
   @ApiProperty({
-    description: 'Username to log in with',
+    description: 'Username or email to log in with',
     example: 'john_doe',
     minLength: 2,
-    maxLength: 32,
-    pattern: '^[a-zA-Z0-9_-]+$',
+    maxLength: 256,
   })
   @IsString()
   @MinLength(2)
-  @MaxLength(32)
-  @Matches(/^[a-zA-Z0-9_-]+$/, {
-    message:
-      'username can only contain alphanumeric characters, hyphens, and underscores',
-  })
+  @MaxLength(256)
   username!: string;
 
   @ApiProperty({

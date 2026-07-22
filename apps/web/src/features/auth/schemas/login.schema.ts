@@ -1,13 +1,25 @@
 import { z } from "zod";
 
+const usernamePattern = /^[a-zA-Z0-9_-]+$/;
+
 export const loginSchema = z.object({
+  // Wire field stays `username` for API compatibility; value may be email.
   username: z
     .string()
-    .min(2, "username must be at least 2 characters")
-    .max(32, "username must be at most 32 characters")
-    .regex(
-      /^[a-zA-Z0-9_-]+$/,
-      "username can only contain alphanumeric characters, hyphens, and underscores",
+    .trim()
+    .min(2, "username or email must be at least 2 characters")
+    .max(256, "username or email must be at most 256 characters")
+    .refine(
+      (value) => {
+        if (value.includes("@")) {
+          return z.string().email().safeParse(value).success;
+        }
+        return value.length <= 32 && usernamePattern.test(value);
+      },
+      {
+        message:
+          "Enter a valid username (letters, numbers, _ -) or email address",
+      },
     ),
   password: z
     .string()

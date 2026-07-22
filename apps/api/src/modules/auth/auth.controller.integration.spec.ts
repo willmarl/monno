@@ -134,6 +134,26 @@ describe('AuthController (integration)', () => {
       expect(res.body.success).toBe(false);
     });
 
+    it('returns 201 when logging in with email (case-insensitive)', async () => {
+      const email = `login_email_${Date.now()}@example.com`;
+      const emailUser = await createTestUser(testApp.prisma, {
+        username: `emaillogin_${Date.now()}`,
+        password: 'CorrectPassword1',
+        email,
+      });
+      createdUserIds.push(emailUser.id);
+
+      const res = await request(testApp.app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          username: email.toUpperCase(),
+          password: emailUser.plainPassword,
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+    });
+
     it('returns 401 for a suspended account', async () => {
       const suspendedUser = await createTestUser(testApp.prisma, {
         username: `suspended_${Date.now()}`,

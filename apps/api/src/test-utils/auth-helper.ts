@@ -20,11 +20,13 @@ export async function createTestUser(
     password = 'TestPassword123',
     role = 'USER',
     status = 'ACTIVE',
+    email,
   }: {
     username?: string;
     password?: string;
     role?: string;
     status?: string;
+    email?: string;
   } = {},
 ): Promise<TestUser> {
   const finalUsername = username ?? `testuser_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -36,6 +38,7 @@ export async function createTestUser(
       password: hashedPassword,
       status: status as any,
       role: role as any,
+      ...(email !== undefined ? { email } : {}),
     },
   });
 

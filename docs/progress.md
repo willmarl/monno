@@ -64,7 +64,7 @@
 
 | Status | Task | Notes |
 |--------|------|-------|
-| todo | [ ] Login with username **or** email | |
+| done | [x] Login with username **or** email | 2026-07-21: `findByLoginAuth`; `@` → email (ci); wire field still `username`; web label updated |
 | todo | [ ] Password required to delete account | |
 | todo | [ ] Enforce account status (banned / suspended) for real | placeholders today |
 | todo | [ ] Mod role scopes (define powers first; often after Reports) | may slip to Phase 3 |
@@ -129,6 +129,7 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-21 | Phase 2 — Login username or email | `findByLoginAuth`; email case-insensitive; LoginForm label + schema |
 | 2026-07-21 | Phase 1 — Pull-only VM deployment | Manual local build/push to GHCR; immutable tags; `docker-compose.prod.yml` + `deploy-images-vm.sh` |
 | 2026-07-20 | Phase 1 — Dockerize full stack | Per-app Dockerfiles + `docker-compose.stack.yml`; `stack:*` scripts; migrate one-shot; web `API_INTERNAL_URL` for SSR |
 | 2026-07-20 | Phase 1 — Single Prisma schema | api canonical + synced worker copy (`db:sync-schema` / `--check`); worker migrations removed, api owns migrate |

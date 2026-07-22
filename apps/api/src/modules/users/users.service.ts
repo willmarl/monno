@@ -344,6 +344,24 @@ export class UsersService {
     });
   }
 
+  /**
+   * Resolve a login identifier to a user.
+   * Values containing `@` are treated as email (case-insensitive);
+   * everything else is treated as an exact username.
+   * Usernames cannot contain `@` (register validation), so this is unambiguous.
+   */
+  findByLoginAuth(identifier: string) {
+    const trimmed = identifier.trim();
+    if (trimmed.includes('@')) {
+      return this.prisma.user.findFirst({
+        where: {
+          email: { equals: trimmed, mode: 'insensitive' },
+        },
+      });
+    }
+    return this.findByUsernameAuth(trimmed);
+  }
+
   //==============
   //   Public
   //==============

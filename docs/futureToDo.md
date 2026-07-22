@@ -4,7 +4,7 @@
 
 **Auth & User Management**
 
-- Login with username or email (currently just username)
+- ~~Login with username or email (currently just username)~~ — done (see progress)
 - Email notifications for account status changes (banned, restored, deleted, etc)
 - Make roles (mod) and status (banned, suspended) functional instead of being a placeholder
 - Make inputting password required to delete account
