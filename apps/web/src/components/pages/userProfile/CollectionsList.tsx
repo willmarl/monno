@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { NewCollectionModal } from "@/features/collections/components/modal/NewCollectionModal";
 import { useModal } from "@/components/providers/ModalProvider";
+import { ProfileListSearch } from "./ProfileListSearch";
 
 interface CollectionsListProps {
   user: PublicUser;
@@ -20,11 +21,13 @@ const DEFAULT_LIMIT = 9;
 export function CollectionsList({ user, isOwner }: CollectionsListProps) {
   const { openModal } = useModal();
   const [page, setPage] = useState(1);
+  const [query, setQuery] = useState("");
 
   const { data, isLoading } = useCollectionsByUserId(
     user.id,
     page,
     DEFAULT_LIMIT,
+    query,
   );
 
   const collections = data?.items ?? [];
@@ -44,6 +47,16 @@ export function CollectionsList({ user, isOwner }: CollectionsListProps) {
         <Plus />
         New Collection
       </Button>
+      <div className="sm:mt-12">
+        <ProfileListSearch
+          placeholder="Search collections…"
+          value={query}
+          onChange={(q) => {
+            setQuery(q);
+            setPage(1);
+          }}
+        />
+      </div>
       <PaginatedListInline
         page={page}
         limit={DEFAULT_LIMIT}
@@ -56,8 +69,10 @@ export function CollectionsList({ user, isOwner }: CollectionsListProps) {
         )}
         title={`Collections by ${user.username}`}
         layout="custom"
-        gridClassName="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-0 sm:mt-20"
-        emptyMessage="No collections yet."
+        gridClassName="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-0"
+        emptyMessage={
+          query ? `No collections matching "${query}".` : "No collections yet."
+        }
       />
     </div>
   );

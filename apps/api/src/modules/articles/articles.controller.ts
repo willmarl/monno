@@ -67,11 +67,11 @@ export class ArticlesController {
   @Get('users/:userId')
   findByUserId(
     @Param('userId', ParseIntPipe) userId: number,
-    @Query() pag: PaginationDto,
+    @Query() searchDto: ArticleSearchDto,
     @Req() req,
   ) {
     const currentUserId = req.user?.sub;
-    return this.articlesService.findByUserId(userId, pag, currentUserId);
+    return this.articlesService.findByUserId(userId, searchDto, currentUserId);
   }
 
   @UseGuards(JwtAccessOptionalGuard)
@@ -89,11 +89,15 @@ export class ArticlesController {
   @Get('users/:userId/liked')
   findLikedByUser(
     @Param('userId', ParseIntPipe) userId: number,
-    @Query() pag: PaginationDto,
+    @Query() searchDto: ArticleSearchDto,
     @Req() req,
   ) {
     const currentUserId = req.user?.sub;
-    return this.articlesService.findLikedByUser(userId, pag, currentUserId);
+    return this.articlesService.findLikedByUser(
+      userId,
+      searchDto,
+      currentUserId,
+    );
   }
 
   @UseGuards(JwtAccessOptionalGuard)

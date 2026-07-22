@@ -114,14 +114,20 @@ export const fetchArticlesByUserId = ({
   userId,
   limit,
   offset,
+  query,
 }: {
   userId: number;
   limit: number;
   offset: number;
-}) =>
-  fetcher<ArticlesList>(`/articles/users/${userId}`, {
-    searchParams: { limit, offset },
-  });
+  query?: string;
+}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (query) searchParams.query = query;
+  return fetcher<ArticlesList>(`/articles/users/${userId}`, { searchParams });
+};
 
 // GET /articles/users/:userId/cursor?limit=10&cursor=abc123
 export const fetchArticlesByUserIdCursor = ({
@@ -200,14 +206,22 @@ export const fetchArticleLikedByUser = ({
   userId,
   limit,
   offset,
+  query,
 }: {
   userId: number;
   limit: number;
   offset: number;
-}) =>
-  fetcher<ArticlesList>(`/articles/users/${userId}/liked`, {
-    searchParams: { limit, offset },
+  query?: string;
+}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (query) searchParams.query = query;
+  return fetcher<ArticlesList>(`/articles/users/${userId}/liked`, {
+    searchParams,
   });
+};
 
 // GET /articles/liked/:userId/cursor?limit=10&cursor=abc123
 export const fetchArticleLikedByUserCursor = ({

@@ -142,12 +142,19 @@ export function useArticlesByUserId(
   userId: number,
   page: number,
   limit: number,
+  query?: string,
 ) {
   const offset = (page - 1) * limit;
 
   return useQuery({
-    queryKey: ["articles-by-user", userId, page],
-    queryFn: () => fetchArticlesByUserId({ userId, limit, offset }),
+    queryKey: ["articles-by-user", userId, page, query ?? ""],
+    queryFn: () =>
+      fetchArticlesByUserId({
+        userId,
+        limit,
+        offset,
+        query: query || undefined,
+      }),
     enabled: !!userId,
   });
 }
@@ -273,12 +280,19 @@ export function useArticleLikedByUser(
   userId: number,
   page: number,
   limit: number,
+  query?: string,
 ) {
   const offset = (page - 1) * limit;
 
   return useQuery({
-    queryKey: ["articles-liked-by-user", userId, page],
-    queryFn: () => fetchArticleLikedByUser({ userId, limit, offset }),
+    queryKey: ["articles-liked-by-user", userId, page, query ?? ""],
+    queryFn: () =>
+      fetchArticleLikedByUser({
+        userId,
+        limit,
+        offset,
+        query: query || undefined,
+      }),
     enabled: !!userId,
   });
 }

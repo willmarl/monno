@@ -80,14 +80,30 @@ export const fetchPostsByUserId = ({
   userId,
   limit,
   offset,
+  query,
+  searchFields,
+  sort,
+  caseSensitive,
 }: {
   userId: number;
   limit: number;
   offset: number;
-}) =>
-  fetcher<PostsList>(`/posts/users/${userId}`, {
-    searchParams: { limit, offset },
-  });
+  query?: string;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (query) searchParams.query = query;
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+
+  return fetcher<PostsList>(`/posts/users/${userId}`, { searchParams });
+};
 
 // GET /posts/users/:userId/cursor?limit=10&cursor=abc123
 export const fetchPostsByUserIdCursor = ({
@@ -108,14 +124,30 @@ export const fetchLikedByUser = ({
   userId,
   limit,
   offset,
+  query,
+  searchFields,
+  sort,
+  caseSensitive,
 }: {
   userId: number;
   limit: number;
   offset: number;
-}) =>
-  fetcher<PostsList>(`/posts/users/${userId}/liked`, {
-    searchParams: { limit, offset },
-  });
+  query?: string;
+  searchFields?: string;
+  sort?: string;
+  caseSensitive?: boolean;
+}) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (query) searchParams.query = query;
+  if (searchFields) searchParams.searchFields = searchFields;
+  if (sort) searchParams.sort = sort;
+  if (caseSensitive) searchParams.caseSensitive = caseSensitive;
+
+  return fetcher<PostsList>(`/posts/users/${userId}/liked`, { searchParams });
+};
 
 // GET /posts/liked/:userId/cursor?limit=10&cursor=abc123
 export const fetchLikedByUserCursor = ({

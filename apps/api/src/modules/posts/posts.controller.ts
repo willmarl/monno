@@ -97,11 +97,11 @@ export class PostsController {
   @Get('users/:userId/liked')
   findLikedByUser(
     @Param('userId', ParseIntPipe) userId: number,
-    @Query() pag: PaginationDto,
+    @Query() searchDto: PostSearchDto,
     @Req() req,
   ) {
     const currentUserId = req.user?.sub ? req.user.sub : undefined;
-    return this.postsService.findLikedByUser(userId, pag, currentUserId);
+    return this.postsService.findLikedByUser(userId, searchDto, currentUserId);
   }
 
   @UseGuards(JwtAccessOptionalGuard)
@@ -119,11 +119,11 @@ export class PostsController {
   @Get('users/:userId')
   findByUserId(
     @Param('userId', ParseIntPipe) userId: number,
-    @Query() pag: PaginationDto,
+    @Query() searchDto: PostSearchDto,
     @Req() req,
   ) {
     const currentUserId = req.user?.sub ? req.user.sub : undefined;
-    return this.postsService.findByUserId(userId, pag, currentUserId);
+    return this.postsService.findByUserId(userId, searchDto, currentUserId);
   }
 
   @UseGuards(JwtAccessOptionalGuard)

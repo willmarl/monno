@@ -48,10 +48,17 @@ export const fetchCollectionByUserId = (
   id: number,
   limit: number = 10,
   offset: number = 0,
-) =>
-  fetcher<CollectionsList>(`/users/${id}/collections`, {
-    searchParams: { limit, offset },
+  query?: string,
+) => {
+  const searchParams: Record<string, string | number | boolean> = {
+    limit,
+    offset,
+  };
+  if (query) searchParams.query = query;
+  return fetcher<CollectionsList>(`/users/${id}/collections`, {
+    searchParams,
   });
+};
 
 // get collection by id
 export const fetchCollectionById = (

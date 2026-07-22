@@ -65,11 +65,13 @@ export function useCollectionsByUserId(
   userId: number,
   page: number = 1,
   limit: number = 10,
+  query?: string,
 ) {
   const offset = (page - 1) * limit;
   return useQuery({
-    queryKey: ["collections-by-user", userId, page, limit],
-    queryFn: () => fetchCollectionByUserId(userId, limit, offset),
+    queryKey: ["collections-by-user", userId, page, limit, query ?? ""],
+    queryFn: () =>
+      fetchCollectionByUserId(userId, limit, offset, query || undefined),
     enabled: !!userId,
   });
 }

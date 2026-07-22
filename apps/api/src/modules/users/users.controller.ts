@@ -40,6 +40,7 @@ import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { UserSearchDto, UserSearchCursorDto } from './dto/search-user.dto';
+import { CollectionSearchDto } from '../collections/dto/search-collection.dto';
 import { cookieConfig } from 'src/config/cookie.config';
 
 // ============================================================
@@ -191,7 +192,7 @@ export class UsersController {
   @Get(':userId/collections')
   async getUserCollections(
     @Param('userId', ParseIntPipe) userId: number,
-    @Query() pag: PaginationDto,
+    @Query() searchDto: CollectionSearchDto,
     @Req() req,
   ) {
     // Verify user exists
@@ -202,7 +203,11 @@ export class UsersController {
 
     const viewerId = req.user?.sub;
     // Get user's collections with pagination (excludes soft-deleted; visibility filtered)
-    return this.collectionsService.findAllByUserId(userId, pag, viewerId);
+    return this.collectionsService.findAllByUserId(
+      userId,
+      searchDto,
+      viewerId,
+    );
   }
 
   @ApiOperation({ summary: 'Get all users (public)' })

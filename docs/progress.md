@@ -77,7 +77,7 @@
 |--------|------|-------|
 | done | [x] Private/public visibility (posts, collections, likes) | 2026-07-22: committed `70f193e` — Visibility on Post/Collection; viewer filters; owner collect private; guide/CLI visibility gate |
 | done | [x] Search + likes for collections | 2026-07-22: `COLLECTION` ResourceType + likeCount; public search/suggest; `/collections` browse tab; LikeButton on card/detail |
-| todo | [ ] Profile / scoped search (posts, articles, liked, collections by user) | polish — query within by-user / liked lists; reuse search DTOs + visibility |
+| done | [x] Profile / scoped search (posts, articles, liked, collections by user) | 2026-07-22: `query` on by-user + liked list endpoints; inline debounced search on profile sections |
 | todo | [ ] View history | |
 | todo | [ ] Report feature (post, user, comment, …) | unlocks mod + admin public remove |
 | todo | [ ] Admin remove-content buttons on public pages | after reports / mod model |

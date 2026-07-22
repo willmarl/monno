@@ -100,22 +100,28 @@ export class PostsService {
 
   async findByUserId(
     userId: number,
-    pag: PaginationDto,
+    searchDto: PostSearchDto,
     viewerId?: number,
   ) {
+    const searchWhere = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchDto.getSearchFields(),
+      options: searchDto.getSearchOptions(),
+    });
     const where = {
       creatorId: userId,
       deleted: false,
       creator: { status: 'ACTIVE' as const },
       ...visibilityWhereForViewer(userId, viewerId),
+      ...searchWhere,
     };
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.post,
-      limit: pag.limit ?? 10,
-      offset: pag.offset ?? 0,
+      limit: searchDto.limit ?? 10,
+      offset: searchDto.offset ?? 0,
       query: {
         where,
-        orderBy: { createdAt: 'desc' } as const,
+        orderBy: searchDto.getOrderBy(),
         select: DEFAULT_POST_SELECT,
       },
       countQuery: { where },
@@ -173,10 +179,9 @@ export class PostsService {
 
   async findLikedByUser(
     userId: number,
-    pag: PaginationDto,
+    searchDto: PostSearchDto,
     viewerId?: number,
   ) {
-    // Check if user exists
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -185,73 +190,64 @@ export class PostsService {
       throw new NotFoundException('User not found');
     }
 
-    // Only posts this viewer can still see (private liked posts drop for non-creators)
-    const likedPostVisibility = visibilityWhereForContentViewer(viewerId);
-
-    // Get total count of posts liked by the user
-    const totalCount = await this.prisma.like.count({
-      where: {
-        userId,
-        resourceType: 'POST',
-      },
-    });
-
-    // Get paginated likes
     const likes = await this.prisma.like.findMany({
-      where: {
-        userId,
-        resourceType: 'POST',
-      },
-      orderBy: { createdAt: 'desc' },
-      skip: pag.offset ?? 0,
-      take: pag.limit ?? 10,
+      where: { userId, resourceType: 'POST' },
       select: { resourceId: true },
     });
+    const likedIds = likes.map((like) => like.resourceId);
 
-    // Get the actual posts
-    const postIds = likes.map((like) => like.resourceId);
-
-    if (postIds.length === 0) {
+    if (likedIds.length === 0) {
       return {
         items: [],
         pageInfo: {
+          totalItems: 0,
           total: 0,
-          limit: pag.limit ?? 10,
-          offset: pag.offset ?? 0,
+          limit: searchDto.limit ?? 10,
+          offset: searchDto.offset ?? 0,
           hasMore: false,
         },
       };
     }
 
-    const posts = await this.prisma.post.findMany({
-      where: {
-        id: { in: postIds },
-        deleted: false,
-        ...likedPostVisibility,
-      },
-      select: DEFAULT_POST_SELECT,
+    const searchWhere = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchDto.getSearchFields(),
+      options: searchDto.getSearchOptions(),
     });
 
-    // Enhance with likes
+    // AND visibility + search so nested OR clauses do not clobber each other
+    const where = {
+      id: { in: likedIds },
+      deleted: false,
+      AND: [
+        visibilityWhereForContentViewer(viewerId),
+        searchWhere,
+      ],
+    };
+
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
+      model: this.prisma.post,
+      limit: searchDto.limit ?? 10,
+      offset: searchDto.offset ?? 0,
+      query: {
+        where,
+        orderBy: searchDto.getOrderBy(),
+        select: DEFAULT_POST_SELECT,
+      },
+      countQuery: { where },
+    });
+
     const enhancedItems = await enhanceWithLikes(
       this.prisma,
       'POST',
-      posts,
+      items,
       viewerId,
     );
 
-    const limit = pag.limit ?? 10;
-    const offset = pag.offset ?? 0;
-    const hasMore = offset + limit < totalCount;
-
     return {
       items: enhancedItems,
-      pageInfo: {
-        total: totalCount,
-        limit,
-        offset,
-        hasMore,
-      },
+      pageInfo,
+      ...(isRedirected && { isRedirected: true }),
     };
   }
 

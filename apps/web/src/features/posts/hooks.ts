@@ -98,12 +98,18 @@ export function usePostSuggestions(q: string, limit: number = 5) {
   });
 }
 
-export function usePostsByUserId(userId: number, page: number, limit: number) {
+export function usePostsByUserId(
+  userId: number,
+  page: number,
+  limit: number,
+  query?: string,
+) {
   const offset = (page - 1) * limit;
 
   return useQuery({
-    queryKey: ["posts-by-user", userId, page],
-    queryFn: () => fetchPostsByUserId({ userId, limit, offset }),
+    queryKey: ["posts-by-user", userId, page, query ?? ""],
+    queryFn: () =>
+      fetchPostsByUserId({ userId, limit, offset, query: query || undefined }),
     enabled: !!userId,
   });
 }
@@ -123,12 +129,18 @@ export function usePostsByUserIdCursor(userId: number, limit: number = 10) {
   });
 }
 
-export function useLikedByUser(userId: number, page: number, limit: number) {
+export function useLikedByUser(
+  userId: number,
+  page: number,
+  limit: number,
+  query?: string,
+) {
   const offset = (page - 1) * limit;
 
   return useQuery({
-    queryKey: ["liked-by-user", userId, page],
-    queryFn: () => fetchLikedByUser({ userId, limit, offset }),
+    queryKey: ["liked-by-user", userId, page, query ?? ""],
+    queryFn: () =>
+      fetchLikedByUser({ userId, limit, offset, query: query || undefined }),
     enabled: !!userId,
   });
 }

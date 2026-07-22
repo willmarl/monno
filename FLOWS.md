@@ -35,6 +35,7 @@ AI agents should read this file before writing tests for any module.
 - Private content is visible only to the creator (and admins where applicable). Non-owners get **404** (same as soft-delete), including by-id fetches — closes collection IDOR.
 - Public search/feeds list `PUBLIC` only. Profile lists are viewer-aware (owner sees own private items).
 - Collections support public search (`GET /collections`, suggest) and likes (`ResourceType.COLLECTION` + `likeCount`). Search never returns others’ private collections.
+- Profile lists (posts / articles / liked / collections by user) accept the same `query` (+ optional searchFields/sort) as global search, scoped to that user with existing visibility rules. Liked lists search among liked resources (not sparse like-pagination).
 - Liked-by-user lists only include posts the **viewer** can access: if a liked post later becomes private, it disappears for everyone except the post creator (same idea as skipping private items in a public collection).
 - Private posts may be added to the owner’s collections (private or public). Viewers who can’t see a private item skip it (YouTube playlist style); owners still see their private items in the list.
 

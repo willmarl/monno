@@ -86,21 +86,27 @@ export class CollectionsService {
    */
   async findAllByUserId(
     userId: number,
-    pag: PaginationDto,
+    searchDto: CollectionSearchDto,
     viewerId?: number,
   ) {
+    const searchWhere = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchDto.getSearchFields(),
+      options: searchDto.getSearchOptions(),
+    });
     const where = {
       creatorId: userId,
       deleted: false,
       ...visibilityWhereForViewer(userId, viewerId),
+      ...searchWhere,
     };
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.collection,
-      limit: pag.limit ?? 10,
-      offset: pag.offset ?? 0,
+      limit: searchDto.limit ?? 10,
+      offset: searchDto.offset ?? 0,
       query: {
         where,
-        orderBy: { createdAt: 'desc' } as const,
+        orderBy: searchDto.getOrderBy(),
         select: DEFAULT_COLLECTION_SELECT,
       },
       countQuery: { where },

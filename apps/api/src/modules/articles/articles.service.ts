@@ -140,21 +140,27 @@ export class ArticlesService {
 
   async findByUserId(
     userId: number,
-    pag: PaginationDto,
+    searchDto: ArticleSearchDto,
     currentUserId?: number,
   ) {
+    const searchWhere = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchDto.getSearchFields(),
+      options: searchDto.getSearchOptions(),
+    });
     const where = {
       creatorId: userId,
       deleted: false,
-      creator: { status: 'ACTIVE' },
+      creator: { status: 'ACTIVE' as const },
+      ...searchWhere,
     };
     const { items, pageInfo, isRedirected } = await offsetPaginate({
       model: this.prisma.article,
-      limit: pag.limit ?? 10,
-      offset: pag.offset ?? 0,
+      limit: searchDto.limit ?? 10,
+      offset: searchDto.offset ?? 0,
       query: {
         where,
-        orderBy: { createdAt: 'desc' } as const,
+        orderBy: searchDto.getOrderBy(),
         select: DEFAULT_ARTICLE_SELECT,
       },
       countQuery: { where },
@@ -211,61 +217,66 @@ export class ArticlesService {
 
   async findLikedByUser(
     userId: number,
-    pag: PaginationDto,
+    searchDto: ArticleSearchDto,
     currentUserId?: number,
   ) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    const totalCount = await this.prisma.like.count({
-      where: { userId, resourceType: 'ARTICLE' },
-    });
-
     const likes = await this.prisma.like.findMany({
       where: { userId, resourceType: 'ARTICLE' },
-      orderBy: { createdAt: 'desc' },
-      skip: pag.offset ?? 0,
-      take: pag.limit ?? 10,
       select: { resourceId: true },
     });
+    const likedIds = likes.map((like) => like.resourceId);
 
-    const articleIds = likes.map((like) => like.resourceId);
-
-    if (articleIds.length === 0) {
+    if (likedIds.length === 0) {
       return {
         items: [],
         pageInfo: {
+          totalItems: 0,
           total: 0,
-          limit: pag.limit ?? 10,
-          offset: pag.offset ?? 0,
+          limit: searchDto.limit ?? 10,
+          offset: searchDto.offset ?? 0,
           hasMore: false,
         },
       };
     }
 
-    const articles = await this.prisma.article.findMany({
-      where: { id: { in: articleIds }, deleted: false },
-      select: DEFAULT_ARTICLE_SELECT,
+    const searchWhere = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchDto.getSearchFields(),
+      options: searchDto.getSearchOptions(),
+    });
+
+    const where = {
+      id: { in: likedIds },
+      deleted: false,
+      ...searchWhere,
+    };
+
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
+      model: this.prisma.article,
+      limit: searchDto.limit ?? 10,
+      offset: searchDto.offset ?? 0,
+      query: {
+        where,
+        orderBy: searchDto.getOrderBy(),
+        select: DEFAULT_ARTICLE_SELECT,
+      },
+      countQuery: { where },
     });
 
     const enhancedItems = await enhanceWithLikes(
       this.prisma,
       'ARTICLE',
-      articles,
+      items,
       currentUserId,
     );
 
-    const limit = pag.limit ?? 10;
-    const offset = pag.offset ?? 0;
-
     return {
       items: enhancedItems,
-      pageInfo: {
-        total: totalCount,
-        limit,
-        offset,
-        hasMore: offset + limit < totalCount,
-      },
+      pageInfo,
+      ...(isRedirected && { isRedirected: true }),
     };
   }
 
