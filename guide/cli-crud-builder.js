@@ -435,6 +435,7 @@ Only implement sections in PROGRESS-${resource}.md. Examples:
 - No "Admin Functionality" → skip ALL admin steps (including 3-admin-create.md / 22-admin-create.md)
 - No search → skip 9.md and 20.md
 - visibility=none → skip visibility.md
+- PROFILE=no → skip profile section in 18.md and skip profile-search.md
 - Pagination offset only → skip ALL cursor steps
 
 **File Management:**
@@ -468,7 +469,7 @@ I want to create a **${resource}** CRUD resource. The feature decisions are alre
 - Visibility (private/public): ${visibilityLabel(config.visibility)}
 - Resource actions: ${actions}
 - Frontend: ${config.frontend ? "yes" : "no"}${paginationUI}
-- Profile page integration: ${config.profileIntegration ? "yes" : "no"}
+- Profile page integration: ${config.profileIntegration ? "yes (includes scoped search on by-user lists — see profile-search.md)" : "no"}
 
 **Infrastructure reminder:** Polymorphic Like, Comment, Collection models exist (via ResourceType enum). Views = counter on model. Soft delete = deleted/deletedAt fields. Visibility = existing \`Visibility\` enum + column on the resource (NOT a polymorphic addon — do NOT add PRIVATEABLE_RESOURCES). Do NOT invent separate ${resource}Like, ${resource}Comment tables.
 
@@ -912,7 +913,12 @@ function generateProgressFile(resource, config) {
 - [ ] Step 3: Use list component from Part 13
 - [ ] Step 4: Filter to show only user's {{resource}}s
 - [ ] Step 5: Add quick create/edit buttons
-- [ ] Step 6: Test profile integration`;
+- [ ] **Scoped search (required with profile):** follow \`guide/guidev2/profile-search.md\`
+  - [ ] \`findByUserId\` accepts search DTO (\`query\` + buildSearchWhere)
+  - [ ] API/hooks pass optional \`query\`; React Query key includes query
+  - [ ] \`ProfileListSearch\` on Users{{resource}}List (debounced, local state)
+  - [ ] If likes: same for liked-by-user list
+- [ ] Step 6: Test profile integration + profile search`;
     }
 
     if (config.admin !== "none") {
@@ -994,7 +1000,7 @@ function generateProgressFile(resource, config) {
 - **Visibility:** ${visibilityLabel(config.visibility)}${config.visibility !== "none" ? " → follow \`visibility.md\` (not a path letter)" : ""}
 - **Resource Actions:** ${config.resourceActions.length > 0 ? config.resourceActions.join(", ") : "none"}
 - **Frontend:** ${config.frontend ? "yes" : "no"}${config.frontend && config.paginationUI.length > 0 ? ` (UI: ${config.paginationUI.join(", ")})` : ""}
-- **Profile Integration:** ${config.profileIntegration ? "yes" : "no"}
+- **Profile Integration:** ${config.profileIntegration ? "yes → also open profile-search.md after 18.md" : "no"}
 
 ---
 
@@ -1186,6 +1192,7 @@ ${
 }
 ### Additional Pages
 - [${config.profileIntegration ? "x" : " "}] Resource list on user profile page
+- [${config.profileIntegration ? "x" : " "}] Scoped search on profile by-user list (\`profile-search.md\`)
 - [ ] Admin dashboard page + data table
 `
     : ""

@@ -103,6 +103,7 @@ If `FRONTEND=no` → stop after Part 11. Hand off to human for endpoint testing.
 | 16    | `16{L}.md`                   | Card/component (path-exclusive); private badge if VISIBILITY≠none |
 | 17    | `17.md`                      | List/pagination UI per PAGINATION_UI              |
 | 18    | `18.md`                      | Pages; profile section only if PROFILE            |
+| 18b   | `profile-search.md`          | **SKIP** if !PROFILE — by-user / liked scoped `query` |
 | 19    | `19.md` then `19{L}.md`      | **SKIP** if !ADMIN; columns media fork in `19{L}` |
 | 22    | `22-admin-create.md`         | **SKIP** if !ADMIN — dashboard create button/form |
 | 20    | `20.md`                      | **SKIP entire file** if SEARCH=none               |

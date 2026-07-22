@@ -216,6 +216,7 @@ Go through this checklist with the human **before writing any code**. Do not pro
 - [ ] Do you want frontend implemented at all, or just the backend?
 - [ ] If cursor pagination: **load more button**, **infinite scroll**, or both?
 - [ ] Should the resource list appear on the **user profile page**?
+  - [ ] If yes: by-user (and liked, if likes) lists get **scoped search** — see `profile-search.md` (bundled with profile; not a separate gate)
 - [ ] **Frontend resource actions** — confirm same set as backend (likes UI, views UI, comments UI, collections UI)
 - [ ] **Admin dashboard** page + data table?
 

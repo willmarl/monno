@@ -217,6 +217,6 @@ but hey better than doing it urself. and im not gonna use sonnet or opus and bur
 
 **GUIDE (guidev2)**
 
-Implementation guide is path-based under `guide/guidev2/` — start at `ROUTER.md`. Media variants are exclusive files (`a`/`b`/`c`). Optional **visibility** is a feature gate (`visibility.md`), not a path letter. Missing-file safety net: [validate-resource](../guide/validate-resource.js).
+Implementation guide is path-based under `guide/guidev2/` — start at `ROUTER.md`. Media variants are exclusive files (`a`/`b`/`c`). Optional **visibility** is a feature gate (`visibility.md`); **profile scoped search** ships with PROFILE (`profile-search.md`). Missing-file safety net: [validate-resource](../guide/validate-resource.js).
 
 After Session 2, the CLI prints a **copy-paste first message** with `PATH_LETTER` locked from `CONFIG`. Use the checkpoint continue block when context fills.
