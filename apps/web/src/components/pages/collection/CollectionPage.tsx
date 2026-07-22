@@ -4,7 +4,6 @@ import { useCollectionById } from "@/features/collections/hooks";
 import { Pencil, Trash, User, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import { formatDate } from "@/lib/utils/date";
 import { CollectionItemsList } from "./CollectionItemsList";
@@ -17,6 +16,9 @@ import { useRouter } from "next/navigation";
 import { PageNotFound } from "@/components/common/PageNotFound";
 import { PageLoadingState } from "@/components/common/PageLoadingState";
 import { useEffect } from "react";
+import { LikeButton } from "@/components/common/LikeButton";
+import { useToggleLike } from "@/features/likes/hooks";
+import { RESOURCE_TYPES } from "@/types/resource";
 interface CollectionPageProps {
   id: number;
   isOwner?: boolean;
@@ -27,6 +29,7 @@ export function CollectionPage({ id }: CollectionPageProps) {
   const { data: user } = useSessionUser();
   const { data, isLoading, error } = useCollectionById(id);
   const { openModal } = useModal();
+  const like = useToggleLike();
   const isOwner = data?.creator.id === user?.id;
   useEffect(() => {
     document.title = `${data?.name || "Collection"} | ${process.env.NEXT_PUBLIC_APP_NAME}`;
@@ -43,6 +46,13 @@ export function CollectionPage({ id }: CollectionPageProps) {
     );
 
   const formatted = formatDate(data?.createdAt);
+
+  function handleLike() {
+    like.mutateAsync({
+      resourceType: RESOURCE_TYPES.COLLECTION,
+      resourceId: data!.id,
+    });
+  }
 
   return (
     <div className="space-y-6">
@@ -107,6 +117,12 @@ export function CollectionPage({ id }: CollectionPageProps) {
               <Calendar className="w-4 h-4" />
               <span>{formatted}</span>
             </div>
+            <LikeButton
+              isOwner={isOwner}
+              likedByMe={data.likedByMe}
+              likeCount={data.likeCount}
+              onLike={handleLike}
+            />
           </div>
         </div>
       </Card>

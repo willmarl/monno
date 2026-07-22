@@ -9,12 +9,54 @@ import {
   addCollectionItem,
   removeCollectionItem,
   fetchCollectionsForResource,
+  fetchCollections,
+  fetchCollectionSuggestions,
   fetchAdminCollections,
   fetchAdminCollectionById,
   deleteAdminCollection,
   updateAdminCollection,
   restoreAdminCollection,
 } from "./api";
+
+/**
+ * Public collection search (offset)
+ */
+export function useCollections(
+  page: number = 1,
+  limit: number = 10,
+  query?: string,
+  options?: { searchFields?: string; sort?: string; caseSensitive?: boolean },
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: [
+      "collections",
+      page,
+      query,
+      options?.searchFields,
+      options?.sort,
+      options?.caseSensitive,
+    ],
+    queryFn: () =>
+      fetchCollections({
+        query,
+        limit,
+        offset,
+        searchFields: options?.searchFields,
+        sort: options?.sort,
+        caseSensitive: options?.caseSensitive,
+      }),
+  });
+}
+
+export function useCollectionSuggestions(q: string, limit = 5) {
+  return useQuery({
+    queryKey: ["collection-suggestions", q, limit],
+    queryFn: () => fetchCollectionSuggestions(q, limit),
+    enabled: q.length > 0,
+  });
+}
 
 /**
  * Get all collections for a user

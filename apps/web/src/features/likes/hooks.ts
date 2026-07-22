@@ -21,6 +21,13 @@ export function useToggleLike() {
         queryKey: ["articles-liked-by-user"],
         exact: false,
       });
+      qc.invalidateQueries({ queryKey: ["collections"], exact: false });
+      qc.invalidateQueries({ queryKey: ["collection"], exact: false });
+      qc.invalidateQueries({ queryKey: ["collections-by-user"], exact: false });
+      qc.invalidateQueries({
+        queryKey: ["collection-suggestions"],
+        exact: false,
+      });
     },
     throwOnError: false, // Don't throw errors, let component handle them
   });

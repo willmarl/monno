@@ -21,6 +21,10 @@ import { RemoveCollectionItemDto } from './dto/remove-collection-item.dto';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { JwtAccessOptionalGuard } from '../auth/guards/jwt-access-optional.guard';
+import {
+  CollectionSearchDto,
+  CollectionSearchCursorDto,
+} from './dto/search-collection.dto';
 
 @ApiBearerAuth()
 @Controller('collections')
@@ -38,6 +42,45 @@ export class CollectionsController {
   create(@Req() req, @Body() body: CreateCollectionDto) {
     const userId = req.user.sub;
     return this.collectionsService.create(userId, body);
+  }
+
+  @UseGuards(JwtAccessOptionalGuard)
+  @Get()
+  @ApiOperation({ summary: 'Search public collections (offset)' })
+  findAll(@Query() searchDto: CollectionSearchDto, @Req() req) {
+    const userId = req.user?.sub ? req.user.sub : undefined;
+    return this.collectionsService.searchAll(searchDto, userId);
+  }
+
+  @UseGuards(JwtAccessOptionalGuard)
+  @Get('cursor')
+  @ApiOperation({ summary: 'Search public collections (cursor)' })
+  findAllCursor(@Query() searchDto: CollectionSearchCursorDto, @Req() req) {
+    const userId = req.user?.sub ? req.user.sub : undefined;
+    return this.collectionsService.searchAllCursor(searchDto, userId);
+  }
+
+  @UseGuards(JwtAccessOptionalGuard)
+  @Get('search')
+  @ApiOperation({ summary: 'Search public collections with offset pagination' })
+  search(@Query() searchDto: CollectionSearchDto, @Req() req) {
+    const userId = req.user?.sub ? req.user.sub : undefined;
+    return this.collectionsService.searchAll(searchDto, userId);
+  }
+
+  @UseGuards(JwtAccessOptionalGuard)
+  @Get('search/cursor')
+  @ApiOperation({ summary: 'Search public collections with cursor pagination' })
+  searchCursor(@Query() searchDto: CollectionSearchCursorDto, @Req() req) {
+    const userId = req.user?.sub ? req.user.sub : undefined;
+    return this.collectionsService.searchAllCursor(searchDto, userId);
+  }
+
+  @UseGuards(JwtAccessOptionalGuard)
+  @Get('search/suggest')
+  findSuggest(@Query('q') q: string, @Query('limit') limit = 5, @Req() req) {
+    const userId = req.user?.sub ? req.user.sub : undefined;
+    return this.collectionsService.searchSuggest(q, Number(limit), userId);
   }
 
   /**

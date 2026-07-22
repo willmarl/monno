@@ -7,6 +7,7 @@ export const RESOURCE_TYPES = {
   POST: "POST",
   COMMENT: "COMMENT",
   ARTICLE: "ARTICLE",
+  COLLECTION: "COLLECTION",
   // VIDEO: "VIDEO",
 } as const;
 

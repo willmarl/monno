@@ -16,7 +16,15 @@ import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.e
 import {
   visibilityWhereForViewer,
   canViewPrivateContent,
+  publicVisibilityWhere,
 } from 'src/common/visibility/visibility';
+import { enhanceWithLikes } from 'src/common/likes/enhance-with-likes';
+import { buildSearchWhere } from 'src/common/search/search.utils';
+import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
+import {
+  CollectionSearchDto,
+  CollectionSearchCursorDto,
+} from './dto/search-collection.dto';
 
 type CollectableResourceConfig = { model: keyof PrismaService; label: string };
 
@@ -34,6 +42,7 @@ const DEFAULT_COLLECTION_SELECT = {
   description: true,
   createdAt: true,
   updatedAt: true,
+  likeCount: true,
   creator: {
     select: { id: true, username: true, avatarPath: true },
   },
@@ -97,8 +106,15 @@ export class CollectionsService {
       countQuery: { where },
     });
 
-    return {
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'COLLECTION',
       items,
+      viewerId,
+    );
+
+    return {
+      items: enhancedItems,
       pageInfo,
       ...(isRedirected && { isRedirected: true }),
     };
@@ -154,8 +170,15 @@ export class CollectionsService {
     // Remove the deleted flag from response
     const { deleted, ...result } = collection;
 
+    const [enhanced] = await enhanceWithLikes(
+      this.prisma,
+      'COLLECTION',
+      [result],
+      viewerId,
+    );
+
     return {
-      ...result,
+      ...enhanced,
       itemsPageInfo: {
         total: totalItemCount,
         limit,
@@ -384,6 +407,124 @@ export class CollectionsService {
         `${config.label} not found or has been deleted`,
       );
     }
+  }
+
+  /**
+   * Public search — PUBLIC collections only (even for authenticated users).
+   */
+  async searchAll(searchDto: CollectionSearchDto, currentUserId?: number) {
+    const searchFields = searchDto.getSearchFields();
+    const searchOptions = searchDto.getSearchOptions();
+    const orderBy = searchDto.getOrderBy();
+
+    const where = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    });
+
+    const whereWithStatus = {
+      ...where,
+      deleted: false,
+      creator: { status: 'ACTIVE' as const },
+      ...publicVisibilityWhere(),
+    };
+
+    const { items, pageInfo, isRedirected } = await offsetPaginate({
+      model: this.prisma.collection,
+      limit: searchDto.limit ?? 10,
+      offset: searchDto.offset ?? 0,
+      query: {
+        where: whereWithStatus,
+        orderBy,
+        select: DEFAULT_COLLECTION_SELECT,
+      },
+      countQuery: { where: whereWithStatus },
+    });
+
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'COLLECTION',
+      items,
+      currentUserId,
+    );
+
+    return {
+      items: enhancedItems,
+      pageInfo,
+      ...(isRedirected && { isRedirected: true }),
+    };
+  }
+
+  async searchAllCursor(
+    searchDto: CollectionSearchCursorDto,
+    currentUserId?: number,
+  ) {
+    const searchFields = searchDto.getSearchFields();
+    const searchOptions = searchDto.getSearchOptions();
+    const orderBy = searchDto.getOrderBy();
+
+    const where = buildSearchWhere({
+      query: searchDto.query ?? '',
+      fields: searchFields,
+      options: searchOptions,
+    });
+
+    const { cursor, limit } = searchDto;
+
+    const { items, nextCursor } = await cursorPaginate({
+      model: this.prisma.collection,
+      limit: limit ?? 10,
+      cursor,
+      query: {
+        where: {
+          ...where,
+          deleted: false,
+          creator: { status: 'ACTIVE' as const },
+          ...publicVisibilityWhere(),
+        },
+        orderBy,
+        select: DEFAULT_COLLECTION_SELECT,
+      },
+    });
+
+    const enhancedItems = await enhanceWithLikes(
+      this.prisma,
+      'COLLECTION',
+      items,
+      currentUserId,
+    );
+
+    return {
+      items: enhancedItems,
+      nextCursor,
+    };
+  }
+
+  async searchSuggest(q: string, limit: number, currentUserId?: number) {
+    if (!q) return [];
+
+    const collections = await this.prisma.collection.findMany({
+      where: {
+        deleted: false,
+        creator: { status: 'ACTIVE' },
+        ...publicVisibilityWhere(),
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } },
+          { description: { contains: q, mode: 'insensitive' } },
+        ],
+      },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      select: DEFAULT_COLLECTION_SELECT,
+    });
+
+    return enhanceWithLikes(
+      this.prisma,
+      'COLLECTION',
+      collections,
+      currentUserId,
+    );
   }
 
   /**

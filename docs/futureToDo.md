@@ -25,7 +25,7 @@
 **Main Resources/Modules**
 
 - View history feature (view history of posts, articles, etc)
-- Search and likes for collections
+- Search and likes for collections — done 2026-07-22 (public search + COLLECTION likes)
 - Profile / scoped search: query filter on posts-by-user, articles-by-user, liked-by-user, collections-by-user
 - ~~Private/public visibility toggle for posts, collections, likes~~ (done 2026-07-21)
   - Owner may add private posts to own collections; viewers skip unavailable items; private/deleted detail → 404 copy

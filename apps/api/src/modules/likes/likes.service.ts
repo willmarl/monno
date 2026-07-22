@@ -17,6 +17,7 @@ const LIKEABLE_RESOURCE_CONFIG: Record<LikeableResourceType, ResourceConfig> = {
   POST: { model: 'post', label: 'Post' },
   COMMENT: { model: 'comment', label: 'Comment' },
   ARTICLE: { model: 'article', label: 'Article' },
+  COLLECTION: { model: 'collection', label: 'Collection' },
 };
 
 @Injectable()
@@ -121,9 +122,9 @@ export class LikesService {
   }
 
   /**
-   * Validate that the resource exists (post, article, comment, etc.)
+   * Validate that the resource exists (post, article, comment, collection, etc.)
    * Driven by LIKEABLE_RESOURCE_CONFIG — add a new entry there to support a new type.
-   * PRIVATE posts: only the creator may like/unlike.
+   * PRIVATE resources: only the creator may like/unlike.
    */
   private async validateResourceExists(
     resourceType: LikeableResourceType,
@@ -143,7 +144,6 @@ export class LikesService {
     }
 
     if (
-      resourceType === 'POST' &&
       record.visibility === 'PRIVATE' &&
       record.creatorId !== userId
     ) {

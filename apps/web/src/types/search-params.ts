@@ -45,6 +45,8 @@ export interface PublicPostSearchParams extends SearchParams {}
 
 export interface PublicUserSearchParams extends SearchParams {}
 
+export interface PublicCollectionSearchParams extends SearchParams {}
+
 export interface PublicArticleSearchParams extends SearchParams {
   statuses?: string;
 }

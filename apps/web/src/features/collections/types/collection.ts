@@ -18,6 +18,8 @@ export interface Collection {
   deleted: boolean;
   deletedAt: string;
   visibility: "PUBLIC" | "PRIVATE";
+  likeCount: number;
+  likedByMe: boolean;
 }
 
 export type CollectionsList = PaginatedResponse<Collection>;

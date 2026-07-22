@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsBoolean, IsIn } from 'class-validator';
+import { IsOptional, IsString, IsBoolean } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
@@ -112,7 +112,82 @@ export class CollectionSearchDto extends PaginationDto {
     }
 
     const [field, direction] = this.sort.split('|');
-    const validFields = ['createdAt', 'updatedAt'];
+    const validFields = ['createdAt', 'updatedAt', 'likeCount'];
+    const validDirection = ['asc', 'desc'].includes(direction?.toLowerCase())
+      ? (direction?.toLowerCase() as 'asc' | 'desc')
+      : 'desc';
+
+    if (!validFields.includes(field)) {
+      return { createdAt: 'desc' };
+    }
+
+    return { [field]: validDirection };
+  }
+}
+
+/**
+ * Search DTO for collections with cursor pagination
+ */
+export class CollectionSearchCursorDto extends CursorPaginationDto {
+  @ApiPropertyOptional({
+    description: 'Search query string',
+    example: 'hello world',
+  })
+  @IsOptional()
+  @IsString()
+  query?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Comma-separated list of fields to search in (name, description, creator.username). Defaults to all.',
+    example: 'name,description',
+  })
+  @IsOptional()
+  @IsString()
+  searchFields?: string;
+
+  @ApiPropertyOptional({
+    description: 'Enable case-sensitive search (default: false)',
+    example: false,
+  })
+  @IsOptional()
+  @TransformBoolean()
+  @IsBoolean()
+  caseSensitive?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      'Sort by field and direction (field|direction). E.g., createdAt|desc, likeCount|desc',
+    example: 'createdAt|desc',
+  })
+  @IsOptional()
+  @IsString()
+  sort?: string;
+
+  getSearchFields(): string[] {
+    if (!this.searchFields) {
+      return VALID_COLLECTION_SEARCH_FIELDS;
+    }
+
+    return this.searchFields
+      .split(',')
+      .map((field) => field.trim())
+      .filter((field) => VALID_COLLECTION_SEARCH_FIELDS.includes(field as any));
+  }
+
+  getSearchOptions() {
+    return {
+      caseSensitive: this.caseSensitive ?? false,
+    };
+  }
+
+  getOrderBy(): Record<string, 'asc' | 'desc'> {
+    if (!this.sort) {
+      return { createdAt: 'desc' };
+    }
+
+    const [field, direction] = this.sort.split('|');
+    const validFields = ['createdAt', 'updatedAt', 'likeCount'];
     const validDirection = ['asc', 'desc'].includes(direction?.toLowerCase())
       ? (direction?.toLowerCase() as 'asc' | 'desc')
       : 'desc';

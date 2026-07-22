@@ -1,7 +1,12 @@
+"use client";
+
 import { Card } from "./card";
 import { FolderPlus } from "lucide-react";
 import { Collection } from "@/features/collections/types/collection";
 import { useRouter } from "next/navigation";
+import { LikeButton } from "../common/LikeButton";
+import { useToggleLike } from "@/features/likes/hooks";
+import { RESOURCE_TYPES } from "@/types/resource";
 
 export function CollectionCard({
   data,
@@ -11,7 +16,16 @@ export function CollectionCard({
   isOwner: boolean;
 }) {
   const router = useRouter();
-  // isOwner is here just incase, technically not needed
+  const like = useToggleLike();
+
+  function handleLike(e: React.MouseEvent) {
+    e.stopPropagation();
+    like.mutateAsync({
+      resourceType: RESOURCE_TYPES.COLLECTION,
+      resourceId: data.id,
+    });
+  }
+
   return (
     <Card
       onClick={() => router.push(`/collection/${data.id}`)}
@@ -26,9 +40,20 @@ export function CollectionCard({
           </span>
         )}
       </div>
-      <p className="text-sm text-muted-foreground line-clamp-2">
+      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
         {data?.description}
       </p>
+      <div
+        className="flex justify-end"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <LikeButton
+          isOwner={isOwner}
+          likedByMe={data.likedByMe}
+          likeCount={data.likeCount}
+          onLike={handleLike}
+        />
+      </div>
     </Card>
   );
 }
