@@ -32,6 +32,10 @@ function resourceHref(report: AdminReport): string | null {
       return `/article/${report.resourceId}`;
     case "COLLECTION":
       return `/collection/${report.resourceId}`;
+    case "USER":
+      return report.targetUsername
+        ? `/user/${report.targetUsername}`
+        : null;
     default:
       return null;
   }
@@ -48,7 +52,9 @@ function ReviewReportForm({ report }: { report: AdminReport }) {
       <div className="text-sm space-y-1">
         <p>
           <span className="text-muted-foreground">Target:</span>{" "}
-          {report.resourceType} #{report.resourceId}
+          {report.resourceType === "USER" && report.targetUsername
+            ? `@${report.targetUsername}`
+            : `${report.resourceType} #${report.resourceId}`}
         </p>
         <p>
           <span className="text-muted-foreground">Reason:</span> {report.reason}
@@ -185,7 +191,7 @@ export function AdminReportsPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
         <p className="text-sm text-muted-foreground">
-          Review user reports on posts, articles, comments, and collections.
+          Review user reports on posts, articles, comments, collections, and users.
         </p>
       </div>
 

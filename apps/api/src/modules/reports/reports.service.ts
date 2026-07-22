@@ -20,7 +20,11 @@ export class ReportsService {
     const ownership = await this.resolveTarget(dto.resourceType, dto.resourceId);
 
     if (ownership.creatorId === reporterId) {
-      throw new ForbiddenException('You cannot report your own content');
+      throw new ForbiddenException(
+        dto.resourceType === 'USER'
+          ? 'You cannot report yourself'
+          : 'You cannot report your own content',
+      );
     }
 
     if (
@@ -41,7 +45,9 @@ export class ReportsService {
 
     if (existing) {
       throw new ConflictException(
-        'You already have an open report for this content',
+        dto.resourceType === 'USER'
+          ? 'You already have an open report for this user'
+          : 'You already have an open report for this content',
       );
     }
 
@@ -69,6 +75,17 @@ export class ReportsService {
     resourceType: ReportableResourceType,
     resourceId: number,
   ): Promise<{ creatorId: number; visibility?: 'PUBLIC' | 'PRIVATE' }> {
+    if (resourceType === 'USER') {
+      const user = await this.prisma.user.findUnique({
+        where: { id: resourceId },
+        select: { id: true, deleted: true, status: true },
+      });
+      if (!user || user.deleted || user.status === 'DELETED') {
+        throw new NotFoundException('User not found');
+      }
+      return { creatorId: user.id };
+    }
+
     if (resourceType === 'POST') {
       const post = await this.prisma.post.findUnique({
         where: { id: resourceId },

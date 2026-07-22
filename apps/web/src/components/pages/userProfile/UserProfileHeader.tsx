@@ -5,6 +5,9 @@ import { PublicUser } from "@/features/users/types/user";
 import { Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { ReportButton } from "@/components/common/ReportButton";
+import { RESOURCE_TYPES } from "@/types/resource";
+
 interface UserProfileHeaderProps {
   user: PublicUser;
   isOwner: boolean;
@@ -48,7 +51,6 @@ export function UserProfileHeader({ user, isOwner }: UserProfileHeaderProps) {
 
   return (
     <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-start">
-      {/* Profile Avatar */}
       <Avatar className="h-16 md:h-24 w-16 md:w-24 flex-shrink-0">
         {user.avatarPath && (
           <AvatarImage src={user.avatarPath} alt={user.username} />
@@ -58,11 +60,17 @@ export function UserProfileHeader({ user, isOwner }: UserProfileHeaderProps) {
         </AvatarFallback>
       </Avatar>
 
-      {/* User Info */}
       <div className="flex-1 w-full flex flex-col">
-        <h1 className="text-xl md:text-3xl font-bold text-foreground break-words">
-          {user.username}
-        </h1>
+        <div className="flex items-start justify-between gap-2">
+          <h1 className="text-xl md:text-3xl font-bold text-foreground break-words">
+            {user.username}
+          </h1>
+          <ReportButton
+            resourceType={RESOURCE_TYPES.USER}
+            resourceId={user.id}
+            isOwner={isOwner}
+          />
+        </div>
         <div className="mt-2 md:mt-4 flex items-center gap-2 text-muted-foreground">
           <Calendar className="h-4 w-4 flex-shrink-0" />
           <span className="text-xs md:text-sm">Joined {joinedText}</span>

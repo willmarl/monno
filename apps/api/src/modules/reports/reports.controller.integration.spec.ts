@@ -126,4 +126,41 @@ describe('ReportsController (integration)', () => {
     expect(updated.body.data.status).toBe('RESOLVED');
     expect(updated.body.data.resolver.username).toBe(admin.username);
   });
+
+  it('allows reporting a user from profile context', async () => {
+    const self = await request(testApp.app.getHttpServer())
+      .post('/reports')
+      .set('Cookie', reporterCookies)
+      .send({
+        resourceType: 'USER',
+        resourceId: reporter.id,
+        reason: 'NSFW',
+      });
+    expect(self.status).toBe(403);
+
+    const res = await request(testApp.app.getHttpServer())
+      .post('/reports')
+      .set('Cookie', reporterCookies)
+      .send({
+        resourceType: 'USER',
+        resourceId: owner.id,
+        reason: 'NSFW',
+        details: 'bad avatar',
+      });
+    expect(res.status).toBe(201);
+    expect(res.body.data.resourceType).toBe('USER');
+
+    const list = await request(testApp.app.getHttpServer())
+      .get('/admin/reports')
+      .query({ resourceType: 'USER', status: 'OPEN' })
+      .set('Cookie', adminCookies);
+    expect(list.status).toBe(200);
+    expect(
+      list.body.data.items.some(
+        (item: { resourceId: number; targetUsername?: string }) =>
+          item.resourceId === owner.id &&
+          item.targetUsername === owner.username,
+      ),
+    ).toBe(true);
+  });
 });

@@ -5,6 +5,7 @@ export const REPORTABLE_RESOURCES = [
   "ARTICLE",
   "COMMENT",
   "COLLECTION",
+  "USER",
 ] as const;
 
 export type ReportableResourceType = (typeof REPORTABLE_RESOURCES)[number];
@@ -58,6 +59,8 @@ export interface AdminReport {
   createdAt: string;
   updatedAt: string;
   resolvedAt: string | null;
+  /** Present when resourceType is USER */
+  targetUsername?: string | null;
   reporter: {
     id: number;
     username: string;

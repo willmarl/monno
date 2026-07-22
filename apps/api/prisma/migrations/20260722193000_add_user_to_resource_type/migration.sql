@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "ResourceType" ADD VALUE IF NOT EXISTS 'USER';

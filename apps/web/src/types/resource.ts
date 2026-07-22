@@ -8,6 +8,7 @@ export const RESOURCE_TYPES = {
   COMMENT: "COMMENT",
   ARTICLE: "ARTICLE",
   COLLECTION: "COLLECTION",
+  USER: "USER",
   // VIDEO: "VIDEO",
 } as const;
 

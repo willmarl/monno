@@ -66,8 +66,31 @@ export class AdminReportService {
       countQuery: { where },
     });
 
+    const userReportIds = items
+      .filter((item) => item.resourceType === 'USER')
+      .map((item) => item.resourceId);
+    const reportedUsers =
+      userReportIds.length > 0
+        ? await this.prisma.user.findMany({
+            where: { id: { in: userReportIds } },
+            select: { id: true, username: true },
+          })
+        : [];
+    const usernameById = new Map(
+      reportedUsers.map((u) => [u.id, u.username]),
+    );
+
+    const enrichedItems = items.map((item) =>
+      item.resourceType === 'USER'
+        ? {
+            ...item,
+            targetUsername: usernameById.get(item.resourceId) ?? null,
+          }
+        : item,
+    );
+
     return {
-      items,
+      items: enrichedItems,
       pageInfo,
       ...(isRedirected && { isRedirected: true }),
     };

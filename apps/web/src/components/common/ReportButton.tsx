@@ -23,19 +23,21 @@ export function ReportButton({
 
   if (isOwner) return null;
 
+  const title = resourceType === "USER" ? "Report user" : "Report content";
+
   return (
     <Button
       size="sm"
       variant="ghost"
       className="h-8 w-8 p-0"
-      title="Report"
+      title={title}
       onClick={() => {
         if (!user) {
           router.push("/login");
           return;
         }
         openModal({
-          title: "Report content",
+          title,
           content: (
             <ReportForm resourceType={resourceType} resourceId={resourceId} />
           ),

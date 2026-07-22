@@ -79,7 +79,7 @@
 | done | [x] Search + likes for collections | 2026-07-22: `COLLECTION` ResourceType + likeCount; public search/suggest; `/collections` browse tab; LikeButton on card/detail |
 | done | [x] Profile / scoped search (posts, articles, liked, collections by user) | 2026-07-22: `query` on by-user + liked list endpoints; inline debounced search on profile sections |
 | done | [x] View history | 2026-07-22: `ViewHistory` upsert; `/history` page; soft remove/clear for audit; owner-only API |
-| done | [x] Report feature (post, article, comment, collection) | 2026-07-22: content-only reports; admin queue; no user reports; MOD deferred |
+| done | [x] Report feature (post, article, comment, collection, user) | 2026-07-22: content + profile user reports; admin queue; MOD deferred |
 | done | [x] Admin remove-content buttons on public pages | 2026-07-22: `AdminRemoveButton` on post/article/comment/collection; ADMIN soft-delete via existing admin APIs |
 
 ---

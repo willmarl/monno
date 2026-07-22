@@ -42,6 +42,7 @@ enum ResourceType {
   COMMENT
   ARTICLE
   COLLECTION
+  USER
   // VIDEO
 }
 
