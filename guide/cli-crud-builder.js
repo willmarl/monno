@@ -138,6 +138,11 @@ async function main() {
         value: "reports",
         checked: true,
       },
+      {
+        name: "Notifications (owners get bell/email on like/comment)",
+        value: "notifications",
+        checked: true,
+      },
     ],
   });
 
@@ -476,7 +481,7 @@ I want to create a **${resource}** CRUD resource. The feature decisions are alre
 - Frontend: ${config.frontend ? "yes" : "no"}${paginationUI}
 - Profile page integration: ${config.profileIntegration ? "yes (includes scoped search on by-user lists — see profile-search.md)" : "no"}
 
-**Infrastructure reminder:** Polymorphic Like, Comment, Collection, ViewHistory, Report models exist (via ResourceType enum). Views = \`viewCount\` on model + \`ViewHistory\` upsert on authenticated record. Reports = opt-in via \`REPORTABLE_RESOURCES\` (content only; admin queue). Soft delete = deleted/deletedAt fields. Visibility = existing \`Visibility\` enum + column on the resource (NOT a polymorphic addon — do NOT add PRIVATEABLE_RESOURCES). Do NOT invent separate ${resource}Like, ${resource}Comment, ${resource}Report tables.
+**Infrastructure reminder:** Polymorphic Like, Comment, Collection, ViewHistory, Report, Notification models exist (via ResourceType enum). Views = \`viewCount\` on model + \`ViewHistory\` upsert on authenticated record. Reports = opt-in via \`REPORTABLE_RESOURCES\` (content + profile USER; admin queue). Notifications = opt-in via \`NOTIFIABLE_RESOURCES\` (owners get bell/email on like/comment — not the same as likes/comments existing). Soft delete = deleted/deletedAt fields. Visibility = existing \`Visibility\` enum + column on the resource (NOT a polymorphic addon — do NOT add PRIVATEABLE_RESOURCES). Do NOT invent separate ${resource}Like, ${resource}Comment, ${resource}Report tables.
 
 **Your task:**
 1. Read schema.prisma (I'll attach it) to confirm existing patterns
@@ -735,6 +740,14 @@ function generateProgressFile(resource, config) {
   - [ ] Optional: admin reports Open link for {{RESOURCE_UPPER}}
   - [ ] Smoke-test POST /reports + GET /admin/reports`;
       }
+      if (config.resourceActions.includes("notifications")) {
+        steps += `
+- [ ] **Notifications:**
+  - [ ] Add {{RESOURCE_UPPER}} to NOTIFIABLE_RESOURCES (API)
+  - [ ] Add NOTIFIABLE_RESOURCE_CONFIG entry (ownerField + pathPrefix)
+  - [ ] Ensure likes and/or comments are also enabled (emit sites)
+  - [ ] Smoke-test: like/comment → owner GET /notifications`;
+      }
     }
 
     // Part 9: Testing
@@ -925,6 +938,12 @@ function generateProgressFile(resource, config) {
   - [ ] Add {{RESOURCE_UPPER}} to web REPORTABLE_RESOURCES
   - [ ] Add ReportButton on card/detail (hidden for owner)
   - [ ] Optional: admin reports deep-link for {{RESOURCE_UPPER}}`;
+      }
+      if (config.resourceActions.includes("notifications")) {
+        frontendChecklist += `
+- [ ] **Notifications:**
+  - [ ] Add {{RESOURCE_UPPER}} to web NOTIFIABLE_RESOURCES + notificationHref
+  - [ ] No per-card UI — header bell is shared; verify click-through to detail`;
       }
     }
 
@@ -1188,6 +1207,7 @@ model ${resource} {
 - [${config.resourceActions.includes("comments") ? "x" : " "}] Comments (use existing Comment model + add ${resourceUpper} to ResourceType)
 - [${config.resourceActions.includes("collections") ? "x" : " "}] Collections (use existing Collection/CollectionItem models + add ${resourceUpper} to ResourceType)
 - [${config.resourceActions.includes("reports") ? "x" : " "}] Reports (REPORTABLE_RESOURCES + ReportButton; admin queue already exists)
+- [${config.resourceActions.includes("notifications") ? "x" : " "}] Notifications (NOTIFIABLE_RESOURCES + owner bell/email on like/comment)
 
 ## Frontend Implementation Checklist
 
@@ -1207,6 +1227,7 @@ ${
 - [${config.resourceActions.includes("comments") ? "x" : " "}] Comments UI
 - [${config.resourceActions.includes("collections") ? "x" : " "}] Collections UI (save to collection)
 - [${config.resourceActions.includes("reports") ? "x" : " "}] Reports UI (ReportButton on card/detail)
+- [${config.resourceActions.includes("notifications") ? "x" : " "}] Notifications (allowlist + href; shared header bell)
 ${
   config.visibility !== "none"
     ? `
@@ -1234,6 +1255,7 @@ Your existing infrastructure handles all resource actions:
 - **Collections**: Existing \`Collection\` + \`CollectionItem\` models (polymorphic via ResourceType)
 - **Views**: Counter on ${resource} model + polymorphic \`ViewHistory\` (see views subsections in \`10.md\` / \`21.md\` for history hydrate + UI tabs)
 - **Reports**: Existing \`Report\` model + \`REPORTABLE_RESOURCES\` allowlist (see reports subsections in \`10.md\` / \`21.md\`)
+- **Notifications**: Existing \`Notification\` model + \`NOTIFIABLE_RESOURCES\` allowlist (see notifications subsections in \`10.md\` / \`21.md\`). Distinct from likes/comments — those enable the action; this enables owner alerts.
 
 Just add \`${resourceUpper}\` to the ResourceType enum.
 ${

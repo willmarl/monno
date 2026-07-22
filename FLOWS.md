@@ -73,6 +73,7 @@ AI agents should read this file before writing tests for any module.
 ## Notifications
 
 - `Notification` rows for recipients; types `COMMENT` | `LIKE`. Emitted from comment create and new likes (not unlikes); skipped when actor is owner.
+- Opt-in allowlist: `NOTIFIABLE_RESOURCES` + `NOTIFIABLE_RESOURCE_CONFIG` (same DX as likes/reports). Types not on the list never notify.
 - Respect prefs: in-app row only if corresponding `notifyInApp*` is on; email via `enqueueEmail` only if `notifyEmail*` is on and recipient has verified email.
 - Links for comment targets resolve up to parent post/article/collection for click-through.
 - APIs (auth, owner-only): `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/read` (`ids` or `all`).

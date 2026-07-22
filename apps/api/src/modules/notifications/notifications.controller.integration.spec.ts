@@ -184,18 +184,31 @@ describe('NotificationsController (integration)', () => {
     const list = await request(testApp.app.getHttpServer())
       .get('/notifications?limit=50')
       .set('Cookie', ownerCookies);
-    const hit = list.body.data.items.find(
-      (n: any) =>
-        n.resourceId === post2.id &&
-        n.type === 'COMMENT' &&
-        n.message?.includes('Should not notify') === false,
-    );
-    // No new COMMENT notif for post2
     const commentOnPost2 = list.body.data.items.filter(
       (n: any) => n.resourceId === post2.id && n.type === 'COMMENT',
     );
     expect(commentOnPost2).toHaveLength(0);
     expect(enqueueEmail).not.toHaveBeenCalled();
-    expect(hit).toBeUndefined();
+  });
+
+  it('skips types not on NOTIFIABLE_RESOURCES (e.g. USER)', async () => {
+    const { NotificationsService } = await import('./notifications.service');
+    const service = testApp.app.get(NotificationsService);
+    const before = await testApp.prisma.notification.count({
+      where: { recipientId: owner.id },
+    });
+
+    const result = await service.createIfAllowed({
+      type: 'LIKE',
+      actorId: actor.id,
+      resourceType: 'USER',
+      resourceId: owner.id,
+    });
+
+    expect(result).toBeNull();
+    const after = await testApp.prisma.notification.count({
+      where: { recipientId: owner.id },
+    });
+    expect(after).toBe(before);
   });
 });

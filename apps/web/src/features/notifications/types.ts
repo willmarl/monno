@@ -1,3 +1,16 @@
+/**
+ * Keep in sync with API `NOTIFIABLE_RESOURCES` —
+ * owners of these resources get engagement (like/comment) notifications.
+ */
+export const NOTIFIABLE_RESOURCES = [
+  "POST",
+  "ARTICLE",
+  "COLLECTION",
+  "COMMENT",
+] as const;
+
+export type NotifiableResourceType = (typeof NOTIFIABLE_RESOURCES)[number];
+
 export type NotificationType = "COMMENT" | "LIKE";
 
 export type NotificationActor = {
@@ -29,18 +42,16 @@ export type NotificationsList = {
   isRedirected?: boolean;
 };
 
+/** Detail path prefixes for click-through from the bell / list. */
+const NOTIFICATION_HREF: Partial<Record<NotifiableResourceType, string>> = {
+  POST: "/post",
+  ARTICLE: "/article",
+  COLLECTION: "/collection",
+};
+
 export function notificationHref(n: AppNotification): string {
-  switch (n.resourceType) {
-    case "POST":
-      return `/post/${n.resourceId}`;
-    case "ARTICLE":
-      return `/article/${n.resourceId}`;
-    case "COLLECTION":
-      return `/collection/${n.resourceId}`;
-    case "COMMENT":
-      // Parent resolved on email links; in-app falls back to notifications page
-      return `/notifications`;
-    default:
-      return `/notifications`;
-  }
+  const prefix =
+    NOTIFICATION_HREF[n.resourceType as NotifiableResourceType];
+  if (prefix) return `${prefix}/${n.resourceId}`;
+  return "/notifications";
 }

@@ -11,12 +11,58 @@ import { engagementNotificationEmailTemplate } from '../../common/email-template
 import { NotificationListQueryDto } from './dto/notification-list-query.dto';
 import { MarkNotificationsReadDto } from './dto/mark-notifications-read.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
+import {
+  isNotifiableResourceType,
+  type NotifiableResourceType,
+} from 'src/common/types/resource.types';
 
 const ACTOR_SELECT = {
   id: true,
   username: true,
   avatarPath: true,
 } as const;
+
+type NotifiableResourceConfig = {
+  model: keyof PrismaService;
+  /** Field that holds the owner user id */
+  ownerField: 'creatorId' | 'userId';
+  label: string;
+  /** Public detail path prefix; omit for nested types (e.g. COMMENT) */
+  pathPrefix?: string;
+};
+
+/**
+ * Teach NotificationsService about a resource by adding it to
+ * NOTIFIABLE_RESOURCES + this map (same DX as LIKEABLE_RESOURCE_CONFIG).
+ */
+const NOTIFIABLE_RESOURCE_CONFIG: Record<
+  NotifiableResourceType,
+  NotifiableResourceConfig
+> = {
+  POST: {
+    model: 'post',
+    ownerField: 'creatorId',
+    label: 'post',
+    pathPrefix: '/post',
+  },
+  ARTICLE: {
+    model: 'article',
+    ownerField: 'creatorId',
+    label: 'article',
+    pathPrefix: '/article',
+  },
+  COLLECTION: {
+    model: 'collection',
+    ownerField: 'creatorId',
+    label: 'collection',
+    pathPrefix: '/collection',
+  },
+  COMMENT: {
+    model: 'comment',
+    ownerField: 'userId',
+    label: 'comment',
+  },
+};
 
 export type CreateNotificationInput = {
   type: NotificationType;
@@ -98,10 +144,15 @@ export class NotificationsService {
 
   /**
    * Create an in-app notification (if prefs allow) and optionally email.
-   * No-ops when actor is the recipient or prefs disable both channels.
+   * No-ops when resource is not on NOTIFIABLE_RESOURCES, actor is the
+   * recipient, or prefs disable both channels.
    */
   async createIfAllowed(input: CreateNotificationInput) {
     try {
+      if (!isNotifiableResourceType(input.resourceType)) {
+        return null;
+      }
+
       const recipientId =
         input.recipientId ??
         (await this.resolveOwnerId(input.resourceType, input.resourceId));
@@ -161,7 +212,11 @@ export class NotificationsService {
         message: string | null;
         readAt: Date | null;
         createdAt: Date;
-        actor: { id: number; username: string; avatarPath: string | null } | null;
+        actor: {
+          id: number;
+          username: string;
+          avatarPath: string | null;
+        } | null;
       } | null = null;
       if (inAppOn) {
         notification = await this.prisma.notification.create({
@@ -186,11 +241,7 @@ export class NotificationsService {
         });
       }
 
-      if (
-        emailOn &&
-        recipient.email &&
-        recipient.isEmailVerified
-      ) {
+      if (emailOn && recipient.email && recipient.isEmailVerified) {
         const targetUrl = this.targetUrl(link.resourceType, link.resourceId);
         const logoUrl = this.logoService.getLogoUrl();
         const html = engagementNotificationEmailTemplate({
@@ -248,69 +299,33 @@ export class NotificationsService {
   }
 
   private async resolveOwnerId(
-    resourceType: ResourceType,
+    resourceType: NotifiableResourceType,
     resourceId: number,
   ): Promise<number | null> {
-    switch (resourceType) {
-      case ResourceType.POST: {
-        const row = await this.prisma.post.findFirst({
-          where: { id: resourceId, deleted: false },
-          select: { creatorId: true },
-        });
-        return row?.creatorId ?? null;
-      }
-      case ResourceType.ARTICLE: {
-        const row = await this.prisma.article.findFirst({
-          where: { id: resourceId, deleted: false },
-          select: { creatorId: true },
-        });
-        return row?.creatorId ?? null;
-      }
-      case ResourceType.COLLECTION: {
-        const row = await this.prisma.collection.findFirst({
-          where: { id: resourceId, deleted: false },
-          select: { creatorId: true },
-        });
-        return row?.creatorId ?? null;
-      }
-      case ResourceType.COMMENT: {
-        const row = await this.prisma.comment.findFirst({
-          where: { id: resourceId, deleted: false },
-          select: { userId: true },
-        });
-        return row?.userId ?? null;
-      }
-      default:
-        return null;
-    }
+    const config = NOTIFIABLE_RESOURCE_CONFIG[resourceType];
+    if (!config) return null;
+
+    const delegate = this.prisma[config.model] as any;
+    const row = await delegate.findFirst({
+      where: { id: resourceId, deleted: false },
+      select: { [config.ownerField]: true },
+    });
+    return (row?.[config.ownerField] as number | undefined) ?? null;
   }
 
   private resourceLabel(resourceType: ResourceType): string {
-    switch (resourceType) {
-      case ResourceType.POST:
-        return 'post';
-      case ResourceType.ARTICLE:
-        return 'article';
-      case ResourceType.COLLECTION:
-        return 'collection';
-      case ResourceType.COMMENT:
-        return 'comment';
-      default:
-        return 'content';
+    if (isNotifiableResourceType(resourceType)) {
+      return NOTIFIABLE_RESOURCE_CONFIG[resourceType].label;
     }
+    return 'content';
   }
 
   private targetUrl(resourceType: ResourceType, resourceId: number): string {
     const base = process.env.FRONTEND_URL || 'http://localhost:3000';
-    switch (resourceType) {
-      case ResourceType.POST:
-        return `${base}/post/${resourceId}`;
-      case ResourceType.ARTICLE:
-        return `${base}/article/${resourceId}`;
-      case ResourceType.COLLECTION:
-        return `${base}/collection/${resourceId}`;
-      default:
-        return base;
+    if (isNotifiableResourceType(resourceType)) {
+      const prefix = NOTIFIABLE_RESOURCE_CONFIG[resourceType].pathPrefix;
+      if (prefix) return `${base}${prefix}/${resourceId}`;
     }
+    return base;
   }
 }
