@@ -8,6 +8,7 @@ import {
   fetchAdminUsers,
   fetchAdminUserById,
   fetchAdminUsernameHistory,
+  fetchAdminViewHistory,
   updateAdminUser,
   deleteAdminUser,
   createAdminUser,
@@ -204,6 +205,39 @@ export function useAdminUsernameHistory(
   return useQuery({
     queryKey: ["users", page],
     queryFn: () => fetchAdminUsernameHistory({ userId, limit, offset }),
+  });
+}
+
+export function useAdminViewHistory(
+  userId: number,
+  resourceType: "POST" | "ARTICLE",
+  page: number,
+  limit: number,
+  query: string = "",
+  status: "all" | "active" | "cleared" = "all",
+) {
+  const offset = (page - 1) * limit;
+
+  return useQuery({
+    queryKey: [
+      "admin-view-history",
+      userId,
+      resourceType,
+      page,
+      limit,
+      query,
+      status,
+    ],
+    queryFn: () =>
+      fetchAdminViewHistory({
+        userId,
+        resourceType,
+        limit,
+        offset,
+        query: query || undefined,
+        status,
+      }),
+    enabled: !!userId,
   });
 }
 

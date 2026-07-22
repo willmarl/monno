@@ -20,6 +20,7 @@ import {
 import { buildSearchWhere } from 'src/common/search/search.utils';
 import { FileProcessingService } from '../../../common/file-processing/file-processing.service';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import { AdminViewHistoryQueryDto } from './dto/admin-view-history-query.dto';
 
 /**
  * Admin User Service
@@ -410,6 +411,138 @@ export class AdminUserService {
       items,
       pageInfo,
       ...(isRedirected && { isRedirected: true }),
+    };
+  }
+
+  /**
+   * Admin audit view of a user's ViewHistory (includes soft-deleted rows).
+   * No visibility filter — private/deleted resources still surface when present.
+   */
+  async fetchViewHistory(userId: number, queryDto: AdminViewHistoryQueryDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, username: true },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const { resourceType } = queryDto;
+    const limit = queryDto.limit ?? 10;
+    const offset = queryDto.offset ?? 0;
+    const status = queryDto.status ?? 'all';
+
+    const historyRows = await this.prisma.viewHistory.findMany({
+      where: {
+        userId,
+        resourceType,
+        ...(status === 'active'
+          ? { deleted: false }
+          : status === 'cleared'
+            ? { deleted: true }
+            : {}),
+      },
+      orderBy: { viewedAt: 'desc' },
+      select: {
+        id: true,
+        resourceId: true,
+        resourceType: true,
+        viewedAt: true,
+        createdAt: true,
+        deleted: true,
+        deletedAt: true,
+      },
+    });
+
+    if (historyRows.length === 0) {
+      return {
+        user: { id: user.id, username: user.username },
+        items: [],
+        pageInfo: {
+          totalItems: 0,
+          total: 0,
+          limit,
+          offset,
+          hasMore: false,
+        },
+      };
+    }
+
+    const ids = historyRows.map((row) => row.resourceId);
+    const search = (queryDto.query ?? '').trim().toLowerCase();
+
+    const resourceById = new Map<number, any>();
+
+    if (resourceType === 'POST') {
+      const posts = await this.prisma.post.findMany({
+        where: { id: { in: ids } },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          createdAt: true,
+          deleted: true,
+          deletedAt: true,
+          visibility: true,
+          viewCount: true,
+          likeCount: true,
+          creator: {
+            select: { id: true, username: true, avatarPath: true },
+          },
+        },
+      });
+      for (const post of posts) resourceById.set(post.id, post);
+    } else {
+      const articles = await this.prisma.article.findMany({
+        where: { id: { in: ids } },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          status: true,
+          createdAt: true,
+          deleted: true,
+          deletedAt: true,
+          viewCount: true,
+          likeCount: true,
+          creator: {
+            select: { id: true, username: true, avatarPath: true },
+          },
+        },
+      });
+      for (const article of articles) resourceById.set(article.id, article);
+    }
+
+    let items = historyRows.map((row) => ({
+      historyId: row.id,
+      resourceType: row.resourceType,
+      resourceId: row.resourceId,
+      viewedAt: row.viewedAt,
+      createdAt: row.createdAt,
+      deleted: row.deleted,
+      deletedAt: row.deletedAt,
+      resource: resourceById.get(row.resourceId) ?? null,
+    }));
+
+    if (search) {
+      items = items.filter((item) => {
+        const title = item.resource?.title?.toLowerCase() ?? '';
+        const content = item.resource?.content?.toLowerCase() ?? '';
+        return title.includes(search) || content.includes(search);
+      });
+    }
+
+    const total = items.length;
+    const pageItems = items.slice(offset, offset + limit);
+
+    return {
+      user: { id: user.id, username: user.username },
+      items: pageItems,
+      pageInfo: {
+        totalItems: total,
+        total,
+        limit,
+        offset,
+        hasMore: offset + limit < total,
+      },
     };
   }
 

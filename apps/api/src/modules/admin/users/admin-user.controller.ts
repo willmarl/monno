@@ -37,6 +37,7 @@ import {
   UserSearchCursorDto,
 } from '../../users/dto/search-user.dto';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+import { AdminViewHistoryQueryDto } from './dto/admin-view-history-query.dto';
 
 @ApiTags('admin-users')
 @Controller('admin/users')
@@ -66,6 +67,51 @@ export class AdminUsersController {
   @Get('search/cursor')
   searchCursor(@Query() searchDto: UserSearchCursorDto) {
     return this.adminUserService.searchCursor(searchDto);
+  }
+
+  @ApiOperation({ summary: 'Get username history for a user (admin only)' })
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'id',
+    description: 'User ID',
+    example: 1,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Username history retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
+  @Get(':id/username-history')
+  fetchUsernameHistory(
+    @Param('id', ParseIntPipe) id: number,
+    @Query() pag: PaginationDto,
+  ) {
+    return this.adminUserService.fetchUsernameHistory(id, pag);
+  }
+
+  @ApiOperation({
+    summary: 'Get view history for a user (admin only, includes soft-deleted)',
+  })
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'id',
+    description: 'User ID',
+    example: 1,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'View history retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @Get(':id/view-history')
+  fetchViewHistory(
+    @Param('id', ParseIntPipe) id: number,
+    @Query() query: AdminViewHistoryQueryDto,
+  ) {
+    return this.adminUserService.fetchViewHistory(id, query);
   }
 
   @ApiOperation({ summary: 'Find user by ID (admin only)' })
@@ -170,27 +216,6 @@ export class AdminUsersController {
     const adminId = req.user?.sub;
     const ipAddress = req.ip;
     return this.adminUserService.resetPassword(id, adminId, ipAddress);
-  }
-
-  @ApiOperation({ summary: 'Get username history for a user (admin only)' })
-  @ApiBearerAuth()
-  @ApiParam({
-    name: 'id',
-    description: 'User ID',
-    example: 1,
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Username history retrieved successfully',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
-  @Get(':id/username-history')
-  fetchUsernameHistory(
-    @Param('id', ParseIntPipe) id: number,
-    @Query() pag: PaginationDto,
-  ) {
-    return this.adminUserService.fetchUsernameHistory(id, pag);
   }
 
   @ApiOperation({ summary: 'Restore a deleted user (admin only)' })

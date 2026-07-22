@@ -54,6 +54,47 @@ export interface UsernameHistory {
 
 export type UsernameHistoryList = PaginatedResponse<UsernameHistory>;
 
+export interface AdminViewHistoryResource {
+  id: number;
+  title: string;
+  content: string;
+  createdAt: string;
+  deleted: boolean;
+  deletedAt: string | null;
+  visibility?: "PUBLIC" | "PRIVATE";
+  status?: string;
+  viewCount: number;
+  likeCount: number;
+  creator: {
+    id: number;
+    username: string;
+    avatarPath: string | null;
+  };
+}
+
+export interface AdminViewHistoryItem {
+  historyId: number;
+  resourceType: "POST" | "ARTICLE";
+  resourceId: number;
+  viewedAt: string;
+  createdAt: string;
+  deleted: boolean;
+  deletedAt: string | null;
+  resource: AdminViewHistoryResource | null;
+}
+
+export interface AdminViewHistoryList {
+  user: { id: number; username: string };
+  items: AdminViewHistoryItem[];
+  pageInfo: {
+    totalItems: number;
+    total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+}
+
 export interface UpdateProfileInput {
   username?: string;
   email?: string;

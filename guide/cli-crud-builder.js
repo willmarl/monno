@@ -126,7 +126,7 @@ async function main() {
     message: "Resource actions (uses your existing polymorphic models):",
     choices: [
       { name: "Likes", value: "likes", checked: true },
-      { name: "Views (counter on model)", value: "views", checked: true },
+      { name: "Views (counter + view history)", value: "views", checked: true },
       { name: "Comments", value: "comments", checked: true },
       {
         name: "Collections (save to user collection)",
@@ -471,7 +471,7 @@ I want to create a **${resource}** CRUD resource. The feature decisions are alre
 - Frontend: ${config.frontend ? "yes" : "no"}${paginationUI}
 - Profile page integration: ${config.profileIntegration ? "yes (includes scoped search on by-user lists — see profile-search.md)" : "no"}
 
-**Infrastructure reminder:** Polymorphic Like, Comment, Collection models exist (via ResourceType enum). Views = counter on model. Soft delete = deleted/deletedAt fields. Visibility = existing \`Visibility\` enum + column on the resource (NOT a polymorphic addon — do NOT add PRIVATEABLE_RESOURCES). Do NOT invent separate ${resource}Like, ${resource}Comment tables.
+**Infrastructure reminder:** Polymorphic Like, Comment, Collection, ViewHistory models exist (via ResourceType enum). Views = \`viewCount\` on model + \`ViewHistory\` upsert on authenticated record. Soft delete = deleted/deletedAt fields. Visibility = existing \`Visibility\` enum + column on the resource (NOT a polymorphic addon — do NOT add PRIVATEABLE_RESOURCES). Do NOT invent separate ${resource}Like, ${resource}Comment tables.
 
 **Your task:**
 1. Read schema.prisma (I'll attach it) to confirm existing patterns
@@ -701,9 +701,11 @@ function generateProgressFile(resource, config) {
       if (config.resourceActions.includes("views")) {
         steps += `
 - [ ] **Views:**
-  - [ ] Implement recordView service method
-  - [ ] Add recordView controller endpoint
-  - [ ] Update viewCount on model`;
+  - [ ] Add {{RESOURCE_UPPER}} to VIEWABLE_RESOURCES + view-handler config
+  - [ ] Ensure viewCount on model + shared selects
+  - [ ] Wire findHistory hydrate for {{RESOURCE_UPPER}} (ViewsService)
+  - [ ] Wire admin fetchViewHistory hydrate for {{RESOURCE_UPPER}}
+  - [ ] Smoke-test POST /views + GET /views/history`;
       }
       if (config.resourceActions.includes("comments")) {
         steps += `
@@ -884,7 +886,9 @@ function generateProgressFile(resource, config) {
         frontendChecklist += `
 - [ ] **Views:**
   - [ ] Display view counter
-  - [ ] Record view on load`;
+  - [ ] Record view on detail load
+  - [ ] Add {{RESOURCE_UPPER}} tab on /history
+  - [ ] Add {{RESOURCE_UPPER}} tab on /admin/users/[id]/history`;
       }
       if (config.resourceActions.includes("comments")) {
         frontendChecklist += `
@@ -1160,7 +1164,7 @@ model ${resource} {
 
 ### Resource Actions (Polymorphic Models)
 - [${config.resourceActions.includes("likes") ? "x" : " "}] Likes (use existing Like model + add ${resourceUpper} to ResourceType)
-- [${config.resourceActions.includes("views") ? "x" : " "}] Views (use viewCount counter on ${resource} model)
+- [${config.resourceActions.includes("views") ? "x" : " "}] Views (viewCount counter + view history hydrate/UI tabs)
 - [${config.resourceActions.includes("comments") ? "x" : " "}] Comments (use existing Comment model + add ${resourceUpper} to ResourceType)
 - [${config.resourceActions.includes("collections") ? "x" : " "}] Collections (use existing Collection/CollectionItem models + add ${resourceUpper} to ResourceType)
 
@@ -1178,7 +1182,7 @@ ${
 
 ### Resource Actions UI
 - [${config.resourceActions.includes("likes") ? "x" : " "}] Likes UI
-- [${config.resourceActions.includes("views") ? "x" : " "}] Views UI (counter display)
+- [${config.resourceActions.includes("views") ? "x" : " "}] Views UI (counter + /history + admin user history tabs)
 - [${config.resourceActions.includes("comments") ? "x" : " "}] Comments UI
 - [${config.resourceActions.includes("collections") ? "x" : " "}] Collections UI (save to collection)
 ${
@@ -1206,7 +1210,7 @@ Your existing infrastructure handles all resource actions:
 - **Likes**: Existing \`Like\` model (polymorphic via ResourceType)
 - **Comments**: Existing \`Comment\` model (polymorphic via ResourceType)
 - **Collections**: Existing \`Collection\` + \`CollectionItem\` models (polymorphic via ResourceType)
-- **Views**: Counter on ${resource} model (like Post, Article, etc.)
+- **Views**: Counter on ${resource} model + polymorphic \`ViewHistory\` (see views subsections in \`10.md\` / \`21.md\` for history hydrate + UI tabs)
 
 Just add \`${resourceUpper}\` to the ResourceType enum.
 ${

@@ -46,6 +46,7 @@ AI agents should read this file before writing tests for any module.
 - History list/mutate APIs (`GET /views/history`, `DELETE /views/history/:id`, `POST /views/history/clear`) require auth and only operate on the caller’s rows (owner-only).
 - Remove-one and clear-all are **soft-delete only** so admins can still audit rows in DB. Soft-deleted rows are omitted from the user’s history list.
 - History list hydrates posts/articles and omits deleted or inaccessible resources (e.g. another user’s private post that was public when viewed).
+- Admin audit: `GET /admin/users/:id/view-history` (users table → View history) includes soft-deleted history rows and does not apply visibility filters; UI at `/admin/users/[id]/history`.
 
 ---
 

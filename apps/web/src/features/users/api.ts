@@ -6,6 +6,7 @@ import type {
   UsersList,
   PublicUser,
   UsernameHistoryList,
+  AdminViewHistoryList,
   UpdateProfileInput,
   ChangePasswordInput,
   UpdateUserAdminInput,
@@ -178,6 +179,34 @@ export const fetchAdminUsernameHistory = ({
   fetcher<UsernameHistoryList>(`/admin/users/${userId}/username-history`, {
     searchParams: { limit, offset },
   });
+
+export const fetchAdminViewHistory = ({
+  userId,
+  resourceType,
+  limit,
+  offset,
+  query,
+  status = "all",
+}: {
+  userId: number;
+  resourceType: "POST" | "ARTICLE";
+  limit: number;
+  offset: number;
+  query?: string;
+  status?: "all" | "active" | "cleared";
+}) => {
+  const searchParams: Record<string, string | number> = {
+    resourceType,
+    limit,
+    offset,
+    status,
+  };
+  if (query?.trim()) searchParams.query = query.trim();
+  return fetcher<AdminViewHistoryList>(
+    `/admin/users/${userId}/view-history`,
+    { searchParams },
+  );
+};
 
 export const restoreAdminUser = (id: number) =>
   fetcher<User>(`/admin/users/${id}/restore`, {

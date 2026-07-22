@@ -167,6 +167,13 @@ export const columns: ColumnDef<User>[] = [
             >
               View username history
             </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                router.push(`/admin/users/${row.original.id}/history`)
+              }
+            >
+              View history
+            </DropdownMenuItem>
             {!user.deleted ? (
               <DropdownMenuItem
                 variant="destructive"
