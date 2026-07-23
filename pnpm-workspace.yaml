@@ -1,2 +1,21 @@
 packages:
   - "apps/*"
+
+# pnpm 10+ blocks packages with install/build scripts until allowed.
+# Keep these true for the monorepo toolchain (Prisma, bcrypt, native addons, etc.).
+allowBuilds:
+  "@nestjs/core": true
+  "@prisma/engines": true
+  "@scarf/scarf": true
+  "@sentry-internal/node-cpu-profiler": true
+  "@sentry/cli": true
+  "@swc/core": true
+  bcrypt: true
+  core-js: true
+  esbuild: true
+  msgpackr-extract: true
+  msw: true
+  prisma: true
+  protobufjs: true
+  sharp: true
+  unrs-resolver: true
