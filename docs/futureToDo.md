@@ -55,7 +55,7 @@
 
 **Security**
 
-- Fix remaining High/Medium findings in [vulnerabilities.md](./vulnerabilities.md) (OAuth `state`/PKCE, CSRF/SameSite, Multer limits, and remaining hardening). Phase 0 criticals are complete; see [progress.md](./progress.md).
+- Fix remaining High/Medium findings in [vulnerabilities.md](./vulnerabilities.md) (CSRF/SameSite #9, Multer limits, and remaining hardening). OAuth `state`/PKCE (#8) done 2026-07-23; see [progress.md](./progress.md).
 
 **Code quality / architecture**
 

@@ -59,12 +59,12 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 - **Issue:** Clients can set `avatarPath` without upload. On next avatar upload, `deleteFile` joins that value under the upload root with no traversal check.
 - **Fix applied:** Client JSON can no longer set `avatarPath` (undecorated / stripped; forbidNonWhitelisted → 400). Avatar URLs only set from `processFile`. `deleteFile` refuses paths outside the upload root.
 
-### 8. OAuth missing CSRF `state` (and PKCE)
+### 8. OAuth missing CSRF `state` (and PKCE) — **FIXED**
 
 - **Where:** `oauth.service.ts` / `oauth.controller.ts`
 - **Issue:** No `state` (or PKCE) on authorize/callback.
 - **Impact:** Login CSRF — attacker can bind victim’s browser session to attacker’s OAuth account.
-- **Fix:** Generate/store `state`, validate on callback; add PKCE where applicable.
+- **Fix applied:** Authorize sets httpOnly `oauth_state` + `oauth_pkce` cookies and sends `state` + S256 `code_challenge`. Callback requires matching `state` and sends `code_verifier` on token exchange (Google + GitHub). Unit tests in `oauth-csrf.spec.ts`.
 
 ### 9. Production cookies `SameSite=None` without CSRF tokens
 

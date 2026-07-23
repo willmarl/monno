@@ -58,6 +58,14 @@ export const cookieConfig = {
   },
 
   /**
+   * Short-lived OAuth CSRF state + PKCE verifier (authorize → callback).
+   */
+  oauthFlow: {
+    ...cookieDefaults,
+    maxAge: 10 * 60 * 1000, // 10 minutes
+  },
+
+  /**
    * Configuration for clearing cookies (logout)
    * Expires date set to past to delete the cookie
    */

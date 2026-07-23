@@ -12,6 +12,13 @@ import { suspiciousLoginTemplate } from '../../../common/email-templates';
 import { cookieConfig } from '../../../config/cookie.config';
 import type { User } from '../../../generated/prisma/client';
 import { evaluateAccountAccess } from '../account-status';
+import {
+  generateOAuthState,
+  generatePkcePair,
+  oauthParamSafeEqual,
+  OAUTH_PKCE_COOKIE,
+  OAUTH_STATE_COOKIE,
+} from './oauth-csrf';
 /**
  * OAuth Service - Multi-provider authentication
  *
@@ -19,6 +26,11 @@ import { evaluateAccountAccess } from '../account-status';
  * - Google OAuth 2.0
  * - GitHub OAuth 2.0
  * - Twitter OAuth 2.0 (ready to add)
+ *
+ * CSRF / PKCE:
+ * Authorize sets httpOnly `oauth_state` + `oauth_pkce` cookies and sends
+ * `state` + S256 `code_challenge` to the provider. Callback requires matching
+ * `state` and includes `code_verifier` on the token exchange.
  *
  * Account Merging Strategy:
  * If user logs in with Google using email@example.com, then later logs in with GitHub
@@ -42,8 +54,8 @@ import { evaluateAccountAccess } from '../account-status';
  *    Then run: pnpm prisma migrate dev -n add_twitter_oauth
  *
  * 3. Add methods to OauthService:
- *    - getTwitterAuthUrl()
- *    - handleTwitterCallback(code, req, res)
+ *    - beginTwitterAuth(res)
+ *    - handleTwitterCallback(code, state, req, res)
  *
  * 4. Add routes to OauthController:
  *    - @Get('twitter')
@@ -65,22 +77,60 @@ export class OauthService {
     private http: HttpService,
   ) {}
 
+  /** Issue CSRF state + PKCE cookies; return values for the authorize URL. */
+  private beginOAuthFlow(res: any): {
+    state: string;
+    codeChallenge: string;
+    codeVerifier: string;
+  } {
+    const state = generateOAuthState();
+    const { verifier, challenge } = generatePkcePair();
+    res.cookie(OAUTH_STATE_COOKIE, state, cookieConfig.oauthFlow);
+    res.cookie(OAUTH_PKCE_COOKIE, verifier, cookieConfig.oauthFlow);
+    return { state, codeChallenge: challenge, codeVerifier: verifier };
+  }
+
+  /** Validate callback state vs cookie; return PKCE verifier; clear flow cookies. */
+  private consumeOAuthFlow(
+    req: any,
+    res: any,
+    stateFromQuery: string | undefined,
+  ): string {
+    const cookieState = req.cookies?.[OAUTH_STATE_COOKIE] as string | undefined;
+    const codeVerifier = req.cookies?.[OAUTH_PKCE_COOKIE] as string | undefined;
+
+    res.clearCookie(OAUTH_STATE_COOKIE, cookieConfig.clear);
+    res.clearCookie(OAUTH_PKCE_COOKIE, cookieConfig.clear);
+
+    if (!oauthParamSafeEqual(stateFromQuery, cookieState)) {
+      throw new BadRequestException('Invalid OAuth state');
+    }
+    if (!codeVerifier) {
+      throw new BadRequestException('Missing OAuth PKCE verifier');
+    }
+    return codeVerifier;
+  }
+
   /* ===== GOOGLE OAUTH ===== */
 
   /**
-   * Step 1: Get Google OAuth authorization URL
+   * Step 1: Get Google OAuth authorization URL (with state + PKCE)
    */
-  getGoogleAuthUrl() {
+  beginGoogleAuth(res: any): string {
+    const { state, codeChallenge } = this.beginOAuthFlow(res);
     const root = 'https://accounts.google.com/o/oauth2/v2/auth';
     const options = {
-      client_id: process.env.GOOGLE_CLIENT_ID,
-      redirect_uri: process.env.GOOGLE_REDIRECT_URL,
+      client_id: process.env.GOOGLE_CLIENT_ID || '',
+      redirect_uri: process.env.GOOGLE_REDIRECT_URL || '',
       response_type: 'code',
       scope: 'openid email profile',
       prompt: 'select_account',
+      state,
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
     };
 
-    const qs = new URLSearchParams(options as Record<string, string>);
+    const qs = new URLSearchParams(options);
     return `${root}?${qs.toString()}`;
   }
 
@@ -97,12 +147,15 @@ export class OauthService {
    */
   async handleGoogleCallback(
     code: string,
+    state: string | undefined,
     req: any,
     res: any,
   ): Promise<string> {
     if (!code) {
       throw new BadRequestException('Authorization code is missing');
     }
+
+    const codeVerifier = this.consumeOAuthFlow(req, res, state);
 
     // Step 1: Exchange authorization code for access token
     const tokenRes = await this.http
@@ -114,6 +167,7 @@ export class OauthService {
           client_secret: process.env.GOOGLE_CLIENT_SECRET || '',
           redirect_uri: process.env.GOOGLE_REDIRECT_URL || '',
           grant_type: 'authorization_code',
+          code_verifier: codeVerifier,
         }).toString(),
         {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -163,14 +217,18 @@ export class OauthService {
   /* ===== GITHUB OAUTH ===== */
 
   /**
-   * Step 1: Get GitHub OAuth authorization URL
+   * Step 1: Get GitHub OAuth authorization URL (with state + PKCE)
    */
-  getGithubAuthUrl() {
+  beginGithubAuth(res: any): string {
+    const { state, codeChallenge } = this.beginOAuthFlow(res);
     const root = 'https://github.com/login/oauth/authorize';
     const qs = new URLSearchParams({
       client_id: process.env.GITHUB_CLIENT_ID || '',
       redirect_uri: process.env.GITHUB_REDIRECT_URL || '',
       scope: 'user:email read:user',
+      state,
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
     });
 
     return `${root}?${qs.toString()}`;
@@ -191,6 +249,7 @@ export class OauthService {
    */
   async handleGithubCallback(
     code: string,
+    state: string | undefined,
     req: any,
     res: any,
   ): Promise<string> {
@@ -198,12 +257,15 @@ export class OauthService {
       throw new BadRequestException('Authorization code is missing');
     }
 
+    const codeVerifier = this.consumeOAuthFlow(req, res, state);
+
     // Step 1: Prepare token exchange parameters
     const params = {
       code,
       client_id: process.env.GITHUB_CLIENT_ID || '',
       client_secret: process.env.GITHUB_CLIENT_SECRET || '',
       redirect_uri: process.env.GITHUB_REDIRECT_URL || '',
+      code_verifier: codeVerifier,
     };
 
     let githubUser: any;
