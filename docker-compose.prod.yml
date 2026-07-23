@@ -113,6 +113,7 @@ services:
     environment:
       # RSC/SSR uses Docker DNS; browser URL was baked into the image locally.
       API_INTERNAL_URL: http://api:3001
+      SITE_URL: ${SITE_URL:?Set SITE_URL in .env.prod (e.g. https://example.com)}
     # Host nginx proxies to this. Do not expose it to the public network.
     ports:
       - "127.0.0.1:${WEB_PORT:-3000}:3000"

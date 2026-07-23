@@ -105,7 +105,7 @@
 | done | [x] Custom domain/company email from admin | 2026-07-23: Setting overrides + compose (`userIds[]` loop / broadcast, one-way); Resend DNS external |
 | done | [x] Stripe admin actions (refund, invoice, cancel, …) | 2026-07-23: product/credit refund; sub cancel period_end/immediate; list/send/void invoices; fixed renewal overwriting sub stripeId |
 | done | [x] Guide: how to make a new email job | 2026-07-23: `docs/email-job.md` — template + enqueue; no new worker job type |
-| todo | [ ] `robots.txt` + `sitemap.xml` | |
+| done | [x] `robots.txt` + `sitemap.xml` | 2026-07-23: Next `app/robots.ts` + `app/sitemap.ts`; `SITE_URL` / `NEXT_PUBLIC_SITE_URL` |
 | todo | [ ] `llms.txt` (optional `llms-full.txt`) | |
 | todo | [ ] `/.well-known/security.txt` | |
 | deferred | [ ] `humans.txt` | vanity |
@@ -130,6 +130,7 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-23 | Phase 5 — robots.txt + sitemap.xml | Metadata routes; public posts/articles/collections; SITE_URL |
 | 2026-07-23 | Phase 5 — Email job guide | `docs/email-job.md` for AI/humans; index.ts points at it |
 | 2026-07-23 | Phase 5 — Stripe admin + purchase emails + checkout header | Refunds/cancel/invoices, Resend receipt/refund, Lax cookies + client Header |
 | 2026-07-23 | Phase 5 — Stripe admin actions | Refunds + cancel sub + invoice list/send/void; heal sub stripeId |

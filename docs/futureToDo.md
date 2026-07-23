@@ -71,10 +71,10 @@
 
 **Public site files**
 
-- `robots.txt` — crawl rules for search engines (allow/disallow admin, auth, API paths; link sitemap)
+- ~~`robots.txt` — crawl rules for search engines (allow/disallow admin, auth, API paths; link sitemap)~~ — done 2026-07-23 (`apps/web/src/app/robots.ts`)
 - `llms.txt` — LLM-oriented site summary (convention is `llms.txt` at root, not `llm.txt`; optional `llms-full.txt` for longer docs)
 - `/.well-known/security.txt` — security contact + disclosure policy (RFC 9116; useful in prod)
-- `sitemap.xml` — not `.txt`, but usually paired with `robots.txt` for SEO
+- ~~`sitemap.xml` — not `.txt`, but usually paired with `robots.txt` for SEO~~ — done 2026-07-23 (`apps/web/src/app/sitemap.ts`)
 - Optional: `humans.txt` — credits / “who built this” (low priority, mostly vanity)
 
 **Guides**

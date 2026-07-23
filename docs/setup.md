@@ -168,6 +168,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'));"
 **URLs & Base Configuration:**
 
 - `NEXT_PUBLIC_API_URL="http://localhost:3001"`-> `https://api.yourdomain.com`
+- `NEXT_PUBLIC_SITE_URL` or runtime `SITE_URL` → `https://yourdomain.com` (robots/sitemap absolute URLs; no trailing slash)
 - `NEXT_PUBLIC_STRIPE_ENABLED`
 - `NEXT_PUBLIC_SENTRY_ENVIRONMENT=development` -> `staging` or `production`
   > can omit posthog and sentry if you dont want to use them
