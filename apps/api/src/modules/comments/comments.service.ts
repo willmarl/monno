@@ -93,7 +93,10 @@ export class CommentsService {
       offset: pag.offset ?? 0,
       query: {
         where,
-        orderBy: { createdAt: 'desc' } as const,
+        // Top-level: newest first. Replies under a comment: oldest first (thread read order).
+        orderBy: {
+          createdAt: resourceType === 'COMMENT' ? ('asc' as const) : ('desc' as const),
+        },
         select: DEFAULT_COMMENT_SELECT,
       },
       countQuery: { where },

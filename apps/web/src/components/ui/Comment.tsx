@@ -204,204 +204,207 @@ export function Comment({
     });
   }
 
-  /** Fixed steps only — never compound past max (avoids smushed text). */
-  const threadClass =
-    depth === 0
-      ? ""
-      : depth === 1
-        ? "border-l border-border/60 pl-3 sm:pl-4"
-        : "border-l border-border/60 pl-3 sm:pl-4 ml-3 sm:ml-4";
+  /** Indent content only — menu stays on the far right of the full row. */
+  const contentIndent =
+    depth === 0 ? "" : depth === 1 ? "pl-3 sm:pl-4" : "pl-6 sm:pl-8";
+  const threadLine =
+    depth > 0 ? "border-l border-border/60" : "";
 
   return (
-    <div className={threadClass}>
-      <div className="flex gap-2 sm:gap-3 min-w-0">
-        <Avatar
-          className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 cursor-pointer mt-0.5"
-          onClick={() =>
-            data?.creator.username &&
-            router.push(`/user/${data.creator.username}`)
-          }
+    <div className="w-full min-w-0">
+      <div className="flex gap-2 sm:gap-3 min-w-0 w-full items-start">
+        <div
+          className={`flex flex-1 min-w-0 gap-2 sm:gap-3 ${contentIndent}`}
         >
-          <AvatarImage
-            src={data?.creator.avatarPath || undefined}
-            alt={data?.creator.username || "User"}
-          />
-          <AvatarFallback>
-            {data?.creator.username?.[0]?.toUpperCase() || "?"}
-          </AvatarFallback>
-        </Avatar>
-
-        <div className="flex-1 min-w-0 overflow-hidden">
-          <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
-            <p
-              className="text-xs sm:text-sm font-semibold cursor-pointer hover:text-foreground truncate"
+          <div className={`flex flex-1 min-w-0 gap-2 sm:gap-3 ${threadLine} ${depth > 0 ? "pl-3 sm:pl-4" : ""}`}>
+            <Avatar
+              className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 cursor-pointer mt-0.5"
               onClick={() =>
                 data?.creator.username &&
                 router.push(`/user/${data.creator.username}`)
               }
-              title={data?.creator.username || "Unknown"}
             >
-              {data?.creator.username || "Unknown"}
-            </p>
-            <p className="text-xs text-muted-foreground whitespace-nowrap">
-              {commentDate}
-            </p>
-            {isEdited && renderEditVisual()}
-          </div>
-
-          {isEditing ? (
-            <div className="space-y-2 mb-2">
-              <Textarea
-                {...editForm.register("content")}
-                placeholder="Edit your comment..."
-                className="resize-none min-h-[60px] text-xs sm:text-sm"
-                disabled={updateComment.isPending}
+              <AvatarImage
+                src={data?.creator.avatarPath || undefined}
+                alt={data?.creator.username || "User"}
               />
-              {editForm.formState.errors.content && (
-                <p className="text-xs text-red-500">
-                  {editForm.formState.errors.content.message}
-                </p>
-              )}
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    editForm.reset({ content: data.content });
-                    setIsEditing(false);
-                  }}
-                  disabled={updateComment.isPending}
-                  className="h-8 min-w-[80px] cursor-pointer text-xs sm:text-sm"
-                >
-                  <X size={16} className="mr-1 cursor-pointer shrink-0" />
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  size="sm"
-                  onClick={handleEdit}
-                  disabled={
-                    updateComment.isPending ||
-                    !editForm.formState.isDirty ||
-                    !editForm.formState.isValid
+              <AvatarFallback>
+                {data?.creator.username?.[0]?.toUpperCase() || "?"}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
+                <p
+                  className="text-xs sm:text-sm font-semibold cursor-pointer hover:text-foreground truncate"
+                  onClick={() =>
+                    data?.creator.username &&
+                    router.push(`/user/${data.creator.username}`)
                   }
-                  className="h-8 min-w-[80px] cursor-pointer text-xs sm:text-sm"
+                  title={data?.creator.username || "Unknown"}
                 >
-                  {updateComment.isPending ? "Saving..." : "Save"}
-                </Button>
+                  {data?.creator.username || "Unknown"}
+                </p>
+                <p className="text-xs text-muted-foreground whitespace-nowrap">
+                  {commentDate}
+                </p>
+                {isEdited && renderEditVisual()}
               </div>
-            </div>
-          ) : (
-            <p className="text-xs sm:text-sm text-foreground mb-2 break-words whitespace-pre-wrap">
-              {data?.content || ""}
-            </p>
-          )}
 
-          {!isEditing && (
-            <div className="flex flex-wrap items-center gap-2">
-              <LikeButton
-                isOwner={isOwner}
-                likedByMe={data.likedByMe}
-                likeCount={data.likeCount}
-                onLike={handleLike}
-              />
-              {currentUser && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2 text-xs cursor-pointer"
-                  onClick={() => {
-                    setIsReplying((v) => !v);
-                    if (canNestReplies) setShowReplies(true);
-                  }}
-                >
-                  Reply
-                </Button>
-              )}
-              {canNestReplies && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2 text-xs cursor-pointer text-muted-foreground"
-                  onClick={() => setShowReplies((v) => !v)}
-                >
-                  {showReplies
-                    ? replyCount > 0
-                      ? `Hide replies (${replyCount})`
-                      : "Hide replies"
-                    : "Show replies"}
-                </Button>
-              )}
-              <ReportButton
-                resourceType={RESOURCE_TYPES.COMMENT}
-                resourceId={data.id}
-                isOwner={isOwner}
-              />
-              <AdminRemoveButton
-                resourceType={RESOURCE_TYPES.COMMENT}
-                resourceId={data.id}
-              />
-            </div>
-          )}
-
-          {isReplying && currentUser && (
-            <NewCommentForm
-              resourceType={target.resourceType}
-              resourceId={target.resourceId}
-              user={currentUser}
-              compact
-              placeholder="Add a reply..."
-              submitLabel="Reply"
-              onCancel={() => setIsReplying(false)}
-              onSuccess={() => {
-                setIsReplying(false);
-                if (canNestReplies) {
-                  setShowReplies(true);
-                } else {
-                  // Sibling landed on parent thread — refresh that list
-                  queryClient.invalidateQueries({
-                    queryKey: [
-                      "comments-resource",
-                      target.resourceType,
-                      target.resourceId,
-                    ],
-                  });
-                }
-              }}
-            />
-          )}
-
-          {canNestReplies && showReplies && (
-            <div className="mt-3 space-y-3">
-              {repliesLoading && replies.length === 0 ? (
-                <p className="text-xs text-muted-foreground pl-1">
-                  Loading replies…
-                </p>
-              ) : replies.length === 0 ? (
-                <p className="text-xs text-muted-foreground pl-1">
-                  No replies yet.
-                </p>
-              ) : (
-                replies.map((reply) => (
-                  <Comment
-                    key={reply.id}
-                    data={reply}
-                    isOwner={currentUser?.id === reply.creator.id}
-                    depth={Math.min(depth + 1, MAX_NEST_DEPTH)}
+              {isEditing ? (
+                <div className="space-y-2 mb-2">
+                  <Textarea
+                    {...editForm.register("content")}
+                    placeholder="Edit your comment..."
+                    className="resize-none min-h-[60px] text-xs sm:text-sm"
+                    disabled={updateComment.isPending}
                   />
-                ))
+                  {editForm.formState.errors.content && (
+                    <p className="text-xs text-red-500">
+                      {editForm.formState.errors.content.message}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        editForm.reset({ content: data.content });
+                        setIsEditing(false);
+                      }}
+                      disabled={updateComment.isPending}
+                      className="h-8 min-w-[80px] cursor-pointer text-xs sm:text-sm"
+                    >
+                      <X size={16} className="mr-1 cursor-pointer shrink-0" />
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      size="sm"
+                      onClick={handleEdit}
+                      disabled={
+                        updateComment.isPending ||
+                        !editForm.formState.isDirty ||
+                        !editForm.formState.isValid
+                      }
+                      className="h-8 min-w-[80px] cursor-pointer text-xs sm:text-sm"
+                    >
+                      {updateComment.isPending ? "Saving..." : "Save"}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs sm:text-sm text-foreground mb-2 break-words whitespace-pre-wrap">
+                  {data?.content || ""}
+                </p>
+              )}
+
+              {!isEditing && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <LikeButton
+                    isOwner={isOwner}
+                    likedByMe={data.likedByMe}
+                    likeCount={data.likeCount}
+                    onLike={handleLike}
+                  />
+                  {currentUser && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 text-xs cursor-pointer"
+                      onClick={() => {
+                        setIsReplying((v) => !v);
+                        if (canNestReplies) setShowReplies(true);
+                      }}
+                    >
+                      Reply
+                    </Button>
+                  )}
+                  {canNestReplies && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 text-xs cursor-pointer text-muted-foreground"
+                      onClick={() => setShowReplies((v) => !v)}
+                    >
+                      {showReplies
+                        ? replyCount > 0
+                          ? `Hide replies (${replyCount})`
+                          : "Hide replies"
+                        : "Show replies"}
+                    </Button>
+                  )}
+                  <ReportButton
+                    resourceType={RESOURCE_TYPES.COMMENT}
+                    resourceId={data.id}
+                    isOwner={isOwner}
+                  />
+                  <AdminRemoveButton
+                    resourceType={RESOURCE_TYPES.COMMENT}
+                    resourceId={data.id}
+                  />
+                </div>
+              )}
+
+              {isReplying && currentUser && (
+                <NewCommentForm
+                  resourceType={target.resourceType}
+                  resourceId={target.resourceId}
+                  user={currentUser}
+                  compact
+                  placeholder="Add a reply..."
+                  submitLabel="Reply"
+                  onCancel={() => setIsReplying(false)}
+                  onSuccess={() => {
+                    setIsReplying(false);
+                    if (canNestReplies) {
+                      setShowReplies(true);
+                    } else {
+                      queryClient.invalidateQueries({
+                        queryKey: [
+                          "comments-resource",
+                          target.resourceType,
+                          target.resourceId,
+                        ],
+                      });
+                    }
+                  }}
+                />
               )}
             </div>
-          )}
+          </div>
         </div>
 
         {isOwner && !isEditing && (
           <div className="shrink-0 mt-0.5">{commentMenu()}</div>
         )}
       </div>
+
+      {canNestReplies && showReplies && (
+        <div className="mt-3 space-y-3 w-full">
+          {repliesLoading && replies.length === 0 ? (
+            <p className="text-xs text-muted-foreground pl-1">
+              Loading replies…
+            </p>
+          ) : replies.length === 0 ? (
+            <p className="text-xs text-muted-foreground pl-1">
+              No replies yet.
+            </p>
+          ) : (
+            replies.map((reply) => (
+              <Comment
+                key={reply.id}
+                data={reply}
+                isOwner={currentUser?.id === reply.creator.id}
+                depth={Math.min(depth + 1, MAX_NEST_DEPTH)}
+              />
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
