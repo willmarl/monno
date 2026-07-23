@@ -66,11 +66,11 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 - **Impact:** Login CSRF — attacker can bind victim’s browser session to attacker’s OAuth account.
 - **Fix applied:** Authorize sets httpOnly `oauth_state` + `oauth_pkce` cookies and sends `state` + S256 `code_challenge`. Callback requires matching `state` and sends `code_verifier` on token exchange (Google + GitHub). Unit tests in `oauth-csrf.spec.ts`.
 
-### 9. Production cookies `SameSite=None` without CSRF tokens
+### 9. Production cookies `SameSite=None` without CSRF tokens — **FIXED**
 
 - **Where:** `apps/api/src/config/cookie.config.ts`; web `kyClient.ts` (`credentials: "include"`)
-- **Issue:** Prod cookies are `SameSite=None; Secure`. CORS limits XHR origins, but cookie-authenticated cross-site form/simple requests can still send cookies. No CSRF token / double-submit.
-- **Fix:** Prefer `Lax`/`Strict` if frontend/API share a site; otherwise CSRF tokens / custom headers for mutating routes.
+- **Issue:** Prod cookies were `SameSite=None; Secure`. CORS limits XHR origins, but cookie-authenticated cross-site form/simple requests can still send cookies. No CSRF token / double-submit.
+- **Fix applied:** Default `SameSite=Lax` (web + API on same apex are same-site; classic cross-site POST CSRF no longer sends cookies). Override with `COOKIE_SAMESITE=none` only for true cross-domain deploys; then `CsrfGuard` requires `X-Requested-With: XMLHttpRequest` on mutations (web `kyClient` always sends it). Stripe/OAuth callbacks exempt. Tests in `cookie.config.spec.ts` + `csrf.guard.spec.ts`.
 
 ### 10. Secrets / tokens logged — **FIXED**
 

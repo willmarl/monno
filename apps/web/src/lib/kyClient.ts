@@ -18,6 +18,8 @@ export const api = ky.create({
   hooks: {
     beforeRequest: [
       (request) => {
+        // CSRF defense when API cookies use SameSite=None (see CsrfGuard)
+        request.headers.set("X-Requested-With", "XMLHttpRequest");
         if (request.body instanceof FormData) {
           request.headers.delete("Content-Type");
         } else if (request.body && typeof request.body === "string") {
@@ -41,6 +43,7 @@ export const api = ky.create({
             refreshPromise = ky
               .post(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {
                 credentials: "include",
+                headers: { "X-Requested-With": "XMLHttpRequest" },
               })
               .then((res) => {
                 if (!res.ok) throw new Error("Refresh failed");

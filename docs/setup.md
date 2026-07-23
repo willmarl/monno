@@ -134,6 +134,7 @@ If the public API host port changes, rebuild the web image with a matching
 
 - `BASE_URL=http://localhost:3001` -> `https://api.yourdomain.com`
 - `FRONTEND_URL=http://localhost:3000` -> `https://yourdomain.com`
+- `COOKIE_SAMESITE` — leave unset/`lax` when web and API share an apex (e.g. `app.com` + `api.app.com`). Set `none` only for true cross-domain frontends (requires HTTPS; API then requires `X-Requested-With` on mutating requests)
 - `*_TOKEN_SECRET` ->
 
 ```bash

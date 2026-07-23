@@ -12,6 +12,7 @@ import { CorrelationIdInterceptor } from './common/interceptors/correlation-id.i
 import { ProfilingInterceptor } from './common/interceptors/profiling.interceptor';
 import { RateLimitExceptionFilter } from './common/filters/rate-limit.filter';
 import { UserAwareThrottlerGuard } from './common/guards/throttle-user.guard';
+import { CsrfGuard } from './common/guards/csrf.guard';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
@@ -22,6 +23,7 @@ import { SeedService } from './modules/admin/seed.service';
 import { PrismaService } from './prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { requireJwtSecrets } from './config/jwt-secrets';
+import { getCookieSameSite } from './config/cookie.config';
 import * as express from 'express';
 
 function getCorsOrigins(): string[] {
@@ -48,6 +50,7 @@ Print.log(
 const corsOrigins = getCorsOrigins();
 
 Print.log('CORS origins allowed: ' + JSON.stringify(corsOrigins));
+Print.log('Cookie SameSite: ' + getCookieSameSite());
 
 async function bootstrap() {
   requireJwtSecrets();
@@ -92,7 +95,7 @@ async function bootstrap() {
       },
     }),
   );
-  app.useGlobalGuards(app.get(UserAwareThrottlerGuard));
+  app.useGlobalGuards(new CsrfGuard(), app.get(UserAwareThrottlerGuard));
   app.useGlobalFilters(
     new AllExceptionsFilter(),
     new RateLimitExceptionFilter(),

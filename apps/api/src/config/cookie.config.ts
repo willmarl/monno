@@ -3,6 +3,27 @@
  * Automatically adapts to development vs production environments
  */
 
+export type CookieSameSite = 'lax' | 'strict' | 'none';
+
+/**
+ * SameSite policy for auth cookies.
+ *
+ * Default `lax` — correct when web + API share a registrable domain
+ * (e.g. example.com + api.example.com). Cross-site form POSTs then
+ * do not include cookies (classic CSRF mitigated).
+ *
+ * Set COOKIE_SAMESITE=none only when the frontend and API are on
+ * *different* registrable domains (true cross-site). That requires
+ * Secure cookies and the CSRF header guard (see CsrfGuard).
+ */
+export function getCookieSameSite(): CookieSameSite {
+  const raw = (process.env.COOKIE_SAMESITE || 'lax').toLowerCase().trim();
+  if (raw === 'none' || raw === 'strict' || raw === 'lax') {
+    return raw;
+  }
+  return 'lax';
+}
+
 // Extract domain from FRONTEND_URL for cookie domain property
 // For production: https://example.com → .example.com
 // For development: http://localhost:3000 → undefined (browser default)
@@ -15,18 +36,15 @@ const getDomain = () => {
   return undefined;
 };
 
+const sameSite = getCookieSameSite();
+
 const cookieDefaults = {
   httpOnly: true,
   path: '/',
   domain: getDomain(),
-  // Lax (not Strict) in dev so top-level returns from Stripe/OAuth include
-  // cookies on the Next.js document request; otherwise SSR Header shows Guest
-  // until a hard refresh while client fetches still work.
-  sameSite:
-    process.env.NODE_ENV === 'production'
-      ? ('none' as const)
-      : ('lax' as const),
-  secure: process.env.NODE_ENV === 'production',
+  sameSite,
+  // SameSite=None requires Secure; also Secure in production
+  secure: process.env.NODE_ENV === 'production' || sameSite === 'none',
 };
 
 export const cookieConfig = {
