@@ -11,6 +11,7 @@ import { ModalProvider } from "@/components/providers/ModalProvider";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { PostHogProvider as CustomPostHogProvider } from "@/components/providers/PostHogProvider";
 import { PreferencesThemeSync } from "@/features/preferences/PreferencesThemeSync";
+import { PresenceHeartbeat } from "@/components/providers/PresenceHeartbeat";
 import { initPostHog } from "@/lib/posthog-init";
 
 // Initialize PostHog at module load time
@@ -23,6 +24,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <CustomPostHogProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <PreferencesThemeSync />
+            <PresenceHeartbeat />
             <TooltipProvider>
               <ModalProvider>{children}</ModalProvider>
               <ReactQueryDevtools initialIsOpen={false} />

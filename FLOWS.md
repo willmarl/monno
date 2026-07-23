@@ -24,7 +24,8 @@ AI agents should read this file before writing tests for any module.
 - Refresh-by-session also requires the refresh JWT `sub` to match `session.userId`
 - Revoking a session (`DELETE /sessions/:id`) sets `isValid=false` in DB; subsequent requests with that session's cookies return 401
 - Users can only revoke their own sessions (403 if attempting another user's session)
-- "Active now" on the admin dashboard = distinct users with a valid session touched within the configured window (default 5 min); guests are not included. `lastUsedAt` is updated on token refresh and throttled (~30s) on authenticated API requests.
+- "Active now" on the admin dashboard = distinct users with a valid session touched within the configured window (default 5 min) **plus** guests with a Redis presence key. `lastUsedAt` is updated on token refresh and throttled (~30s) on authenticated API requests. Guests: `anonId` cookie + `POST /presence/heartbeat` (~45s client interval) sets `{REDIS_NAMESPACE}:presence:guest:{uuid}` with TTL = `ACTIVE_NOW_WINDOW_MS`. Logged-in heartbeats skip Redis (no double-count). Stats: `presence.activeNow` / `users` / `guests`.
+
 
 ## Content (Posts, Comments, Collections)
 

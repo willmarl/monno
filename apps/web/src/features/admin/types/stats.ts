@@ -40,6 +40,8 @@ export interface ArticleStats {
 
 export interface PresenceStats {
   activeNow: number;
+  users: number;
+  guests: number;
   windowSeconds: number;
 }
 

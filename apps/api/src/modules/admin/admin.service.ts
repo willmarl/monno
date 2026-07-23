@@ -3,6 +3,10 @@ import { PrismaService } from '../../prisma.service';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import * as os from 'os';
+import {
+  getActiveNowWindowMs,
+  PresenceService,
+} from '../presence/presence.service';
 
 export interface AuditLogInput {
   adminId: number;
@@ -24,7 +28,10 @@ export interface AuditLogInput {
  */
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private presence: PresenceService,
+  ) {}
 
   // ===== AUDIT LOGGING =====
 
@@ -197,27 +204,31 @@ export class AdminService {
   }
 
   /**
-   * Ballpark "active now": distinct logged-in users with a valid session
-   * touched within the window. Guests are not included.
+   * Ballpark "active now": distinct logged-in users (Session.lastUsedAt)
+   * + guests with a Redis presence key still within the window.
    */
   private async getPresenceStats() {
-    const windowMs = parseInt(
-      process.env.ACTIVE_NOW_WINDOW_MS || String(5 * 60 * 1000),
-      10,
-    );
+    const windowMs = getActiveNowWindowMs();
     const cutoff = new Date(Date.now() - windowMs);
 
-    const rows = await this.prisma.session.findMany({
-      where: {
-        isValid: true,
-        lastUsedAt: { gte: cutoff },
-      },
-      select: { userId: true },
-      distinct: ['userId'],
-    });
+    const [rows, guests] = await Promise.all([
+      this.prisma.session.findMany({
+        where: {
+          isValid: true,
+          lastUsedAt: { gte: cutoff },
+        },
+        select: { userId: true },
+        distinct: ['userId'],
+      }),
+      this.presence.countGuests(),
+    ]);
+
+    const users = rows.length;
 
     return {
-      activeNow: rows.length,
+      activeNow: users + guests,
+      users,
+      guests,
       windowSeconds: Math.round(windowMs / 1000),
     };
   }

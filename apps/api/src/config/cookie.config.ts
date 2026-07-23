@@ -46,6 +46,15 @@ export const cookieConfig = {
   sessionId: cookieDefaults,
 
   /**
+   * Anonymous guest id for "active now" presence (Redis TTL).
+   * Long-lived cookie; presence window is Redis EX, not cookie Max-Age.
+   */
+  anonId: {
+    ...cookieDefaults,
+    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+  },
+
+  /**
    * Configuration for clearing cookies (logout)
    * Expires date set to past to delete the cookie
    */

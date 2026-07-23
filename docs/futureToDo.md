@@ -20,7 +20,7 @@
 - Custom domain/company email sending from admin panel
 - ~~Mass delete operations (findMany, deleteMany)~~ — done 2026-07-23 (admin bulk soft-delete via `updateMany`; not hard delete)
 - ~~Special admin buttons on public pages to remove content (comments, posts, etc) without entering dashboard~~ — done 2026-07-22
-- Active now: track guests too (anonymous client id + Redis TTL heartbeat; show users/guests split or combined). Logged-in already uses session `lastUsedAt`
+- ~~Active now: track guests too (anonymous client id + Redis TTL heartbeat; show users/guests split or combined). Logged-in already uses session `lastUsedAt`~~ — done 2026-07-23
 
 **Main Resources/Modules**
 

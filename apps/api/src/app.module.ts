@@ -9,6 +9,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { UserAwareThrottlerGuard } from './common/guards/throttle-user.guard';
 import { rateLimitConfig } from './config/rate-limit.config';
 import { QueueModule } from './modules/queue/queue.module';
+import { RedisModule } from './common/redis/redis.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
@@ -28,6 +29,7 @@ import { StripeModule } from './modules/stripe/stripe.module';
 import { SupportModule } from './modules/support/support.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { PresenceModule } from './modules/presence/presence.module';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { PrismaService } from './prisma.service';
 @Module({
@@ -98,6 +100,7 @@ import { PrismaService } from './prisma.service';
       },
     }),
     QueueModule,
+    RedisModule,
     UsersModule,
     AuthModule,
     SessionsModule,
@@ -117,6 +120,7 @@ import { PrismaService } from './prisma.service';
     SupportModule,
     ReportsModule,
     NotificationsModule,
+    PresenceModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserAwareThrottlerGuard, QueueModule, PrismaService],
