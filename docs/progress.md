@@ -92,7 +92,7 @@
 | done | [x] Notification system (worker + UI + preference toggles) | 2026-07-22: in-app bell + email on comment/like; prefs toggles; poll (no websocket) |
 | done | [x] Email on account status changes | 2026-07-22: suspend/ban/delete/restore → enqueueEmail; skip if no email |
 | done | [x] Comments on comments | 2026-07-22: nested Reply UI + YouTube thread rails / replies toggle / replyCount+creatorReply |
-| todo | [ ] Reactions (replace binary likes) | **last** in this phase — migration |
+| done | [x] Reactions (emoji on posts/comments; coexist with likes) | 2026-07-22: Discord-style `Reaction` + toggle; likes unchanged; UI on post/comment/article/collection |
 
 ---
 
@@ -130,6 +130,7 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-22 | Phase 4 — Reactions | Discord-style emoji alongside likes; `POST /reactions/toggle`; fixed emoji allowlist |
 | 2026-07-22 | Phase 4 — Comments UX polish | YouTube rails (L/T), replies toggle + creatorReply, reply autofocus |
 | 2026-07-22 | Phase 3 — Admin remove on public pages | Shield control soft-deletes via admin APIs without opening dashboard |
 | 2026-07-22 | Phase 3 — Report feature | Content reports (post/article/comment/collection); admin-only queue; MOD deferred |

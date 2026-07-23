@@ -18,7 +18,7 @@ import {
   canViewPrivateContent,
   publicVisibilityWhere,
 } from 'src/common/visibility/visibility';
-import { enhanceWithLikes } from 'src/common/likes/enhance-with-likes';
+import { enhanceWithEngagement } from 'src/common/reactions/enhance-with-engagement';
 import { buildSearchWhere } from 'src/common/search/search.utils';
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 import {
@@ -112,7 +112,7 @@ export class CollectionsService {
       countQuery: { where },
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'COLLECTION',
       items,
@@ -176,7 +176,7 @@ export class CollectionsService {
     // Remove the deleted flag from response
     const { deleted, ...result } = collection;
 
-    const [enhanced] = await enhanceWithLikes(
+    const [enhanced] = await enhanceWithEngagement(
       this.prisma,
       'COLLECTION',
       [result],
@@ -448,7 +448,7 @@ export class CollectionsService {
       countQuery: { where: whereWithStatus },
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'COLLECTION',
       items,
@@ -494,7 +494,7 @@ export class CollectionsService {
       },
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'COLLECTION',
       items,
@@ -525,7 +525,7 @@ export class CollectionsService {
       select: DEFAULT_COLLECTION_SELECT,
     });
 
-    return enhanceWithLikes(
+    return enhanceWithEngagement(
       this.prisma,
       'COLLECTION',
       collections,

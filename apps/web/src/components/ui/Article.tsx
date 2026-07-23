@@ -16,6 +16,7 @@ import { CollectionButton } from "../common/CollectionButton";
 import { MediaGallery } from "./MediaGallery";
 import { ReportButton } from "../common/ReportButton";
 import { AdminRemoveButton } from "../common/AdminRemoveButton";
+import { ReactionsBar } from "../common/ReactionsBar";
 
 export function Article({
   data,
@@ -182,6 +183,11 @@ export function Article({
             likedByMe={data.likedByMe}
             likeCount={data.likeCount}
             onLike={handleLike}
+          />
+          <ReactionsBar
+            resourceType={RESOURCE_TYPES.ARTICLE}
+            resourceId={data.id}
+            reactions={data.reactions}
           />
           <CollectionButton
             resourceId={data.id}

@@ -1,4 +1,5 @@
 import { PaginatedResponse } from "@/types/pagination";
+import type { ReactionSummary } from "@/features/reactions/types";
 
 interface Creator {
   id: number;
@@ -17,6 +18,7 @@ export interface Post {
   deletedAt: string;
   likeCount: number;
   likedByMe: boolean;
+  reactions?: ReactionSummary[];
   viewCount: number;
   visibility: "PUBLIC" | "PRIVATE";
 }

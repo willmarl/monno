@@ -156,6 +156,7 @@ Similarly, if schema has `viewCount Int @default(0)`, that signals the resource 
 - search (optional — clarify if not mentioned)
 - admin (optional — only add if human explicitly requests it)
 - able to like (optional — only add if human explicitly requests it)
+- able to react with emoji (optional — Discord-style reactions alongside likes; only if human requests)
 - has view count (optional — only add if human explicitly requests it)
 - able to comment on (optional — only add if human explicitly requests it)
 - able to add to collection (optional — only add if human explicitly requests it)
@@ -167,6 +168,7 @@ Similarly, if schema has `viewCount Int @default(0)`, that signals the resource 
   - if cursor whether to have load more button or infinite scroll or both
 - resource actions (only include what was requested in backend)
   - likes
+  - reactions
   - views
   - comments
   - collections
@@ -202,9 +204,12 @@ Go through this checklist with the human **before writing any code**. Do not pro
   - [ ] If yes: should there also be a **search suggest** (autocomplete) endpoint?
 - [ ] **Resource actions** — which of the following?
   - [ ] Likes
+  - [ ] Reactions (emoji; alongside likes — not a replacement)
   - [ ] Views
   - [ ] Comments
   - [ ] Collections
+  - [ ] Reports
+  - [ ] Notifications (owner bell/email on like/comment)
 - [ ] **Visibility (private/public)** on this resource?
   - [ ] No
   - [ ] Yes — default PUBLIC
@@ -217,7 +222,7 @@ Go through this checklist with the human **before writing any code**. Do not pro
 - [ ] If cursor pagination: **load more button**, **infinite scroll**, or both?
 - [ ] Should the resource list appear on the **user profile page**?
   - [ ] If yes: by-user (and liked, if likes) lists get **scoped search** — see `profile-search.md` (bundled with profile; not a separate gate)
-- [ ] **Frontend resource actions** — confirm same set as backend (likes UI, views UI, comments UI, collections UI)
+- [ ] **Frontend resource actions** — confirm same set as backend (likes UI, reactions UI, views UI, comments UI, collections UI)
 - [ ] **Admin dashboard** page + data table?
 
 Once confirmed, summarize back to the human what you will implement before starting.
@@ -244,6 +249,7 @@ After confirming everything with the human, create a `CRUD-plan.md` file at the 
 - [ ] Search
 - [ ] Admin (service + controller + module)
 - [ ] Likes
+- [ ] Reactions
 - [ ] Views
 - [ ] Comments
 - [ ] Collections
@@ -254,6 +260,7 @@ After confirming everything with the human, create a `CRUD-plan.md` file at the 
 - [ ] Offset pagination
 - [ ] Cursor pagination (load more / infinite scroll)
 - [ ] Likes UI
+- [ ] Reactions UI
 - [ ] Views UI
 - [ ] Comments UI
 - [ ] Collections UI

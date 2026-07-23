@@ -5,7 +5,7 @@ import type { ViewableResourceType } from 'src/common/types/resource.types';
 import { PrismaService } from '../../prisma.service';
 import { buildSearchWhere } from 'src/common/search/search.utils';
 import { visibilityWhereForContentViewer } from 'src/common/visibility/visibility';
-import { enhanceWithLikes } from 'src/common/likes/enhance-with-likes';
+import { enhanceWithEngagement } from 'src/common/reactions/enhance-with-engagement';
 import { HistoryQueryDto } from './dto/history-query.dto';
 
 const DEFAULT_POST_SELECT = {
@@ -166,7 +166,7 @@ export class ViewsService {
         },
         select: DEFAULT_POST_SELECT,
       });
-      resources = await enhanceWithLikes(this.prisma, 'POST', resources, userId);
+      resources = await enhanceWithEngagement(this.prisma, 'POST', resources, userId);
     } else {
       resources = await this.prisma.article.findMany({
         where: {
@@ -176,7 +176,7 @@ export class ViewsService {
         },
         select: DEFAULT_ARTICLE_SELECT,
       });
-      resources = await enhanceWithLikes(
+      resources = await enhanceWithEngagement(
         this.prisma,
         'ARTICLE',
         resources,

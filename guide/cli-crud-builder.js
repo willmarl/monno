@@ -126,6 +126,11 @@ async function main() {
     message: "Resource actions (uses your existing polymorphic models):",
     choices: [
       { name: "Likes", value: "likes", checked: true },
+      {
+        name: "Reactions (emoji; Discord-style, alongside likes)",
+        value: "reactions",
+        checked: true,
+      },
       { name: "Views (counter + view history)", value: "views", checked: true },
       { name: "Comments", value: "comments", checked: true },
       {
@@ -481,7 +486,7 @@ I want to create a **${resource}** CRUD resource. The feature decisions are alre
 - Frontend: ${config.frontend ? "yes" : "no"}${paginationUI}
 - Profile page integration: ${config.profileIntegration ? "yes (includes scoped search on by-user lists — see profile-search.md)" : "no"}
 
-**Infrastructure reminder:** Polymorphic Like, Comment, Collection, ViewHistory, Report, Notification models exist (via ResourceType enum). Views = \`viewCount\` on model + \`ViewHistory\` upsert on authenticated record. Reports = opt-in via \`REPORTABLE_RESOURCES\` (content + profile USER; admin queue). Notifications = opt-in via \`NOTIFIABLE_RESOURCES\` (owners get bell/email on like/comment — not the same as likes/comments existing). Soft delete = deleted/deletedAt fields. Visibility = existing \`Visibility\` enum + column on the resource (NOT a polymorphic addon — do NOT add PRIVATEABLE_RESOURCES). Do NOT invent separate ${resource}Like, ${resource}Comment, ${resource}Report tables.
+**Infrastructure reminder:** Polymorphic Like, Reaction, Comment, Collection, ViewHistory, Report, Notification models exist (via ResourceType enum). Reactions = Discord-style emoji (alongside likes, not instead of). Views = \`viewCount\` on model + \`ViewHistory\` upsert on authenticated record. Reports = opt-in via \`REPORTABLE_RESOURCES\` (content + profile USER; admin queue). Notifications = opt-in via \`NOTIFIABLE_RESOURCES\` (owners get bell/email on like/comment — not the same as likes/comments existing). Soft delete = deleted/deletedAt fields. Visibility = existing \`Visibility\` enum + column on the resource (NOT a polymorphic addon — do NOT add PRIVATEABLE_RESOURCES). Do NOT invent separate ${resource}Like, ${resource}Reaction, ${resource}Comment, ${resource}Report tables.
 
 **Your task:**
 1. Read schema.prisma (I'll attach it) to confirm existing patterns
@@ -704,9 +709,18 @@ function generateProgressFile(resource, config) {
         steps += `
 - [ ] **Likes:**
   - [ ] Add {{RESOURCE_UPPER}} to ResourceType enum
-  - [ ] Implement toggleLike service method
-  - [ ] Add toggleLike controller endpoint
-  - [ ] Update likeCount on model`;
+  - [ ] Add {{RESOURCE_UPPER}} to LIKEABLE_RESOURCES + likes service config
+  - [ ] Wire enhanceWithLikes (or enhanceWithEngagement if reactions also enabled)
+  - [ ] Implement liked-by-user list endpoints if profile needs them`;
+      }
+      if (config.resourceActions.includes("reactions")) {
+        steps += `
+- [ ] **Reactions:**
+  - [ ] Add {{RESOURCE_UPPER}} to ResourceType enum (if not already)
+  - [ ] Add {{RESOURCE_UPPER}} to REACTABLE_RESOURCES
+  - [ ] Add REACTABLE_RESOURCE_CONFIG entry in ReactionsService
+  - [ ] Wire enhanceWithEngagement (likes+reactions) or enhanceWithReactions alone
+  - [ ] Smoke-test POST /reactions/toggle`;
       }
       if (config.resourceActions.includes("views")) {
         steps += `
@@ -907,6 +921,14 @@ function generateProgressFile(resource, config) {
   - [ ] Add toggle handler
   - [ ] Show like count
   - [ ] Add loading state`;
+      }
+      if (config.resourceActions.includes("reactions")) {
+        frontendChecklist += `
+- [ ] **Reactions:**
+  - [ ] Add reactions?: ReactionSummary[] on {{resource}} type
+  - [ ] Invalidate {{resource}} query keys in useToggleReaction
+  - [ ] Mount ReactionsBar on card/detail (alongside LikeButton if likes)
+  - [ ] Smoke-test quick strip + full emoji picker`;
       }
       if (config.resourceActions.includes("views")) {
         frontendChecklist += `
@@ -1203,6 +1225,7 @@ model ${resource} {
 
 ### Resource Actions (Polymorphic Models)
 - [${config.resourceActions.includes("likes") ? "x" : " "}] Likes (use existing Like model + add ${resourceUpper} to ResourceType)
+- [${config.resourceActions.includes("reactions") ? "x" : " "}] Reactions (use existing Reaction model + REACTABLE_RESOURCES; alongside likes)
 - [${config.resourceActions.includes("views") ? "x" : " "}] Views (viewCount counter + view history hydrate/UI tabs)
 - [${config.resourceActions.includes("comments") ? "x" : " "}] Comments (use existing Comment model + add ${resourceUpper} to ResourceType)
 - [${config.resourceActions.includes("collections") ? "x" : " "}] Collections (use existing Collection/CollectionItem models + add ${resourceUpper} to ResourceType)
@@ -1223,6 +1246,7 @@ ${
 
 ### Resource Actions UI
 - [${config.resourceActions.includes("likes") ? "x" : " "}] Likes UI
+- [${config.resourceActions.includes("reactions") ? "x" : " "}] Reactions UI (ReactionsBar — quick strip + Frimousse picker)
 - [${config.resourceActions.includes("views") ? "x" : " "}] Views UI (counter + /history + admin user history tabs)
 - [${config.resourceActions.includes("comments") ? "x" : " "}] Comments UI
 - [${config.resourceActions.includes("collections") ? "x" : " "}] Collections UI (save to collection)
@@ -1247,10 +1271,11 @@ ${
 
 ## Polymorphic Model Implementation
 
-⚠️ **Do NOT create separate ${resource}Like, ${resource}Comment, ${resource}Collection tables.**
+⚠️ **Do NOT create separate ${resource}Like, ${resource}Reaction, ${resource}Comment, ${resource}Collection tables.**
 
 Your existing infrastructure handles all resource actions:
 - **Likes**: Existing \`Like\` model (polymorphic via ResourceType)
+- **Reactions**: Existing \`Reaction\` model + \`REACTABLE_RESOURCES\` (emoji; alongside likes — see reactions subsections in \`10.md\` / \`21.md\`)
 - **Comments**: Existing \`Comment\` model (polymorphic via ResourceType)
 - **Collections**: Existing \`Collection\` + \`CollectionItem\` models (polymorphic via ResourceType)
 - **Views**: Counter on ${resource} model + polymorphic \`ViewHistory\` (see views subsections in \`10.md\` / \`21.md\` for history hydrate + UI tabs)

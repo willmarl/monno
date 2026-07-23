@@ -9,7 +9,7 @@ import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 import { PostSearchDto, PostSearchCursorDto } from './dto/search-post.dto';
 import { buildSearchWhere } from 'src/common/search/search.utils';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
-import { enhanceWithLikes } from 'src/common/likes/enhance-with-likes';
+import { enhanceWithEngagement } from 'src/common/reactions/enhance-with-engagement';
 import {
   publicVisibilityWhere,
   visibilityWhereForViewer,
@@ -127,7 +127,7 @@ export class PostsService {
       countQuery: { where },
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'POST',
       items,
@@ -164,7 +164,7 @@ export class PostsService {
       },
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'POST',
       items,
@@ -237,7 +237,7 @@ export class PostsService {
       countQuery: { where },
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'POST',
       items,
@@ -308,7 +308,7 @@ export class PostsService {
     });
 
     // Enhance with likes
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'POST',
       posts,
@@ -338,7 +338,7 @@ export class PostsService {
       throw new NotFoundException('Post not found');
     }
 
-    const [enhanced] = await enhanceWithLikes(
+    const [enhanced] = await enhanceWithEngagement(
       this.prisma,
       'POST',
       [post],
@@ -410,7 +410,7 @@ export class PostsService {
       countQuery: { where: whereWithStatus },
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'POST',
       items,
@@ -456,7 +456,7 @@ export class PostsService {
       },
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'POST',
       items,
@@ -486,7 +486,7 @@ export class PostsService {
       take: limit,
     });
 
-    return enhanceWithLikes(this.prisma, 'POST', posts, currentUserId);
+    return enhanceWithEngagement(this.prisma, 'POST', posts, currentUserId);
   }
 
   /**

@@ -1,5 +1,6 @@
 import { PaginatedResponse } from "@/types/pagination";
 import type { ResourceType } from "@/types/resource";
+import type { ReactionSummary } from "@/features/reactions/types";
 
 export interface CollectionCreator {
   id: number;
@@ -20,6 +21,7 @@ export interface Collection {
   visibility: "PUBLIC" | "PRIVATE";
   likeCount: number;
   likedByMe: boolean;
+  reactions?: ReactionSummary[];
 }
 
 export type CollectionsList = PaginatedResponse<Collection>;

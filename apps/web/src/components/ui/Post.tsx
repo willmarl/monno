@@ -14,6 +14,7 @@ import { LikeButton } from "../common/LikeButton";
 import { CollectionButton } from "../common/CollectionButton";
 import { ReportButton } from "../common/ReportButton";
 import { AdminRemoveButton } from "../common/AdminRemoveButton";
+import { ReactionsBar } from "../common/ReactionsBar";
 
 export function Post({
   data,
@@ -141,6 +142,11 @@ export function Post({
             likedByMe={data.likedByMe}
             likeCount={data.likeCount}
             onLike={handleLike}
+          />
+          <ReactionsBar
+            resourceType={RESOURCE_TYPES.POST}
+            resourceId={data.id}
+            reactions={data.reactions}
           />
           {(data.visibility !== "PRIVATE" || isOwner) && (
             <CollectionButton

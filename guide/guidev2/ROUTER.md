@@ -48,9 +48,12 @@ PAGINATION_UI: numbered | cursor | both | none
 PROFILE: yes | no
 VISIBILITY: none | defaultPublic | defaultPrivate
 LIKES: yes | no
+REACTIONS: yes | no
 VIEWS: yes | no
 COMMENTS: yes | no
 COLLECTIONS: yes | no
+REPORTS: yes | no
+NOTIFICATIONS: yes | no
 ```
 
 **Note:** `VISIBILITY` is a schema/feature gate (column + helpers), **not** a media path letter. Do not invent path `d` / `D`.
@@ -63,7 +66,7 @@ COLLECTIONS: yes | no
 2. **Do not open `_source/`** if it exists — archived originals.
 3. After finishing a file, follow its `<!-- NEXT: ... -->` footer (or the table below if footer missing).
 4. Update `PROGRESS-{{resource}}.md` checkboxes as you complete each part.
-5. Skip any step labelled admin/search/likes/visibility/etc. when that gate is false — even if the file is on your list.
+5. Skip any step labelled admin/search/likes/reactions/visibility/etc. when that gate is false — even if the file is on your list.
 
 ---
 
@@ -87,7 +90,7 @@ Replace `{L}` with your letter (`a`, `b`, or `c`).
 | 7b    | `3-admin-create.md`          | **SKIP** if !ADMIN — `POST /admin/{{resource}}`   |
 | 8     | `8.md` then `8c.md` if L=c   | `8c.md` only for complex media test endpoints     |
 | 9     | `9.md`                       | **SKIP entire file** if SEARCH=none               |
-| 10    | `10.md`                      | Only subsections for enabled resource actions (views→history; reports→REPORTABLE_RESOURCES; notifications→NOTIFIABLE_RESOURCES) |
+| 10    | `10.md`                      | Only subsections for enabled resource actions (reactions→REACTABLE_RESOURCES; views→history; reports→REPORTABLE_RESOURCES; notifications→NOTIFIABLE_RESOURCES) |
 | 11    | `11.md`                      | Always (swagger)                                  |
 
 If `FRONTEND=no` → stop after Part 11. Hand off to human for endpoint testing.
@@ -107,7 +110,7 @@ If `FRONTEND=no` → stop after Part 11. Hand off to human for endpoint testing.
 | 19    | `19.md` then `19{L}.md`      | **SKIP** if !ADMIN; columns media fork in `19{L}` |
 | 22    | `22-admin-create.md`         | **SKIP** if !ADMIN — dashboard create button/form |
 | 20    | `20.md`                      | **SKIP entire file** if SEARCH=none               |
-| 21    | `21.md`                      | Only subsections for enabled resource actions (views→history tabs; reports→ReportButton; notifications→href) |
+| 21    | `21.md`                      | Only subsections for enabled resource actions (reactions→ReactionsBar; views→history tabs; reports→ReportButton; notifications→href) |
 
 ---
 

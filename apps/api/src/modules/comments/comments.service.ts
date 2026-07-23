@@ -10,7 +10,7 @@ import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import type { CommentableResourceType } from 'src/common/types/resource.types';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
-import { enhanceWithLikes } from 'src/common/likes/enhance-with-likes';
+import { enhanceWithEngagement } from 'src/common/reactions/enhance-with-engagement';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType, ResourceType } from 'src/generated/prisma/client';
 
@@ -73,7 +73,7 @@ export class CommentsService {
       resourceId: data.resourceId,
     });
 
-    const [enhanced] = await enhanceWithLikes(
+    const [enhanced] = await enhanceWithEngagement(
       this.prisma,
       'COMMENT',
       [comment],
@@ -112,7 +112,7 @@ export class CommentsService {
       countQuery: { where },
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'COMMENT',
       items,
@@ -149,7 +149,7 @@ export class CommentsService {
     }
 
     const { deleted, ...result } = comment;
-    const [enhanced] = await enhanceWithLikes(
+    const [enhanced] = await enhanceWithEngagement(
       this.prisma,
       'COMMENT',
       [result],
@@ -193,7 +193,7 @@ export class CommentsService {
       select: DEFAULT_COMMENT_SELECT,
     });
 
-    const [enhanced] = await enhanceWithLikes(
+    const [enhanced] = await enhanceWithEngagement(
       this.prisma,
       'COMMENT',
       [updated],
@@ -236,7 +236,7 @@ export class CommentsService {
       select: DEFAULT_COMMENT_SELECT,
     });
 
-    const [enhanced] = await enhanceWithLikes(
+    const [enhanced] = await enhanceWithEngagement(
       this.prisma,
       'COMMENT',
       [deleted],

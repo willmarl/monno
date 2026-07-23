@@ -98,6 +98,16 @@ AI agents should read this file before writing tests for any module.
 - Indent stops at layer 3 so threads do not smush; nested lists load on demand.
 - Top-level lists on post/article stay `resourceType: POST|ARTICLE` only; replies live under each parent.
 
+## Reactions (emoji)
+
+- Coexists with binary likes — separate `Reaction` table and `POST /reactions/toggle`; likes unchanged.
+- One row per `(userId, resourceType, resourceId, emoji)`; toggle add/remove that emoji only.
+- Any emoji grapheme / ZWJ sequence allowed (`isValidReactionEmoji`); reject empty/whitespace/non-emoji/oversized (max 32 chars).
+- UI: SmilePlus = quick favorites strip; Smile = full Frimousse picker (native system emojis, shadcn-styled).
+- `REACTABLE_RESOURCES` currently matches likeable: POST, COMMENT, ARTICLE, COLLECTION.
+- List/detail attach aggregated `reactions: { emoji, count, reactedByMe }[]` via `enhanceWithEngagement` (likes + reactions).
+- No reaction notifications in the first slice (likes still notify).
+
 ---
 
 _Add new entries here when you make a product decision that isn't obvious from reading the code._

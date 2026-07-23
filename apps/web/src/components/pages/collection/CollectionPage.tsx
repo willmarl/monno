@@ -17,6 +17,7 @@ import { PageNotFound } from "@/components/common/PageNotFound";
 import { PageLoadingState } from "@/components/common/PageLoadingState";
 import { useEffect } from "react";
 import { LikeButton } from "@/components/common/LikeButton";
+import { ReactionsBar } from "@/components/common/ReactionsBar";
 import { useToggleLike } from "@/features/likes/hooks";
 import { RESOURCE_TYPES } from "@/types/resource";
 import { ReportButton } from "@/components/common/ReportButton";
@@ -124,6 +125,11 @@ export function CollectionPage({ id }: CollectionPageProps) {
               likedByMe={data.likedByMe}
               likeCount={data.likeCount}
               onLike={handleLike}
+            />
+            <ReactionsBar
+              resourceType={RESOURCE_TYPES.COLLECTION}
+              resourceId={data.id}
+              reactions={data.reactions}
             />
             <ReportButton
               resourceType={RESOURCE_TYPES.COLLECTION}

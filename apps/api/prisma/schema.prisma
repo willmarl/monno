@@ -120,6 +120,7 @@ model User {
   passwordResetTokens     PasswordResetToken[]
   posts                   Post[]
   likes                   Like[]
+  reactions               Reaction[]
   comments                Comment[]
   usernameHistory         UsernameHistory[]
   collections             Collection[]
@@ -321,6 +322,22 @@ model Like {
   @@index([resourceType])
   @@index([userId])
   @@index([resourceId])
+}
+
+/// Discord-style emoji reaction; coexists with binary Like (one row per user+emoji+resource).
+model Reaction {
+  id           Int          @id @default(autoincrement())
+  userId       Int
+  resourceType ResourceType
+  resourceId   Int
+  emoji        String
+  createdAt    DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, resourceType, resourceId, emoji])
+  @@index([resourceType, resourceId])
+  @@index([userId])
 }
 
 model ViewHistory {

@@ -1,5 +1,6 @@
 import { PaginatedResponse } from "@/types/pagination";
 import type { ResourceType } from "@/types/resource";
+import type { ReactionSummary } from "@/features/reactions/types";
 
 export interface CommentCreator {
   id: number;
@@ -25,6 +26,8 @@ export interface Comment {
    * YouTube shows their avatar next to the replies toggle.
    */
   creatorReply?: CommentCreator | null;
+  /** Discord-style emoji reactions (alongside likes). */
+  reactions?: ReactionSummary[];
   deleted?: boolean;
   deletedAt?: string | null;
 }

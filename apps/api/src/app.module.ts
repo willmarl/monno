@@ -19,6 +19,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { PostsModule } from './modules/posts/posts.module';
 import { ArticlesModule } from './modules/articles/articles.module';
 import { LikesModule } from './modules/likes/likes.module';
+import { ReactionsModule } from './modules/reactions/reactions.module';
 import { ViewsModule } from './modules/views/views.module';
 import { CollectionsModule } from './modules/collections/collections.module';
 import { CommentsModule } from './modules/comments/comments.module';
@@ -107,6 +108,7 @@ import { PrismaService } from './prisma.service';
     PostsModule,
     ArticlesModule,
     LikesModule,
+    ReactionsModule,
     ViewsModule,
     CollectionsModule,
     CommentsModule,

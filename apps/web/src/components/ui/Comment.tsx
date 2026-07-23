@@ -41,6 +41,7 @@ import {
 import { LikeButton } from "../common/LikeButton";
 import { ReportButton } from "../common/ReportButton";
 import { AdminRemoveButton } from "../common/AdminRemoveButton";
+import { ReactionsBar } from "../common/ReactionsBar";
 import { NewCommentForm } from "@/features/comments/components/NewCommentForm";
 import { useSessionUser } from "@/features/auth/hooks";
 import { useQueryClient } from "@tanstack/react-query";
@@ -396,6 +397,11 @@ export function Comment({
                   likedByMe={data.likedByMe}
                   likeCount={data.likeCount}
                   onLike={handleLike}
+                />
+                <ReactionsBar
+                  resourceType={RESOURCE_TYPES.COMMENT}
+                  resourceId={data.id}
+                  reactions={data.reactions}
                 />
                 {currentUser && (
                   <Button

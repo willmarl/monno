@@ -1,4 +1,5 @@
 import { PaginatedResponse } from "@/types/pagination";
+import type { ReactionSummary } from "@/features/reactions/types";
 
 export const ARTICLE_STATUSES = [
   "DRAFT",
@@ -36,6 +37,7 @@ export interface Article {
   status: ArticleStatus;
   likeCount: number;
   likedByMe: boolean;
+  reactions?: ReactionSummary[];
   viewCount: number;
 }
 

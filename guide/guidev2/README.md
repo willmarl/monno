@@ -12,7 +12,7 @@ A single mega-guide put all three upload styles in one context window and models
 | b      | simple       | `2b.md`, `3b.md`, …  |
 | c      | complex      | `2c.md`, `3c.md`, …  |
 
-Shared chapters (`4.md`, `6.md`, `visibility.md`, `profile-search.md`, …) have no letter. Feature gates (admin/search/likes/visibility/profile/…) are skip rules in ROUTER + file headers. **Visibility** and **profile scoped search** are feature gates, not path letters — `visibility.md` when CONFIG says so; `profile-search.md` whenever PROFILE=yes.
+Shared chapters (`4.md`, `6.md`, `visibility.md`, `profile-search.md`, …) have no letter. Feature gates (admin/search/likes/reactions/visibility/profile/…) are skip rules in ROUTER + file headers. **Visibility** and **profile scoped search** are feature gates, not path letters — `visibility.md` when CONFIG says so; `profile-search.md` whenever PROFILE=yes.
 
 **Admin dashboard create:** `3-admin-create.md` (backend) + `22-admin-create.md` (frontend) when `ADMIN=yes`.
 

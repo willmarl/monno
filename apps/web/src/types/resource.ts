@@ -1,6 +1,6 @@
 /**
  * Central source of truth for resource types
- * Used across likes, comments, collections, views, etc.
+ * Used across likes, reactions, comments, collections, views, etc.
  */
 
 export const RESOURCE_TYPES = {

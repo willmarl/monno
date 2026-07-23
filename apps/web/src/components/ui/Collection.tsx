@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { LikeButton } from "../common/LikeButton";
 import { useToggleLike } from "@/features/likes/hooks";
 import { RESOURCE_TYPES } from "@/types/resource";
+import { ReactionsBar } from "../common/ReactionsBar";
 
 export function CollectionCard({
   data,
@@ -44,7 +45,7 @@ export function CollectionCard({
         {data?.description}
       </p>
       <div
-        className="flex justify-end"
+        className="flex justify-end gap-2 items-center"
         onClick={(e) => e.stopPropagation()}
       >
         <LikeButton
@@ -52,6 +53,11 @@ export function CollectionCard({
           likedByMe={data.likedByMe}
           likeCount={data.likeCount}
           onLike={handleLike}
+        />
+        <ReactionsBar
+          resourceType={RESOURCE_TYPES.COLLECTION}
+          resourceId={data.id}
+          reactions={data.reactions}
         />
       </div>
     </Card>

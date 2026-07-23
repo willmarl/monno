@@ -35,8 +35,8 @@
 
 - ~~Comments on comments~~ — done 2026-07-22 (Reply UI; nested via COMMENTABLE; YouTube-style rails + replies toggle)
   - Later: move `Comment` from `components/ui` → `features/comments`; split thread chrome vs body (not urgent)
-- Reactions system (like, dislike, react emoji) instead of just binary likes
-  - Update posts and comments to support reactions
+- ~~Reactions system (emoji reacts on posts/comments) **alongside** binary likes — Discord-style~~ — done 2026-07-22
+  - Keep existing like/unlike; fixed emoji allowlist; optional later: reaction notifications
 
 **Worker (BullMQ)**
 

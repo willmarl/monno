@@ -13,7 +13,7 @@ import {
   ArticleSearchCursorDto,
 } from './dto/search-article.dto';
 import { buildSearchWhere } from 'src/common/search/search.utils';
-import { enhanceWithLikes } from 'src/common/likes/enhance-with-likes';
+import { enhanceWithEngagement } from 'src/common/reactions/enhance-with-engagement';
 import { FilePresetName } from '../../common/file-processing/file-upload-presets';
 
 const DEFAULT_ARTICLE_SELECT = {
@@ -74,7 +74,7 @@ export class ArticlesService {
       throw new NotFoundException('Article not found');
     }
 
-    const [enhanced] = await enhanceWithLikes(
+    const [enhanced] = await enhanceWithEngagement(
       this.prisma,
       'ARTICLE',
       [article],
@@ -97,7 +97,7 @@ export class ArticlesService {
       countQuery: { where: where },
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'ARTICLE',
       items,
@@ -125,7 +125,7 @@ export class ArticlesService {
       },
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'ARTICLE',
       items,
@@ -166,7 +166,7 @@ export class ArticlesService {
       countQuery: { where },
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'ARTICLE',
       items,
@@ -202,7 +202,7 @@ export class ArticlesService {
       },
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'ARTICLE',
       items,
@@ -266,7 +266,7 @@ export class ArticlesService {
       countQuery: { where },
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'ARTICLE',
       items,
@@ -314,7 +314,7 @@ export class ArticlesService {
       select: DEFAULT_ARTICLE_SELECT,
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'ARTICLE',
       articles,
@@ -450,7 +450,7 @@ export class ArticlesService {
       countQuery: { where },
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'ARTICLE',
       items,
@@ -508,7 +508,7 @@ export class ArticlesService {
       },
     });
 
-    const enhancedItems = await enhanceWithLikes(
+    const enhancedItems = await enhanceWithEngagement(
       this.prisma,
       'ARTICLE',
       items,

@@ -116,6 +116,7 @@ Can you share:
 ```
 I see your schema has:
 ✓ Like model (polymorphic via ResourceType enum)
+✓ Reaction model (polymorphic emoji reactions; alongside likes)
 ✓ Comment model (polymorphic via ResourceType enum)
 ✓ Collection model (polymorphic via resourceType)
 ✓ Soft delete pattern (deleted: Boolean, deletedAt: DateTime)
@@ -184,13 +185,14 @@ Since likes/comments/collections are polymorphic:
 ```
 Your request includes:
 - [x] Likes → Use existing Like model (add BLOG to ResourceType)
+- [x] Reactions → Use existing Reaction model + REACTABLE_RESOURCES (alongside likes)
 - [x] Comments → Use existing Comment model (add BLOG to ResourceType)
 - [x] Collections → Use existing Collection model (add BLOG to ResourceType)
 - [x] Views → Use viewCount counter on Blog model
-- [ ] Custom reactions? Custom comment types? (If yes, may need schema changes)
+- [ ] Custom comment types / rating stars? (If yes, may need schema changes)
 ```
 
-**If they request something NOT in existing models** (e.g., custom reactions, nested comments, rating stars), ask: "Should I create a new polymorphic model pattern, or extend an existing one?"
+**If they request something NOT in existing models** (e.g., nested comment UX variants, rating stars), ask: "Should I create a new polymorphic model pattern, or extend an existing one?"
 
 #### Step 5: Run Feature Checklist
 
@@ -213,9 +215,10 @@ Go through the **pre-implementation clarification checklist** from [guidev2/0_pr
 - Ask default: PUBLIC (typical posts) vs PRIVATE (typical collections)
 - Do **not** invent `PRIVATEABLE_RESOURCES` allowlists
 
-**When they mention resource actions (likes, comments, collections, reports, notifications):**
+**When they mention resource actions (likes, reactions, comments, collections, reports, notifications):**
 
 - Don't ask "should we add likes?" → you already know they use the Like model
+- Don't invent a second reaction system — reuse `Reaction` + `REACTABLE_RESOURCES` + `ReactionsBar` (Frimousse)
 - Instead ask: "Likes UI on the frontend — load immediately or fetch on demand?"
 - Ask: "Comment UI — show count, show list, or full nested thread?"
 - Ask: "Collection save — show in toolbar or dedicated modal?"
