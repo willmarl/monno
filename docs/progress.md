@@ -104,7 +104,7 @@
 | done | [x] Active now: guests (anonymous id + Redis TTL) | 2026-07-23: `anonId` + `POST /presence/heartbeat`; Redis TTL; admin stats users/guests split |
 | done | [x] Custom domain/company email from admin | 2026-07-23: Setting overrides + compose (`userIds[]` loop / broadcast, one-way); Resend DNS external |
 | done | [x] Stripe admin actions (refund, invoice, cancel, …) | 2026-07-23: product/credit refund; sub cancel period_end/immediate; list/send/void invoices; fixed renewal overwriting sub stripeId |
-| todo | [ ] Guide: how to make a new email job | |
+| done | [x] Guide: how to make a new email job | 2026-07-23: `docs/email-job.md` — template + enqueue; no new worker job type |
 | todo | [ ] `robots.txt` + `sitemap.xml` | |
 | todo | [ ] `llms.txt` (optional `llms-full.txt`) | |
 | todo | [ ] `/.well-known/security.txt` | |
@@ -130,6 +130,8 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-23 | Phase 5 — Email job guide | `docs/email-job.md` for AI/humans; index.ts points at it |
+| 2026-07-23 | Phase 5 — Stripe admin + purchase emails + checkout header | Refunds/cancel/invoices, Resend receipt/refund, Lax cookies + client Header |
 | 2026-07-23 | Phase 5 — Stripe admin actions | Refunds + cancel sub + invoice list/send/void; heal sub stripeId |
 | 2026-07-23 | Phase 5 — Stripe admin refunds | Product + credit full refund via Stripe; webhook apply idempotent |
 | 2026-07-23 | Phase 5 — Company email branding | Admin Setting overrides for Resend from/support; test send; worker uses job from |

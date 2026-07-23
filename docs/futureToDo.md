@@ -79,4 +79,4 @@
 
 **Guides**
 
-- Instructions for AI on how to make new email job
+- ~~Instructions for AI on how to make new email job~~ — done 2026-07-23 (`docs/email-job.md`)
