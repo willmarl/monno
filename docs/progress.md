@@ -107,7 +107,7 @@
 | done | [x] Guide: how to make a new email job | 2026-07-23: `docs/email-job.md` — template + enqueue; no new worker job type |
 | done | [x] `robots.txt` + `sitemap.xml` | 2026-07-23: Next `app/robots.ts` + `app/sitemap.ts`; `SITE_URL` / `NEXT_PUBLIC_SITE_URL` |
 | done | [x] `llms.txt` (optional `llms-full.txt`) | 2026-07-23: `/llms.txt` + `/llms-full.txt` routes; llmstxt.org Markdown |
-| todo | [ ] `/.well-known/security.txt` | |
+| done | [x] `/.well-known/security.txt` | 2026-07-23: RFC 9116 route; Contact/Expires via SECURITY_CONTACT(_EMAIL) |
 | deferred | [ ] `humans.txt` | vanity |
 
 ---
@@ -130,6 +130,7 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-23 | Phase 5 — security.txt | `/.well-known/security.txt` RFC 9116; env-driven Contact/Expires |
 | 2026-07-23 | Phase 5 — llms.txt | `/llms.txt` + `/llms-full.txt` for LLM agents |
 | 2026-07-23 | Phase 5 — robots.txt + sitemap.xml | Metadata routes; public posts/articles/collections; SITE_URL |
 | 2026-07-23 | Phase 5 — Email job guide | `docs/email-job.md` for AI/humans; index.ts points at it |

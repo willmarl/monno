@@ -139,6 +139,10 @@ services:
       API_INTERNAL_URL: http://api:3001
       # Absolute origin for /robots.txt and /sitemap.xml (runtime; not baked)
       SITE_URL: ${SITE_URL:-http://localhost:3000}
+      SECURITY_CONTACT_EMAIL: ${SECURITY_CONTACT_EMAIL:-security@example.com}
+      SECURITY_CONTACT: ${SECURITY_CONTACT:-}
+      SECURITY_TXT_EXPIRES: ${SECURITY_TXT_EXPIRES:-}
+      SECURITY_POLICY_URL: ${SECURITY_POLICY_URL:-}
     ports:
       - "${WEB_PORT:-3000}:3000"
     depends_on:
