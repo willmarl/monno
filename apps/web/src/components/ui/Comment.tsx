@@ -264,7 +264,7 @@ export function Comment({
               </div>
             </div>
           ) : (
-            <p className="text-xs sm:text-sm text-foreground mb-2 break-words">
+            <p className="text-xs sm:text-sm text-foreground mb-2 break-words whitespace-pre-wrap">
               {data?.content || ""}
             </p>
           )}
