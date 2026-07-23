@@ -27,6 +27,7 @@ import { RolesGuard } from '../../../common/guards/roles.guard';
 import { AdminCommentService } from './admin-comment.service';
 import { CommentSearchDto } from '../../comments/dto/search-comment.dto';
 import { UpdateCommentDto } from '../../comments/dto/update-comment.dto';
+import { BulkIdsDto } from '../dto/bulk-ids.dto';
 
 @ApiTags('admin-comments')
 @Controller('admin/comments')
@@ -58,18 +59,23 @@ export class AdminCommentsController {
     return this.adminCommentService.search(searchDto);
   }
 
-  // @ApiOperation({ summary: 'Search comments (admin only)' })
-  // @ApiBearerAuth()
-  // @ApiResponse({
-  //   status: 200,
-  //   description: 'Search results',
-  // })
-  // @ApiResponse({ status: 401, description: 'Unauthorized' })
-  // @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
-  // @Get('search')
-  // search(@Query() searchDto: CommentSearchDto) {
-  //   return this.adminCommentService.search(searchDto);
-  // }
+  @ApiOperation({ summary: 'Bulk soft-delete comments (admin only)' })
+  @ApiBearerAuth()
+  @ApiBody({ type: BulkIdsDto })
+  @Post('bulk-delete')
+  bulkDelete(@Body() body: BulkIdsDto, @Req() req: any) {
+    const adminId = req.user?.sub;
+    return this.adminCommentService.bulkDelete(body.ids, adminId);
+  }
+
+  @ApiOperation({ summary: 'Bulk restore comments (admin only)' })
+  @ApiBearerAuth()
+  @ApiBody({ type: BulkIdsDto })
+  @Post('bulk-restore')
+  bulkRestore(@Body() body: BulkIdsDto, @Req() req: any) {
+    const adminId = req.user?.sub;
+    return this.adminCommentService.bulkRestore(body.ids, adminId);
+  }
 
   @ApiOperation({
     summary: 'Find comment by ID (admin only, including deleted)',

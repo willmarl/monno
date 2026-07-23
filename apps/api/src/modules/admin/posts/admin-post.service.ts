@@ -10,6 +10,7 @@ import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 import { AdminService } from '../admin.service';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import { normalizeBulkIds } from 'src/common/admin/bulk-ids';
 
 const DEFAULT_POST_SELECT = {
   id: true,
@@ -243,5 +244,65 @@ export class AdminPostService {
     });
 
     return restored;
+  }
+
+  /**
+   * Soft-delete many posts (idempotent: skips missing / already deleted).
+   */
+  async bulkDelete(ids: number[], adminId: number) {
+    const uniqueIds = normalizeBulkIds(ids);
+    if (uniqueIds.length === 0) {
+      return { affected: 0, skipped: 0 };
+    }
+
+    const result = await this.prisma.post.updateMany({
+      where: { id: { in: uniqueIds }, deleted: false },
+      data: { deleted: true, deletedAt: new Date() },
+    });
+
+    if (result.count > 0) {
+      await this.adminService.log({
+        adminId,
+        action: 'POSTS_BULK_DELETED',
+        resource: 'POST',
+        description: `Admin bulk soft-deleted ${result.count} post(s)`,
+        changes: { ids: uniqueIds, affected: result.count },
+      });
+    }
+
+    return {
+      affected: result.count,
+      skipped: uniqueIds.length - result.count,
+    };
+  }
+
+  /**
+   * Restore many soft-deleted posts (idempotent: skips missing / active).
+   */
+  async bulkRestore(ids: number[], adminId: number) {
+    const uniqueIds = normalizeBulkIds(ids);
+    if (uniqueIds.length === 0) {
+      return { affected: 0, skipped: 0 };
+    }
+
+    const result = await this.prisma.post.updateMany({
+      where: { id: { in: uniqueIds }, deleted: true },
+      data: { deleted: false, deletedAt: null },
+    });
+
+    if (result.count > 0) {
+      await this.adminService.log({
+        adminId,
+        action: 'POSTS_BULK_RESTORED',
+        resource: 'POST',
+        description: `Admin bulk restored ${result.count} post(s)`,
+        changes: { ids: uniqueIds, affected: result.count },
+      });
+    }
+
+    return {
+      affected: result.count,
+      skipped: uniqueIds.length - result.count,
+    };
   }
 }

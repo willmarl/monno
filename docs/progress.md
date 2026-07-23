@@ -100,7 +100,7 @@
 
 | Status | Task | Notes |
 |--------|------|-------|
-| todo | [ ] Mass delete (findMany / deleteMany) | |
+| done | [x] Mass delete (findMany / deleteMany) | 2026-07-23: admin bulk soft-delete/restore via `updateMany` on posts/articles/comments/collections; table multi-select UI |
 | todo | [ ] Active now: guests (anonymous id + Redis TTL) | |
 | todo | [ ] Custom domain/company email from admin | |
 | todo | [ ] Stripe admin actions (refund, invoice, cancel, …) | |
@@ -130,6 +130,7 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-23 | Phase 5 — Mass delete | Admin bulk soft-delete/restore (`updateMany`) + row selection on posts/articles/comments/collections tables |
 | 2026-07-22 | Phase 4 — Reactions | Discord-style emoji alongside likes; `POST /reactions/toggle`; fixed emoji allowlist |
 | 2026-07-22 | Phase 4 — Comments UX polish | YouTube rails (L/T), replies toggle + creatorReply, reply autofocus |
 | 2026-07-22 | Phase 3 — Admin remove on public pages | Shield control soft-deletes via admin APIs without opening dashboard |

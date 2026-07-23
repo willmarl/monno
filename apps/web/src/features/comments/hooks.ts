@@ -12,6 +12,8 @@ import {
   updateAdminComment,
   deleteAdminComment,
   restoreAdminComment,
+  bulkDeleteAdminComments,
+  bulkRestoreAdminComments,
 } from "./api";
 
 /**
@@ -201,6 +203,34 @@ export function useAdminRestoreComment() {
     onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ["adminComments"] });
       qc.invalidateQueries({ queryKey: ["adminComment", id] });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useAdminBulkDeleteComments() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: bulkDeleteAdminComments,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["adminComments"] });
+      qc.invalidateQueries({ queryKey: ["comments"], exact: false });
+      qc.invalidateQueries({ queryKey: ["comments-resource"], exact: false });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useAdminBulkRestoreComments() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: bulkRestoreAdminComments,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["adminComments"] });
+      qc.invalidateQueries({ queryKey: ["comments"], exact: false });
+      qc.invalidateQueries({ queryKey: ["comments-resource"], exact: false });
     },
     throwOnError: false,
   });

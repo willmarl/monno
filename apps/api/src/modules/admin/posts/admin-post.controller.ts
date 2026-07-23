@@ -30,6 +30,7 @@ import {
   PostSearchDto,
   PostSearchCursorDto,
 } from '../../posts/dto/search-post.dto';
+import { BulkIdsDto } from '../dto/bulk-ids.dto';
 
 @ApiTags('admin-posts')
 @Controller('admin/posts')
@@ -56,6 +57,24 @@ export class AdminPostsController {
   @Get('search/cursor')
   searchCursor(@Query() searchDto: PostSearchCursorDto) {
     return this.adminPostService.searchCursor(searchDto);
+  }
+
+  @ApiOperation({ summary: 'Bulk soft-delete posts (admin only)' })
+  @ApiBearerAuth()
+  @ApiBody({ type: BulkIdsDto })
+  @Post('bulk-delete')
+  bulkDelete(@Body() body: BulkIdsDto, @Req() req: any) {
+    const adminId = req.user?.sub;
+    return this.adminPostService.bulkDelete(body.ids, adminId);
+  }
+
+  @ApiOperation({ summary: 'Bulk restore posts (admin only)' })
+  @ApiBearerAuth()
+  @ApiBody({ type: BulkIdsDto })
+  @Post('bulk-restore')
+  bulkRestore(@Body() body: BulkIdsDto, @Req() req: any) {
+    const adminId = req.user?.sub;
+    return this.adminPostService.bulkRestore(body.ids, adminId);
   }
 
   @ApiOperation({ summary: 'Find post by ID (admin only, including deleted)' })

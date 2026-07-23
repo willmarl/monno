@@ -8,6 +8,8 @@ import {
   useReactTable,
   getSortedRowModel,
   SortingState,
+  RowSelectionState,
+  OnChangeFn,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -21,22 +23,41 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  /** Enable checkbox row selection (admin bulk actions). */
+  enableRowSelection?: boolean;
+  rowSelection?: RowSelectionState;
+  onRowSelectionChange?: OnChangeFn<RowSelectionState>;
+  /** Stable row id for selection across pages (default: index). */
+  getRowId?: (originalRow: TData, index: number) => string;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  enableRowSelection = false,
+  rowSelection,
+  onRowSelectionChange,
+  getRowId,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [internalSelection, setInternalSelection] =
+    React.useState<RowSelectionState>({});
+
+  const selectionState = rowSelection ?? internalSelection;
+  const setSelection = onRowSelectionChange ?? setInternalSelection;
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    onSortingChange: setSorting, // New: here and below
+    onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
+    enableRowSelection,
+    onRowSelectionChange: setSelection,
+    getRowId,
     state: {
       sorting,
+      ...(enableRowSelection ? { rowSelection: selectionState } : {}),
     },
   });
 

@@ -10,6 +10,7 @@ import { offsetPaginate } from 'src/common/pagination/offset-pagination';
 import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 import { AdminService } from '../admin.service';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import { normalizeBulkIds } from 'src/common/admin/bulk-ids';
 
 const DEFAULT_COLLECTION_SELECT = {
   id: true,
@@ -186,5 +187,59 @@ export class AdminCollectionService {
     });
 
     return restored;
+  }
+
+  async bulkDelete(ids: number[], adminId: number) {
+    const uniqueIds = normalizeBulkIds(ids);
+    if (uniqueIds.length === 0) {
+      return { affected: 0, skipped: 0 };
+    }
+
+    const result = await this.prisma.collection.updateMany({
+      where: { id: { in: uniqueIds }, deleted: false },
+      data: { deleted: true, deletedAt: new Date() },
+    });
+
+    if (result.count > 0) {
+      await this.adminService.log({
+        adminId,
+        action: 'COLLECTIONS_BULK_DELETED',
+        resource: 'COLLECTION',
+        description: `Admin bulk soft-deleted ${result.count} collection(s)`,
+        changes: { ids: uniqueIds, affected: result.count },
+      });
+    }
+
+    return {
+      affected: result.count,
+      skipped: uniqueIds.length - result.count,
+    };
+  }
+
+  async bulkRestore(ids: number[], adminId: number) {
+    const uniqueIds = normalizeBulkIds(ids);
+    if (uniqueIds.length === 0) {
+      return { affected: 0, skipped: 0 };
+    }
+
+    const result = await this.prisma.collection.updateMany({
+      where: { id: { in: uniqueIds }, deleted: true },
+      data: { deleted: false, deletedAt: null },
+    });
+
+    if (result.count > 0) {
+      await this.adminService.log({
+        adminId,
+        action: 'COLLECTIONS_BULK_RESTORED',
+        resource: 'COLLECTION',
+        description: `Admin bulk restored ${result.count} collection(s)`,
+        changes: { ids: uniqueIds, affected: result.count },
+      });
+    }
+
+    return {
+      affected: result.count,
+      skipped: uniqueIds.length - result.count,
+    };
   }
 }

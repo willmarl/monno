@@ -23,8 +23,10 @@ import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 import { formatDate } from "@/lib/utils/date";
 import { EditPostModal } from "@/features/admin/posts/components/modal/EditPostModal";
 import { useModal } from "@/components/providers/ModalProvider";
+import { createSelectColumn } from "@/components/table/SelectColumn";
 
 export const columns: ColumnDef<Post>[] = [
+  createSelectColumn<Post>(),
   {
     accessorKey: "id",
     header: ({ column }) => <SortableHeader column={column} label="ID" />,

@@ -168,3 +168,17 @@ export const restoreAdminCollection = (id: number) =>
   fetcher<Collection>(`/admin/collections/${id}/restore`, {
     method: "POST",
   });
+
+export type BulkSoftResult = { affected: number; skipped: number };
+
+export const bulkDeleteAdminCollections = (ids: number[]) =>
+  fetcher<BulkSoftResult>("/admin/collections/bulk-delete", {
+    method: "POST",
+    json: { ids },
+  });
+
+export const bulkRestoreAdminCollections = (ids: number[]) =>
+  fetcher<BulkSoftResult>("/admin/collections/bulk-restore", {
+    method: "POST",
+    json: { ids },
+  });

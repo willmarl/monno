@@ -28,6 +28,7 @@ import { PaginationDto } from '../../../common/pagination/dto/pagination.dto';
 import { CursorPaginationDto } from 'src/common/pagination/dto/cursor-pagination.dto';
 import { ArticleSearchDto } from '../../articles/dto/search-article.dto';
 import { ArticleSearchCursorDto } from '../../articles/dto/search-article.dto';
+import { BulkIdsDto } from '../dto/bulk-ids.dto';
 
 @Controller('admin/articles')
 @UseGuards(JwtAccessGuard, RolesGuard)
@@ -59,6 +60,18 @@ export class AdminArticlesController {
   @Get('cursor')
   searchCursor(@Query() searchDto: ArticleSearchCursorDto) {
     return this.adminArticleService.searchAllCursor(searchDto);
+  }
+
+  @Post('bulk-delete')
+  bulkDelete(@Body() body: BulkIdsDto, @Req() req: any) {
+    const adminId = req.user?.sub;
+    return this.adminArticleService.bulkDelete(adminId, body.ids);
+  }
+
+  @Post('bulk-restore')
+  bulkRestore(@Body() body: BulkIdsDto, @Req() req: any) {
+    const adminId = req.user?.sub;
+    return this.adminArticleService.bulkRestore(adminId, body.ids);
   }
 
   @Get(':id')

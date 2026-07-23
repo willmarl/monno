@@ -24,8 +24,10 @@ import { formatDate } from "@/lib/utils/date";
 import { EditCollectionModal } from "@/features/admin/collections/components/modal/EditCollectionModal";
 import { useModal } from "@/components/providers/ModalProvider";
 import { toast } from "sonner";
+import { createSelectColumn } from "@/components/table/SelectColumn";
 
 export const columns: ColumnDef<Collection>[] = [
+  createSelectColumn<Collection>(),
   {
     accessorKey: "id",
     header: ({ column }) => <SortableHeader column={column} label="ID" />,

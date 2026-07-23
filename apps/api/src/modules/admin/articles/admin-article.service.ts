@@ -9,6 +9,7 @@ import { MediaService } from '../../media/media.service';
 import { CreateArticleDto } from '../../articles/dto/create-article.dto';
 import { UpdateArticleDto } from '../../articles/dto/update-article.dto';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import { normalizeBulkIds } from 'src/common/admin/bulk-ids';
 import { buildSearchWhere } from 'src/common/search/search.utils';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
@@ -226,6 +227,60 @@ export class AdminArticleService {
     });
 
     return restored;
+  }
+
+  async bulkDelete(adminId: number, ids: number[]) {
+    const uniqueIds = normalizeBulkIds(ids);
+    if (uniqueIds.length === 0) {
+      return { affected: 0, skipped: 0 };
+    }
+
+    const result = await this.prisma.article.updateMany({
+      where: { id: { in: uniqueIds }, deleted: false },
+      data: { deleted: true, deletedAt: new Date() },
+    });
+
+    if (result.count > 0) {
+      await this.adminService.log({
+        adminId,
+        action: 'ARTICLES_BULK_DELETED',
+        resource: 'ARTICLE',
+        description: `Admin bulk soft-deleted ${result.count} article(s)`,
+        changes: { ids: uniqueIds, affected: result.count },
+      });
+    }
+
+    return {
+      affected: result.count,
+      skipped: uniqueIds.length - result.count,
+    };
+  }
+
+  async bulkRestore(adminId: number, ids: number[]) {
+    const uniqueIds = normalizeBulkIds(ids);
+    if (uniqueIds.length === 0) {
+      return { affected: 0, skipped: 0 };
+    }
+
+    const result = await this.prisma.article.updateMany({
+      where: { id: { in: uniqueIds }, deleted: true },
+      data: { deleted: false, deletedAt: null },
+    });
+
+    if (result.count > 0) {
+      await this.adminService.log({
+        adminId,
+        action: 'ARTICLES_BULK_RESTORED',
+        resource: 'ARTICLE',
+        description: `Admin bulk restored ${result.count} article(s)`,
+        changes: { ids: uniqueIds, affected: result.count },
+      });
+    }
+
+    return {
+      affected: result.count,
+      skipped: uniqueIds.length - result.count,
+    };
   }
 
   // --- Media ---

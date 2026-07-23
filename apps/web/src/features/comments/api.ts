@@ -102,3 +102,17 @@ export const restoreAdminComment = (id: number) =>
   fetcher<Comment>(`/admin/comments/${id}/restore`, {
     method: "POST",
   });
+
+export type BulkSoftResult = { affected: number; skipped: number };
+
+export const bulkDeleteAdminComments = (ids: number[]) =>
+  fetcher<BulkSoftResult>("/admin/comments/bulk-delete", {
+    method: "POST",
+    json: { ids },
+  });
+
+export const bulkRestoreAdminComments = (ids: number[]) =>
+  fetcher<BulkSoftResult>("/admin/comments/bulk-restore", {
+    method: "POST",
+    json: { ids },
+  });

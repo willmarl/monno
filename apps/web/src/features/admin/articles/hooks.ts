@@ -11,6 +11,8 @@ import {
   removeAdminArticleMedia,
   setAdminArticleMediaPrimary,
   reorderAdminArticleMedia,
+  bulkDeleteAdminArticles,
+  bulkRestoreAdminArticles,
 } from "./api";
 
 // commented out as its redundant now. replaced by search
@@ -153,6 +155,32 @@ export function useAdminRestoreArticle() {
     onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ["admin-articles"] });
       qc.invalidateQueries({ queryKey: ["admin-article", id] });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useAdminBulkDeleteArticles() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: bulkDeleteAdminArticles,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-articles"] });
+      qc.invalidateQueries({ queryKey: ["articles"], exact: false });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useAdminBulkRestoreArticles() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: bulkRestoreAdminArticles,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-articles"] });
+      qc.invalidateQueries({ queryKey: ["articles"], exact: false });
     },
     throwOnError: false,
   });

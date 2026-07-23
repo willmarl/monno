@@ -16,6 +16,8 @@ import {
   deleteAdminCollection,
   updateAdminCollection,
   restoreAdminCollection,
+  bulkDeleteAdminCollections,
+  bulkRestoreAdminCollections,
 } from "./api";
 
 /**
@@ -285,6 +287,32 @@ export function useAdminRestoreCollection() {
     onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ["adminCollections"] });
       qc.invalidateQueries({ queryKey: ["adminCollection", id] });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useAdminBulkDeleteCollections() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: bulkDeleteAdminCollections,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["adminCollections"] });
+      qc.invalidateQueries({ queryKey: ["collections"], exact: false });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useAdminBulkRestoreCollections() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: bulkRestoreAdminCollections,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["adminCollections"] });
+      qc.invalidateQueries({ queryKey: ["collections"], exact: false });
     },
     throwOnError: false,
   });

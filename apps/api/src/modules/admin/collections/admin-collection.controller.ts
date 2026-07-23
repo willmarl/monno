@@ -27,6 +27,7 @@ import { RolesGuard } from '../../../common/guards/roles.guard';
 import { AdminCollectionService } from './admin-collection.service';
 import { UpdateCollectionDto } from '../../collections/dto/update-collection.dto';
 import { CollectionSearchDto } from '../../collections/dto/search-collection.dto';
+import { BulkIdsDto } from '../dto/bulk-ids.dto';
 
 @ApiTags('admin-collections')
 @Controller('admin/collections')
@@ -36,6 +37,24 @@ export class AdminCollectionsController {
   constructor(
     private readonly adminCollectionService: AdminCollectionService,
   ) {}
+
+  @ApiOperation({ summary: 'Bulk soft-delete collections (admin only)' })
+  @ApiBearerAuth()
+  @ApiBody({ type: BulkIdsDto })
+  @Post('bulk-delete')
+  bulkDelete(@Body() body: BulkIdsDto, @Req() req: any) {
+    const adminId = req.user?.sub;
+    return this.adminCollectionService.bulkDelete(body.ids, adminId);
+  }
+
+  @ApiOperation({ summary: 'Bulk restore collections (admin only)' })
+  @ApiBearerAuth()
+  @ApiBody({ type: BulkIdsDto })
+  @Post('bulk-restore')
+  bulkRestore(@Body() body: BulkIdsDto, @Req() req: any) {
+    const adminId = req.user?.sub;
+    return this.adminCollectionService.bulkRestore(body.ids, adminId);
+  }
 
   @ApiOperation({
     summary: 'Find collection by ID (admin only, including deleted)',

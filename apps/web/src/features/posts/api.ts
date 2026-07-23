@@ -271,3 +271,19 @@ export const restoreAdminPost = (id: number) =>
   fetcher<Post>(`/admin/posts/${id}/restore`, {
     method: "POST",
   });
+
+export type BulkSoftResult = { affected: number; skipped: number };
+
+// POST /admin/posts/bulk-delete
+export const bulkDeleteAdminPosts = (ids: number[]) =>
+  fetcher<BulkSoftResult>("/admin/posts/bulk-delete", {
+    method: "POST",
+    json: { ids },
+  });
+
+// POST /admin/posts/bulk-restore
+export const bulkRestoreAdminPosts = (ids: number[]) =>
+  fetcher<BulkSoftResult>("/admin/posts/bulk-restore", {
+    method: "POST",
+    json: { ids },
+  });

@@ -22,6 +22,8 @@ import {
   updateAdminPost,
   deleteAdminPost,
   restoreAdminPost,
+  bulkDeleteAdminPosts,
+  bulkRestoreAdminPosts,
 } from "./api";
 
 export function usePostById(id: number) {
@@ -323,6 +325,32 @@ export function useAdminRestorePost() {
     onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ["adminPosts"] });
       qc.invalidateQueries({ queryKey: ["adminPost", id] });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useAdminBulkDeletePosts() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: bulkDeleteAdminPosts,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["adminPosts"] });
+      qc.invalidateQueries({ queryKey: ["posts"], exact: false });
+    },
+    throwOnError: false,
+  });
+}
+
+export function useAdminBulkRestorePosts() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: bulkRestoreAdminPosts,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["adminPosts"] });
+      qc.invalidateQueries({ queryKey: ["posts"], exact: false });
     },
     throwOnError: false,
   });

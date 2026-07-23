@@ -7,6 +7,7 @@ import { cursorPaginate } from 'src/common/pagination/cursor-pagination';
 import { UpdateCommentDto } from '../../comments/dto/update-comment.dto';
 import { AdminService } from '../admin.service';
 import { AlreadyDeletedException } from 'src/common/exceptions/already-deleted.exception';
+import { normalizeBulkIds } from 'src/common/admin/bulk-ids';
 
 const DEFAULT_COMMENT_SELECT = {
   id: true,
@@ -204,5 +205,59 @@ export class AdminCommentService {
     });
 
     return restored;
+  }
+
+  async bulkDelete(ids: number[], adminId: number) {
+    const uniqueIds = normalizeBulkIds(ids);
+    if (uniqueIds.length === 0) {
+      return { affected: 0, skipped: 0 };
+    }
+
+    const result = await this.prisma.comment.updateMany({
+      where: { id: { in: uniqueIds }, deleted: false },
+      data: { deleted: true, deletedAt: new Date() },
+    });
+
+    if (result.count > 0) {
+      await this.adminService.log({
+        adminId,
+        action: 'COMMENTS_BULK_DELETED',
+        resource: 'COMMENT',
+        description: `Admin bulk soft-deleted ${result.count} comment(s)`,
+        changes: { ids: uniqueIds, affected: result.count },
+      });
+    }
+
+    return {
+      affected: result.count,
+      skipped: uniqueIds.length - result.count,
+    };
+  }
+
+  async bulkRestore(ids: number[], adminId: number) {
+    const uniqueIds = normalizeBulkIds(ids);
+    if (uniqueIds.length === 0) {
+      return { affected: 0, skipped: 0 };
+    }
+
+    const result = await this.prisma.comment.updateMany({
+      where: { id: { in: uniqueIds }, deleted: true },
+      data: { deleted: false, deletedAt: null },
+    });
+
+    if (result.count > 0) {
+      await this.adminService.log({
+        adminId,
+        action: 'COMMENTS_BULK_RESTORED',
+        resource: 'COMMENT',
+        description: `Admin bulk restored ${result.count} comment(s)`,
+        changes: { ids: uniqueIds, affected: result.count },
+      });
+    }
+
+    return {
+      affected: result.count,
+      skipped: uniqueIds.length - result.count,
+    };
   }
 }

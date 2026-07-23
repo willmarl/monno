@@ -29,8 +29,10 @@ import { TextPreviewCell } from "@/components/table/TextPreviewCell";
 import { formatDate } from "@/lib/utils/date";
 import { AdminEditArticleModal } from "@/features/admin/articles/components/modal/AdminEditArticleModal";
 import { useModal } from "@/components/providers/ModalProvider";
+import { createSelectColumn } from "@/components/table/SelectColumn";
 
 export const columns: ColumnDef<Article>[] = [
+  createSelectColumn<Article>(),
   {
     accessorKey: "id",
     header: ({ column }) => <SortableHeader column={column} label="ID" />,

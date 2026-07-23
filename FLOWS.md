@@ -62,6 +62,14 @@ AI agents should read this file before writing tests for any module.
 - Soft-deletes via existing `/admin/{resource}/:id` DELETE (audit-logged). Does not require opening the admin dashboard. MOD not included yet.
 - Owner edit/delete controls stay separate; admin remove works on others’ content too.
 
+## Admin mass delete (bulk soft-delete)
+
+- Admin tables (posts, articles, comments, collections) support multi-select + toolbar soft-delete / restore.
+- API: `POST /admin/{resource}/bulk-delete` and `POST /admin/{resource}/bulk-restore` with `{ ids: number[] }` (max 100, unique).
+- Uses Prisma `updateMany` (`deleted` / `deletedAt`) — **not** hard `deleteMany`. Idempotent: already-deleted / already-active rows are skipped; response `{ affected, skipped }`.
+- One audit log summary per bulk action (`POSTS_BULK_DELETED`, etc.); ids live in `changes`.
+- Users / media / reports are out of scope for this slice (user cascade + email; media is hard-delete).
+
 ## User preferences
 
 - One `UserPreferences` row per user (`GET/PATCH /users/me/preferences`, auth). Auto-created with defaults on first GET/PATCH.

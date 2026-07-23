@@ -97,3 +97,17 @@ export const restoreAdminArticle = (id: number) =>
   fetcher<Article>(`/admin/articles/${id}/restore`, {
     method: "POST",
   });
+
+export type BulkSoftResult = { affected: number; skipped: number };
+
+export const bulkDeleteAdminArticles = (ids: number[]) =>
+  fetcher<BulkSoftResult>("/admin/articles/bulk-delete", {
+    method: "POST",
+    json: { ids },
+  });
+
+export const bulkRestoreAdminArticles = (ids: number[]) =>
+  fetcher<BulkSoftResult>("/admin/articles/bulk-restore", {
+    method: "POST",
+    json: { ids },
+  });
