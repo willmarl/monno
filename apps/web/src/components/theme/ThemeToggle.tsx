@@ -9,7 +9,7 @@ import { useUpdatePreferences } from "@/features/preferences/hooks";
 import { nextThemesToApi } from "@/features/preferences/types";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { data: user } = useSessionUser();
   const updatePrefs = useUpdatePreferences();
@@ -22,7 +22,8 @@ export function ThemeToggle() {
     return <Button variant="outline" size="icon" disabled />;
   }
 
-  const nextLocal = theme === "light" ? "dark" : "light";
+  const current = theme === "system" ? resolvedTheme : theme;
+  const nextLocal = current === "light" ? "dark" : "light";
 
   return (
     <Button
@@ -35,7 +36,7 @@ export function ThemeToggle() {
         }
       }}
     >
-      {theme === "light" ? (
+      {current === "light" ? (
         <Moon className="text-foreground" />
       ) : (
         <Sun className="text-foreground" />

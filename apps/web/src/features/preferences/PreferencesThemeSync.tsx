@@ -7,24 +7,31 @@ import { usePreferences } from "./hooks";
 import { themeToNextThemes } from "./types";
 
 /**
- * When logged in, apply server theme preference once prefs load.
+ * When logged in, apply server theme preference when prefs load / change.
  * Guests keep next-themes localStorage behavior.
+ *
+ * Important: do NOT depend on local `theme` — otherwise toggling
+ * setTheme() before the PATCH lands makes this effect re-apply the
+ * stale server value and fight the toggle (flash / loop).
  */
 export function PreferencesThemeSync() {
   const { data: user } = useSessionUser();
   const { data: prefs } = usePreferences(!!user);
-  const { setTheme, theme } = useTheme();
-  const appliedRef = useRef<string | null>(null);
+  const { setTheme } = useTheme();
+  const appliedServerThemeRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!user || !prefs?.theme) return;
-    const next = themeToNextThemes(prefs.theme);
-    if (appliedRef.current === next && theme === next) return;
-    appliedRef.current = next;
-    if (theme !== next) {
-      setTheme(next);
+    if (!user) {
+      appliedServerThemeRef.current = null;
+      return;
     }
-  }, [user, prefs?.theme, setTheme, theme]);
+    if (!prefs?.theme) return;
+
+    const next = themeToNextThemes(prefs.theme);
+    if (appliedServerThemeRef.current === next) return;
+    appliedServerThemeRef.current = next;
+    setTheme(next);
+  }, [user, prefs?.theme, setTheme]);
 
   return null;
 }

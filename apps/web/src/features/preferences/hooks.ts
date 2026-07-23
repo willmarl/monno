@@ -19,6 +19,23 @@ export function useUpdatePreferences() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: UpdatePreferencesInput) => updatePreferences(data),
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: preferencesQueryKey });
+      const previous =
+        queryClient.getQueryData<UserPreferences>(preferencesQueryKey);
+      if (previous) {
+        queryClient.setQueryData<UserPreferences>(preferencesQueryKey, {
+          ...previous,
+          ...data,
+        });
+      }
+      return { previous };
+    },
+    onError: (_err, _data, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(preferencesQueryKey, context.previous);
+      }
+    },
     onSuccess: (data) => {
       queryClient.setQueryData(preferencesQueryKey, data);
     },
