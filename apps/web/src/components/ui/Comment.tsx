@@ -40,10 +40,31 @@ import { ReportButton } from "../common/ReportButton";
 import { AdminRemoveButton } from "../common/AdminRemoveButton";
 import { NewCommentForm } from "@/features/comments/components/NewCommentForm";
 import { useSessionUser } from "@/features/auth/hooks";
+import { useQueryClient } from "@tanstack/react-query";
 
-/** Visual nesting cap — deeper replies stay at this indent. */
-const MAX_NEST_DEPTH = 3;
+/**
+ * YouTube-style cap: depth 0 = top-level, 1 = reply, 2 = reply-to-reply (3 layers).
+ * Deeper "Reply" targets the parent so new posts stay siblings at max depth.
+ */
+const MAX_NEST_DEPTH = 2;
 const REPLIES_LIMIT = 50;
+
+function replyTarget(
+  comment: CommentType,
+  depth: number,
+): { resourceType: typeof RESOURCE_TYPES.COMMENT; resourceId: number } {
+  if (depth < MAX_NEST_DEPTH) {
+    return { resourceType: RESOURCE_TYPES.COMMENT, resourceId: comment.id };
+  }
+  // At max depth: attach under this comment's parent (sibling of current).
+  if (comment.resourceType === RESOURCE_TYPES.COMMENT) {
+    return {
+      resourceType: RESOURCE_TYPES.COMMENT,
+      resourceId: comment.resourceId,
+    };
+  }
+  return { resourceType: RESOURCE_TYPES.COMMENT, resourceId: comment.id };
+}
 
 export function Comment({
   data,
@@ -65,12 +86,17 @@ export function Comment({
   const like = useToggleLike();
   const { openModal, closeModal } = useModal();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: currentUser } = useSessionUser();
   const commentDate = formatDate(data.createdAt);
   const deleteComment = useDeleteComment();
   const updateComment = useUpdateComment();
 
-  const repliesEnabled = showReplies || isReplying;
+  const atMaxDepth = depth >= MAX_NEST_DEPTH;
+  const canNestReplies = depth < MAX_NEST_DEPTH;
+  const target = replyTarget(data, depth);
+
+  const repliesEnabled = canNestReplies && (showReplies || isReplying);
   const { data: repliesData, isLoading: repliesLoading } =
     useCommentsByResource(
       RESOURCE_TYPES.COMMENT,
@@ -178,14 +204,17 @@ export function Comment({
     });
   }
 
-  const nestPad = Math.min(depth, MAX_NEST_DEPTH);
+  /** Fixed steps only — never compound past max (avoids smushed text). */
+  const threadClass =
+    depth === 0
+      ? ""
+      : depth === 1
+        ? "border-l border-border/60 pl-3 sm:pl-4"
+        : "border-l border-border/60 pl-3 sm:pl-4 ml-3 sm:ml-4";
 
   return (
-    <div
-      className={nestPad > 0 ? "border-l border-border/60 pl-3 sm:pl-4" : ""}
-      style={nestPad > 1 ? { marginLeft: `${(nestPad - 1) * 0.75}rem` } : undefined}
-    >
-      <div className="flex gap-2 sm:gap-3">
+    <div className={threadClass}>
+      <div className="flex gap-2 sm:gap-3 min-w-0">
         <Avatar
           className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 cursor-pointer mt-0.5"
           onClick={() =>
@@ -202,7 +231,7 @@ export function Comment({
           </AvatarFallback>
         </Avatar>
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-hidden">
           <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
             <p
               className="text-xs sm:text-sm font-semibold cursor-pointer hover:text-foreground truncate"
@@ -285,25 +314,27 @@ export function Comment({
                   className="h-8 px-2 text-xs cursor-pointer"
                   onClick={() => {
                     setIsReplying((v) => !v);
-                    setShowReplies(true);
+                    if (canNestReplies) setShowReplies(true);
                   }}
                 >
                   Reply
                 </Button>
               )}
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-8 px-2 text-xs cursor-pointer text-muted-foreground"
-                onClick={() => setShowReplies((v) => !v)}
-              >
-                {showReplies
-                  ? replyCount > 0
-                    ? `Hide replies (${replyCount})`
-                    : "Hide replies"
-                  : "Show replies"}
-              </Button>
+              {canNestReplies && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-xs cursor-pointer text-muted-foreground"
+                  onClick={() => setShowReplies((v) => !v)}
+                >
+                  {showReplies
+                    ? replyCount > 0
+                      ? `Hide replies (${replyCount})`
+                      : "Hide replies"
+                    : "Show replies"}
+                </Button>
+              )}
               <ReportButton
                 resourceType={RESOURCE_TYPES.COMMENT}
                 resourceId={data.id}
@@ -318,8 +349,8 @@ export function Comment({
 
           {isReplying && currentUser && (
             <NewCommentForm
-              resourceType={RESOURCE_TYPES.COMMENT}
-              resourceId={data.id}
+              resourceType={target.resourceType}
+              resourceId={target.resourceId}
               user={currentUser}
               compact
               placeholder="Add a reply..."
@@ -327,12 +358,23 @@ export function Comment({
               onCancel={() => setIsReplying(false)}
               onSuccess={() => {
                 setIsReplying(false);
-                setShowReplies(true);
+                if (canNestReplies) {
+                  setShowReplies(true);
+                } else {
+                  // Sibling landed on parent thread — refresh that list
+                  queryClient.invalidateQueries({
+                    queryKey: [
+                      "comments-resource",
+                      target.resourceType,
+                      target.resourceId,
+                    ],
+                  });
+                }
               }}
             />
           )}
 
-          {showReplies && (
+          {canNestReplies && showReplies && (
             <div className="mt-3 space-y-3">
               {repliesLoading && replies.length === 0 ? (
                 <p className="text-xs text-muted-foreground pl-1">
@@ -348,7 +390,7 @@ export function Comment({
                     key={reply.id}
                     data={reply}
                     isOwner={currentUser?.id === reply.creator.id}
-                    depth={depth + 1}
+                    depth={Math.min(depth + 1, MAX_NEST_DEPTH)}
                   />
                 ))
               )}

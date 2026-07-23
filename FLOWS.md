@@ -92,7 +92,8 @@ AI agents should read this file before writing tests for any module.
 
 - `COMMENT` is already on `COMMENTABLE_RESOURCES` — replies are `POST /comments` with `resourceType: COMMENT`, `resourceId: parentCommentId`.
 - No schema change (polymorphic Comment already nests). Notifications go to the parent comment author via existing `createIfAllowed`.
-- UI: each comment has Reply + Show/Hide replies; nested list loads on demand (avoids N+1). Indent capped visually (`MAX_NEST_DEPTH`).
+- UI: YouTube-style **3-layer cap** (`MAX_NEST_DEPTH = 2`, 0-indexed). Reply under a max-depth comment attaches as a **sibling** of that comment (same parent), not a deeper nest.
+- Indent stops at layer 3 so threads do not smush; nested lists load on demand.
 - Top-level lists on post/article stay `resourceType: POST|ARTICLE` only; replies live under each parent.
 
 ---
