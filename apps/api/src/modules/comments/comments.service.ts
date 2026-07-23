@@ -16,6 +16,12 @@ import { NotificationType, ResourceType } from 'src/generated/prisma/client';
 
 type CommentableResourceConfig = { model: keyof PrismaService; label: string };
 
+type ThreadCreator = {
+  id: number;
+  username: string;
+  avatarPath: string | null;
+};
+
 const COMMENTABLE_RESOURCE_CONFIG: Record<
   CommentableResourceType,
   CommentableResourceConfig
@@ -50,7 +56,6 @@ export class CommentsService {
    * Create a comment on a resource (post, video, article, or another comment)
    */
   async create(userId: number, data: CreateCommentDto) {
-    // Validate that the resource exists
     await this.validateResourceExists(data.resourceType, data.resourceId);
 
     const comment = await this.prisma.comment.create({
@@ -74,7 +79,11 @@ export class CommentsService {
       [comment],
       userId,
     );
-    return enhanced;
+    return {
+      ...enhanced,
+      replyCount: 0,
+      creatorReply: null,
+    };
   }
 
   /**
@@ -95,7 +104,8 @@ export class CommentsService {
         where,
         // Top-level: newest first. Replies under a comment: oldest first (thread read order).
         orderBy: {
-          createdAt: resourceType === 'COMMENT' ? ('asc' as const) : ('desc' as const),
+          createdAt:
+            resourceType === 'COMMENT' ? ('asc' as const) : ('desc' as const),
         },
         select: DEFAULT_COMMENT_SELECT,
       },
@@ -109,8 +119,14 @@ export class CommentsService {
       currentUserId,
     );
 
+    const withReplyMeta = await this.enhanceWithReplyMeta(
+      enhancedItems,
+      resourceType,
+      resourceId,
+    );
+
     return {
-      items: enhancedItems,
+      items: withReplyMeta,
       pageInfo,
       ...(isRedirected && { isRedirected: true }),
     };
@@ -132,7 +148,6 @@ export class CommentsService {
       throw new NotFoundException('Comment not found');
     }
 
-    // Remove the deleted flag from response
     const { deleted, ...result } = comment;
     const [enhanced] = await enhanceWithLikes(
       this.prisma,
@@ -140,7 +155,13 @@ export class CommentsService {
       [result],
       currentUserId,
     );
-    return enhanced;
+
+    const [withReplyMeta] = await this.enhanceWithReplyMeta(
+      [enhanced],
+      enhanced.resourceType as CommentableResourceType,
+      enhanced.resourceId,
+    );
+    return withReplyMeta;
   }
 
   /**
@@ -161,7 +182,6 @@ export class CommentsService {
       );
     }
 
-    // Only update contentUpdatedAt if content is being changed
     const updateData = { ...data };
     if (data.content !== undefined) {
       updateData['contentUpdatedAt'] = new Date();
@@ -179,7 +199,13 @@ export class CommentsService {
       [updated],
       userId,
     );
-    return enhanced;
+
+    const [withReplyMeta] = await this.enhanceWithReplyMeta(
+      [enhanced],
+      enhanced.resourceType as CommentableResourceType,
+      enhanced.resourceId,
+    );
+    return withReplyMeta;
   }
 
   /**
@@ -216,7 +242,116 @@ export class CommentsService {
       [deleted],
       userId,
     );
-    return enhanced;
+    return {
+      ...enhanced,
+      replyCount: 0,
+      creatorReply: null,
+    };
+  }
+
+  /**
+   * Attach replyCount + creatorReply (YouTube-style creator-replied preview).
+   * creatorReply is the root post/article author when they replied under this comment.
+   */
+  private async enhanceWithReplyMeta<T extends { id: number }>(
+    items: T[],
+    resourceType: CommentableResourceType,
+    resourceId: number,
+  ): Promise<
+    Array<T & { replyCount: number; creatorReply: ThreadCreator | null }>
+  > {
+    if (items.length === 0) return [];
+
+    const commentIds = items.map((item) => item.id);
+    const threadCreator = await this.resolveThreadCreator(
+      resourceType,
+      resourceId,
+    );
+
+    const [counts, creatorReplyParents] = await Promise.all([
+      this.prisma.comment.groupBy({
+        by: ['resourceId'],
+        where: {
+          resourceType: 'COMMENT',
+          resourceId: { in: commentIds },
+          deleted: false,
+        },
+        _count: { _all: true },
+      }),
+      threadCreator
+        ? this.prisma.comment.findMany({
+            where: {
+              resourceType: 'COMMENT',
+              resourceId: { in: commentIds },
+              userId: threadCreator.id,
+              deleted: false,
+            },
+            select: { resourceId: true },
+            distinct: ['resourceId'],
+          })
+        : Promise.resolve([] as { resourceId: number }[]),
+    ]);
+
+    const countMap = new Map(
+      counts.map((row) => [row.resourceId, row._count._all]),
+    );
+    const creatorRepliedIds = new Set(
+      creatorReplyParents.map((row) => row.resourceId),
+    );
+
+    return items.map((item) => ({
+      ...item,
+      replyCount: countMap.get(item.id) ?? 0,
+      creatorReply:
+        threadCreator && creatorRepliedIds.has(item.id)
+          ? {
+              id: threadCreator.id,
+              username: threadCreator.username,
+              avatarPath: threadCreator.avatarPath,
+            }
+          : null,
+    }));
+  }
+
+  /**
+   * Root post/article creator for a comment thread (YouTube "channel owner").
+   */
+  private async resolveThreadCreator(
+    resourceType: CommentableResourceType,
+    resourceId: number,
+  ): Promise<ThreadCreator | null> {
+    if (resourceType === 'POST' || resourceType === 'ARTICLE') {
+      const model = resourceType === 'POST' ? 'post' : 'article';
+      const record = await (this.prisma[model] as any).findUnique({
+        where: { id: resourceId },
+        select: {
+          creator: {
+            select: { id: true, username: true, avatarPath: true },
+          },
+        },
+      });
+      return record?.creator ?? null;
+    }
+
+    if (resourceType === 'COMMENT') {
+      const parent = await this.prisma.comment.findUnique({
+        where: { id: resourceId },
+        select: { resourceType: true, resourceId: true },
+      });
+      if (!parent) return null;
+      if (
+        parent.resourceType === 'POST' ||
+        parent.resourceType === 'ARTICLE' ||
+        parent.resourceType === 'COMMENT'
+      ) {
+        return this.resolveThreadCreator(
+          parent.resourceType as CommentableResourceType,
+          parent.resourceId,
+        );
+      }
+    }
+
+    return null;
   }
 
   /**

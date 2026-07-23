@@ -91,7 +91,7 @@
 | done | [x] User preferences model (theme, layout, resume, onboarding, snoozes) | 2026-07-22: `UserPreferences` + GET/PATCH; theme sync wired; other keys for later |
 | done | [x] Notification system (worker + UI + preference toggles) | 2026-07-22: in-app bell + email on comment/like; prefs toggles; poll (no websocket) |
 | done | [x] Email on account status changes | 2026-07-22: suspend/ban/delete/restore → enqueueEmail; skip if no email |
-| done | [x] Comments on comments | 2026-07-22: API already COMMENTABLE; Reply + nested UI; on-demand replies |
+| done | [x] Comments on comments | 2026-07-22: nested Reply UI + YouTube thread rails / replies toggle / replyCount+creatorReply |
 | todo | [ ] Reactions (replace binary likes) | **last** in this phase — migration |
 
 ---
@@ -130,6 +130,7 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-22 | Phase 4 — Comments UX polish | YouTube rails (L/T), replies toggle + creatorReply, reply autofocus |
 | 2026-07-22 | Phase 3 — Admin remove on public pages | Shield control soft-deletes via admin APIs without opening dashboard |
 | 2026-07-22 | Phase 3 — Report feature | Content reports (post/article/comment/collection); admin-only queue; MOD deferred |
 | 2026-07-22 | Phase 3 — View history | Upsert `ViewHistory`; dedicated `/history`; soft remove/clear retained for audit |

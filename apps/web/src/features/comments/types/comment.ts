@@ -18,6 +18,13 @@ export interface Comment {
   updatedAt: string;
   contentUpdatedAt: string;
   creator: CommentCreator;
+  /** Direct replies under this comment (for collapsed "N replies" toggle). */
+  replyCount?: number;
+  /**
+   * Root post/article author when they have replied under this comment.
+   * YouTube shows their avatar next to the replies toggle.
+   */
+  creatorReply?: CommentCreator | null;
   deleted?: boolean;
   deletedAt?: string | null;
 }

@@ -51,7 +51,7 @@ export function NewCommentForm({
   compact = false,
 }: NewCommentFormProps) {
   const [isOpen, setIsOpen] = useState(isAlwaysOpen);
-  const [isFocused, setIsFocused] = useState(false);
+  const [isFocused, setIsFocused] = useState(compact);
 
   const form = useForm<NewCommentInput>({
     resolver: zodResolver(newCommentSchema),
@@ -64,7 +64,9 @@ export function NewCommentForm({
   const commentMutation = useCreateComment();
   const contentValue = form.watch("content");
   const { isValid } = form.formState;
-  const showActions = isFocused || (contentValue && contentValue.length > 0);
+  // Compact replies always reserve action row height so the next comment isn't cramped
+  const showActions =
+    compact || isFocused || !!(contentValue && contentValue.length > 0);
 
   const handleSubmit = (data: NewCommentInput) => {
     const completeData = {
@@ -75,7 +77,7 @@ export function NewCommentForm({
     commentMutation.mutate(completeData, {
       onSuccess: () => {
         form.reset();
-        setIsFocused(false);
+        setIsFocused(compact);
         if (!isAlwaysOpen) {
           setIsOpen(false);
         }
@@ -105,12 +107,11 @@ export function NewCommentForm({
       onSubmit={form.handleSubmit(handleSubmit)}
       className={
         compact
-          ? "mt-2 pt-1"
+          ? "mt-2 mb-3 pt-1 pb-1"
           : "mt-4 sm:mt-6 border-t pt-3 sm:pt-4"
       }
     >
       <div className="flex gap-2 sm:gap-4">
-        {/* Avatar - Left Side */}
         <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 mt-1">
           <AvatarImage src={user.avatarPath || undefined} alt={user.username} />
           <AvatarFallback>
@@ -118,16 +119,15 @@ export function NewCommentForm({
           </AvatarFallback>
         </Avatar>
 
-        {/* Comment Input - Right Side */}
         <div className="flex-1 min-w-0">
           <Textarea
-            id="inline-content"
             placeholder={placeholder}
             disabled={commentMutation.isPending}
             className="resize-none min-h-[36px] p-2 sm:p-3 text-xs sm:text-sm"
+            autoFocus={compact}
             {...form.register("content", {
               onBlur: () => {
-                if (!contentValue) {
+                if (!compact && !contentValue) {
                   setIsFocused(false);
                 }
               },
@@ -140,16 +140,19 @@ export function NewCommentForm({
             </p>
           )}
 
-          {/* Action Buttons - Only Show When Active */}
           {showActions && (
-            <div className="flex flex-wrap gap-2 pt-2 sm:pt-3">
+            <div
+              className={`flex flex-wrap gap-2 pt-2 sm:pt-3 ${
+                compact ? "pb-1" : ""
+              }`}
+            >
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => {
                   form.reset();
-                  setIsFocused(false);
+                  setIsFocused(compact);
                   onCancel?.();
                 }}
                 disabled={commentMutation.isPending}

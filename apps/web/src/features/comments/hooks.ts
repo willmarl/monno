@@ -54,7 +54,6 @@ export function useCreateComment() {
   return useMutation({
     mutationFn: createComment,
     onSuccess: (newComment) => {
-      // Invalidate the list for this resource
       qc.invalidateQueries({
         queryKey: [
           "comments-resource",
@@ -62,6 +61,10 @@ export function useCreateComment() {
           newComment.resourceId,
         ],
       });
+      // Parent comment's replyCount / creatorReply live on sibling lists
+      if (newComment.resourceType === "COMMENT") {
+        qc.invalidateQueries({ queryKey: ["comments-resource"] });
+      }
     },
     throwOnError: false,
   });

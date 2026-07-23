@@ -33,7 +33,8 @@
 
 **Sub Resources/Modules**
 
-- ~~Comments on comments~~ — done 2026-07-22 (Reply UI; nested via COMMENTABLE)
+- ~~Comments on comments~~ — done 2026-07-22 (Reply UI; nested via COMMENTABLE; YouTube-style rails + replies toggle)
+  - Later: move `Comment` from `components/ui` → `features/comments`; split thread chrome vs body (not urgent)
 - Reactions system (like, dislike, react emoji) instead of just binary likes
   - Update posts and comments to support reactions
 
