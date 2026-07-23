@@ -1,10 +1,22 @@
 "use client";
 
 import { ColumnDef, Column } from "@tanstack/react-table";
-import { ArrowUpDown, Divide } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { CreditPurchase } from "@/features/stripe/types/stripe";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useModal } from "@/components/providers/ModalProvider";
+import { ConfirmModal } from "@/components/modal/ConfirmModal";
+import { useAdminRefundCreditPurchase } from "@/features/stripe/hooks";
+import { toast } from "sonner";
 
 interface SortableHeaderProps {
   column: Column<any, unknown>;
@@ -28,11 +40,10 @@ function formatDate(dateString: string): string {
   const dateObj = new Date(dateString);
 
   const year = dateObj.getFullYear();
-  const day = String(dateObj.getDate()).padStart(2, "0"); // Pad with '0' if needed
-  const month = String(dateObj.getMonth() + 1).padStart(2, "0"); // Month is 0-indexed (0=Jan)
+  const day = String(dateObj.getDate()).padStart(2, "0");
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
 
-  const formattedDate = `${year}-${day}-${month}`;
-  return formattedDate;
+  return `${year}-${day}-${month}`;
 }
 
 export const columns: ColumnDef<CreditPurchase>[] = [
@@ -72,7 +83,7 @@ export const columns: ColumnDef<CreditPurchase>[] = [
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
-      }).format(price / 100); // Divide by 100 if price is in cents
+      }).format(price / 100);
 
       return <div>{formatted}</div>;
     },
@@ -86,9 +97,58 @@ export const columns: ColumnDef<CreditPurchase>[] = [
     header: ({ column }) => <SortableHeader column={column} label="Date" />,
     cell: ({ row }) => {
       const date = String(row.getValue("purchasedAt"));
-      const formatted = formatDate(date);
+      return <div>{formatDate(date)}</div>;
+    },
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      const purchase = row.original;
+      const { openModal, closeModal } = useModal();
+      const refund = useAdminRefundCreditPurchase();
 
-      return <div>{formatted}</div>;
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => {
+                openModal({
+                  title: "Refund credit purchase?",
+                  content: (
+                    <ConfirmModal
+                      message={`This creates a full Stripe refund and removes ${purchase.amount} credits from ${purchase.user.username}. Aborts if their balance is too low.`}
+                      variant="destructive"
+                      buttonMessage="Refund"
+                      showCancelButton
+                      onCancel={closeModal}
+                      onConfirm={async () => {
+                        try {
+                          await refund.mutateAsync(purchase.id);
+                          toast.success("Refund queued in Stripe");
+                          closeModal();
+                        } catch (e: any) {
+                          toast.error(e?.message || "Refund failed");
+                        }
+                      }}
+                    />
+                  ),
+                });
+              }}
+            >
+              Refund
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
     },
   },
 ];

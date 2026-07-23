@@ -47,7 +47,7 @@
 
 **3rd Party**
 
-- Stripe admin dashboard for admin actions (refund, view invoice, cancel payment, etc)
+- ~~Stripe admin dashboard for admin actions (refund, view invoice, cancel payment, etc)~~ — done 2026-07-23 (refunds, cancel at period end / immediate, invoice list/send/void)
 
 **Testing**
 

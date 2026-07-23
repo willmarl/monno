@@ -14,16 +14,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { LogOut } from "lucide-react";
-import { useLogout } from "@/features/auth/hooks";
+import { useLogout, useSessionUser } from "@/features/auth/hooks";
 import { UserAvatar } from "./UserAvatar";
 import { User } from "@/features/users/types/user";
 
 // Feature flag: Set to false if your boilerplate doesn't have Stripe/Credits
 const SHOW_ACCOUNT_STATUS = false;
 
-export default function Header({ user }: { user: User | null }) {
+export default function Header({ user: serverUser }: { user: User | null }) {
   const router = useRouter();
   const logout = useLogout();
+  // Prefer client session: after Stripe/OAuth return, SSR may miss cookies
+  // (SameSite) while /users/me still succeeds in the browser.
+  const { data: clientUser } = useSessionUser();
+  const user = clientUser !== undefined ? clientUser : serverUser;
 
   function LoggedIn() {
     if (!user) return null;

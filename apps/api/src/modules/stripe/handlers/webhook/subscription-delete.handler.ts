@@ -17,6 +17,13 @@ export class SubscriptionDeleteHandler {
       );
     }
 
+    const existing = await this.prisma.subscription.findUnique({
+      where: { userId: userToDelete.id },
+    });
+    if (!existing || (existing.status === 'CANCELED' && existing.tier === 'FREE')) {
+      return;
+    }
+
     await this.prisma.subscription.update({
       where: { userId: userToDelete.id },
       data: {

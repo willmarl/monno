@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createCheckoutSession,
   createCustomerPortal,
@@ -10,6 +10,13 @@ import {
   fetchAdminProducts,
   fetchAdminCreditPurchases,
   fetchAdminCreditTransactions,
+  fetchAdminStripeDashboard,
+  refundAdminProductPurchase,
+  refundAdminCreditPurchase,
+  cancelAdminSubscription,
+  fetchAdminSubscriptionInvoices,
+  sendAdminInvoice,
+  voidAdminInvoice,
 } from "./api";
 
 export function useCreateCheckoutSession() {
@@ -207,5 +214,81 @@ export function useAdminCreditTransactions(
         caseSensitive: options?.caseSensitive,
         type: options?.type,
       }),
+  });
+}
+
+export function useAdminStripeDashboard(limit = 8) {
+  return useQuery({
+    queryKey: ["admin", "stripe-dashboard", limit],
+    queryFn: () => fetchAdminStripeDashboard(limit),
+    refetchInterval: 60_000,
+  });
+}
+
+export function useAdminRefundProductPurchase() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => refundAdminProductPurchase(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "products"] });
+    },
+  });
+}
+
+export function useAdminRefundCreditPurchase() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => refundAdminCreditPurchase(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "credit-purchases"] });
+      qc.invalidateQueries({ queryKey: ["admin", "credit-transactions"] });
+    },
+  });
+}
+
+export function useAdminCancelSubscription() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      mode,
+    }: {
+      id: number;
+      mode: "period_end" | "immediate";
+    }) => cancelAdminSubscription(id, mode),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "subscriptions"] });
+    },
+  });
+}
+
+export function useAdminSubscriptionInvoices(
+  subscriptionId: number | null,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ["admin", "subscription-invoices", subscriptionId],
+    queryFn: () => fetchAdminSubscriptionInvoices(subscriptionId!),
+    enabled: !!subscriptionId && enabled,
+  });
+}
+
+export function useAdminSendInvoice() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (invoiceId: string) => sendAdminInvoice(invoiceId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "subscription-invoices"] });
+    },
+  });
+}
+
+export function useAdminVoidInvoice() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (invoiceId: string) => voidAdminInvoice(invoiceId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "subscription-invoices"] });
+    },
   });
 }

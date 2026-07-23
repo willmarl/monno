@@ -80,6 +80,16 @@ AI agents should read this file before writing tests for any module.
 - `POST /admin/settings/email/test` queues a test mail to the current admin’s email.
 - **Compose (one-way outbound):** `POST /admin/settings/email/compose` — custom message to selected users (`userIds[]`, one queued email per recipient, not CC; cap 100; recipient suggest via admin user search, any status) or broadcast to all ACTIVE users with email (`confirmBroadcast: true`, cap 2000). Body is plain text (HTML-escaped). Footer states replies are not accepted. No inbound mail / ticket thread yet — Workspace/Zoho two-way mail is future work.
 
+## Admin Stripe actions
+
+- **Refunds:** `POST /admin/stripe/products/:id/refund` and `POST /admin/stripe/credit-purchases/:id/refund` create a full Stripe refund, then apply local state immediately. Product uses checkout session id on `ProductPurchase.stripeId`; credits resolve payment intent via the customer’s checkout sessions + stored line-item id. `charge.refunded` webhook apply helpers are **idempotent**.
+- **Cancel subscription:** `POST /admin/stripe/subscriptions/:id/cancel` with `{ mode: "period_end" | "immediate" }`. Period-end sets Stripe `cancel_at_period_end` + local `nextTier=FREE`. Immediate calls `subscriptions.cancel` + local `CANCELED`/`FREE`. Resolves `sub_` id even if renewals previously overwrote `Subscription.stripeId` with an invoice id (and heals it).
+- **Invoices:** `GET /admin/stripe/subscriptions/:id/invoices` lists recent Stripe invoices; `POST /admin/stripe/invoices/:invoiceId/send` (draft only); `POST /admin/stripe/invoices/:invoiceId/void` (open only). Hosted URL / PDF opened from admin UI.
+- Renewal webhook (`invoice.payment_succeeded`) updates period/tier only — it must **not** overwrite `Subscription.stripeId`.
+- Local testing: `stripe listen --forward-to localhost:3001/stripe/webhook` (API port, not web `:3000`); put CLI `whsec_` in `STRIPE_WEBHOOK_SECRET`.
+- **Branded app emails (Resend):** on successful checkout (`product` / `credits` / `subscription`) and on applied refunds, the API enqueues `stripe-purchase-receipt` / `stripe-purchase-refund` to the user's `User.email`. This is independent of Stripe Dashboard customer emails (which are unreliable in test mode). Skip if the user has no email on file.
+- **Admin dashboard:** `GET /admin/stripe/dashboard` returns live `balance.retrieve()` (available/pending) plus recent product/credit/subscription rows from the app DB. UI widgets on `/admin` when `NEXT_PUBLIC_STRIPE_ENABLED=true`.
+
 ## User preferences
 
 - One `UserPreferences` row per user (`GET/PATCH /users/me/preferences`, auth). Auto-created with defaults on first GET/PATCH.

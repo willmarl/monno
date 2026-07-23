@@ -28,10 +28,25 @@ export interface Subscription {
   periodEnd: Date;
   createdAt: Date;
   updatedAt: Date;
+  stripeId?: string;
   user: UserInfo;
 }
 
 export type SubscriptionList = PaginatedResponse<Subscription>;
+
+export interface StripeInvoiceSummary {
+  id: string;
+  status: string | null;
+  amountDue: number;
+  amountPaid: number;
+  currency: string;
+  hostedInvoiceUrl: string | null;
+  invoicePdf: string | null;
+  created: number;
+  number: string | null;
+}
+
+export type CancelSubscriptionMode = "period_end" | "immediate";
 
 export interface ProductPurchase {
   id: number;

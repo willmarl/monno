@@ -36,7 +36,8 @@ export class InvoicePaymentHandler {
         nextTier: null,
         periodStart: new Date(mainInfo.period.start * 1000),
         periodEnd: new Date(mainInfo.period.end * 1000),
-        stripeId: event.data.object.id,
+        // Do not overwrite subscription.stripeId with the invoice id —
+        // stripeId must remain the Stripe subscription id (sub_…).
       },
     });
   }

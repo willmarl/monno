@@ -5,6 +5,7 @@ import { LogoService } from '../logo/logo.service';
 import { PrismaService } from '../../prisma.service';
 import { AccountStatusEmailService } from './account-status-email.service';
 import { EmailSettingsService } from './email-settings.service';
+import { StripePurchaseEmailService } from './stripe-purchase-email.service';
 import { QueueModule } from '../../modules/queue/queue.module';
 
 @Module({
@@ -16,6 +17,7 @@ import { QueueModule } from '../../modules/queue/queue.module';
     PrismaService,
     AccountStatusEmailService,
     EmailSettingsService,
+    StripePurchaseEmailService,
   ],
   exports: [
     EmailService,
@@ -23,6 +25,7 @@ import { QueueModule } from '../../modules/queue/queue.module';
     LogoService,
     AccountStatusEmailService,
     EmailSettingsService,
+    StripePurchaseEmailService,
   ],
 })
 export class EmailModule {}

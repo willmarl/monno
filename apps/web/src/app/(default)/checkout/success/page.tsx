@@ -23,9 +23,9 @@ export default function CheckoutSuccessPage() {
   }, []);
 
   useEffect(() => {
-    // Refetch user data to get updated subscription/credits
+    // Refetch user (credits/subscription) and refresh RSC layout so Header SSR matches
     refetch().then(() => {
-      // Give user a moment to see success, then redirect
+      router.refresh();
       setTimeout(() => {
         router.push("/");
       }, 2000);

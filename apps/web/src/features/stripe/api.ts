@@ -11,6 +11,7 @@ import type {
   CreditTransactionList,
   CreditPurchase,
   CreditPurchaseList,
+  StripeInvoiceSummary,
 } from "./types/stripe";
 
 export const createCheckoutSession = (priceId: string) =>
@@ -178,3 +179,86 @@ export const fetchAdminCreditTransactions = ({
     searchParams,
   });
 };
+
+export type StripeDashboardBalanceBucket = {
+  amount: number;
+  currency: string;
+};
+
+export type StripeDashboardRecentItem = {
+  kind: "product" | "credits" | "subscription";
+  id: number;
+  label: string;
+  status: string;
+  username: string;
+  userId: number;
+  amountCents: number | null;
+  currency: string | null;
+  at: string;
+};
+
+export type StripeDashboardOverview = {
+  configured: boolean;
+  mode: "test" | "live" | null;
+  dashboardUrl: string | null;
+  balance: {
+    available: StripeDashboardBalanceBucket[];
+    pending: StripeDashboardBalanceBucket[];
+  } | null;
+  recent: StripeDashboardRecentItem[];
+};
+
+export const fetchAdminStripeDashboard = (limit = 8) =>
+  fetcher<StripeDashboardOverview>("/admin/stripe/dashboard", {
+    searchParams: { limit },
+  });
+
+export const refundAdminProductPurchase = (id: number) =>
+  fetcher<{ refunded: boolean; refundId: string; purchaseId: number }>(
+    `/admin/stripe/products/${id}/refund`,
+    { method: "POST" },
+  );
+
+export const refundAdminCreditPurchase = (id: number) =>
+  fetcher<{
+    refunded: boolean;
+    refundId: string;
+    purchaseId: number;
+    creditsRemoved: number;
+  }>(`/admin/stripe/credit-purchases/${id}/refund`, { method: "POST" });
+
+export const cancelAdminSubscription = (
+  id: number,
+  mode: "period_end" | "immediate",
+) =>
+  fetcher<{
+    canceled: boolean;
+    mode: string;
+    subscriptionId: number;
+    stripeSubscriptionId: string;
+  }>(`/admin/stripe/subscriptions/${id}/cancel`, {
+    method: "POST",
+    json: { mode },
+  });
+
+export const fetchAdminSubscriptionInvoices = (id: number, limit = 10) =>
+  fetcher<{
+    subscriptionId: number;
+    username: string;
+    items: StripeInvoiceSummary[];
+  }>(`/admin/stripe/subscriptions/${id}/invoices`, {
+    searchParams: { limit },
+  });
+
+export const sendAdminInvoice = (invoiceId: string) =>
+  fetcher<{ sent: boolean; invoice: StripeInvoiceSummary }>(
+    `/admin/stripe/invoices/${invoiceId}/send`,
+    { method: "POST" },
+  );
+
+export const voidAdminInvoice = (invoiceId: string) =>
+  fetcher<{ voided: boolean; invoice: StripeInvoiceSummary }>(
+    `/admin/stripe/invoices/${invoiceId}/void`,
+    { method: "POST" },
+  );
+

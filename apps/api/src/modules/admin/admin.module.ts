@@ -5,6 +5,7 @@ import { FileProcessingModule } from '../../common/file-processing/file-processi
 import { EmailModule } from '../../common/email/email.module';
 import { QueueModule } from '../queue/queue.module';
 import { PresenceModule } from '../presence/presence.module';
+import { StripeModule } from '../stripe/stripe.module';
 import { AdminUsersController } from './users/admin-user.controller';
 import { AdminPostsController } from './posts/admin-post.controller';
 import { AdminCommentsController } from './comments/admin-comment.controller';
@@ -36,6 +37,7 @@ import { AdminArticleService } from './articles/admin-article.service';
     EmailModule,
     QueueModule,
     PresenceModule,
+    StripeModule,
   ],
   controllers: [
     AdminController,

@@ -103,7 +103,7 @@
 | done | [x] Mass delete (findMany / deleteMany) | 2026-07-23: admin bulk soft-delete/restore via `updateMany` on posts/articles/comments/collections; table multi-select UI |
 | done | [x] Active now: guests (anonymous id + Redis TTL) | 2026-07-23: `anonId` + `POST /presence/heartbeat`; Redis TTL; admin stats users/guests split |
 | done | [x] Custom domain/company email from admin | 2026-07-23: Setting overrides + compose (`userIds[]` loop / broadcast, one-way); Resend DNS external |
-| todo | [ ] Stripe admin actions (refund, invoice, cancel, …) | |
+| done | [x] Stripe admin actions (refund, invoice, cancel, …) | 2026-07-23: product/credit refund; sub cancel period_end/immediate; list/send/void invoices; fixed renewal overwriting sub stripeId |
 | todo | [ ] Guide: how to make a new email job | |
 | todo | [ ] `robots.txt` + `sitemap.xml` | |
 | todo | [ ] `llms.txt` (optional `llms-full.txt`) | |
@@ -130,6 +130,8 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-23 | Phase 5 — Stripe admin actions | Refunds + cancel sub + invoice list/send/void; heal sub stripeId |
+| 2026-07-23 | Phase 5 — Stripe admin refunds | Product + credit full refund via Stripe; webhook apply idempotent |
 | 2026-07-23 | Phase 5 — Company email branding | Admin Setting overrides for Resend from/support; test send; worker uses job from |
 | 2026-07-23 | Phase 5 — Active now guests | anonId cookie + Redis TTL heartbeat; admin presence users/guests |
 | 2026-07-23 | Phase 5 — Mass delete | Admin bulk soft-delete/restore (`updateMany`) + row selection on posts/articles/comments/collections tables |

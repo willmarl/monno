@@ -19,10 +19,13 @@ const cookieDefaults = {
   httpOnly: true,
   path: '/',
   domain: getDomain(),
+  // Lax (not Strict) in dev so top-level returns from Stripe/OAuth include
+  // cookies on the Next.js document request; otherwise SSR Header shows Guest
+  // until a hard refresh while client fetches still work.
   sameSite:
     process.env.NODE_ENV === 'production'
       ? ('none' as const)
-      : ('strict' as const),
+      : ('lax' as const),
   secure: process.env.NODE_ENV === 'production',
 };
 

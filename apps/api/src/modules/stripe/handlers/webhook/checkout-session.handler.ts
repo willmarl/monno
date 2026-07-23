@@ -10,11 +10,17 @@ import {
   TIER_HIERARCHY,
   TierName,
 } from '../../../../common/constants/stripe.constants';
+import { StripePurchaseEmailService } from '../../../../common/email/stripe-purchase-email.service';
 import Stripe from 'stripe';
 
 @Injectable()
 export class CheckoutSessionHandler {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(CheckoutSessionHandler.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private stripePurchaseEmail: StripePurchaseEmailService,
+  ) {}
 
   async handle(event: any, stripe: Stripe): Promise<void> {
     const subscriptionId = event.data.object.subscription;
@@ -47,9 +53,18 @@ export class CheckoutSessionHandler {
     });
 
     if (!user) {
-      Logger.warn('Customer not found:', event.data.object.customer);
+      this.logger.warn(`Customer not found: ${event.data.object.customer}`);
       return;
     }
+
+    const amountTotal =
+      typeof event.data.object.amount_total === 'number'
+        ? event.data.object.amount_total
+        : null;
+    const currency =
+      typeof event.data.object.currency === 'string'
+        ? event.data.object.currency
+        : null;
 
     // Handle subscription creation
     if (subscriptionId) {
@@ -57,10 +72,19 @@ export class CheckoutSessionHandler {
         subscriptionId,
         sessionMetadata,
         stripe,
+        user,
+        amountTotal,
+        currency,
       );
     } else {
       // Handle one-time payment
-      await this.handleOneTimePayment(event, user, stripe);
+      await this.handleOneTimePayment(
+        event,
+        user,
+        stripe,
+        amountTotal,
+        currency,
+      );
     }
   }
 
@@ -68,6 +92,9 @@ export class CheckoutSessionHandler {
     subscriptionId: string,
     metadata: any,
     stripe: Stripe,
+    user: { id: number; username: string; email: string | null },
+    amountTotal: number | null,
+    currency: string | null,
   ): Promise<void> {
     const sub = await stripe.subscriptions.retrieve(subscriptionId);
     const priceInfo = getPriceInfo(metadata.priceId);
@@ -92,7 +119,17 @@ export class CheckoutSessionHandler {
         tier: newTier as any,
         periodStart: new Date(sub.items.data[0].current_period_start * 1000),
         periodEnd: new Date(sub.items.data[0].current_period_end * 1000),
+        stripeId: subscriptionId,
       },
+    });
+
+    await this.stripePurchaseEmail.sendReceiptIfPossible({
+      username: user.username,
+      email: user.email,
+      kind: 'subscription',
+      itemLabel: `${newTier} plan`,
+      amountCents: amountTotal,
+      currency,
     });
   }
 
@@ -100,6 +137,8 @@ export class CheckoutSessionHandler {
     event: any,
     user: any,
     stripe: Stripe,
+    amountTotal: number | null,
+    currency: string | null,
   ): Promise<void> {
     const item = await stripe.checkout.sessions.listLineItems(
       event.data.object.id,
@@ -111,9 +150,21 @@ export class CheckoutSessionHandler {
     ] as any;
 
     if (priceInfo?.type === 'product') {
-      await this.handleProductPurchase(user, priceInfo, event);
+      await this.handleProductPurchase(
+        user,
+        priceInfo,
+        event,
+        amountTotal,
+        currency,
+      );
     } else if (priceInfo?.type === 'credits') {
-      await this.handleCreditPurchase(user, priceInfo, item);
+      await this.handleCreditPurchase(
+        user,
+        priceInfo,
+        item,
+        amountTotal,
+        currency,
+      );
     }
   }
 
@@ -121,6 +172,8 @@ export class CheckoutSessionHandler {
     user: any,
     priceInfo: any,
     event: any,
+    amountTotal: number | null,
+    currency: string | null,
   ): Promise<void> {
     const usersProduct = await this.prisma.productPurchase.findUnique({
       where: {
@@ -153,47 +206,69 @@ export class CheckoutSessionHandler {
         },
       });
     }
+
+    await this.stripePurchaseEmail.sendReceiptIfPossible({
+      username: user.username,
+      email: user.email,
+      kind: 'product',
+      itemLabel: priceInfo.name || priceInfo.productId || 'your product',
+      amountCents: amountTotal,
+      currency,
+    });
   }
 
   private async handleCreditPurchase(
     user: any,
     priceInfo: any,
     item: any,
+    amountTotal: number | null,
+    currency: string | null,
   ): Promise<void> {
     const existingPurchase = await this.prisma.creditPurchase.findUnique({
       where: { stripeId: item.data[0].id },
     });
 
-    if (!existingPurchase) {
-      const balanceBefore = user.credits;
-      const creditsToAdd = priceInfo.credits;
-
-      await this.prisma.creditPurchase.create({
-        data: {
-          userId: user.id,
-          stripeId: item.data[0].id,
-          amount: creditsToAdd,
-          pricePaid: item.data[0].amount_total,
-          currency: item.data[0].price?.currency,
-        },
-      });
-
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          credits: { increment: creditsToAdd },
-        },
-      });
-
-      await this.prisma.creditTransaction.create({
-        data: {
-          userId: user.id,
-          type: 'PURCHASE',
-          amount: creditsToAdd,
-          balanceBefore: balanceBefore,
-          balanceAfter: balanceBefore + creditsToAdd,
-        },
-      });
+    if (existingPurchase) {
+      return;
     }
+
+    const balanceBefore = user.credits;
+    const creditsToAdd = priceInfo.credits;
+
+    await this.prisma.creditPurchase.create({
+      data: {
+        userId: user.id,
+        stripeId: item.data[0].id,
+        amount: creditsToAdd,
+        pricePaid: item.data[0].amount_total,
+        currency: item.data[0].price?.currency,
+      },
+    });
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        credits: { increment: creditsToAdd },
+      },
+    });
+
+    await this.prisma.creditTransaction.create({
+      data: {
+        userId: user.id,
+        type: 'PURCHASE',
+        amount: creditsToAdd,
+        balanceBefore: balanceBefore,
+        balanceAfter: balanceBefore + creditsToAdd,
+      },
+    });
+
+    await this.stripePurchaseEmail.sendReceiptIfPossible({
+      username: user.username,
+      email: user.email,
+      kind: 'credits',
+      itemLabel: `${creditsToAdd} credits`,
+      amountCents: amountTotal ?? item.data[0].amount_total,
+      currency: currency ?? item.data[0].price?.currency,
+    });
   }
 }

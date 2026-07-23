@@ -39,3 +39,13 @@ export {
   accountStatusChangedEmailTemplate,
   type AccountStatusChangedEmailProps,
 } from './AccountStatusChanged.js';
+export {
+  purchaseReceiptEmailTemplate,
+  type PurchaseReceiptEmailProps,
+  type PurchaseReceiptKind,
+} from './PurchaseReceipt.js';
+export {
+  purchaseRefundEmailTemplate,
+  type PurchaseRefundEmailProps,
+  type PurchaseRefundKind,
+} from './PurchaseRefund.js';
