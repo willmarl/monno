@@ -13,6 +13,7 @@ import {
   Bookmark,
   Newspaper,
   Flag,
+  Mail,
 } from "lucide-react";
 import { useSessionUser } from "@/features/auth/hooks";
 import {
@@ -74,6 +75,11 @@ export const items = [
     title: "Reports",
     url: "/admin/reports",
     icon: Flag,
+  },
+  {
+    title: "Email",
+    url: "/admin/settings/email",
+    icon: Mail,
   },
   {
     title: "Articles",

@@ -4,6 +4,7 @@ import { EmailRendererService } from './email-renderer.service';
 import { LogoService } from '../logo/logo.service';
 import { PrismaService } from '../../prisma.service';
 import { AccountStatusEmailService } from './account-status-email.service';
+import { EmailSettingsService } from './email-settings.service';
 import { QueueModule } from '../../modules/queue/queue.module';
 
 @Module({
@@ -14,12 +15,14 @@ import { QueueModule } from '../../modules/queue/queue.module';
     LogoService,
     PrismaService,
     AccountStatusEmailService,
+    EmailSettingsService,
   ],
   exports: [
     EmailService,
     EmailRendererService,
     LogoService,
     AccountStatusEmailService,
+    EmailSettingsService,
   ],
 })
 export class EmailModule {}

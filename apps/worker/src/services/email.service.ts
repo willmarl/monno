@@ -20,15 +20,21 @@ export class EmailService {
 
   /**
    * Send an email via Resend
-   * @param to - Recipient email address
-   * @param subject - Email subject
-   * @param htmlContent - Email HTML content
    * @throws Error if email sending fails
    */
-  async send(to: string, subject: string, htmlContent: string): Promise<void> {
+  async send(
+    to: string,
+    subject: string,
+    htmlContent: string,
+    from?: { fromEmail?: string; fromName?: string }
+  ): Promise<void> {
     try {
-      const fromEmail = process.env.RESEND_FROM_EMAIL || "noreply@resend.dev";
-      const fromName = process.env.RESEND_FROM_NAME || "Your App";
+      const fromEmail =
+        from?.fromEmail ||
+        process.env.RESEND_FROM_EMAIL ||
+        "noreply@resend.dev";
+      const fromName =
+        from?.fromName || process.env.RESEND_FROM_NAME || "Your App";
 
       console.log(`[Email] Sending email...`);
       console.log(`[Email]   From: ${fromName} <${fromEmail}>`);

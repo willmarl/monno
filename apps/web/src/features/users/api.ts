@@ -62,6 +62,43 @@ export const fetchUserByUsername = (username: string): Promise<PublicUser> =>
     method: "GET",
   });
 
+// GET /users/search/suggest?q=jane&limit=5 (public — ACTIVE only)
+export const fetchUserSuggestions = (q: string, limit: number = 5) => {
+  if (!q) return Promise.resolve([]);
+
+  return fetcher<PublicUser[]>("/users/search/suggest", {
+    searchParams: { q, limit },
+  });
+};
+
+export type AdminUserSuggestion = Pick<
+  PublicUser,
+  "id" | "username" | "avatarPath" | "status" | "deleted"
+>;
+
+// Uses existing admin search (any status) — avoids a nested /search/suggest route.
+export const fetchAdminUserSuggestions = async (
+  q: string,
+  limit: number = 5,
+): Promise<AdminUserSuggestion[]> => {
+  if (!q) return [];
+
+  const result = await fetchAdminUsers({
+    query: q,
+    limit,
+    offset: 0,
+    searchFields: "username",
+  });
+
+  return result.items.map((u) => ({
+    id: u.id,
+    username: u.username,
+    avatarPath: u.avatarPath,
+    status: u.status,
+    deleted: u.deleted,
+  }));
+};
+
 export const fetchUsers = ({
   query,
   limit = 10,

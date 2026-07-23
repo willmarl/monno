@@ -17,7 +17,8 @@
 
 **Admin Dashboard**
 
-- Custom domain/company email sending from admin panel
+- ~~Custom domain/company email sending from admin panel~~ — done 2026-07-23 (from/support via Setting; one-way compose to selected users or all; Resend DNS still external)
+  - Later: two-way mail via Google Workspace / Zoho (inbound replies → support tickets)
 - ~~Mass delete operations (findMany, deleteMany)~~ — done 2026-07-23 (admin bulk soft-delete via `updateMany`; not hard delete)
 - ~~Special admin buttons on public pages to remove content (comments, posts, etc) without entering dashboard~~ — done 2026-07-22
 - ~~Active now: track guests too (anonymous client id + Redis TTL heartbeat; show users/guests split or combined). Logged-in already uses session `lastUsedAt`~~ — done 2026-07-23

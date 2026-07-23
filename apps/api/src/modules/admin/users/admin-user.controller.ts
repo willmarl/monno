@@ -69,6 +69,24 @@ export class AdminUsersController {
     return this.adminUserService.searchCursor(searchDto);
   }
 
+  @ApiOperation({
+    summary:
+      'Username suggestions for admin pickers (any status, including banned/suspended)',
+  })
+  @ApiBearerAuth()
+  @ApiQuery({ name: 'q', required: false, type: String })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    example: 5,
+  })
+  @ApiResponse({ status: 200, description: 'User suggestions' })
+  @Get('suggest')
+  searchSuggest(@Query('q') q: string, @Query('limit') limit = 5) {
+    return this.adminUserService.searchSuggest(q, Number(limit));
+  }
+
   @ApiOperation({ summary: 'Get username history for a user (admin only)' })
   @ApiBearerAuth()
   @ApiParam({

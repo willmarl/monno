@@ -9,6 +9,8 @@ export async function handleEmailJob(data: {
   subject: string;
   htmlContent: string;
   templateName: string;
+  fromEmail?: string;
+  fromName?: string;
 }): Promise<void> {
   console.log(
     `[Email Handler] Processing email job: ${data.templateName} to ${data.to}`
@@ -16,7 +18,10 @@ export async function handleEmailJob(data: {
 
   try {
     const emailService = new EmailService();
-    await emailService.send(data.to, data.subject, data.htmlContent);
+    await emailService.send(data.to, data.subject, data.htmlContent, {
+      fromEmail: data.fromEmail,
+      fromName: data.fromName,
+    });
     console.log(
       `[Email Handler] ✓ Successfully sent ${data.templateName} email`
     );

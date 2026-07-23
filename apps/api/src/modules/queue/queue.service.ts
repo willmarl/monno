@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Queue } from 'bullmq';
+import { getEmailBranding } from 'src/common/email/email-branding';
 
 @Injectable()
 export class QueueService implements OnModuleInit {
@@ -129,11 +130,14 @@ export class QueueService implements OnModuleInit {
     htmlContent: string,
     templateName: string = 'generic',
   ): Promise<void> {
+    const branding = getEmailBranding();
     await this.jobsQueue.add('send-email', {
       to,
       subject,
       htmlContent,
       templateName,
+      fromEmail: branding.fromEmail,
+      fromName: branding.fromName,
     });
     this.logger.debug(`Email job enqueued: ${templateName} to ${to}`);
   }

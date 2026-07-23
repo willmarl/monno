@@ -71,6 +71,15 @@ AI agents should read this file before writing tests for any module.
 - One audit log summary per bulk action (`POSTS_BULK_DELETED`, etc.); ids live in `changes`.
 - Users / media / reports are out of scope for this slice (user cascade + email; media is hard-delete).
 
+## Company email branding (admin)
+
+- Admins set from name / from email / support email at `GET|PATCH /admin/settings/email` (UI: `/admin/settings/email`).
+- Stored in `Setting` keys `EMAIL_FROM_*`; resolve order **DB → env (`RESEND_FROM_*`) → fallback**.
+- `RESEND_API_KEY` stays in env only (never admin UI). Domain SPF/DKIM verification remains in the Resend dashboard.
+- Enqueued jobs include `fromName`/`fromEmail`; worker uses those (env fallback). Template footers read support via in-memory branding cache.
+- `POST /admin/settings/email/test` queues a test mail to the current admin’s email.
+- **Compose (one-way outbound):** `POST /admin/settings/email/compose` — custom message to selected users (`userIds[]`, one queued email per recipient, not CC; cap 100; recipient suggest via admin user search, any status) or broadcast to all ACTIVE users with email (`confirmBroadcast: true`, cap 2000). Body is plain text (HTML-escaped). Footer states replies are not accepted. No inbound mail / ticket thread yet — Workspace/Zoho two-way mail is future work.
+
 ## User preferences
 
 - One `UserPreferences` row per user (`GET/PATCH /users/me/preferences`, auth). Auto-created with defaults on first GET/PATCH.

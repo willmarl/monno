@@ -4,6 +4,8 @@ import {
   changePassword,
   deleteProfile,
   fetchUserByUsername,
+  fetchUserSuggestions,
+  fetchAdminUserSuggestions,
   fetchUsers,
   fetchAdminUsers,
   fetchAdminUserById,
@@ -56,6 +58,22 @@ export const useFetchUserByUsername = (username: string) =>
       return failureCount < 3;
     },
   });
+
+export function useUserSuggestions(q: string, limit: number = 5) {
+  return useQuery({
+    queryKey: ["user-suggestions", q, limit],
+    queryFn: () => fetchUserSuggestions(q, limit),
+    enabled: !!q,
+  });
+}
+
+export function useAdminUserSuggestions(q: string, limit: number = 5) {
+  return useQuery({
+    queryKey: ["admin-user-suggestions", q, limit],
+    queryFn: () => fetchAdminUserSuggestions(q, limit),
+    enabled: !!q,
+  });
+}
 
 export function useDeleteProfile() {
   const qc = useQueryClient();

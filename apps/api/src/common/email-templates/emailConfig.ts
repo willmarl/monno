@@ -5,11 +5,17 @@
  * Update these values to maintain consistency across all emails.
  */
 
+import { getEmailBranding } from '../email/email-branding';
+
 export const emailConfig = {
-  // App branding
-  appName: 'Monno',
+  // App branding — fromName/support resolve from admin Setting → env
+  get appName() {
+    return getEmailBranding().fromName || 'Monno';
+  },
   appUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
-  supportEmail: process.env.RESEND_FROM_EMAIL || 'support@Monno.com',
+  get supportEmail() {
+    return getEmailBranding().supportEmail;
+  },
 
   // Colors
   colors: {

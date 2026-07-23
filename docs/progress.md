@@ -102,7 +102,7 @@
 |--------|------|-------|
 | done | [x] Mass delete (findMany / deleteMany) | 2026-07-23: admin bulk soft-delete/restore via `updateMany` on posts/articles/comments/collections; table multi-select UI |
 | done | [x] Active now: guests (anonymous id + Redis TTL) | 2026-07-23: `anonId` + `POST /presence/heartbeat`; Redis TTL; admin stats users/guests split |
-| todo | [ ] Custom domain/company email from admin | |
+| done | [x] Custom domain/company email from admin | 2026-07-23: Setting overrides + compose (`userIds[]` loop / broadcast, one-way); Resend DNS external |
 | todo | [ ] Stripe admin actions (refund, invoice, cancel, …) | |
 | todo | [ ] Guide: how to make a new email job | |
 | todo | [ ] `robots.txt` + `sitemap.xml` | |
@@ -130,6 +130,7 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-23 | Phase 5 — Company email branding | Admin Setting overrides for Resend from/support; test send; worker uses job from |
 | 2026-07-23 | Phase 5 — Active now guests | anonId cookie + Redis TTL heartbeat; admin presence users/guests |
 | 2026-07-23 | Phase 5 — Mass delete | Admin bulk soft-delete/restore (`updateMany`) + row selection on posts/articles/comments/collections tables |
 | 2026-07-22 | Phase 4 — Reactions | Discord-style emoji alongside likes; `POST /reactions/toggle`; fixed emoji allowlist |

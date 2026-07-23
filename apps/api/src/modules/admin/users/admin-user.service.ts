@@ -62,6 +62,31 @@ export class AdminUserService {
   // ===== USER MANAGEMENT =====
 
   /**
+   * Lightweight username suggestions for admin pickers.
+   * Includes any account status (ACTIVE / SUSPENDED / BANNED / DELETED).
+   */
+  async searchSuggest(q: string, limit: number) {
+    if (!q?.trim()) return [];
+
+    const take = Number.isFinite(limit) && limit > 0 ? Math.min(limit, 20) : 5;
+
+    return this.prisma.user.findMany({
+      where: {
+        username: { contains: q.trim(), mode: 'insensitive' },
+      },
+      select: {
+        id: true,
+        username: true,
+        avatarPath: true,
+        status: true,
+        deleted: true,
+      },
+      orderBy: { username: 'asc' },
+      take,
+    });
+  }
+
+  /**
    * Get single user by ID with full details
    */
   async findById(userId: number) {
