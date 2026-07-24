@@ -17,6 +17,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { mediaMulterOptions } from '../../../common/file-processing/multer-limits';
 import { JwtAccessGuard } from '../../auth/guards/jwt-access.guard';
 import { Roles } from '../../../decorators/roles.decorator';
 import { RolesGuard } from '../../../common/guards/roles.guard';
@@ -105,7 +106,7 @@ export class AdminArticlesController {
   // --- Media sub-routes ---
   // Note: literal routes (reorder) declared before parameterized (:mediaId)
 
-  @UseInterceptors(FilesInterceptor('files', 10))
+  @UseInterceptors(FilesInterceptor('files', 10, mediaMulterOptions))
   @Post(':id/media')
   addMedia(
     @Param('id', ParseIntPipe) id: number,
@@ -137,7 +138,7 @@ export class AdminArticlesController {
     return this.adminArticleService.setPrimary(adminId, id, mediaId);
   }
 
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', mediaMulterOptions))
   @Patch(':id/media/:mediaId')
   replaceMedia(
     @Param('id', ParseIntPipe) id: number,

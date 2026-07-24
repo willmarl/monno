@@ -14,6 +14,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { avatarMulterOptions } from '../../../common/file-processing/multer-limits';
 import {
   ApiTags,
   ApiOperation,
@@ -183,7 +184,7 @@ export class AdminUsersController {
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('avatar'))
+  @UseInterceptors(FileInterceptor('avatar', avatarMulterOptions))
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateUserAdminDto,

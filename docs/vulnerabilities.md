@@ -88,11 +88,11 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 
 ## Medium
 
-### 12. Authorization role from JWT, not DB
+### 12. Authorization role from JWT, not DB — **FIXED**
 
 - **Where:** `RolesGuard`; payload built in auth/OAuth
 - **Issue:** `@Roles('ADMIN')` uses `req.user.role` from token — demotions leave elevated access until access token expires.
-- **Fix:** Resolve role from DB (or `session.user`) in strategy/guard.
+- **Fix applied:** Already resolved with JWT↔session binding (#1): `AccessTokenStrategy.validate` returns `role` from `session.user` (DB), not JWT claims. `RolesGuard` therefore sees the live role on every authenticated request. Bull Board middleware also checks `session.user.role`.
 
 ### 13. `UserAwareThrottlerGuard` never sees `req.user`
 
@@ -100,11 +100,11 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 - **Issue:** Global throttle runs before route JWT guards → always IP-based. Documented per-user limits don’t apply.
 - **Fix:** Extract user id from cookie JWT for tracking only, or run lightweight auth before throttle; configure trusted proxy.
 
-### 14. No Multer size limits at parser layer
+### 14. No Multer size limits at parser layer — **FIXED**
 
 - **Where:** Controllers using `FileInterceptor` without `limits`
 - **Issue:** Large bodies can be buffered before `FileProcessingService` `maxSize` checks → memory DoS.
-- **Fix:** `FileInterceptor('…', { limits: { fileSize: … } })` matching presets.
+- **Fix applied:** Shared `avatarMulterOptions` / `mediaMulterOptions` from `multer-limits.ts` (aligned with `FILE_PRESETS`) passed to all `FileInterceptor` / `FilesInterceptor` upload routes (users, articles, admin users/articles).
 
 ### 15. MIME type trusted from client
 

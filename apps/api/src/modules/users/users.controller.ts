@@ -37,6 +37,7 @@ import { Roles } from '../../decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { avatarMulterOptions } from '../../common/file-processing/multer-limits';
 import { Query } from '@nestjs/common';
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { offsetPaginate } from 'src/common/pagination/offset-pagination';
@@ -92,7 +93,7 @@ export class UsersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @UseGuards(JwtAccessGuard)
   @Patch('me')
-  @UseInterceptors(FileInterceptor('avatar'))
+  @UseInterceptors(FileInterceptor('avatar', avatarMulterOptions))
   updateMe(
     @Req() req: any,
     @Body() body: UpdateProfileDto,

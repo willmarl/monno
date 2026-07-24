@@ -28,6 +28,10 @@ import { CreatorGuard } from 'src/common/guards/creator.guard';
 import { ProtectedResource } from 'src/decorators/protected-resource.decorator';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import {
+  avatarMulterOptions,
+  mediaMulterOptions,
+} from '../../common/file-processing/multer-limits';
+import {
   ArticleSearchDto,
   ArticleSearchCursorDto,
 } from './dto/search-article.dto';
@@ -152,7 +156,7 @@ export class ArticlesController {
 
   @UseGuards(JwtAccessGuard, CreatorGuard)
   @ProtectedResource('article')
-  @UseInterceptors(FilesInterceptor('files', 10))
+  @UseInterceptors(FilesInterceptor('files', 10, mediaMulterOptions))
   @Post(':id/media')
   addMedia(
     @Param('id', ParseIntPipe) id: number,
@@ -185,7 +189,7 @@ export class ArticlesController {
 
   @UseGuards(JwtAccessGuard, CreatorGuard)
   @ProtectedResource('article')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', mediaMulterOptions))
   @Patch(':id/media/:mediaId')
   replaceMedia(
     @Param('id', ParseIntPipe) id: number,
