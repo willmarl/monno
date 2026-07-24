@@ -32,6 +32,8 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { PresenceModule } from './modules/presence/presence.module';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { PrismaService } from './prisma.service';
+import { TestEndpointsController } from './common/test-endpoints.controller';
+import { areTestEndpointsEnabled } from './common/test-endpoints';
 @Module({
   imports: [
     SentryModule.forRoot(),
@@ -122,7 +124,10 @@ import { PrismaService } from './prisma.service';
     NotificationsModule,
     PresenceModule,
   ],
-  controllers: [AppController],
+  controllers: [
+    AppController,
+    ...(areTestEndpointsEnabled() ? [TestEndpointsController] : []),
+  ],
   providers: [AppService, UserAwareThrottlerGuard, QueueModule, PrismaService],
 })
 export class AppModule implements NestModule {

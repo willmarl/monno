@@ -1,16 +1,7 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { Throttle } from '@nestjs/throttler';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { JwtAccessGuard } from './modules/auth/guards/jwt-access.guard';
-import { Roles } from './decorators/roles.decorator';
-import { RolesGuard } from './common/guards/roles.guard';
-import { TestEndpointsGuard } from './common/guards/test-endpoints.guard';
 import { PrismaService } from './prisma.service';
-
-// Go to test-TestEndpointsGuard.guard.ts file
-// to toggle bool to allow endpoints in
-// app.controller or not
 
 @ApiTags('Generic / Health')
 @Controller()
@@ -36,69 +27,7 @@ export class AppController {
 
   @Get('health')
   async health() {
-    // lightweight DB check
     await this.prisma.$queryRaw`SELECT 1`;
     return { ok: true };
-  }
-
-  @UseGuards(TestEndpointsGuard, JwtAccessGuard, RolesGuard)
-  @Roles('ADMIN')
-  @Get('/debug-sentry')
-  getError() {
-    throw new Error('My Sentry error!');
-  }
-
-  @ApiOperation({ summary: 'Test rate limiting' })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns a rate limit test message',
-    schema: {
-      type: 'object',
-      properties: {
-        success: { type: 'boolean', example: true },
-        message: { type: 'string', example: 'OK' },
-        data: { type: 'string', example: 'Rate limit test' },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 429,
-    description: 'Too many requests - rate limit exceeded (3 per minute)',
-  })
-  @UseGuards(TestEndpointsGuard)
-  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 per minute
-  @Get('rate')
-  getRateTest(): string {
-    return this.appService.rateLimitTest();
-  }
-
-  @UseGuards(TestEndpointsGuard)
-  @Get('worker')
-  workerTest(): Promise<string> {
-    return this.appService.workerTest();
-  }
-
-  @UseGuards(TestEndpointsGuard, JwtAccessGuard)
-  @Get('userNeeded')
-  userOnlyTest(): string {
-    return this.appService.userOnlyTest();
-  }
-
-  @UseGuards(TestEndpointsGuard, JwtAccessGuard, RolesGuard)
-  @Roles('ADMIN')
-  @Get('adminOnly')
-  adminOnlyTest(): string {
-    return this.appService.adminOnlyTest();
-  }
-
-  @ApiOperation({ summary: 'Test error handling (500)' })
-  @ApiResponse({
-    status: 500,
-    description: 'Returns a 500 error for testing',
-  })
-  @UseGuards(TestEndpointsGuard)
-  @Get('error')
-  errorTest(): void {
-    return this.appService.errorTest();
   }
 }

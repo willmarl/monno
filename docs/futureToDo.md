@@ -55,7 +55,7 @@
 
 **Security**
 
-- Fix remaining Low findings in [vulnerabilities.md](./vulnerabilities.md) (#20–#26). Through #19 Swagger gate done; see [progress.md](./progress.md).
+- Fix remaining Low findings in [vulnerabilities.md](./vulnerabilities.md) (#22–#24, #26). Through #21/#25 test surfaces done; see [progress.md](./progress.md).
 
 **Code quality / architecture**
 

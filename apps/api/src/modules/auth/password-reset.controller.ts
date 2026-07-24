@@ -4,6 +4,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { PasswordResetService } from './password-reset.service';
 import { rateLimitConfig } from 'src/config/rate-limit.config';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -15,20 +16,7 @@ export class PasswordResetController {
    * Does not reveal if email exists (for security)
    */
   @ApiOperation({ summary: 'Request password reset email' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        email: {
-          type: 'string',
-          format: 'email',
-          example: 'user@example.com',
-          description: 'User email address',
-        },
-      },
-      required: ['email'],
-    },
-  })
+  @ApiBody({ type: RequestPasswordResetDto })
   @ApiResponse({
     status: 200,
     description:
@@ -36,16 +24,12 @@ export class PasswordResetController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Email is required',
+    description: 'Invalid email',
   })
   @Throttle({ default: rateLimitConfig.strict })
   @Post('request-password-reset')
-  async requestReset(@Body() body: { email: string }) {
-    if (!body.email) {
-      throw new BadRequestException('Email is required');
-    }
-
-    return this.passwordReset.requestPasswordReset(body.email);
+  async requestReset(@Body() dto: RequestPasswordResetDto) {
+    return this.passwordReset.requestPasswordReset(dto.email);
   }
 
   /**

@@ -119,7 +119,7 @@ Do these **alongside** feature work, not as a final dump.
 | Status | Task | Notes |
 |--------|------|-------|
 | todo | [ ] Integration tests for each behavior you lock (IDOR, soft-delete, visibility, auth) | 2026-07-22: added visibility/IDOR coverage on posts, collections, likes; keep growing with new locks |
-| todo | [ ] Remaining Low vulns (#20–#26, …) | 2026-07-24: through #19 Swagger gated |
+| todo | [ ] Remaining Low vulns (#22–#24, #26, …) | 2026-07-24: through #21/#25 test endpoints + /test UI |
 | todo | [ ] Remaining code-quality (server-read / hydrate Query, `packages/shared`, god-service splits, soft-delete `$transaction`) | after Phase 1 pilots |
 
 ---
@@ -130,6 +130,8 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-24 | Ongoing — test endpoints #21 + /test UI #25 | Opt-in API routes; RSC gate for web playground |
+| 2026-07-24 | Ongoing — password-reset DTO #20 | RequestPasswordResetDto @IsEmail on request-password-reset |
 | 2026-07-24 | Ongoing — Swagger gate #19 | `/docs` off in production unless ENABLE_SWAGGER=true |
 | 2026-07-24 | Ongoing — frontend ownership #18 | Derive Post/Article ownership; RSC edit gates; upload UX note; CSRF via #9 |
 | 2026-07-24 | Ongoing — soft-delete update #16 | CreatorGuard + posts/articles update reject deleted; DELETE still 410 |

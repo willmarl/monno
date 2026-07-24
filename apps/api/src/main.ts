@@ -142,6 +142,10 @@ async function bootstrap() {
     Print.log('Swagger disabled (production or ENABLE_SWAGGER=false)');
   }
 
+  if (process.env.ENABLE_TEST_ENDPOINTS === 'true') {
+    Print.log('Test endpoints enabled (ENABLE_TEST_ENDPOINTS=true)');
+  }
+
   /* Bull Board — disabled when BULL_BOARD_ENABLED=false; always ADMIN-gated */
   const bullBoardEnabled = process.env.BULL_BOARD_ENABLED !== 'false';
   if (bullBoardEnabled) {

@@ -137,12 +137,12 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 | # | Issue | Notes |
 |---|--------|--------|
 | 19 | Swagger at `/docs` unauthenticated — **FIXED** | Off in production unless `ENABLE_SWAGGER=true`; on in dev unless `ENABLE_SWAGGER=false` |
-| 20 | Password-reset request body not a validated DTO | Use `@IsEmail()` DTO |
-| 21 | Test endpoints gated but still registered | Keep `ENABLE_TEST_ENDPOINTS=false` or exclude from prod |
+| 20 | Password-reset request body not a validated DTO — **FIXED** | `RequestPasswordResetDto` with `@IsEmail()` + `@MaxLength(256)` on `POST /auth/request-password-reset` |
+| 21 | Test endpoints gated but still registered — **FIXED** | Routes only mounted when `ENABLE_TEST_ENDPOINTS=true`; `TestEndpointsGuard` as backup |
 | 22 | Geolocation uses client-influenced IP (`x-forwarded-for`) | Trust proxy only from known hops |
 | 23 | No security headers on Next (`CSP`, frame denial, etc.) | Add in `next.config.ts` or reverse proxy |
 | 24 | Reset/verify tokens in URL query strings | Strip after read; short TTL / single-use |
-| 25 | Public `/test` UI playground | Gate or remove in production |
+| 25 | Public `/test` UI playground — **FIXED** | RSC `notFound()` in production unless `ENABLE_TEST_UI=true`; on in dev unless `false` |
 | 26 | PostHog identifies with email / OAuth IDs | Minimize PII; consent |
 
 **Not found / in decent shape:** Admin Nest routes use `JwtAccessGuard` + `@Roles('ADMIN')`; Stripe webhook signature verification present; ValidationPipe whitelist + forbidNonWhitelisted; Pino redacts cookies/auth headers; no `dangerouslySetInnerHTML` (XSS via HTML sinks); tokens not in `localStorage`; soft-delete filters on most public reads; no user-input `$queryRaw` injection found; OAuth/Stripe redirects use fixed `FRONTEND_URL` (no open redirect observed).
