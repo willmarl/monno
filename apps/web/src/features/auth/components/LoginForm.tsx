@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import OAuthButtons from "./OAuthButtons";
 
 interface LoginFormProps {
@@ -57,9 +56,9 @@ export function LoginForm({ onSuccess, isAlwaysOpen = false }: LoginFormProps) {
         onSuccess?.();
       },
       onError: (e) => {
-        const errorMessage = String(e);
+        const errorMessage =
+          e instanceof Error && e.message ? e.message : "Login failed";
         form.setError("root", { message: errorMessage });
-        toast.error(errorMessage);
       },
     });
 
@@ -80,7 +79,7 @@ export function LoginForm({ onSuccess, isAlwaysOpen = false }: LoginFormProps) {
       <div className="text-center space-y-3">
         <div className="flex justify-center">
           <img
-            src="/favicon.svg"
+            src="/favicon.ico"
             alt="Monno"
             className="w-12 h-12 rounded-lg"
           />

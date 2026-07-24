@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import OAuthButtons from "./OAuthButtons";
 
 interface RegisterFormProps {
@@ -72,9 +71,11 @@ export function RegisterForm({
         onSuccess?.();
       },
       onError: (err) => {
-        const errorMessage = String(err);
+        const errorMessage =
+          err instanceof Error && err.message
+            ? err.message
+            : "Registration failed";
         form.setError("root", { message: errorMessage });
-        toast.error(errorMessage);
       },
     });
   }
@@ -93,7 +94,7 @@ export function RegisterForm({
       <div className="text-center space-y-3">
         <div className="flex justify-center">
           <img
-            src="/favicon.svg"
+            src="/favicon.ico"
             alt="Monno"
             className="w-12 h-12 rounded-lg"
           />

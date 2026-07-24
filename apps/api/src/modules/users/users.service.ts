@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
@@ -336,8 +337,20 @@ export class UsersService {
       return result;
     } catch (error: any) {
       // Handle Prisma unique constraint errors
-      if (error?.code === 'P2002' && error?.meta?.target?.includes('email')) {
-        throw new BadRequestException('Email is already in use');
+      if (error?.code === 'P2002') {
+        const target = error?.meta?.target;
+        if (
+          (Array.isArray(target) && target.includes('username')) ||
+          target === 'username'
+        ) {
+          throw new ConflictException('Username is already taken');
+        }
+        if (
+          (Array.isArray(target) && target.includes('email')) ||
+          target === 'email'
+        ) {
+          throw new ConflictException('Email is already in use');
+        }
       }
       throw error;
     }

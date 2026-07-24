@@ -11,8 +11,14 @@ export function CreateUserModal() {
         toast.success("Successfully made user");
         closeModal();
       }}
-      onError={() => {
-        toast.error("Error trying to make user");
+      onError={(err) => {
+        const message =
+          typeof err?.message === "string" && err.message.trim()
+            ? err.message
+            : Array.isArray(err?.message)
+              ? err.message.join(", ")
+              : "Error trying to make user";
+        toast.error(message);
       }}
       isAlwaysOpen={true}
     />

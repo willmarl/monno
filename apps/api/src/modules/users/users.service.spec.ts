@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { UsersService } from './users.service';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 vi.mock('bcrypt');
@@ -127,7 +127,7 @@ describe('UsersService', () => {
       );
     });
 
-    it('should throw BadRequestException on P2002 unique constraint error for email', async () => {
+    it('should throw ConflictException on P2002 unique constraint error for email', async () => {
       const createUserDto = {
         username: 'newuser',
         email: 'duplicate@test.com',
@@ -145,8 +145,29 @@ describe('UsersService', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        BadRequestException,
+        ConflictException,
       );
+    });
+
+    it('should throw ConflictException on P2002 unique constraint error for username', async () => {
+      const createUserDto = {
+        username: 'taken',
+        email: 'new@test.com',
+        password: 'password123',
+      };
+
+      mockPrisma.user.findFirst.mockResolvedValue(null);
+      vi.mocked(bcrypt.hash).mockResolvedValue('hashed_password' as any);
+
+      mockPrisma.$transaction.mockRejectedValue({
+        code: 'P2002',
+        meta: { target: ['username'] },
+      });
+
+      await expect(service.create(createUserDto)).rejects.toMatchObject({
+        message: 'Username is already taken',
+        status: 409,
+      });
     });
   });
 

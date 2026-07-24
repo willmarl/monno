@@ -32,7 +32,12 @@ export async function fetcher<T>(url: string, options?: Options): Promise<T> {
       // Try to parse error response body
       try {
         const errorData = (await response.json()) as any;
-        message = errorData?.message || message;
+        const raw = errorData?.message;
+        message = Array.isArray(raw)
+          ? raw.join(", ")
+          : typeof raw === "string" && raw
+            ? raw
+            : message;
         errorCode = errorData?.error || errorCode;
       } catch {
         // If JSON parsing fails, keep defaults
@@ -75,7 +80,12 @@ export async function fetcher<T>(url: string, options?: Options): Promise<T> {
       try {
         // Note: response body might have already been consumed, so this may fail
         const errorData = (await error.response.clone().json()) as any;
-        message = errorData?.message || message;
+        const raw = errorData?.message;
+        message = Array.isArray(raw)
+          ? raw.join(", ")
+          : typeof raw === "string" && raw
+            ? raw
+            : message;
         errorCode = errorData?.error || errorCode;
       } catch {
         // Could not parse error response body

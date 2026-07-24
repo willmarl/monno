@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
 import { AdminService } from '../admin.service';
@@ -282,18 +283,31 @@ export class AdminUserService {
 
     // Track changes for audit log
     const changes: Record<string, any> = {};
+    const usernameChanging =
+      !!data.username && data.username !== user.username;
 
-    if (data.username && data.username !== user.username) {
+    if (usernameChanging) {
       changes.username = { from: user.username, to: data.username };
-
-      // Log old username to history
-      await this.prisma.usernameHistory.create({
-        data: {
-          userId,
-          username: user.username,
-          reason: 'admin_change',
-        },
+      const taken = await this.prisma.user.findUnique({
+        where: { username: data.username! },
+        select: { id: true },
       });
+      if (taken) {
+        throw new ConflictException('Username is already taken');
+      }
+    }
+
+    if (data.email && data.email !== user.email) {
+      const emailTaken = await this.prisma.user.findFirst({
+        where: {
+          email: { equals: data.email, mode: 'insensitive' },
+          NOT: { id: userId },
+        },
+        select: { id: true },
+      });
+      if (emailTaken) {
+        throw new ConflictException('Email is already in use');
+      }
     }
 
     if (data.role && data.role !== user.role) {
@@ -304,11 +318,42 @@ export class AdminUserService {
       changes.status = { from: user.status, to: data.status };
     }
 
-    const updated = await this.prisma.user.update({
-      where: { id: userId },
-      data: updateData,
-      select: DEFAULT_USER_SELECT,
-    });
+    let updated;
+    try {
+      updated = await this.prisma.user.update({
+        where: { id: userId },
+        data: updateData,
+        select: DEFAULT_USER_SELECT,
+      });
+    } catch (error: any) {
+      if (error?.code === 'P2002') {
+        const target = error?.meta?.target;
+        if (
+          (Array.isArray(target) && target.includes('username')) ||
+          target === 'username'
+        ) {
+          throw new ConflictException('Username is already taken');
+        }
+        if (
+          (Array.isArray(target) && target.includes('email')) ||
+          target === 'email'
+        ) {
+          throw new ConflictException('Email is already in use');
+        }
+      }
+      throw error;
+    }
+
+    // Log old username after a successful rename (avoid orphan history on conflict)
+    if (usernameChanging) {
+      await this.prisma.usernameHistory.create({
+        data: {
+          userId,
+          username: user.username,
+          reason: 'admin_change',
+        },
+      });
+    }
 
     // Restrictive status changes kill existing sessions immediately
     if (

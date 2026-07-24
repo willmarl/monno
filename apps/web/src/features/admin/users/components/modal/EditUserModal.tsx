@@ -15,8 +15,14 @@ export function EditUserModal({ user }: { user: User }) {
         toast.success(`Edited ${user.username} successfully`);
         closeModal();
       }}
-      onError={() => {
-        toast.error(`Error trying to edit ${user.username}`);
+      onError={(err) => {
+        const message =
+          typeof err?.message === "string" && err.message.trim()
+            ? err.message
+            : Array.isArray(err?.message)
+              ? err.message.join(", ")
+              : `Error trying to edit ${user.username}`;
+        toast.error(message);
       }}
       isAlwaysOpen={true}
     />
