@@ -8,6 +8,7 @@ import { S3StorageBackend } from './backends/s3-storage.backend';
 import { FileUploadConfig } from './file-upload-config.type';
 import { FILE_PRESETS, FilePresetName } from './file-upload-presets';
 import { uploadLocation } from './upload-location';
+import { resolveUploadMime } from './sniff-mime';
 
 @Injectable()
 export class FileProcessingService {
@@ -127,20 +128,24 @@ export class FileProcessingService {
       );
     }
 
-    // --- Validate MIME type ---
-    if (!config.allowedMimeTypes.includes(file.mimetype)) {
-      const allowed = config.allowedMimeTypes.join(', ');
+    // --- Validate MIME from content (magic bytes), not client mimetype ---
+    let detectedMime: string;
+    try {
+      detectedMime = resolveUploadMime(file.buffer, config.allowedMimeTypes);
+    } catch (err) {
       throw new BadRequestException(
-        `Unsupported file type: ${file.mimetype}. Allowed types: ${allowed}`,
+        err instanceof Error ? err.message : 'Invalid file type',
       );
     }
+    // Processors / storage use the server-detected type
+    file.mimetype = detectedMime;
 
     // --- Find processor ---
-    const processor = await this.findProcessor(file.mimetype);
+    const processor = await this.findProcessor(detectedMime);
 
     if (!processor) {
       throw new BadRequestException(
-        `No processor registered for file type: ${file.mimetype}`,
+        `No processor registered for file type: ${detectedMime}`,
       );
     }
 

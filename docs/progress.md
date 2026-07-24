@@ -119,7 +119,7 @@ Do these **alongside** feature work, not as a final dump.
 | Status | Task | Notes |
 |--------|------|-------|
 | todo | [ ] Integration tests for each behavior you lock (IDOR, soft-delete, visibility, auth) | 2026-07-22: added visibility/IDOR coverage on posts, collections, likes; keep growing with new locks |
-| todo | [ ] Remaining High/Medium vulns (MIME magic #15, soft-delete update #16, …) | 2026-07-24: through #14 Multer + #13 user-aware throttle |
+| todo | [ ] Remaining High/Medium vulns (soft-delete update #16, frontend ownership #18, …) | 2026-07-24: through #15 MIME magic bytes |
 | todo | [ ] Remaining code-quality (server-read / hydrate Query, `packages/shared`, god-service splits, soft-delete `$transaction`) | after Phase 1 pilots |
 
 ---
@@ -130,6 +130,7 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-24 | Ongoing — MIME magic bytes #15 | Sniff upload buffers; ignore client mimetype for allowlist/storage ext |
 | 2026-07-24 | Ongoing — user-aware throttle #13 | Peek verified access JWT for tracker; TRUST_PROXY for guest IP |
 | 2026-07-24 | Ongoing — Multer limits #14 + role-from-DB #12 | Parser fileSize caps from presets; #12 already DB role via access strategy |
 | 2026-07-24 | Ongoing — logout session ownership #11 | invalidateSession scoped to authenticated userId |

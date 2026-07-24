@@ -2,6 +2,7 @@ import { FileProcessor } from '../file-processor.interface';
 import { StorageBackend } from '../storage-backend.interface';
 import { ProcessingOptions } from '../file-upload-config.type';
 import { generateFilename } from '../generate-filename';
+import { extensionForMime } from '../sniff-mime';
 
 /**
  * Permanent fallback processor — saves any file as-is with no transformation.
@@ -24,7 +25,11 @@ export class RawFileProcessor implements FileProcessor {
     storageBackend: StorageBackend,
     _options?: ProcessingOptions,
   ): Promise<string> {
-    const ext = file.originalname?.split('.').pop() ?? 'bin';
+    const fromMime = file.mimetype ? extensionForMime(file.mimetype) : 'bin';
+    const fromName = file.originalname?.split('.').pop();
+    // Prefer server MIME extension; ignore client name unless mime unknown
+    const ext =
+      fromMime !== 'bin' ? fromMime : (fromName?.replace(/[^a-z0-9]/gi, '') || 'bin');
     const filename = generateFilename(userId, ext);
     return storageBackend.saveFile(file.buffer, fileType, filename);
   }

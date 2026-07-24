@@ -55,7 +55,7 @@
 
 **Security**
 
-- Fix remaining High/Medium findings in [vulnerabilities.md](./vulnerabilities.md) (MIME magic #15, soft-delete update #16, …). Through #13 user-aware throttle done; see [progress.md](./progress.md).
+- Fix remaining High/Medium findings in [vulnerabilities.md](./vulnerabilities.md) (soft-delete update #16, frontend ownership #18, …). Through #15 MIME magic done; see [progress.md](./progress.md).
 
 **Code quality / architecture**
 

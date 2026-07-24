@@ -106,11 +106,11 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 - **Issue:** Large bodies can be buffered before `FileProcessingService` `maxSize` checks → memory DoS.
 - **Fix applied:** Shared `avatarMulterOptions` / `mediaMulterOptions` from `multer-limits.ts` (aligned with `FILE_PRESETS`) passed to all `FileInterceptor` / `FilesInterceptor` upload routes (users, articles, admin users/articles).
 
-### 15. MIME type trusted from client
+### 15. MIME type trusted from client — **FIXED**
 
 - **Where:** `file-processing.service.ts`; raw processors
 - **Issue:** Allowlist uses `file.mimetype`; videos/docs stored raw after allowlist.
-- **Fix:** Magic-byte checks; store with server-chosen Content-Type.
+- **Fix applied:** `sniff-mime.ts` detects type from magic bytes (images, PDF, MP4/WebM, XLS/XLSX, CSV text heuristic). `processFile` allowlists the sniffed MIME and overwrites `file.mimetype`; raw saves use server MIME extensions. Unit tests in `sniff-mime.spec.ts`.
 
 ### 16. Soft-deleted posts still updatable by creator
 
