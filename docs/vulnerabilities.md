@@ -78,11 +78,11 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 - **Issue:** Connection strings and full reset/verify URLs (with tokens) hit logs.
 - **Fix applied:** Startup logs only whether a DB URL is set (not the value). Reset/verify never log tokens or full URLs; non-prod may log recipient email only. Verify-email endpoint no longer logs the token.
 
-### 11. Logout can invalidate another user’s session
+### 11. Logout can invalidate another user’s session — **FIXED**
 
 - **Where:** `auth.controller.ts` `logout` — enabled by finding #1
 - **Issue:** Invalidates `sessionId` from the cookie with no ownership check vs `req.user.sub`.
-- **Fix:** After binding fix (#1), also require `session.userId === req.user.sub` before invalidate.
+- **Fix applied:** `invalidateSession(sessionId, userId)` uses `updateMany` with `{ id, userId }` so logout cannot mark another user’s session invalid. Access strategy binding (#1) still rejects mismatched cookies before logout runs. Integration test covers ownership on logout.
 
 ---
 

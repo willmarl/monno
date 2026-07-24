@@ -79,10 +79,11 @@ export class AuthController {
   @Post('logout')
   async logout(@Req() req, @Res({ passthrough: true }) res) {
     const sessionId = req.cookies['sessionId'];
+    const userId = Number(req.user.sub);
 
-    // Invalidate session if it exists
-    if (sessionId) {
-      await this.authService.invalidateSession(sessionId);
+    // Invalidate only if the cookie session belongs to the authenticated user
+    if (sessionId && Number.isFinite(userId)) {
+      await this.authService.invalidateSession(sessionId, userId);
     }
 
     // Clear cookies

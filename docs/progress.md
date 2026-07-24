@@ -119,7 +119,7 @@ Do these **alongside** feature work, not as a final dump.
 | Status | Task | Notes |
 |--------|------|-------|
 | todo | [ ] Integration tests for each behavior you lock (IDOR, soft-delete, visibility, auth) | 2026-07-22: added visibility/IDOR coverage on posts, collections, likes; keep growing with new locks |
-| todo | [ ] Remaining High/Medium vulns (Multer limits, role-from-DB, …) | 2026-07-23: OAuth #8 + CSRF/SameSite #9 done |
+| todo | [ ] Remaining High/Medium vulns (Multer limits, role-from-DB, …) | 2026-07-23: #8 OAuth, #9 CSRF/SameSite, #11 logout ownership done |
 | todo | [ ] Remaining code-quality (server-read / hydrate Query, `packages/shared`, god-service splits, soft-delete `$transaction`) | after Phase 1 pilots |
 
 ---
@@ -130,6 +130,7 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-24 | Ongoing — logout session ownership #11 | invalidateSession scoped to authenticated userId |
 | 2026-07-23 | Ongoing — CSRF / SameSite #9 | Default cookie Lax; COOKIE_SAMESITE=none + X-Requested-With guard for split domains |
 | 2026-07-23 | Ongoing — OAuth state + PKCE | Authorize cookies + callback validation; Google/GitHub token exchange sends verifier |
 | 2026-07-23 | Phase 5 — security.txt | `/.well-known/security.txt` RFC 9116; env-driven Contact/Expires |

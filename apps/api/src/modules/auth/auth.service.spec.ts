@@ -26,6 +26,7 @@ describe('AuthService', () => {
       },
       session: {
         create: vi.fn(),
+        updateMany: vi.fn(),
       },
       passwordResetToken: {
         deleteMany: vi.fn(),
@@ -305,6 +306,19 @@ describe('AuthService', () => {
 
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
+    });
+  });
+
+  describe('invalidateSession', () => {
+    it('scopes updateMany to session id and owner userId', async () => {
+      mockPrisma.session.updateMany.mockResolvedValue({ count: 1 });
+
+      await service.invalidateSession('sess-1', 42);
+
+      expect(mockPrisma.session.updateMany).toHaveBeenCalledWith({
+        where: { id: 'sess-1', userId: 42 },
+        data: { isValid: false },
+      });
     });
   });
 });

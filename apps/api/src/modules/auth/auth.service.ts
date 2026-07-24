@@ -281,9 +281,10 @@ export class AuthService {
     };
   }
 
-  async invalidateSession(sessionId: string) {
-    return this.prisma.session.update({
-      where: { id: sessionId },
+  async invalidateSession(sessionId: string, userId: number) {
+    // Ownership check: never invalidate another user's session via logout cookie
+    return this.prisma.session.updateMany({
+      where: { id: sessionId, userId },
       data: { isValid: false },
     });
   }

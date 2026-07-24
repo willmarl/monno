@@ -55,7 +55,7 @@
 
 **Security**
 
-- Fix remaining High/Medium findings in [vulnerabilities.md](./vulnerabilities.md) (Multer limits, role-from-DB, and remaining hardening). OAuth `state`/PKCE (#8) and CSRF/SameSite (#9) done 2026-07-23; see [progress.md](./progress.md).
+- Fix remaining High/Medium findings in [vulnerabilities.md](./vulnerabilities.md) (Multer limits, role-from-DB, and remaining hardening). OAuth #8, CSRF/SameSite #9, logout ownership #11 done; see [progress.md](./progress.md).
 
 **Code quality / architecture**
 

@@ -208,6 +208,51 @@ describe('AuthController (integration)', () => {
 
       expect(res.status).toBe(401);
     });
+
+    it('invalidates only the caller session and leaves another user session valid', async () => {
+      const userA = await createTestUser(testApp.prisma, {
+        username: `logout_own_a_${Date.now()}`,
+      });
+      const userB = await createTestUser(testApp.prisma, {
+        username: `logout_own_b_${Date.now()}`,
+      });
+      createdUserIds.push(userA.id, userB.id);
+
+      const loginA = await request(testApp.app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: userA.username, password: userA.plainPassword });
+      const loginB = await request(testApp.app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: userB.username, password: userB.plainPassword });
+
+      const cookiesA = (loginA.headers['set-cookie'] as string[])
+        .map((c: string) => c.split(';')[0])
+        .join('; ');
+
+      const sessionA = await testApp.prisma.session.findFirst({
+        where: { userId: userA.id, isValid: true },
+      });
+      const sessionB = await testApp.prisma.session.findFirst({
+        where: { userId: userB.id, isValid: true },
+      });
+      expect(sessionA).toBeTruthy();
+      expect(sessionB).toBeTruthy();
+
+      const res = await request(testApp.app.getHttpServer())
+        .post('/auth/logout')
+        .set('Cookie', cookiesA);
+
+      expect(res.status).toBe(201);
+
+      const afterA = await testApp.prisma.session.findUnique({
+        where: { id: sessionA!.id },
+      });
+      const afterB = await testApp.prisma.session.findUnique({
+        where: { id: sessionB!.id },
+      });
+      expect(afterA?.isValid).toBe(false);
+      expect(afterB?.isValid).toBe(true);
+    });
   });
 
   // ── POST /auth/refresh ────────────────────────────────────────────────────
