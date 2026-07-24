@@ -2,7 +2,7 @@
 
 **Purpose:** Single source of truth for what’s done / in progress / left. Humans and AI agents should update this file when work lands.
 
-**Related:** [futureToDo.md](./futureToDo.md) (idea backlog) · [vulnerabilities.md](./vulnerabilities.md) · [code-quality.md](./code-quality.md)
+**Related:** [technicalToDo.md](./technicalToDo.md) (engineering backlog) · [vulnerabilities.md](./vulnerabilities.md) · [code-quality.md](./code-quality.md)
 
 ---
 
@@ -120,7 +120,7 @@ Do these **alongside** feature work, not as a final dump.
 |--------|------|-------|
 | todo | [ ] Integration tests for each behavior you lock (IDOR, soft-delete, visibility, auth) | 2026-07-22: added visibility/IDOR coverage on posts, collections, likes; keep growing with new locks |
 | done | [x] Security audit Low list (#19–#26) | 2026-07-24: through PostHog PII minimize; optional regional consent banner later |
-| todo | [ ] Remaining code-quality (server-read / hydrate Query, `packages/shared`, god-service splits, soft-delete `$transaction`) | after Phase 1 pilots |
+| todo | [ ] Remaining code-quality (server-read / hydrate Query, `packages/shared`, god-service splits, soft-delete `$transaction`) | see [technicalToDo.md](./technicalToDo.md) |
 
 ---
 

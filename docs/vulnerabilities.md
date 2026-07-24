@@ -2,7 +2,7 @@
 
 Findings from a static security audit of the monorepo (API + web). Not a live pen test — no exploit payloads were run against the running stack.
 
-Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./futureToDo.md).
+Prioritize **Critical** then **High**. Track remediation via [progress.md](./progress.md) / [technicalToDo.md](./technicalToDo.md).
 
 ---
 

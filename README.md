@@ -40,8 +40,8 @@ integration tests available — see [docs/setup.md](./docs/setup.md) for test se
 - [docs/features.md](./docs/features.md) - feature overview and what's actually implemented
 - [docs/screenshots.md](./docs/screenshots.md) - visual overview of the app with embedded screenshots
 - [docs/tests.md](./docs/tests.md) - how to run tests and coverage status
-- [docs/futureToDo.md](./docs/futureToDo.md) - planned features for v2
 - [docs/progress.md](./docs/progress.md) - phased V2 progress tracker (for humans + AI)
+- [docs/technicalToDo.md](./docs/technicalToDo.md) - engineering backlog (tests, architecture, polish, deploy)
 - [docs/vulnerabilities.md](./docs/vulnerabilities.md) - known security findings from static audit
 - [docs/code-quality.md](./docs/code-quality.md) - architecture / DRY / `'use client'` patterns to improve
 - [docs/ai-tut.md](./docs/ai-tut.md) - how to use AI to scaffold new CRUD resources (`pnpm run crud`)

@@ -1,6 +1,6 @@
 # Code quality & architecture
 
-Findings from a static architecture review of `apps/web`, `apps/api`, and `apps/worker`. Not about security — see [vulnerabilities.md](./vulnerabilities.md) for that. Track remediation via [futureToDo.md](./futureToDo.md).
+Findings from a static architecture review of `apps/web`, `apps/api`, and `apps/worker`. Not about security — see [vulnerabilities.md](./vulnerabilities.md) for that. Track remediation via [technicalToDo.md](./technicalToDo.md).
 
 **Verdict:** The modularity attempt mostly worked (feature folders, shared search kit, media layer, polymorphic likes/comments). The main drag is **template cloning** (admin × public × offset × cursor) plus treating Next App Router as a **shell around a client SPA**. Future-proofing is threatened less by bad Nest boundaries than by multiplication every time the CRUD guide scaffolds a resource.
 
@@ -143,7 +143,7 @@ Natural splits when touching next: `UserLifecycleService`, `*QueryService`, thin
 5. `packages/shared` — Zod/OpenAPI + single Prisma schema for api/worker
 6. Extract search DTO helpers + soft-delete helper; global `PrismaModule`
 7. Transactional user cascade / like toggle when next touching those paths
-8. Split `UsersService` when adding lifecycle features from `futureToDo.md`
+8. Split `UsersService` when adding lifecycle features (see [technicalToDo.md](./technicalToDo.md))
 
 ---
 
