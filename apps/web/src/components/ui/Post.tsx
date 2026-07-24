@@ -15,15 +15,14 @@ import { CollectionButton } from "../common/CollectionButton";
 import { ReportButton } from "../common/ReportButton";
 import { AdminRemoveButton } from "../common/AdminRemoveButton";
 import { ReactionsBar } from "../common/ReactionsBar";
+import { useSessionUser } from "@/features/auth/hooks";
 
 export function Post({
   data,
-  isOwner,
   truncateContent = true,
   truncateTitle = true,
 }: {
   data: PostType;
-  isOwner: boolean;
   truncateContent?: boolean;
   truncateTitle?: boolean;
 }) {
@@ -31,6 +30,8 @@ export function Post({
   const { openModal, closeModal } = useModal();
   const router = useRouter();
   const like = useToggleLike();
+  const { data: sessionUser } = useSessionUser();
+  const isOwner = data.creator.id === sessionUser?.id;
 
   function modifyPost(isOwner: boolean) {
     if (!isOwner) {

@@ -19,7 +19,6 @@ export function PostDetail({ user }: { user: User | undefined }) {
   const postId = Number(params.id);
   const { data, isLoading, error } = usePostById(postId);
   const { mutate: recordView } = useRecordView();
-  const isOwner = data?.creator.id === user?.id;
 
   useEffect(() => {
     document.title = `${data?.title} | ${process.env.NEXT_PUBLIC_APP_NAME}`;
@@ -52,7 +51,6 @@ export function PostDetail({ user }: { user: User | undefined }) {
     <div className="max-w-2xl mx-auto space-y-6">
       <Post
         data={data}
-        isOwner={isOwner}
         truncateTitle={false}
         truncateContent={false}
       />

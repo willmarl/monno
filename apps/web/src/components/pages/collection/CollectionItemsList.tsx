@@ -9,7 +9,6 @@ import { CollectionCreator } from "@/features/collections/types/collection";
 interface CollectionItemsListProps {
   collectionId: number;
   creator: CollectionCreator;
-  isOwner: boolean;
 }
 
 const DEFAULT_LIMIT = 9;
@@ -17,7 +16,6 @@ const DEFAULT_LIMIT = 9;
 export function CollectionItemsList({
   collectionId,
   creator,
-  isOwner,
 }: CollectionItemsListProps) {
   const [page, setPage] = useState(1);
 
@@ -38,9 +36,7 @@ export function CollectionItemsList({
       totalItems={totalItems}
       isLoading={isLoading}
       onPageChange={setPage}
-      renderItem={(collectionitem) => (
-        <CollectionItem item={collectionitem} isOwner={isOwner} />
-      )}
+      renderItem={(collectionitem) => <CollectionItem item={collectionitem} />}
       title={`Items by ${creator.username}`}
       layout="grid"
       emptyMessage="No items in collection yet."

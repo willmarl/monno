@@ -151,7 +151,6 @@ export function CollectionPage({ id }: CollectionPageProps) {
           <CollectionItemsList
             collectionId={id}
             creator={data.creator}
-            isOwner={isOwner}
           />
         </Suspense>
       </div>

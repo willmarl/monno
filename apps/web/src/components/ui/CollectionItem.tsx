@@ -6,50 +6,35 @@ import { Article } from "./Article";
 
 interface CollectionItemProps {
   item: CollectionItemType;
-  isOwner: boolean;
 }
 
 /** Unavailable / private-to-others items are omitted (YouTube playlist style). */
-export function CollectionItem({ item, isOwner }: CollectionItemProps) {
+export function CollectionItem({ item }: CollectionItemProps) {
   if (item.resourceType === "POST") {
-    return <CollectionPostItem resourceId={item.resourceId} isOwner={isOwner} />;
+    return <CollectionPostItem resourceId={item.resourceId} />;
   }
 
   if (item.resourceType === "ARTICLE") {
-    return (
-      <CollectionArticleItem resourceId={item.resourceId} isOwner={isOwner} />
-    );
+    return <CollectionArticleItem resourceId={item.resourceId} />;
   }
 
   return <div>Unknown resource type: {item.resourceType}</div>;
 }
 
-function CollectionPostItem({
-  resourceId,
-  isOwner,
-}: {
-  resourceId: number;
-  isOwner: boolean;
-}) {
+function CollectionPostItem({ resourceId }: { resourceId: number }) {
   const { data: post, isLoading, isError } = usePostById(resourceId);
 
   if (isLoading) return <div>Loading post...</div>;
   if (isError || !post) return null;
 
-  return <Post data={post} isOwner={isOwner} />;
+  return <Post data={post} />;
 }
 
-function CollectionArticleItem({
-  resourceId,
-  isOwner,
-}: {
-  resourceId: number;
-  isOwner: boolean;
-}) {
+function CollectionArticleItem({ resourceId }: { resourceId: number }) {
   const { data: article, isLoading, isError } = useArticleById(resourceId);
 
   if (isLoading) return <div>Loading article...</div>;
   if (isError || !article) return null;
 
-  return <Article data={article} isOwner={isOwner} />;
+  return <Article data={article} />;
 }

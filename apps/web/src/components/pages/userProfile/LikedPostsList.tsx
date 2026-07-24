@@ -9,12 +9,11 @@ import { ProfileListSearch } from "./ProfileListSearch";
 
 interface LikedPostsListProps {
   user: PublicUser;
-  isOwner: boolean;
 }
 
 const DEFAULT_LIMIT = 9;
 
-export function LikedPostsList({ user, isOwner }: LikedPostsListProps) {
+export function LikedPostsList({ user }: LikedPostsListProps) {
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
 
@@ -45,7 +44,7 @@ export function LikedPostsList({ user, isOwner }: LikedPostsListProps) {
         totalItems={totalItems}
         isLoading={isLoading}
         onPageChange={setPage}
-        renderItem={(post) => <Post data={post} isOwner={isOwner} />}
+        renderItem={(post) => <Post data={post} />}
         title={`Liked Posts by ${user.username}`}
         layout="grid"
         emptyMessage={

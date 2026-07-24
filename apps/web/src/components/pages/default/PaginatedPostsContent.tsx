@@ -4,7 +4,6 @@ import { Suspense } from "react";
 import { usePosts } from "@/features/posts/hooks";
 import { Post } from "@/components/ui/Post";
 import { PaginatedList } from "@/components/ui/pagination/PaginatedList";
-import { useSessionUser } from "@/features/auth/hooks";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { PostSkeleton } from "@/components/skeletons/PostSkeleton";
 import { PublicPostSearchParams } from "@/types/search-params";
@@ -15,8 +14,6 @@ interface PaginatedPostsProps {
 }
 
 function PostsListContent({ searchParams }: PaginatedPostsProps) {
-  const { data: user } = useSessionUser();
-
   const {
     items: posts,
     totalItems,
@@ -42,9 +39,7 @@ function PostsListContent({ searchParams }: PaginatedPostsProps) {
       items={posts}
       totalItems={totalItems}
       isLoading={isLoading}
-      renderItem={(post) => (
-        <Post data={post} isOwner={post.creator.id === user?.id} />
-      )}
+      renderItem={(post) => <Post data={post} />}
       renderSkeleton={() => <PostSkeleton />}
       title="Posts"
       layout="flex"

@@ -55,7 +55,7 @@
 
 **Security**
 
-- Fix remaining High/Medium findings in [vulnerabilities.md](./vulnerabilities.md) (soft-delete update #16, frontend ownership #18, …). Through #15 MIME magic done; see [progress.md](./progress.md).
+- Fix remaining Low findings in [vulnerabilities.md](./vulnerabilities.md) (#20–#26). Through #19 Swagger gate done; see [progress.md](./progress.md).
 
 **Code quality / architecture**
 

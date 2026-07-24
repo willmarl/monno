@@ -4,7 +4,6 @@ import { Suspense } from "react";
 import { useArticlesOffset } from "@/features/articles/hooks";
 import { Article } from "@/components/ui/Article";
 import { PaginatedList } from "@/components/ui/pagination/PaginatedList";
-import { useSessionUser } from "@/features/auth/hooks";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { PageLoadingState } from "@/components/common/PageLoadingState";
 import { PublicArticleSearchParams } from "@/types/search-params";
@@ -15,8 +14,6 @@ interface PaginatedArticlesProps {
 }
 
 function ArticlesListContent({ searchParams }: PaginatedArticlesProps) {
-  const { data: user } = useSessionUser();
-
   const {
     items: articles,
     totalItems,
@@ -42,9 +39,7 @@ function ArticlesListContent({ searchParams }: PaginatedArticlesProps) {
       items={articles}
       totalItems={totalItems}
       isLoading={isLoading}
-      renderItem={(article) => (
-        <Article data={article} isOwner={article.creator.id === user?.id} />
-      )}
+      renderItem={(article) => <Article data={article} />}
       renderSkeleton={() => <PageLoadingState variant="card" />}
       title="Articles"
       layout="flex"

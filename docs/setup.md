@@ -23,7 +23,7 @@ _assumes you have Node 24+, pnpm, and docker installed_
    > i personally dont like it too much, i just have seperate terminal for each app <br>
    > `cd apps/api` `pnpm run dev`
 
-reminder swagger docs exists | http://localhost:3001/docs
+reminder swagger docs exists | http://localhost:3001/docs (dev; off in prod unless ENABLE_SWAGGER=true)
 
 ## how to run integration tests
 

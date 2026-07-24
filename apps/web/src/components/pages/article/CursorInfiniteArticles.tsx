@@ -5,7 +5,6 @@ import { PageLoadingState } from "@/components/common/PageLoadingState";
 import { Article } from "@/components/ui/Article";
 import { CursorInfiniteList } from "@/components/ui/pagination/CursorInfiniteList";
 import { useArticlesCursor } from "@/features/articles/hooks";
-import { useSessionUser } from "@/features/auth/hooks";
 import { useCursorPaginatedSearch } from "@/hooks/useCursorPaginatedSearch";
 import { PublicArticleSearchParams } from "@/types/search-params";
 
@@ -16,8 +15,6 @@ interface CursorInfiniteArticlesProps {
 }
 
 function ArticlesListContent({ searchParams }: CursorInfiniteArticlesProps) {
-  const { data: user } = useSessionUser();
-
   const {
     items: articles,
     hasNextPage,
@@ -42,9 +39,7 @@ function ArticlesListContent({ searchParams }: CursorInfiniteArticlesProps) {
       isFetchingNextPage={isFetchingNextPage}
       hasNextPage={hasNextPage}
       onLoadMore={() => fetchNextPage?.()}
-      renderItem={(article) => (
-        <Article data={article} isOwner={article.creator.id === user?.id} />
-      )}
+      renderItem={(article) => <Article data={article} />}
       layout="flex"
       title="Infinite Articles"
       renderSkeleton={() => <PageLoadingState variant="card" />}

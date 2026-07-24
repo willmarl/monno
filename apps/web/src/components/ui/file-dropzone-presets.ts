@@ -1,3 +1,7 @@
+/**
+ * Client-side MIME/size presets for UX only.
+ * The API enforces real limits (Multer + magic-byte sniff); never trust these alone.
+ */
 export interface DropzoneConfig {
   accept: Record<string, string[]>;
   maxSize: number;

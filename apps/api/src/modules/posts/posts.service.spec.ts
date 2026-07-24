@@ -237,6 +237,10 @@ describe('PostsService', () => {
         createdAt: new Date(),
       };
 
+      mockPrisma.post.findUnique.mockResolvedValue({
+        id: 1,
+        deleted: false,
+      });
       mockPrisma.post.update.mockResolvedValue(updatedPost);
 
       // ACT
@@ -257,6 +261,10 @@ describe('PostsService', () => {
         title: 'New Title',
       };
 
+      mockPrisma.post.findUnique.mockResolvedValue({
+        id: 1,
+        deleted: false,
+      });
       mockPrisma.post.update.mockResolvedValue({
         id: 1,
         title: 'New Title',
@@ -271,6 +279,18 @@ describe('PostsService', () => {
         data: { title: 'New Title' },
         select: expect.any(Object),
       });
+    });
+
+    it('should throw NotFoundException when post is soft-deleted', async () => {
+      mockPrisma.post.findUnique.mockResolvedValue({
+        id: 1,
+        deleted: true,
+      });
+
+      await expect(
+        service.update(1, { title: 'Nope' }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(mockPrisma.post.update).not.toHaveBeenCalled();
     });
   });
 

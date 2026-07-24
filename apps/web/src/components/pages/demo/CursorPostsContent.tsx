@@ -4,7 +4,6 @@ import { Suspense } from "react";
 import { usePostsCursor } from "@/features/posts/hooks";
 import { Post as PostComponent } from "@/components/ui/Post";
 import { CursorPaginatedList } from "@/components/ui/pagination/CursorPaginatedList";
-import { useSessionUser } from "@/features/auth/hooks";
 import { useCursorPaginatedSearch } from "@/hooks/useCursorPaginatedSearch";
 // import { PostSkeleton } from "@/components/skeletons/PostSkeleton";
 import { Post } from "@/features/posts/types/post";
@@ -21,8 +20,6 @@ interface CursorPostsContentProps {
 }
 
 function PostsListContent({ searchParams }: CursorPostsContentProps) {
-  const { data: user } = useSessionUser();
-
   const {
     items: posts,
     hasNextPage,
@@ -49,9 +46,7 @@ function PostsListContent({ searchParams }: CursorPostsContentProps) {
       variant="infinite"
       isFetchingNextPage={isFetchingNextPage}
       onLoadMore={() => fetchNextPage?.()}
-      renderItem={(post) => (
-        <PostComponent data={post} isOwner={post.creator.id === user?.id} />
-      )}
+      renderItem={(post) => <PostComponent data={post} />}
       // renderSkeleton={() => <PostSkeleton />}
       title="Posts (Cursor Pagination)"
       layout="flex"

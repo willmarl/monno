@@ -17,15 +17,14 @@ import { MediaGallery } from "./MediaGallery";
 import { ReportButton } from "../common/ReportButton";
 import { AdminRemoveButton } from "../common/AdminRemoveButton";
 import { ReactionsBar } from "../common/ReactionsBar";
+import { useSessionUser } from "@/features/auth/hooks";
 
 export function Article({
   data,
-  isOwner,
   truncateContent = true,
   truncateTitle = true,
 }: {
   data: ArticleType;
-  isOwner: boolean;
   truncateContent?: boolean;
   truncateTitle?: boolean;
 }) {
@@ -33,6 +32,8 @@ export function Article({
   const { openModal, closeModal } = useModal();
   const router = useRouter();
   const like = useToggleLike();
+  const { data: sessionUser } = useSessionUser();
+  const isOwner = data.creator.id === sessionUser?.id;
 
   function modifyArticle(isOwner: boolean) {
     if (!isOwner) {

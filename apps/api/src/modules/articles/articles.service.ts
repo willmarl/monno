@@ -327,7 +327,7 @@ export class ArticlesService {
   async update(id: number, data: UpdateArticleDto) {
     const article = await this.prisma.article.findUnique({ where: { id } });
 
-    if (!article) {
+    if (!article || article.deleted) {
       throw new NotFoundException('Article not found');
     }
 

@@ -5,7 +5,6 @@ import { PageLoadingState } from "@/components/common/PageLoadingState";
 import { Article } from "@/components/ui/Article";
 import { CursorList } from "@/components/ui/pagination/CursorList";
 import { useArticlesCursor } from "@/features/articles/hooks";
-import { useSessionUser } from "@/features/auth/hooks";
 import { useCursorPaginatedSearch } from "@/hooks/useCursorPaginatedSearch";
 import { PublicArticleSearchParams } from "@/types/search-params";
 
@@ -16,8 +15,6 @@ interface CursorArticlesProps {
 }
 
 function ArticlesListContent({ searchParams }: CursorArticlesProps) {
-  const { data: user } = useSessionUser();
-
   const {
     items: articles,
     hasNextPage,
@@ -42,9 +39,7 @@ function ArticlesListContent({ searchParams }: CursorArticlesProps) {
       isFetchingNextPage={isFetchingNextPage}
       hasNextPage={hasNextPage}
       onLoadMore={() => fetchNextPage?.()}
-      renderItem={(article) => (
-        <Article data={article} isOwner={article.creator.id === user?.id} />
-      )}
+      renderItem={(article) => <Article data={article} />}
       layout="flex"
       title="Cursor Articles"
       renderSkeleton={() => <PageLoadingState variant="card" />}

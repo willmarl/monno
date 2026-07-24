@@ -347,7 +347,16 @@ export class PostsService {
     return enhanced;
   }
 
-  update(id: number, data: UpdatePostDto) {
+  async update(id: number, data: UpdatePostDto) {
+    const post = await this.prisma.post.findUnique({
+      where: { id },
+      select: { id: true, deleted: true },
+    });
+
+    if (!post || post.deleted) {
+      throw new NotFoundException('Post not found');
+    }
+
     return this.prisma.post.update({
       where: { id },
       data,

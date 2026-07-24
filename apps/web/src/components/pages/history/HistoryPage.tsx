@@ -169,7 +169,7 @@ export function HistoryPage() {
                 >
                   <X className="h-4 w-4" />
                 </Button>
-                <Post data={item} isOwner={false} />
+                <Post data={item} />
               </div>
             )}
           />
@@ -218,7 +218,7 @@ export function HistoryPage() {
                 >
                   <X className="h-4 w-4" />
                 </Button>
-                <Article data={item} isOwner={false} />
+                <Article data={item} />
               </div>
             )}
           />

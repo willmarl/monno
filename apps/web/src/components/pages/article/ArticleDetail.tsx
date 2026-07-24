@@ -18,7 +18,6 @@ export function ArticleDetail({ user }: { user: User | undefined }) {
   const articleId = Number(params.id);
   const { data, isLoading, error } = useArticleById(articleId);
   const { mutate: recordView } = useRecordView();
-  const isOwner = data?.creator.id === user?.id;
 
   useEffect(() => {
     document.title = `${data?.title} | ${process.env.NEXT_PUBLIC_APP_NAME}`;
@@ -46,7 +45,6 @@ export function ArticleDetail({ user }: { user: User | undefined }) {
     <div className="max-w-2xl mx-auto space-y-6">
       <Article
         data={data}
-        isOwner={isOwner}
         truncateTitle={false}
         truncateContent={false}
       />

@@ -9,12 +9,11 @@ import { ProfileListSearch } from "./ProfileListSearch";
 
 interface UsersPostsListProps {
   user: PublicUser;
-  isOwner: boolean;
 }
 
 const DEFAULT_LIMIT = 9;
 
-export function UsersPostsList({ user, isOwner }: UsersPostsListProps) {
+export function UsersPostsList({ user }: UsersPostsListProps) {
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
 
@@ -45,7 +44,7 @@ export function UsersPostsList({ user, isOwner }: UsersPostsListProps) {
         totalItems={totalItems}
         isLoading={isLoading}
         onPageChange={setPage}
-        renderItem={(post) => <Post data={post} isOwner={isOwner} />}
+        renderItem={(post) => <Post data={post} />}
         title={`Posts by ${user.username}`}
         layout="grid"
         emptyMessage={

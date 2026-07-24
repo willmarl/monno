@@ -17,10 +17,10 @@ export function UserProfileContent({ user, isOwner }: UserProfileContentProps) {
   return (
     <div className="space-y-8">
       <Suspense fallback={<p>Loading...</p>}>
-        <UsersPostsList user={user} isOwner={isOwner} />
-        {isOwner && <LikedPostsList user={user} isOwner={isOwner} />}
-        <UsersArticlesList user={user} isOwner={isOwner} />
-        {isOwner && <LikedArticlesList user={user} isOwner={isOwner} />}
+        <UsersPostsList user={user} />
+        {isOwner && <LikedPostsList user={user} />}
+        <UsersArticlesList user={user} />
+        {isOwner && <LikedArticlesList user={user} />}
         {isOwner && <CollectionsList user={user} isOwner={isOwner} />}
       </Suspense>
     </div>

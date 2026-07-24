@@ -52,6 +52,13 @@ export class CreatorGuard implements CanActivate {
       throw new ForbiddenException(`You do not own this ${resourceType}`);
     }
 
+    // Soft-deleted resources cannot be mutated (PATCH/POST media/etc).
+    // DELETE is allowed through so services can return 410 Already Deleted.
+    const method = (req.method || 'GET').toUpperCase();
+    if (resource.deleted === true && method !== 'DELETE') {
+      throw new NotFoundException(`${resourceType} not found`);
+    }
+
     return true;
   }
 }

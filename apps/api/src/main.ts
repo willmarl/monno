@@ -122,16 +122,25 @@ async function bootstrap() {
     origin: corsOrigins,
     credentials: true,
   });
-  /* Swagger docs */
-  const config = new DocumentBuilder()
-    .setTitle('Monno: Next + Nest Fullstack API')
-    .setDescription('API documentation for your monorepo')
-    .setVersion('1.0')
-    .addBearerAuth() // enables JWT auth button
-    .build();
+  /* Swagger — off in production unless ENABLE_SWAGGER=true */
+  const enableSwagger =
+    process.env.ENABLE_SWAGGER === 'true' ||
+    (process.env.NODE_ENV !== 'production' &&
+      process.env.ENABLE_SWAGGER !== 'false');
+  if (enableSwagger) {
+    const config = new DocumentBuilder()
+      .setTitle('Monno: Next + Nest Fullstack API')
+      .setDescription('API documentation for your monorepo')
+      .setVersion('1.0')
+      .addBearerAuth() // enables JWT auth button
+      .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('docs', app, document);
+    Print.log('Swagger mounted at /docs');
+  } else {
+    Print.log('Swagger disabled (production or ENABLE_SWAGGER=false)');
+  }
 
   /* Bull Board — disabled when BULL_BOARD_ENABLED=false; always ADMIN-gated */
   const bullBoardEnabled = process.env.BULL_BOARD_ENABLED !== 'false';

@@ -112,10 +112,11 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 - **Issue:** Allowlist uses `file.mimetype`; videos/docs stored raw after allowlist.
 - **Fix applied:** `sniff-mime.ts` detects type from magic bytes (images, PDF, MP4/WebM, XLS/XLSX, CSV text heuristic). `processFile` allowlists the sniffed MIME and overwrites `file.mimetype`; raw saves use server MIME extensions. Unit tests in `sniff-mime.spec.ts`.
 
-### 16. Soft-deleted posts still updatable by creator
+### 16. Soft-deleted posts still updatable by creator — **FIXED**
 
-- **Where:** `CreatorGuard` (no `deleted` check); `posts.service.ts` `update`
-- **Fix:** Reject updates when `deleted === true` (unless admin restore path).
+- **Where:** `CreatorGuard` (no `deleted` check); `posts.service.ts` / `articles.service.ts` `update`
+- **Issue:** Creator could PATCH soft-deleted content; guard only checked ownership.
+- **Fix applied:** `CreatorGuard` rejects non-DELETE methods when `deleted === true` (DELETE still reaches the service for 410). `posts.service.update` / `articles.service.update` also reject deleted rows. Unit + posts integration coverage.
 
 ### 17. Public collections by ID (privacy) — fixed
 
@@ -123,10 +124,11 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 - **Issue:** Any collection ID was readable.
 - **Fix (2026-07-21):** `Visibility` on Collection (default `PRIVATE`); non-owner private reads return 404; lists filter by viewer.
 
-### 18. Frontend CSRF / upload / ownership gaps
+### 18. Frontend CSRF / upload / ownership gaps — **FIXED**
 
 - **Where:** `apps/web` — cookie auth without CSRF; client-only upload MIME/size; wrong `isOwner` on liked/collection UIs; edit pages enforce ownership only in client
-- **Fix:** Align with API CSRF/`SameSite` work (#9); treat client upload checks as UX only; pass real content ownership for `isOwner`; optionally enforce ownership in RSC before edit forms.
+- **Issue:** Liked lists and collection items passed profile/collection ownership into `Post`/`Article` (wrong edit/like UX). Edit routes only checked ownership after client fetch. Client upload checks were easy to confuse with real enforcement.
+- **Fix applied:** `Post`/`Article` derive ownership from session + `creator.id`. Collection items no longer inherit collection-owner flags. Edit post/article RSC pages fetch the resource and redirect non-owners to `/unauthorized`. Client upload presets documented as UX-only (API enforces). CSRF header already on `kyClient` via #9 (`X-Requested-With`).
 
 ---
 
@@ -134,7 +136,7 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 
 | # | Issue | Notes |
 |---|--------|--------|
-| 19 | Swagger at `/docs` unauthenticated | Disable or protect in production |
+| 19 | Swagger at `/docs` unauthenticated — **FIXED** | Off in production unless `ENABLE_SWAGGER=true`; on in dev unless `ENABLE_SWAGGER=false` |
 | 20 | Password-reset request body not a validated DTO | Use `@IsEmail()` DTO |
 | 21 | Test endpoints gated but still registered | Keep `ENABLE_TEST_ENDPOINTS=false` or exclude from prod |
 | 22 | Geolocation uses client-influenced IP (`x-forwarded-for`) | Trust proxy only from known hops |

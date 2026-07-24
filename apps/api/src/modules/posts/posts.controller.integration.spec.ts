@@ -157,6 +157,27 @@ describe('PostsController (integration)', () => {
 
       expect(res.status).toBe(401);
     });
+
+    it('returns 404 when the creator patches a soft-deleted post', async () => {
+      const post = await testApp.prisma.post.create({
+        data: {
+          title: 'Soft Deleted',
+          content: 'gone',
+          creatorId: ownerUser.id,
+          deleted: true,
+          deletedAt: new Date(),
+        },
+      });
+
+      const res = await request(testApp.app.getHttpServer())
+        .patch(`/posts/${post.id}`)
+        .set('Cookie', ownerCookies)
+        .send({ title: 'Should Fail' });
+
+      expect(res.status).toBe(404);
+
+      await testApp.prisma.post.delete({ where: { id: post.id } });
+    });
   });
 
   // ── DELETE /posts/:id ─────────────────────────────────────────────────────
@@ -177,6 +198,26 @@ describe('PostsController (integration)', () => {
       expect(dbPost?.deleted).toBe(true);
 
       // Cleanup
+      await testApp.prisma.post.delete({ where: { id: post.id } });
+    });
+
+    it('returns 410 when deleting an already soft-deleted post', async () => {
+      const post = await testApp.prisma.post.create({
+        data: {
+          title: 'Already Gone',
+          content: 'x',
+          creatorId: ownerUser.id,
+          deleted: true,
+          deletedAt: new Date(),
+        },
+      });
+
+      const res = await request(testApp.app.getHttpServer())
+        .delete(`/posts/${post.id}`)
+        .set('Cookie', ownerCookies);
+
+      expect(res.status).toBe(410);
+
       await testApp.prisma.post.delete({ where: { id: post.id } });
     });
 
