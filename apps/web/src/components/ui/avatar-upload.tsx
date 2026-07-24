@@ -20,7 +20,7 @@ export function AvatarUpload({
   onFileSelect,
   disabled = false,
   currentAvatarUrl,
-  maxSize = 5 * 1024 * 1024,
+  maxSize = 2 * 1024 * 1024,
 }: AvatarUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<AvatarEditor>(null);

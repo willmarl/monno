@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   updateProfile,
+  updateProfileAvatar,
   changePassword,
   deleteProfile,
   fetchUserByUsername,
@@ -18,12 +19,37 @@ import {
 } from "./api";
 import type { PublicUser, UpdateProfileInput } from "./types/user";
 
+export type UpdateProfileResult = {
+  avatarError: string | null;
+};
+
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ data, file }: { data: UpdateProfileInput; file?: File }) =>
-      updateProfile(data, file),
+    mutationFn: async ({
+      data,
+      file,
+    }: {
+      data: UpdateProfileInput;
+      file?: File;
+    }): Promise<UpdateProfileResult> => {
+      // Save text fields first so an oversized avatar cannot block username/email
+      await updateProfile(data);
+      if (!file) {
+        return { avatarError: null };
+      }
+      try {
+        await updateProfileAvatar(file);
+        return { avatarError: null };
+      } catch (err: any) {
+        return {
+          avatarError:
+            err?.message ||
+            (typeof err === "string" ? err : "Avatar upload failed"),
+        };
+      }
+    },
     throwOnError: false,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session"] });

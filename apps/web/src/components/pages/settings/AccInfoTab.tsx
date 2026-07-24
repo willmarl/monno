@@ -35,6 +35,8 @@ export function AccInfoTab() {
     useSendVerificationEmail();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const form = useForm<EditUserInput>({
     resolver: zodResolver(editUserSchema),
@@ -60,18 +62,30 @@ export function AccInfoTab() {
       ...data,
       email: data.email || undefined,
     };
+    setAvatarError(null);
+    setFormError(null);
     updateProfile(
       { data: payload, file: selectedFile || undefined },
       {
-        onSuccess: () => {
-          toastSuccess("Successfully updated profile");
-          setIsEditing(false);
-          setSelectedFile(null);
-          // Redirect to refresh SSR component (Header) with updated user data
+        onSuccess: (result) => {
+          if (result.avatarError) {
+            toastSuccess("Profile details saved");
+            toastError(result.avatarError);
+            setAvatarError(result.avatarError);
+            setSelectedFile(null);
+            // Stay in edit mode so the avatar error is visible
+          } else {
+            toastSuccess("Successfully updated profile");
+            setIsEditing(false);
+            setSelectedFile(null);
+            setAvatarError(null);
+          }
           router.refresh();
         },
         onError: (err) => {
-          toastError(String(err));
+          const msg = err instanceof Error ? err.message : String(err);
+          setFormError(msg);
+          toastError(msg);
         },
       },
     );
@@ -132,11 +146,17 @@ export function AccInfoTab() {
                     Update Picture
                   </Label>
                   <AvatarUpload
-                    onFileSelect={setSelectedFile}
+                    onFileSelect={(file) => {
+                      setSelectedFile(file);
+                      setAvatarError(null);
+                    }}
                     disabled={isPending}
                     currentAvatarUrl={user?.avatarPath || undefined}
                     maxSize={2 * 1024 * 1024}
                   />
+                  {avatarError && (
+                    <p className="text-xs text-red-500 mt-2">{avatarError}</p>
+                  )}
                 </div>
               </>
             )}
@@ -145,6 +165,9 @@ export function AccInfoTab() {
 
             {/* Form Fields */}
             <div className="space-y-4">
+              {formError && (
+                <p className="text-xs text-red-500">{formError}</p>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
                 <Input
@@ -236,6 +259,8 @@ export function AccInfoTab() {
                     onClick={() => {
                       setIsEditing(false);
                       setSelectedFile(null);
+                      setAvatarError(null);
+                      setFormError(null);
                       form.reset();
                     }}
                     disabled={isPending}

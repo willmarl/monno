@@ -1,4 +1,3 @@
-import { api } from "@/lib/kyClient";
 import { fetcher } from "@/lib/fetcher";
 
 import type {
@@ -29,21 +28,24 @@ function createFormDataWithFile(
   return formData;
 }
 
-export const updateProfile = async (data: UpdateProfileInput, file?: File) => {
-  // Use FormData if file is provided, otherwise JSON
-  if (file) {
-    const formData = createFormDataWithFile(data, file);
-    return api("users/me", {
-      method: "PATCH",
-      body: formData,
-    } as any).json();
-  }
-
+/** Profile fields only (JSON) — never blocked by avatar size limits. */
+export const updateProfile = async (data: UpdateProfileInput) => {
   return fetcher("/users/me", {
     method: "PATCH",
     json: data,
   });
 };
+
+/** Avatar only (multipart). Uses fetcher so 413/4xx throw properly. */
+export const updateProfileAvatar = async (file: File) => {
+  const formData = new FormData();
+  formData.append("avatar", file);
+  return fetcher("/users/me", {
+    method: "PATCH",
+    body: formData,
+  });
+};
+
 
 export const changePassword = (data: ChangePasswordInput) =>
   fetcher("/users/me/password", {
@@ -184,10 +186,10 @@ export const updateAdminUser = (
 ) => {
   if (file) {
     const formData = createFormDataWithFile(data, file);
-    return api(`admin/users/${id}`, {
+    return fetcher(`/admin/users/${id}`, {
       method: "PATCH",
       body: formData,
-    } as any).json();
+    });
   }
 
   return fetcher(`/admin/users/${id}`, {
