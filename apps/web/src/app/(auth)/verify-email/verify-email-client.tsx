@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useVerifyEmailToken } from "@/features/auth/hooks";
+import { useConsumeQueryToken } from "@/features/auth/hooks/useConsumeQueryToken";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export function VerifyEmailClient() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const token = useConsumeQueryToken("token");
   const { mutateAsync: verifyEmail } = useVerifyEmailToken();
   const [verificationState, setVerificationState] = useState<
     "loading" | "success" | "error"

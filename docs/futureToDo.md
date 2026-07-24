@@ -55,7 +55,7 @@
 
 **Security**
 
-- Fix remaining Low findings in [vulnerabilities.md](./vulnerabilities.md) (#24, #26). Through #23 Next security headers done; see [progress.md](./progress.md).
+- Fix remaining Low findings in [vulnerabilities.md](./vulnerabilities.md) (#26). Through #24 URL token strip done; see [progress.md](./progress.md).
 
 **Code quality / architecture**
 

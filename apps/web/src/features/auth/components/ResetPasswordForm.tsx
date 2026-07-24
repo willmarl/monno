@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useSearchParams } from "next/navigation";
+import { useConsumeQueryToken } from "@/features/auth/hooks/useConsumeQueryToken";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   resetPasswordSchema,
@@ -28,11 +29,10 @@ interface ResetPasswordFormProps {
 }
 
 /**
- * Form for resetting a password via email token. Importer must handle:
- * - Success toast and redirect to login via onSuccess callback
+ * Form for resetting a password via email token.
+ * On success: toast + redirect to login (API does not issue a session).
  *
- * Reads token from URL search params — inherently page-bound,
- * but accepts callbacks for consistency.
+ * Reads token from URL once, then strips it from the address bar.
  *
  * isAlwaysOpen=false: renders as toggle button.
  * isAlwaysOpen=true: renders form immediately (pages/modals).
@@ -42,8 +42,8 @@ export function ResetPasswordForm({
   isAlwaysOpen = false,
 }: ResetPasswordFormProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const router = useRouter();
+  const token = useConsumeQueryToken("token");
 
   const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
   const [tokenError, setTokenError] = useState<string>("");
@@ -87,7 +87,9 @@ export function ResetPasswordForm({
       {
         onSuccess: () => {
           if (!isAlwaysOpen) setIsOpen(false);
+          toast.success("Password updated. Please log in.");
           onSuccess?.();
+          router.push("/login");
         },
         onError: (error: any) => {
           const message = error?.message || "Failed to reset password";

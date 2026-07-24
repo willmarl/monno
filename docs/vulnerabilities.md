@@ -141,7 +141,7 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 | 21 | Test endpoints gated but still registered — **FIXED** | Routes only mounted when `ENABLE_TEST_ENDPOINTS=true`; `TestEndpointsGuard` as backup |
 | 22 | Geolocation uses client-influenced IP (`x-forwarded-for`) — **FIXED** | Auth/OAuth/verify use `clientIp(req)` → Express `req.ip` + `TRUST_PROXY`; no raw XFF |
 | 23 | No security headers on Next (`CSP`, frame denial, etc.) — **FIXED** | `next.config.ts` headers: CSP, `X-Frame-Options`, nosniff, Referrer-Policy, Permissions-Policy, COOP; HSTS in production |
-| 24 | Reset/verify tokens in URL query strings | Strip after read; short TTL / single-use |
+| 24 | Reset/verify tokens in URL query strings — **FIXED** | Low hygiene: strip `?token=` after read (`useConsumeQueryToken`). Real protection is already API TTL + single-use. Email links still need the query param. |
 | 25 | Public `/test` UI playground — **FIXED** | RSC `notFound()` in production unless `ENABLE_TEST_UI=true`; on in dev unless `false` |
 | 26 | PostHog identifies with email / OAuth IDs | Minimize PII; consent |
 

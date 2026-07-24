@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Reset Password",
 };
+
 async function ResetPasswordPage() {
   await redirectIfLoggedIn();
 
