@@ -81,6 +81,23 @@ async function bootstrap() {
   );
 
   app.use(cookieParser());
+
+  // So req.ip reflects the real client behind nginx/Caddy (guest throttle key).
+  // TRUST_PROXY=false to disable; number/string hop count otherwise; default 1 in production.
+  const trustProxy = process.env.TRUST_PROXY;
+  const httpAdapter = app.getHttpAdapter().getInstance();
+  if (trustProxy === 'false' || trustProxy === '0') {
+    httpAdapter.set('trust proxy', false);
+  } else if (trustProxy !== undefined && trustProxy !== '') {
+    const asNum = Number(trustProxy);
+    httpAdapter.set(
+      'trust proxy',
+      Number.isFinite(asNum) && trustProxy.trim() !== '' ? asNum : trustProxy,
+    );
+  } else if (process.env.NODE_ENV === 'production') {
+    httpAdapter.set('trust proxy', 1);
+  }
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

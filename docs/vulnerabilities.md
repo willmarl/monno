@@ -94,11 +94,11 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 - **Issue:** `@Roles('ADMIN')` uses `req.user.role` from token — demotions leave elevated access until access token expires.
 - **Fix applied:** Already resolved with JWT↔session binding (#1): `AccessTokenStrategy.validate` returns `role` from `session.user` (DB), not JWT claims. `RolesGuard` therefore sees the live role on every authenticated request. Bull Board middleware also checks `session.user.role`.
 
-### 13. `UserAwareThrottlerGuard` never sees `req.user`
+### 13. `UserAwareThrottlerGuard` never sees `req.user` — **FIXED**
 
 - **Where:** `throttle-user.guard.ts`; global guard order in `main.ts`
 - **Issue:** Global throttle runs before route JWT guards → always IP-based. Documented per-user limits don’t apply.
-- **Fix:** Extract user id from cookie JWT for tracking only, or run lightweight auth before throttle; configure trusted proxy.
+- **Fix applied:** Guard verifies the access JWT (cookie or Bearer) with `ACCESS_TOKEN_SECRET` and tracks `user-{sub}` when valid; otherwise IP. Production enables Express `trust proxy` (override via `TRUST_PROXY`) so guest keys use the real client IP. Unit tests in `throttle-tracker.spec.ts`.
 
 ### 14. No Multer size limits at parser layer — **FIXED**
 

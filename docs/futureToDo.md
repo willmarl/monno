@@ -55,7 +55,7 @@
 
 **Security**
 
-- Fix remaining High/Medium findings in [vulnerabilities.md](./vulnerabilities.md) (throttle #13, MIME magic #15, soft-delete update #16, …). Through #14 Multer / #12 role-from-DB done; see [progress.md](./progress.md).
+- Fix remaining High/Medium findings in [vulnerabilities.md](./vulnerabilities.md) (MIME magic #15, soft-delete update #16, …). Through #13 user-aware throttle done; see [progress.md](./progress.md).
 
 **Code quality / architecture**
 

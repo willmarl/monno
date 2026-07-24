@@ -1,27 +1,48 @@
 import { Injectable } from '@nestjs/common';
-import { ThrottlerGuard } from '@nestjs/throttler';
-import { ExecutionContext } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { JwtService } from '@nestjs/jwt';
+import {
+  InjectThrottlerOptions,
+  InjectThrottlerStorage,
+  ThrottlerGuard,
+  ThrottlerModuleOptions,
+  ThrottlerStorage,
+} from '@nestjs/throttler';
+import {
+  clientIp,
+  peekAccessTokenUserId,
+} from './throttle-tracker';
 
 /**
  * UserAwareThrottlerGuard - Smart rate limiting
  *
- * For authenticated users: throttle by userId
+ * For authenticated users: throttle by userId (from req.user or verified access JWT)
  * For guests: throttle by IP address
  *
- * This ensures:
- * - Office workers on same IP don't kill each other's limits
- * - Logged-in users get fair individual limits
- * - Guests still get protected by IP-based limits
+ * Global guard runs before route JwtAccessGuard, so we verify the access cookie
+ * lightly for tracking only — not a substitute for full session auth.
  */
 @Injectable()
 export class UserAwareThrottlerGuard extends ThrottlerGuard {
+  constructor(
+    @InjectThrottlerOptions() options: ThrottlerModuleOptions,
+    @InjectThrottlerStorage() storageService: ThrottlerStorage,
+    reflector: Reflector,
+    private readonly jwt: JwtService,
+  ) {
+    super(options, storageService, reflector);
+  }
+
   protected async getTracker(req: Record<string, any>): Promise<string> {
-    // If user is authenticated → use their userId as the tracker
-    if (req.user?.sub) {
+    if (req.user?.sub != null) {
       return `user-${req.user.sub}`;
     }
 
-    // Otherwise fall back to IP address for guests
-    return req.ip;
+    const userId = peekAccessTokenUserId(req, this.jwt);
+    if (userId != null) {
+      return `user-${userId}`;
+    }
+
+    return clientIp(req);
   }
 }
