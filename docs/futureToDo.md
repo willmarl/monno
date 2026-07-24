@@ -55,7 +55,7 @@
 
 **Security**
 
-- Fix remaining Low findings in [vulnerabilities.md](./vulnerabilities.md) (#22–#24, #26). Through #21/#25 test surfaces done; see [progress.md](./progress.md).
+- Fix remaining Low findings in [vulnerabilities.md](./vulnerabilities.md) (#23–#24, #26). Through #22 client IP trust done; see [progress.md](./progress.md).
 
 **Code quality / architecture**
 

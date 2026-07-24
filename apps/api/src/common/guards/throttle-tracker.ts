@@ -48,9 +48,4 @@ export function extractAccessToken(req: {
   return undefined;
 }
 
-export function clientIp(req: {
-  ip?: string;
-  socket?: { remoteAddress?: string };
-}): string {
-  return req.ip || req.socket?.remoteAddress || 'unknown';
-}
+export { clientIp } from '../request-ip';

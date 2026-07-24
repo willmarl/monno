@@ -82,8 +82,9 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  // So req.ip reflects the real client behind nginx/Caddy (guest throttle key).
+  // So req.ip reflects the real client behind nginx/Caddy (throttle, sessions, geo).
   // TRUST_PROXY=false to disable; number/string hop count otherwise; default 1 in production.
+  // Auth/geo MUST use clientIp(req) — never raw X-Forwarded-For.
   const trustProxy = process.env.TRUST_PROXY;
   const httpAdapter = app.getHttpAdapter().getInstance();
   if (trustProxy === 'false' || trustProxy === '0') {

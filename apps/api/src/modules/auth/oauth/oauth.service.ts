@@ -12,6 +12,7 @@ import { suspiciousLoginTemplate } from '../../../common/email-templates';
 import { cookieConfig } from '../../../config/cookie.config';
 import type { User } from '../../../generated/prisma/client';
 import { evaluateAccountAccess } from '../account-status';
+import { clientIp } from '../../../common/request-ip';
 import {
   generateOAuthState,
   generatePkcePair,
@@ -532,10 +533,7 @@ export class OauthService {
 
     // Extract metadata from request
     const userAgent = req.headers['user-agent'] ?? 'unknown';
-    const ipAddress =
-      req.headers['x-forwarded-for']?.toString().split(',')[0] ||
-      req.ip ||
-      'unknown';
+    const ipAddress = clientIp(req);
 
     // Get geolocation for the IP
     const geo = await this.geolocationService.getGeolocation(ipAddress);

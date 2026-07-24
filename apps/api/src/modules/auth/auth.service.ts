@@ -10,6 +10,7 @@ import { GeolocationService } from '../../common/geolocation/geolocation.service
 import { RiskScoringService } from '../../common/risk-scoring/risk-scoring.service';
 import { EmailVerificationService } from './email-verification.service';
 import { evaluateAccountAccess } from './account-status';
+import { clientIp } from '../../common/request-ip';
 
 @Injectable()
 export class AuthService {
@@ -34,10 +35,7 @@ export class AuthService {
 
     // Provide tokens immediately on register with session metadata
     const userAgent = req.headers['user-agent'] || 'unknown';
-    const ipAddress =
-      req.headers['x-forwarded-for']?.toString().split(',')[0] ||
-      req.ip ||
-      'unknown';
+    const ipAddress = clientIp(req);
 
     return this.issueTokens(user.id, {
       userAgent,
@@ -67,10 +65,7 @@ export class AuthService {
 
     // Extract metadata from request
     const userAgent = req.headers['user-agent'] || 'unknown';
-    const ipAddress =
-      req.headers['x-forwarded-for']?.toString().split(',')[0] ||
-      req.ip ||
-      'unknown';
+    const ipAddress = clientIp(req);
 
     return this.issueTokens(user.id, {
       userAgent,

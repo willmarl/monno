@@ -21,6 +21,7 @@ import { cookieConfig } from 'src/config/cookie.config';
 import { EmailVerificationService } from './email-verification.service';
 import { JwtAccessGuard } from './guards/jwt-access.guard';
 import { AuthService } from './auth.service';
+import { clientIp } from '../../common/request-ip';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -121,10 +122,7 @@ export class EmailVerificationController {
       // Issue tokens with session creation (same as login flow)
       const tokens = await this.authService.issueTokens(user.id, {
         userAgent: req.headers['user-agent'] || 'unknown',
-        ipAddress:
-          req.headers['x-forwarded-for']?.toString().split(',')[0] ||
-          req.ip ||
-          'unknown',
+        ipAddress: clientIp(req),
       });
 
       // Set cookies (same pattern as login endpoint)
