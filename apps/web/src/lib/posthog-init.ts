@@ -10,6 +10,8 @@ export function initPostHog() {
       api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
       capture_pageview: true,
       capture_pageleave: true,
+      // Prefer anonymous → identified; still no PII in identify() properties
+      person_profiles: "identified_only",
     });
   }
 }

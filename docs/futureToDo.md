@@ -55,7 +55,7 @@
 
 **Security**
 
-- Fix remaining Low findings in [vulnerabilities.md](./vulnerabilities.md) (#26). Through #24 URL token strip done; see [progress.md](./progress.md).
+- Security audit Low list through #26 in [vulnerabilities.md](./vulnerabilities.md) is done; optional follow-ups: regional analytics consent banner, remaining integration tests / code-quality items — see [progress.md](./progress.md).
 
 **Code quality / architecture**
 

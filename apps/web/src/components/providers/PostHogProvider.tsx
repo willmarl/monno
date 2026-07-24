@@ -3,33 +3,22 @@
 import { useEffect } from "react";
 import posthog from "posthog-js";
 import { useSessionUser } from "@/features/auth/hooks";
+import { identifyPostHogUser } from "@/lib/posthog-identify";
 
 /**
- * PostHog provider component that handles user identification
- * - Identifies users when they log in
- * - Resets identification when they log out
- *
- * Must be used inside QueryClientProvider (for useSessionUser)
+ * Syncs PostHog identity with the session (id + role only; no email/OAuth IDs).
+ * Must be used inside QueryClientProvider.
  */
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   const { data: user } = useSessionUser();
 
   useEffect(() => {
     if (user) {
-      // User is logged in: identify them with PostHog
-      posthog.identify(String(user.id), {
-        email: user.email ?? undefined,
-        username: user.username,
-        googleId: user.googleId ?? undefined,
-        githubId: user.githubId ?? undefined,
-        role: user.role,
-        isEmailVerified: user.isEmailVerified,
-      });
+      identifyPostHogUser(user);
     } else {
-      // User is logged out: reset PostHog
       posthog.reset();
     }
-  }, [user?.id]);
+  }, [user?.id, user?.role]);
 
   return <>{children}</>;
 }

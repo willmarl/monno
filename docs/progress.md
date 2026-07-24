@@ -119,7 +119,7 @@ Do these **alongside** feature work, not as a final dump.
 | Status | Task | Notes |
 |--------|------|-------|
 | todo | [ ] Integration tests for each behavior you lock (IDOR, soft-delete, visibility, auth) | 2026-07-22: added visibility/IDOR coverage on posts, collections, likes; keep growing with new locks |
-| todo | [ ] Remaining Low vulns (#26 PostHog PII, …) | 2026-07-24: through #24 strip reset/verify tokens from URL |
+| done | [x] Security audit Low list (#19–#26) | 2026-07-24: through PostHog PII minimize; optional regional consent banner later |
 | todo | [ ] Remaining code-quality (server-read / hydrate Query, `packages/shared`, god-service splits, soft-delete `$transaction`) | after Phase 1 pilots |
 
 ---
@@ -130,6 +130,7 @@ _Add a line when you complete a task._
 
 | Date | Task | Note |
 |------|------|------|
+| 2026-07-24 | Ongoing — PostHog PII #26 | identify by user id (+ role); no email/OAuth IDs |
 | 2026-07-24 | Ongoing — URL tokens #24 | useConsumeQueryToken strips ?token after read; TTL/single-use already in API |
 | 2026-07-24 | Ongoing — Next security headers #23 | CSP + frame denial + nosniff + HSTS (prod) via next.config |
 | 2026-07-24 | Ongoing — client IP / geo #22 | clientIp(req) for auth sessions; no raw X-Forwarded-For |

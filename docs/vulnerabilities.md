@@ -143,7 +143,7 @@ Prioritize **Critical** then **High**. Track remediation via [futureToDo.md](./f
 | 23 | No security headers on Next (`CSP`, frame denial, etc.) — **FIXED** | `next.config.ts` headers: CSP, `X-Frame-Options`, nosniff, Referrer-Policy, Permissions-Policy, COOP; HSTS in production |
 | 24 | Reset/verify tokens in URL query strings — **FIXED** | Low hygiene: strip `?token=` after read (`useConsumeQueryToken`). Real protection is already API TTL + single-use. Email links still need the query param. |
 | 25 | Public `/test` UI playground — **FIXED** | RSC `notFound()` in production unless `ENABLE_TEST_UI=true`; on in dev unless `false` |
-| 26 | PostHog identifies with email / OAuth IDs | Minimize PII; consent |
+| 26 | PostHog identifies with email / OAuth IDs — **FIXED** | Identify by user id (+ role only); dropped email/username/googleId/githubId. Cookie/consent banner still product-owned if required in your region |
 
 **Not found / in decent shape:** Admin Nest routes use `JwtAccessGuard` + `@Roles('ADMIN')`; Stripe webhook signature verification present; ValidationPipe whitelist + forbidNonWhitelisted; Pino redacts cookies/auth headers; no `dangerouslySetInnerHTML` (XSS via HTML sinks); tokens not in `localStorage`; soft-delete filters on most public reads; no user-input `$queryRaw` injection found; OAuth/Stripe redirects use fixed `FRONTEND_URL` (no open redirect observed).
 
