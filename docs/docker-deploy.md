@@ -187,9 +187,11 @@ sudo crontab -e
 sudo crontab -l
 ```
 
-Dumps are kept under `/opt/apps/monno/backups` for 7 days locally. Copy them
-off-box (e.g. `rsync` to a NAS) if you need longer retention. The `uploads`
-Docker volume is not included in these dumps.
+Dumps are kept under `/opt/apps/monno/backups` with GFS-style retention:
+last **7 days** of daily dumps, then **1 per week** for 4 weeks, then **1 per
+month** for 3 months (override with `KEEP_DAILY_DAYS` / `KEEP_WEEKLY_WEEKS` /
+`KEEP_MONTHLY_MONTHS`). Copy them off-box (e.g. `rsync` to a NAS) if you need
+longer history. The `uploads` Docker volume is not included in these dumps.
 
 Restore (destructive — type `yes` when prompted):
 
