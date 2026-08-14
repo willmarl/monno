@@ -62,7 +62,7 @@ Findings from a static architecture review of `apps/web`, `apps/api`, and `apps/
 ### 7. Worker ↔ API: Prisma (and email) duplicated — **Prisma part FIXED**
 
 - **Issue:** `apps/api/prisma/schema.prisma` and `apps/worker/prisma/schema.prisma` are byte-identical; separate migrations/generate. Email service forked with a comment claiming shared use that isn’t true for the worker copy.
-- **Fix applied (2026-07-20):** `apps/api/prisma/schema.prisma` is canonical. `scripts/sync-prisma-schema.sh` stamps a copy into the worker (`pnpm run db:sync-schema`, `--check` for drift guard). Worker migrations folder deleted — api owns `migrate deploy`; worker only runs `generate`. `migrate.sh` / `deploy-vm.sh` updated.
+- **Fix applied (2026-07-20):** `apps/api/prisma/schema.prisma` is canonical. `scripts/sync-prisma-schema.sh` stamps a copy into the worker (`pnpm run db:sync-schema`, `--check` for drift guard). Worker migrations folder deleted — api owns `migrate deploy`; worker only runs `generate`. `migrate.sh` / `scripts/bare-metal/deploy-vm.sh` updated.
 - **Still open:** Shared email/Resend helper (worker's fork of the email service).
 
 ### 8. `enhanceWithLikes` N+1 — **FIXED**

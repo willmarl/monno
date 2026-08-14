@@ -5,13 +5,13 @@ set -e
 # Exit on Ctrl+C
 trap 'echo "❌ Deployment cancelled!"; exit 1' INT
 
-# Load environment variables
-if [ ! -f "$(dirname "$0")/.env.deploy" ]; then
+# Load environment variables from scripts/.env.deploy
+if [ ! -f "$(dirname "$0")/../.env.deploy" ]; then
   echo "❌ .env.deploy file not found!"
   exit 1
 fi
 
-source "$(dirname "$0")/.env.deploy"
+source "$(dirname "$0")/../.env.deploy"
 
 # Verify DEPLOY_PATH is set
 if [ -z "$DEPLOY_PATH" ]; then

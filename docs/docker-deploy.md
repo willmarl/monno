@@ -83,8 +83,11 @@ The VM only needs Docker, host nginx/certbot, and this small deployment bundle:
 ├── env/
 │   ├── api.env
 │   └── worker.env
+├── backups/                    # created by backup-db.sh
 └── scripts/
-    └── deploy-images-vm.sh
+    ├── deploy-images-vm.sh
+    ├── backup-db.sh
+    └── restore-db.sh
 ```
 
 It is okay to keep a clone of the repository there for convenience; the
@@ -160,6 +163,43 @@ bash scripts/deploy-images-vm.sh PREVIOUS_GIT_SHA
 
 Application rollback is immediate. Database migrations are not automatically
 reversed; migrations should remain backward-compatible when possible.
+
+## Database backup / restore
+
+Logical dumps use `pg_dump` inside the compose `db` service (same project as
+deploy: `-p monno-prod`). Scripts live next to the deploy script and are
+uploaded by `pnpm run deploy:env` (docker mode).
+
+```bash
+cd /opt/apps/monno
+chmod +x scripts/backup-db.sh scripts/restore-db.sh
+
+# Manual backup
+bash scripts/backup-db.sh
+ls -lh backups/backup-*.sql.gz
+```
+
+Daily cron (host crontab):
+
+```bash
+sudo crontab -e
+# 0 2 * * * bash /opt/apps/monno/scripts/backup-db.sh >> /opt/apps/monno/backups/backup.log 2>&1
+sudo crontab -l
+```
+
+Dumps are kept under `/opt/apps/monno/backups` for 7 days locally. Copy them
+off-box (e.g. `rsync` to a NAS) if you need longer retention. The `uploads`
+Docker volume is not included in these dumps.
+
+Restore (destructive — type `yes` when prompted):
+
+```bash
+bash scripts/restore-db.sh /opt/apps/monno/backups/backup-YYYY-MM-DD_HHMMSS.sql.gz
+```
+
+The restore script stops `api` and `worker`, terminates open DB sessions,
+drops/recreates the database, loads the dump, then starts `api` and `worker`
+again.
 
 ## Useful VM commands
 

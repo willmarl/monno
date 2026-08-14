@@ -101,10 +101,12 @@ if [ "$MODE" = "docker" ]; then
   # Deployment bundle companions (not secrets, but needed next to the env files)
   upload "docker-compose.prod.yml" "${DEPLOY_PATH}/docker-compose.prod.yml" "docker-compose.prod.yml"
   upload "scripts/deploy-images-vm.sh" "${DEPLOY_PATH}/scripts/deploy-images-vm.sh" "scripts/deploy-images-vm.sh"
+  upload "scripts/backup-db.sh" "${DEPLOY_PATH}/scripts/backup-db.sh" "scripts/backup-db.sh"
+  upload "scripts/restore-db.sh" "${DEPLOY_PATH}/scripts/restore-db.sh" "scripts/restore-db.sh"
   upload "scripts/nginx.template" "${DEPLOY_PATH}/scripts/nginx.template" "scripts/nginx.template"
 
-  # Make the VM update script executable after upload
-  ssh "$REMOTE" "chmod +x '${DEPLOY_PATH}/scripts/deploy-images-vm.sh' 2>/dev/null || true"
+  # Make VM scripts executable after upload
+  ssh "$REMOTE" "chmod +x '${DEPLOY_PATH}/scripts/deploy-images-vm.sh' '${DEPLOY_PATH}/scripts/backup-db.sh' '${DEPLOY_PATH}/scripts/restore-db.sh' 2>/dev/null || true"
 else
   # Bare-metal / PM2 layout
   ssh "$REMOTE" "mkdir -p '${DEPLOY_PATH}/apps/api' '${DEPLOY_PATH}/apps/worker' '${DEPLOY_PATH}/apps/web'"

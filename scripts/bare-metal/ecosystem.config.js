@@ -1,8 +1,8 @@
 const fs = require("fs");
 const path = require("path");
 
-// Load environment variables from .env.deploy
-const envPath = path.join(__dirname, ".env.deploy");
+// Load environment variables from scripts/.env.deploy (parent of bare-metal/)
+const envPath = path.join(__dirname, "..", ".env.deploy");
 let deployPath = "/opt/apps/monno"; // default
 
 if (fs.existsSync(envPath)) {

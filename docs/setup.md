@@ -194,11 +194,13 @@ or alternatively just go into each app individually and run `pnpm run build`
 
 ### deploy (bare metal)
 
+> Prefer Docker image deploy for new VMs — see [docker-deploy.md](./docker-deploy.md). Scripts for this PM2 path live under [`scripts/bare-metal/`](../scripts/bare-metal/).
+
 > _All steps from here on out assumes you have port forward/ingress rules for port 80 and 443 TCP aswell set up your DNS to have your VM's IP to point to your domain name in cloudflare or whatever_
 
 #### 1. prep VM with node, docker, nginx, etc. i have script that installs all software thats needed, just provide your public SSH key.
 
-**[startup.sh](./scripts/startup.sh) does the following:**
+**[startup.sh](../scripts/bare-metal/startup.sh) does the following:**
 
 - updates and upgrades all system packages
 - installs curl, git, and ufw (firewall)
@@ -279,7 +281,7 @@ pnpm run build
 #### 6. start pm2 with ecosystem config
 
 ```bash
-pm2 start scripts/ecosystem.config.js
+pm2 start scripts/bare-metal/ecosystem.config.js
 pm2 save
 pm2 startup # Follow the output to enable auto-start
 ```
@@ -356,9 +358,11 @@ pnpm run deploy:vm
 
 should setup DB backup by adding backup script to cron job
 
+> Docker deployers: use the scripts documented in [docker-deploy.md](./docker-deploy.md) instead of the bare-metal ones below.
+
 #### to backup DB
 
-[backup-db.sh](./scripts/backup-db.sh) works by using `pg_dump` command inside the postgres docker, compress that file, then save in backs up folder. The script automatically reads your `COMPOSE_PROJECT_NAME` from `.env.docker` to determine the correct container name.
+[backup-db.sh](../scripts/bare-metal/backup-db.sh) works by using `pg_dump` command inside the postgres docker, compress that file, then save in backs up folder. The script automatically reads your `COMPOSE_PROJECT_NAME` from `.env.docker` to determine the correct container name.
 
 1. Optionally change the variables in script file to customize backup location or retention:
 
@@ -371,18 +375,18 @@ KEEP_DAYS=7
 
 The container name is automatically derived from `COMPOSE_PROJECT_NAME` in `.env.docker`, so no manual configuration needed there.
 
-2. enable script by `chmod +x scripts/backup-db.sh`
+2. enable script by `chmod +x scripts/bare-metal/backup-db.sh`
 3. Test backup manually first
-   `bash /opt/apps/monno/scripts/backup-db.sh`
+   `bash /opt/apps/monno/scripts/bare-metal/backup-db.sh`
 4. Check it worked
-   `ls -lh /opt/backups/backup-*.sql.gz`
+   `ls -lh /opt/apps/monno/backups/backup-*.sql.gz`
 5. Add to cron
 
 ```bash
 sudo crontab -e
 
 # add this then exit cron
-0 2 * * * bash /opt/apps/monno/scripts/backup-db.sh >> /opt/backups/backup.log 2>&1
+0 2 * * * bash /opt/apps/monno/scripts/bare-metal/backup-db.sh >> /opt/apps/monno/backups/backup.log 2>&1
 
 #verify cron is set
 sudo crontab -l
@@ -392,8 +396,8 @@ Note this only saves locally. recommend to have cron job to `rsync` backups to y
 
 #### to restore DB
 
-[restore-db.sh](./scripts/restore-db.sh) works by unzipping file you gave in argument, drops current database, creates fresh database, restore from backup file, then restart `api` and `worker` in pm2.
+[restore-db.sh](../scripts/bare-metal/restore-db.sh) works by unzipping file you gave in argument, drops current database, creates fresh database, restore from backup file, then restart `api` and `worker` in pm2.
 
-1. enable script first by `chmod +x scripts/restore-db.sh`
-2. Usage: `scripts/restore-db.sh <backup-file>`
-   Example: `scripts/restore-db.sh /opt/apps/monno/backups/backup-2026-03-15_140000.sql.gz`
+1. enable script first by `chmod +x scripts/bare-metal/restore-db.sh`
+2. Usage: `scripts/bare-metal/restore-db.sh <backup-file>`
+   Example: `scripts/bare-metal/restore-db.sh /opt/apps/monno/backups/backup-2026-03-15_140000.sql.gz`
